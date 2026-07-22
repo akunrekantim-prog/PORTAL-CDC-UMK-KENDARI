@@ -1,0 +1,135 @@
+import React from 'react';
+import {
+  Megaphone, Shield, MessageSquare, Puzzle, Wrench, GraduationCap,
+  Mic, Briefcase, Sparkles, ClipboardCheck, Rocket, ChevronRight, Home
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+
+interface LayananContainerProps {
+  currentTab: string;
+  setTab: (tab: string) => void;
+  children: React.ReactNode;
+}
+
+export interface LayananMenuOption {
+  id: string;
+  label: string;
+  shortLabel: string;
+  icon: React.ElementType;
+  badge?: string;
+  color: string;
+}
+
+export const LAYANAN_MENU: LayananMenuOption[] = [
+  { id: 'cara-pasang', label: 'Cara Pasang LowKer', shortLabel: 'Pasang Loker', icon: Megaphone, color: 'from-amber-500 to-orange-600' },
+  { id: 'keanggotaan', label: 'Keanggotaan CDC', shortLabel: 'Keanggotaan', icon: Shield, badge: 'Digital Card', color: 'from-blue-600 to-indigo-600' },
+  { id: 'konseling', label: 'Bimbingan Karir', shortLabel: 'Konseling', icon: MessageSquare, badge: 'Reservasi', color: 'from-emerald-500 to-teal-600' },
+  { id: 'tes-minat', label: 'Tes Minat (RIASEC)', shortLabel: 'Tes Minat', icon: Puzzle, badge: 'Kuis Mini', color: 'from-violet-600 to-purple-600' },
+  { id: 'workshop', label: 'Workshop Karir', shortLabel: 'Workshop', icon: Wrench, color: 'from-rose-500 to-pink-600' },
+  { id: 'softskill', label: 'Softskill & Kewirausahaan', shortLabel: 'Softskill', icon: GraduationCap, badge: 'Sertifikat', color: 'from-cyan-500 to-blue-600' },
+  { id: 'seminar', label: 'Seminar Sukses Karir', shortLabel: 'Seminar', icon: Mic, badge: 'E-Ticket', color: 'from-fuchsia-500 to-pink-600' },
+  { id: 'bursa-kerja', label: 'Bursa Kerja (Loker)', shortLabel: 'Bursa Kerja', icon: Briefcase, badge: 'Lamar Cepat', color: 'from-indigo-600 to-violet-700' },
+  { id: 'career-fair', label: 'UM Kendari Job Fair', shortLabel: 'Job Fair', icon: Sparkles, badge: 'Virtual Booth', color: 'from-amber-400 to-yellow-600' },
+  { id: 'exit-survey', label: 'Data Exit Survey', shortLabel: 'Exit Survey', icon: ClipboardCheck, badge: 'Tracer', color: 'from-emerald-600 to-green-700' },
+  { id: 'job-placement', label: 'Job Placement Program', shortLabel: 'Job Placement', icon: Rocket, badge: 'Akselerasi', color: 'from-blue-700 to-sky-600' },
+];
+
+export default function LayananContainer({ currentTab, setTab, children }: LayananContainerProps) {
+  const activeOption = LAYANAN_MENU.find(m => m.id === currentTab) || LAYANAN_MENU[0];
+
+  return (
+    <div className="min-h-screen bg-slate-50/50 pb-20">
+      {/* ── Top Hero Banner ── */}
+      <div className="bg-gradient-to-r from-[#0F1F4B] via-[#1E3A8A] to-[#1e293b] text-white pt-10 pb-14 px-4 relative overflow-hidden shadow-md">
+        <div className="absolute -right-10 -top-10 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute right-1/3 -bottom-10 w-64 h-64 bg-violet-500/10 rounded-full blur-2xl pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto space-y-4 relative z-10">
+          {/* Breadcrumbs */}
+          <nav className="flex items-center gap-2 text-xs text-blue-200/80 font-medium overflow-x-auto pb-1">
+            <button
+              onClick={() => setTab('beranda')}
+              className="flex items-center gap-1 hover:text-white transition cursor-pointer shrink-0"
+            >
+              <Home className="w-3.5 h-3.5" />
+              <span>Beranda</span>
+            </button>
+            <ChevronRight className="w-3 h-3 text-blue-300/40 shrink-0" />
+            <span className="text-blue-200/80 shrink-0">Layanan CDC</span>
+            <ChevronRight className="w-3 h-3 text-blue-300/40 shrink-0" />
+            <span className="text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded-md shrink-0">
+              {activeOption.label}
+            </span>
+          </nav>
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-1">
+            <div>
+              <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full text-xs font-bold uppercase tracking-wider">
+                Pusat Layanan Mahasiswa &amp; Alumni
+              </span>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold mt-2 tracking-tight text-white">
+                {activeOption.label}
+              </h1>
+            </div>
+            <p className="text-slate-300 text-xs sm:text-sm max-w-md leading-relaxed">
+              Akses ekosistem layanan karir terpadu Universitas Muhammadiyah Kendari secara mandiri, interaktif, dan terintegrasi.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Sticky Sub-Navigation Bar ── */}
+      <div className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center gap-1.5 overflow-x-auto py-3 no-scrollbar scroll-smooth">
+            {LAYANAN_MENU.map((menu) => {
+              const Icon = menu.icon;
+              const isActive = currentTab === menu.id;
+
+              return (
+                <button
+                  key={menu.id}
+                  onClick={() => setTab(menu.id)}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 relative cursor-pointer ${
+                    isActive
+                      ? 'bg-[#1E3A8A] text-white shadow-md shadow-blue-900/20 scale-[1.02]'
+                      : 'bg-slate-100/80 text-slate-600 hover:bg-slate-200/80 hover:text-slate-900'
+                  }`}
+                >
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-emerald-400' : 'text-slate-500'}`} />
+                  <span>{menu.shortLabel}</span>
+
+                  {menu.badge && !isActive && (
+                    <span className="px-1.5 py-0.5 text-[9px] font-extrabold bg-slate-200 text-slate-600 rounded-md">
+                      {menu.badge}
+                    </span>
+                  )}
+                  {menu.badge && isActive && (
+                    <span className="px-1.5 py-0.5 text-[9px] font-extrabold bg-emerald-400 text-blue-950 rounded-md shadow-sm">
+                      {menu.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Main Content Area with Motion Fade Transition ── */}
+      <div className="max-w-7xl mx-auto px-4 pt-6">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentTab}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}

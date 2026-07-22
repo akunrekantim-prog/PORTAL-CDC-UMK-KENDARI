@@ -28,6 +28,7 @@ interface NavItem {
   id: string;
   label: string;
   tab?: string;        // if set → navigates directly, no dropdown
+  href?: string;       // if set → opens external URL in new tab
   isAction?: boolean;  // if true → calls onNavigateToLogin instead of setTab
   children?: NavChild[];
 }
@@ -81,10 +82,7 @@ const NAV_ITEMS: NavItem[] = [
   {
     id: 'tracer',
     label: 'Tracer Study',
-    children: [
-      { label: 'Kuesioner Tracer Study', tab: 'tracer-kuesioner' },
-      { label: 'Hasil Tracer Study',     tab: 'tracer-hasil'     },
-    ],
+    href: 'https://tracerstudy.umkendari.ac.id',
   },
   {
     id: 'survey',
@@ -266,7 +264,8 @@ export default function Header({ currentTab, setTab, onNavigateToLogin }: Header
                   {/* Nav trigger button */}
                   <button
                     onClick={() => {
-                      if (item.tab)      navigate(item.tab, item.isAction);
+                      if (item.href)     window.open(item.href, '_blank', 'noopener,noreferrer');
+                      else if (item.tab) navigate(item.tab, item.isAction);
                       else if (item.children) setOpenDropdown(
                         openDropdown === item.id ? null : item.id
                       );
@@ -375,7 +374,10 @@ export default function Header({ currentTab, setTab, onNavigateToLogin }: Header
                   {/* Row */}
                   <button
                     onClick={() => {
-                      if (item.tab) {
+                      if (item.href) {
+                        window.open(item.href, '_blank', 'noopener,noreferrer');
+                        setIsMobileOpen(false);
+                      } else if (item.tab) {
                         navigate(item.tab, item.isAction);
                       } else {
                         setMobileExpanded(expanded ? null : item.id);

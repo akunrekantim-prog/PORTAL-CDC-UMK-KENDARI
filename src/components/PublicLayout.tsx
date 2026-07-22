@@ -14,6 +14,18 @@ import {
 import { Lowongan, Berita, Pengumuman } from '../types';
 import { motion } from 'motion/react';
 import Header from './Header';
+import CaraPasang from './layanan/CaraPasang';
+import Keanggotaan from './layanan/Keanggotaan';
+import BimbinganKarir from './layanan/BimbinganKarir';
+import TesMinat from './layanan/TesMinat';
+import Workshop from './layanan/Workshop';
+import Softskill from './layanan/Softskill';
+import Seminar from './layanan/Seminar';
+import BursaKerja from './layanan/BursaKerja';
+import CareerFair from './layanan/CareerFair';
+import ExitSurvey from './layanan/ExitSurvey';
+import JobPlacement from './layanan/JobPlacement';
+import LayananContainer from './layanan/LayananContainer';
 
 /* ─── Types ─────────────────────────────────── */
 interface PublicLayoutProps {
@@ -977,6 +989,23 @@ export default function PublicLayout({
               </div>
             </div>
           </div>
+        )}
+
+        {/* ─── LAYANAN SUB-TABS ───────────────────────────────────── */}
+        {['cara-pasang', 'keanggotaan', 'konseling', 'tes-minat', 'workshop', 'softskill', 'seminar', 'bursa-kerja', 'career-fair', 'exit-survey', 'job-placement'].includes(currentTab) && (
+          <LayananContainer currentTab={currentTab} setTab={setTab}>
+            {currentTab === 'cara-pasang' && <CaraPasang />}
+            {currentTab === 'keanggotaan' && <Keanggotaan />}
+            {currentTab === 'konseling' && <BimbinganKarir />}
+            {currentTab === 'tes-minat' && <TesMinat />}
+            {currentTab === 'workshop' && <Workshop />}
+            {currentTab === 'softskill' && <Softskill />}
+            {currentTab === 'seminar' && <Seminar />}
+            {currentTab === 'bursa-kerja' && <BursaKerja />}
+            {currentTab === 'career-fair' && <CareerFair />}
+            {currentTab === 'exit-survey' && <ExitSurvey />}
+            {currentTab === 'job-placement' && <JobPlacement />}
+          </LayananContainer>
         )}
 
       </main>
