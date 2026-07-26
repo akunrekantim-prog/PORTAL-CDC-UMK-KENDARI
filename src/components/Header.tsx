@@ -37,6 +37,7 @@ export interface HeaderProps {
   currentTab: string;
   setTab: (tab: string) => void;
   onNavigateToLogin: () => void;
+  onNavigateToRegister?: (type?: 'alumni' | 'perusahaan') => void;
 }
 
 /* ─────────────────────────────────────────────────────────────────
@@ -123,7 +124,7 @@ const TOP_LINKS = [
 /* ─────────────────────────────────────────────────────────────────
    COMPONENT
 ───────────────────────────────────────────────────────────────── */
-export default function Header({ currentTab, setTab, onNavigateToLogin }: HeaderProps) {
+export default function Header({ currentTab, setTab, onNavigateToLogin, onNavigateToRegister }: HeaderProps) {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isMobileOpen,  setIsMobileOpen]  = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
@@ -173,7 +174,16 @@ export default function Header({ currentTab, setTab, onNavigateToLogin }: Header
     setOpenDropdown(null);
     setIsMobileOpen(false);
     setMobileExpanded(null);
-    if (isAction) {
+    if (tab === 'register-alumni') {
+      if (onNavigateToRegister) onNavigateToRegister('alumni');
+      else onNavigateToLogin();
+    } else if (tab === 'register-perusahaan') {
+      if (onNavigateToRegister) onNavigateToRegister('perusahaan');
+      else onNavigateToLogin();
+    } else if (isAction && tab.startsWith('register')) {
+      if (onNavigateToRegister) onNavigateToRegister('alumni');
+      else onNavigateToLogin();
+    } else if (isAction) {
       onNavigateToLogin();
     } else {
       setTab(tab);

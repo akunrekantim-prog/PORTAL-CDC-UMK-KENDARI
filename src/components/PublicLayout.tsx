@@ -37,6 +37,7 @@ interface PublicLayoutProps {
   onSelectLowongan: (id: string) => void;
   onSelectBerita: (slug: string) => void;
   onNavigateToLogin: () => void;
+  onNavigateToRegister?: (type?: 'alumni' | 'perusahaan') => void;
 }
 
 /* ─── Dot-pattern SVG background ─────────────── */
@@ -103,6 +104,7 @@ export default function PublicLayout({
   onSelectLowongan,
   onSelectBerita,
   onNavigateToLogin,
+  onNavigateToRegister,
 }: PublicLayoutProps) {
   const [searchQuery, setSearchQuery]   = useState('');
   const [filterType,  setFilterType]    = useState<'all' | 'magang' | 'kerja'>('all');
@@ -132,6 +134,7 @@ export default function PublicLayout({
         currentTab={currentTab}
         setTab={setTab}
         onNavigateToLogin={onNavigateToLogin}
+        onNavigateToRegister={onNavigateToRegister}
       />
 
 
@@ -215,7 +218,7 @@ export default function PublicLayout({
                   {/* CTA */}
                   <FadeIn delay={0.22}>
                     <button
-                      onClick={onNavigateToLogin}
+                      onClick={() => (onNavigateToRegister ? onNavigateToRegister('alumni') : onNavigateToLogin())}
                       className="inline-flex items-center gap-2 bg-gradient-to-r
                                  from-[#10B981] to-emerald-600 hover:from-emerald-500 hover:to-emerald-700
                                  text-white px-8 py-4 rounded-xl font-extrabold text-lg
@@ -432,18 +435,30 @@ export default function PublicLayout({
                               }`}>
                                 {loker.tipe === 'magang' ? 'Magang' : 'Kerja'}
                               </span>
-                              <Clock className="w-4 h-4 text-slate-300 shrink-0 mt-0.5" />
+                              <span className="text-xs text-slate-400 flex items-center gap-1 font-medium">
+                                <Clock className="w-3.5 h-3.5 text-slate-300 shrink-0" /> {loker.deadline}
+                              </span>
                             </div>
-                            <h4 className="font-bold text-slate-900 text-sm leading-snug
-                                           group-hover:text-[#1E3A8A] transition-colors line-clamp-2">
-                              {loker.judul}
-                            </h4>
-                            <div className="text-xs text-slate-500 flex items-center gap-1.5 font-medium">
-                              <Building className="w-3.5 h-3.5 text-slate-400" />
-                              {loker.namaInstansi}
+
+                            <div className="flex items-start gap-3 pt-1">
+                              <img 
+                                src={loker.companyLogo || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop'} 
+                                alt={loker.namaInstansi}
+                                className="w-12 h-12 rounded-xl border border-slate-200/80 shadow-xs object-cover shrink-0 bg-slate-50"
+                              />
+                              <div className="min-w-0 flex-1">
+                                <h4 className="font-bold text-slate-900 text-sm leading-snug group-hover:text-[#1E3A8A] transition-colors line-clamp-2">
+                                  {loker.judul}
+                                </h4>
+                                <div className="text-xs text-slate-500 flex items-center gap-1.5 font-medium mt-1 line-clamp-1">
+                                  <Building className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                  <span className="truncate">{loker.namaInstansi}</span>
+                                </div>
+                              </div>
                             </div>
-                            <div className="text-xs text-slate-400 flex items-center gap-1.5">
-                              <MapPin className="w-3.5 h-3.5" /> {loker.lokasi}
+
+                            <div className="text-xs text-slate-400 flex items-center gap-1.5 pt-0.5">
+                              <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" /> {loker.lokasi}
                             </div>
                             <p className="text-slate-500 text-xs leading-relaxed line-clamp-2">
                               {loker.deskripsi}
@@ -491,7 +506,7 @@ export default function PublicLayout({
                           Persiapkan dirimu menghadapi dunia kerja dengan program intensif bersama praktisi HR terbaik.
                         </p>
                         <button
-                          onClick={onNavigateToLogin}
+                          onClick={() => (onNavigateToRegister ? onNavigateToRegister('alumni') : onNavigateToLogin())}
                           className="mt-2 inline-flex items-center gap-1.5 bg-white text-[#1E3A8A]
                                      text-xs font-extrabold px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors"
                         >
@@ -559,7 +574,7 @@ export default function PublicLayout({
                     {/* B2B Employer banner */}
                     <motion.div
                       whileHover={{ y: -3 }}
-                      onClick={onNavigateToLogin}
+                      onClick={() => (onNavigateToRegister ? onNavigateToRegister('perusahaan') : onNavigateToLogin())}
                       className="bg-[#1E3A8A] rounded-2xl p-6 shadow-lg relative overflow-hidden cursor-pointer"
                       style={{ minHeight: 200 }}
                     >
@@ -693,7 +708,7 @@ export default function PublicLayout({
                       Bergabunglah dengan komunitas alumni tangguh yang tersebar di seluruh nusantara.
                     </p>
                     <button
-                      onClick={onNavigateToLogin}
+                      onClick={() => (onNavigateToRegister ? onNavigateToRegister('alumni') : onNavigateToLogin())}
                       className="bg-white text-rose-700 font-extrabold text-xs
                                  px-5 py-2 rounded-full hover:bg-rose-50 transition-colors"
                     >
@@ -741,14 +756,20 @@ export default function PublicLayout({
                       <button
                         key={loker.id}
                         onClick={() => onSelectLowongan(loker.id)}
-                        className="w-full text-left group border-b border-slate-100 last:border-0 pb-3 last:pb-0"
+                        className="w-full text-left group border-b border-slate-100 last:border-0 pb-3 last:pb-0 flex items-start gap-3"
                       >
-                        <h5 className="font-bold text-slate-800 text-sm leading-snug line-clamp-2
-                                       group-hover:text-[#1E3A8A] transition-colors">
-                          {loker.judul}
-                        </h5>
-                        <div className="text-xs text-slate-400 mt-1 flex items-center gap-1.5">
-                          <Building className="w-3 h-3" /> {loker.namaInstansi}
+                        <img 
+                          src={loker.companyLogo || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop'} 
+                          alt={loker.namaInstansi}
+                          className="w-10 h-10 rounded-xl border border-slate-200/80 shadow-2xs object-cover shrink-0 mt-0.5 bg-slate-50"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <h5 className="font-bold text-slate-800 text-sm leading-snug line-clamp-2 group-hover:text-[#1E3A8A] transition-colors">
+                            {loker.judul}
+                          </h5>
+                          <div className="text-xs text-slate-400 mt-1 flex items-center gap-1.5 truncate">
+                            <Building className="w-3 h-3 shrink-0" /> <span className="truncate">{loker.namaInstansi}</span>
+                          </div>
                         </div>
                       </button>
                     ))}
@@ -888,24 +909,35 @@ export default function PublicLayout({
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredLowongan.map(item => (
                   <div key={item.id}
-                    className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all flex flex-col justify-between cursor-pointer"
+                    className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all flex flex-col justify-between cursor-pointer group"
                     onClick={() => onSelectLowongan(item.id)}>
-                    <div className="space-y-3">
+                    <div className="space-y-3.5">
                       <div className="flex items-center justify-between">
-                        <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${
-                          item.tipe === 'magang' ? 'bg-violet-50 text-violet-600 border border-violet-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                        <span className={`px-3 py-1 text-xs font-extrabold rounded-full ${
+                          item.tipe === 'magang' ? 'bg-violet-50 text-violet-700 border border-violet-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
                         }`}>{item.tipe === 'magang' ? 'Magang' : 'Kerja'}</span>
-                        <span className="text-xs text-slate-400 flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {item.deadline}</span>
+                        <span className="text-xs text-slate-400 flex items-center gap-1.5 font-medium"><Clock className="w-3.5 h-3.5 text-rose-500" /> {item.deadline}</span>
                       </div>
-                      <h4 className="font-bold text-slate-900 text-base line-clamp-1">{item.judul}</h4>
-                      <div className="text-slate-500 text-xs flex items-center gap-1.5"><Building2 className="w-4 h-4" /> {item.namaInstansi}</div>
-                      <div className="text-slate-400 text-xs flex items-center gap-1.5"><MapPin className="w-4 h-4" /> {item.lokasi}</div>
+                      
+                      <div className="flex items-start gap-3.5 pt-1">
+                        <img 
+                          src={item.companyLogo || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop'} 
+                          alt={item.namaInstansi}
+                          className="w-14 h-14 rounded-2xl border border-slate-200 shadow-sm object-cover shrink-0 bg-slate-50"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-extrabold text-slate-900 text-base line-clamp-2 group-hover:text-[#1E3A8A] transition-colors">{item.judul}</h4>
+                          <div className="text-slate-600 font-bold text-xs flex items-center gap-1.5 mt-1 text-emerald-700"><Building2 className="w-4 h-4 text-emerald-600 shrink-0" /> <span className="truncate">{item.namaInstansi}</span></div>
+                        </div>
+                      </div>
+
+                      <div className="text-slate-500 text-xs flex items-center gap-1.5 font-medium pt-1"><MapPin className="w-4 h-4 text-rose-500 shrink-0" /> {item.lokasi}</div>
                       <p className="text-slate-600 text-sm line-clamp-3 leading-relaxed">{item.deskripsi}</p>
                     </div>
-                    <div className="pt-5 border-t border-slate-50 flex items-center justify-between mt-4">
-                      {item.kuota && <div className="text-xs text-slate-500">Kuota: <span className="font-bold text-slate-800">{item.kuota} Orang</span></div>}
-                      <button className="bg-slate-50 hover:bg-[#10B981] hover:text-white text-slate-700 px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1 ml-auto">
-                        Detail &amp; Daftar <ArrowRight className="w-3.5 h-3.5" />
+                    <div className="pt-5 border-t border-slate-100 flex items-center justify-between mt-5">
+                      {item.kuota ? <div className="text-xs text-slate-500">Kuota: <span className="font-extrabold text-slate-800">{item.kuota} Orang</span></div> : <div />}
+                      <button className="bg-slate-50 group-hover:bg-[#10B981] group-hover:text-white text-slate-700 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ml-auto shadow-2xs group-hover:shadow-md">
+                        Detail &amp; Daftar <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                       </button>
                     </div>
                   </div>

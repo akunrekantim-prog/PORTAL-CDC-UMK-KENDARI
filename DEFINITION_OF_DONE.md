@@ -49,6 +49,7 @@ Setiap kali agent selesai mengerjakan sesuatu, laporkan dengan format berikut â€
 STATUS: [Selesai / Belum Selesai / Sebagian]
 
 Yang sudah bekerja dan sudah diverifikasi:
+jangan copas kodenya 
 - ...
 
 Yang BELUM bekerja / belum diverifikasi (jika ada):

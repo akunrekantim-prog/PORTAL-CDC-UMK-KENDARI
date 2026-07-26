@@ -196,6 +196,15 @@ export const SEED_LOWONGAN: Lowongan[] = [
     judul: 'Fullstack Web Developer Intern',
     tipe: 'magang',
     namaInstansi: 'PT Go Digital Kendari',
+    companyLogo: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop',
+    bannerImage: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1200&auto=format&fit=crop',
+    imageUrl: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=800&auto=format&fit=crop',
+    flyer: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=800&auto=format&fit=crop',
+    flyers: [
+      'https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1542744094-3a3e22035383?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=800&auto=format&fit=crop'
+    ],
     lokasi: 'Kendari (On-site / Hybrid)',
     deskripsi: 'PT Go Digital Kendari membuka kesempatan magang bagi mahasiswa tingkat akhir Universitas Muhammadiyah Kendari untuk posisi Fullstack Developer. Anda akan terlibat langsung dalam pembangunan aplikasi e-commerce lokal, berkolaborasi dengan tim profesional, dan mempelajari framework modern seperti React dan Express.',
     kualifikasi: [
@@ -222,6 +231,14 @@ export const SEED_LOWONGAN: Lowongan[] = [
     judul: 'UI/UX Designer Intern',
     tipe: 'magang',
     namaInstansi: 'PT Go Digital Kendari',
+    companyLogo: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop',
+    bannerImage: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=1200&auto=format&fit=crop',
+    imageUrl: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop',
+    flyer: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop',
+    flyers: [
+      'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=800&auto=format&fit=crop'
+    ],
     lokasi: 'Kendari (Hybrid)',
     deskripsi: 'Merancang antarmuka aplikasi mobile dan web berorientasi pengguna. Magang ini sangat cocok bagi Anda yang menyukai visual, prototipe interaktif, dan riset kebiasaan pengguna.',
     kualifikasi: [
@@ -248,6 +265,14 @@ export const SEED_LOWONGAN: Lowongan[] = [
     judul: 'Junior Web Developer (Lulusan Baru)',
     tipe: 'kerja',
     namaInstansi: 'PT Go Digital Kendari',
+    companyLogo: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop',
+    bannerImage: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=1200&auto=format&fit=crop',
+    imageUrl: 'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=800&auto=format&fit=crop',
+    flyer: 'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=800&auto=format&fit=crop',
+    flyers: [
+      'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1542744094-3a3e22035383?q=80&w=800&auto=format&fit=crop'
+    ],
     lokasi: 'Kendari (On-site)',
     deskripsi: 'Kami mencari lulusan baru (fresh graduate) dari alumni UM Kendari untuk bergabung dalam tim pengembang perangkat lunak utama kami.',
     kualifikasi: [
@@ -274,6 +299,14 @@ export const SEED_LOWONGAN: Lowongan[] = [
     judul: 'Frontliner & Operational Internship',
     tipe: 'magang',
     namaInstansi: 'Bank Syariah Indonesia (BSI) Area Kendari',
+    companyLogo: 'https://images.unsplash.com/photo-1554774853-719586f82d77?q=80&w=200&auto=format&fit=crop',
+    bannerImage: 'https://images.unsplash.com/photo-1556742049-0a67d55febc4?q=80&w=1200&auto=format&fit=crop',
+    imageUrl: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop',
+    flyer: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop',
+    flyers: [
+      'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=800&auto=format&fit=crop'
+    ],
     lokasi: 'Jl. Abdullah Silondae, Kendari',
     deskripsi: 'Mempelajari sistem administrasi, pencatatan transaksi syariah, dan melayani nasabah secara profesional dengan menerapkan service excellence khas perbankan syariah syandard nasional.',
     kualifikasi: [
@@ -588,3 +621,95 @@ export function deleteInDB<T extends { id: string }>(key: DBKey, id: string) {
   const filtered = current.filter(i => i.id !== id);
   saveToDB(key, filtered);
 }
+
+/* ─────────────────────────────────────────────────────────────────
+   REGISTRATION MODULE HELPERS
+───────────────────────────────────────────────────────────────── */
+export interface RegisterAlumniPayload {
+  name: string;
+  nim: string;
+  email: string;
+  phone?: string;
+  programStudi: string;
+  fakultas: string;
+  tahunLulus: string;
+  statusPekerjaan?: 'bekerja' | 'wirausaha' | 'lanjut_studi' | 'belum_bekerja';
+}
+
+export interface RegisterMitraPayload {
+  namaInstansi: string;
+  kontakPerson: string;
+  email: string;
+  phone?: string;
+  bidangIndustri?: string;
+  alamat?: string;
+  website?: string;
+}
+
+export function registerUser(
+  role: 'alumni' | 'mitra',
+  payload: RegisterAlumniPayload | RegisterMitraPayload
+): User {
+  const users = getFromDB<User>('users');
+  
+  // Check if email already exists
+  const exists = users.some(u => u.email.toLowerCase() === payload.email.toLowerCase());
+  if (exists) {
+    throw new Error('Email sudah terdaftar di sistem. Silakan gunakan email lain atau login.');
+  }
+
+  const userId = `usr_${role}_${Date.now().toString(36)}`;
+  const now = new Date().toISOString();
+
+  const newUser: User = {
+    id: userId,
+    name: role === 'alumni' 
+      ? (payload as RegisterAlumniPayload).name 
+      : `${(payload as RegisterMitraPayload).kontakPerson} (${(payload as RegisterMitraPayload).namaInstansi})`,
+    email: payload.email,
+    phone: payload.phone || '',
+    role: role,
+    status: 'active', // Active by default so testing is smooth and immediate
+    photoUrl: role === 'alumni' 
+      ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop'
+      : 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=200&auto=format&fit=crop',
+    createdAt: now
+  };
+
+  insertToDB<User>('users', newUser);
+
+  if (role === 'alumni') {
+    const almPayload = payload as RegisterAlumniPayload;
+    const newAlumni: Alumni = {
+      id: `alm_${Date.now().toString(36)}`,
+      userId: userId,
+      nim: almPayload.nim,
+      nama: almPayload.name,
+      email: almPayload.email,
+      phone: almPayload.phone || '',
+      programStudi: almPayload.programStudi,
+      fakultas: almPayload.fakultas,
+      tahunLulus: almPayload.tahunLulus,
+      statusPekerjaan: almPayload.statusPekerjaan || 'belum_bekerja'
+    };
+    insertToDB<Alumni>('alumni', newAlumni);
+  } else if (role === 'mitra') {
+    const mtrPayload = payload as RegisterMitraPayload;
+    const newMitra: Mitra = {
+      id: `mtr_${Date.now().toString(36)}`,
+      userId: userId,
+      namaInstansi: mtrPayload.namaInstansi,
+      bidangIndustri: mtrPayload.bidangIndustri || 'Umum',
+      alamat: mtrPayload.alamat || '',
+      kontakPerson: mtrPayload.kontakPerson,
+      email: mtrPayload.email,
+      phone: mtrPayload.phone || '',
+      website: mtrPayload.website || '',
+      statusKerjaSama: 'aktif'
+    };
+    insertToDB<Mitra>('mitra', newMitra);
+  }
+
+  return newUser;
+}
+

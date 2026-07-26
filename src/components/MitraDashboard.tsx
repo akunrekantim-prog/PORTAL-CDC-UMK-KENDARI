@@ -33,7 +33,8 @@ import {
   Clock, 
   Star, 
   ArrowRight,
-  Info 
+  Info,
+  Upload
 } from 'lucide-react';
 
 interface MitraDashboardProps {
@@ -69,6 +70,8 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
   const [benefit, setBenefit] = useState('');
   const [kuota, setKuota] = useState(3);
   const [deadline, setDeadline] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [imageUploadType, setImageUploadType] = useState<'url' | 'file'>('url');
 
   // Survey Form States
   const [selectedAlumniId, setSelectedAlumniId] = useState('');
@@ -172,6 +175,22 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
     triggerToast('success', 'Profil mitra berhasil disimpan ke database SQL server kampus.');
   };
 
+  const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      triggerToast('error', 'Ukuran file foto maksimal 2MB.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        setImageUrl(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   // Add job posting (FR-MTR-03)
   const handleAddJobPosting = (e: React.FormEvent) => {
     e.preventDefault();
@@ -189,6 +208,10 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
       judul,
       tipe,
       namaInstansi: mitraData.namaInstansi,
+      imageUrl: imageUrl || undefined,
+      flyer: imageUrl || undefined,
+      bannerImage: imageUrl || undefined,
+      flyers: imageUrl ? [imageUrl] : undefined,
       lokasi,
       deskripsi,
       kualifikasi: kualifikasi.split('\n').filter(k => k.trim() !== ''),
@@ -208,6 +231,7 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
     setBenefit('');
     setKuota(3);
     setDeadline('');
+    setImageUrl('');
     setShowAddJob(false);
 
     loadMitraData();
@@ -285,36 +309,39 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
           id="mtr-toast"
           className={`fixed top-4 right-4 z-50 p-4 rounded-xl shadow-lg border text-sm max-w-sm flex items-center gap-2.5 transition-all ${
             message.type === 'success' 
-              ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
+              ? 'bg-[#10B981]/15 text-[#10B981] border-[#10B981]/30 bg-white font-semibold shadow-md' 
               : 'bg-rose-50 text-rose-800 border-rose-200'
           }`}
         >
-          {message.type === 'success' ? <CheckCircle className="w-5 h-5 flex-shrink-0" /> : <AlertCircle className="w-5 h-5 flex-shrink-0" />}
+          {message.type === 'success' ? <CheckCircle className="w-5 h-5 flex-shrink-0 text-[#10B981]" /> : <AlertCircle className="w-5 h-5 flex-shrink-0 text-rose-600" />}
           <div>{message.text}</div>
         </div>
       )}
 
       {/* HEADER BANNER */}
-      <header className="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-40" id="mtr-header">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="bg-emerald-500 text-slate-950 p-2 rounded-xl">
+      <header className="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-40 shadow-sm" id="mtr-header">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="bg-[#1E3A8A] text-white p-2 rounded-xl border border-blue-800/50">
               <Building2 className="w-5 h-5" />
             </div>
             <div>
-              <div className="font-bold text-sm tracking-tight">PORTAL MITRA INDUSTRI</div>
-              <div className="text-slate-400 text-xs text-[10px] sm:text-xs">CDC Universitas Muhammadiyah Kendari</div>
+              <div className="font-extrabold text-sm tracking-tight text-white flex items-center gap-2">
+                <span>PORTAL MITRA INDUSTRI & CDC</span>
+                <span className="bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/30 text-[10px] px-2 py-0.5 rounded-full font-bold">VERIFIED</span>
+              </div>
+              <div className="text-slate-400 text-[11px]">CDC Universitas Muhammadiyah Kendari</div>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
               <div className="font-bold text-xs text-white leading-none">{namaInstansi || user.name}</div>
-              <div className="text-emerald-400 text-[10px] font-medium leading-tight mt-0.5">PIC: {kontakPerson}</div>
+              <div className="text-[#10B981] text-[11px] font-medium leading-tight mt-0.5">PIC: {kontakPerson || user.name}</div>
             </div>
             <button 
               onClick={onLogout}
-              className="bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white px-3.5 py-2 rounded-lg text-xs font-semibold border border-slate-700 transition"
+              className="bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white px-3.5 py-2 rounded-xl text-xs font-semibold border border-slate-700 transition"
               id="mtr-btn-logout"
             >
               Sign Out
@@ -328,14 +355,18 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
         
         {/* SIDEBAR NAVIGATION CONTROLS */}
         <aside className="lg:col-span-3 space-y-6" id="mtr-sidebar">
-          <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm space-y-4">
-            <div className="flex items-center gap-3 pb-4 border-b border-slate-50">
-              <div className="w-12 h-12 bg-emerald-500/10 text-emerald-600 rounded-full flex items-center justify-center font-bold text-base">
+          <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm space-y-6">
+            <div className="flex items-center gap-3.5 pb-5 border-b border-slate-100">
+              <div className="w-12 h-12 bg-[#1E3A8A]/10 text-[#1E3A8A] rounded-2xl flex items-center justify-center font-extrabold text-lg shrink-0 border border-[#1E3A8A]/20">
                 {namaInstansi ? namaInstansi.charAt(0) : 'M'}
               </div>
-              <div className="truncate">
-                <div className="font-bold text-slate-900 text-sm truncate">{namaInstansi || 'Instansi Mitra'}</div>
-                <div className="text-slate-400 text-xs truncate">{user.email}</div>
+              <div className="truncate min-w-0">
+                <div className="font-extrabold text-slate-900 text-sm truncate">{namaInstansi || 'Instansi Mitra'}</div>
+                <div className="text-slate-400 text-xs truncate font-medium">{user.email}</div>
+                <div className="inline-flex items-center gap-1 text-[#10B981] text-[10px] font-bold mt-1">
+                  <CheckCircle className="w-3 h-3 fill-[#10B981] text-white shrink-0" />
+                  <span>Mitra Resmi</span>
+                </div>
               </div>
             </div>
 
@@ -348,6 +379,7 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
                 { id: 'survei', label: 'Survei Mutu Lulusan', icon: Star }
               ].map((menu) => {
                 const Icon = menu.icon;
+                const isActive = activeTab === menu.id;
                 return (
                   <button
                     key={menu.id}
@@ -356,13 +388,13 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
                       setActiveTab(menu.id as any);
                       setShowAddJob(false);
                     }}
-                    className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-left text-xs sm:text-sm font-semibold transition-all ${
-                      activeTab === menu.id
-                        ? 'bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/10'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    className={`flex items-center gap-3.5 px-4 py-3 rounded-xl text-left text-xs sm:text-sm transition-all ${
+                      isActive
+                        ? 'bg-[#1E3A8A] text-white font-bold shadow-md shadow-blue-900/10'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-semibold'
                     }`}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
                     {menu.label}
                   </button>
                 );
@@ -370,93 +402,148 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
             </nav>
           </div>
 
-          <div className="bg-slate-900 text-slate-400 p-6 rounded-2xl border border-slate-800 shadow-sm space-y-3" id="mtr-side-status">
-            <h4 className="font-bold text-white text-xs uppercase tracking-wide">Status Kemitraan</h4>
-            <div className="space-y-1.5 text-xs">
-              <div className="flex justify-between">
-                <span>Kerja Sama:</span>
-                <span className="font-bold text-emerald-400">AKTIF / APPROVED</span>
+          <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm space-y-3" id="mtr-side-status">
+            <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#10B981]"></span>
+              Status Kemitraan
+            </h4>
+            <div className="space-y-2 text-xs pt-1 border-t border-slate-100">
+              <div className="flex justify-between items-center py-1">
+                <span className="text-slate-500 font-medium">Kerja Sama:</span>
+                <span className="font-bold text-[#10B981] bg-[#10B981]/10 px-2 py-0.5 rounded-md border border-[#10B981]/20 text-[11px]">VERIFIED / AKTIF</span>
               </div>
-              <div className="flex justify-between">
-                <span>Lowongan Aktif:</span>
-                <span className="font-bold text-white">{myJobs.filter(j => j.status === 'published').length} Post</span>
+              <div className="flex justify-between items-center py-1">
+                <span className="text-slate-500 font-medium">Lowongan Aktif:</span>
+                <span className="font-extrabold text-slate-800 bg-slate-100 px-2.5 py-0.5 rounded-md text-[11px]">{myJobs.filter(j => j.status === 'published').length} Posisi</span>
               </div>
             </div>
           </div>
         </aside>
 
         {/* CORE CONTENT DISPLAY BOARD */}
-        <main className="lg:col-span-9" id="mtr-dashboard-main">
+        <main className="lg:col-span-9 space-y-8" id="mtr-dashboard-main">
           
+          {/* POLISHED VERIFIED PARTNER HEADER BANNER CARD (VISIBLE IN RINGKASAN & LOWONGAN) */}
+          {(activeTab === 'ringkasan' || activeTab === 'lowongan') && (
+            <div className="bg-white rounded-2xl border border-slate-100 p-6 sm:p-8 shadow-sm space-y-6" id="mtr-welcome-banner">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-100">
+                <div className="flex items-start gap-4 sm:gap-5">
+                  <div className="w-16 h-16 sm:w-18 sm:h-18 bg-[#1E3A8A]/10 text-[#1E3A8A] rounded-2xl flex items-center justify-center font-extrabold text-2xl sm:text-3xl shrink-0 border border-[#1E3A8A]/20 shadow-xs">
+                    {namaInstansi ? namaInstansi.charAt(0) : 'M'}
+                  </div>
+                  <div className="space-y-1.5 min-w-0">
+                    <div className="inline-flex items-center gap-1.5 bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30 px-3 py-1 rounded-full font-bold text-xs">
+                      <CheckCircle className="w-3.5 h-3.5 fill-[#10B981] text-white shrink-0" />
+                      <span>MITRA RESMI CDC UM KENDARI</span>
+                    </div>
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight truncate">{namaInstansi || 'Instansi Mitra Kampus'}</h2>
+                    <div className="flex flex-wrap items-center gap-y-1.5 gap-x-5 text-xs font-medium text-slate-500 pt-0.5">
+                      <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-slate-400 shrink-0" /> PIC: <strong className="text-slate-700">{kontakPerson || user.name}</strong></span>
+                      <span className="flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5 text-slate-400 shrink-0" /> Sektor: <strong className="text-slate-700">{bidangIndustri}</strong></span>
+                      <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" /> Kontak: <strong className="text-slate-700">{phone || user.phone || '-'}</strong></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 shrink-0 self-start md:self-center">
+                  <button 
+                    onClick={() => setActiveTab('profil')} 
+                    className="bg-slate-100 text-slate-700 hover:bg-slate-200 px-4 py-2.5 rounded-xl text-xs font-semibold transition flex items-center gap-2"
+                  >
+                    <FileText className="w-4 h-4 text-slate-500" /> Edit Profil
+                  </button>
+                  <button 
+                    onClick={() => { setActiveTab('lowongan'); setShowAddJob(true); }} 
+                    className="bg-[#10B981] hover:bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" /> Posting Lowongan
+                  </button>
+                </div>
+              </div>
+
+              {/* QUICK STAT COUNTERS WITH CLEAN ICON CARDS */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-150 flex items-center gap-4 hover:border-slate-300 transition group">
+                  <div className="w-12 h-12 bg-[#1E3A8A]/10 text-[#1E3A8A] rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+                    <Briefcase className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <div className="text-slate-400 font-bold text-[11px] uppercase tracking-wider">Lowongan Aktif</div>
+                    <div className="text-2xl font-extrabold text-slate-900 mt-0.5">{myJobs.filter(j => j.status === 'published').length} <span className="text-xs font-semibold text-slate-500">Posisi</span></div>
+                  </div>
+                </div>
+
+                <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-150 flex items-center gap-4 hover:border-slate-300 transition group">
+                  <div className="w-12 h-12 bg-blue-500/10 text-blue-600 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+                    <Users className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <div className="text-slate-400 font-bold text-[11px] uppercase tracking-wider">Total Pelamar</div>
+                    <div className="text-2xl font-extrabold text-slate-900 mt-0.5">{myApplicants.length} <span className="text-xs font-semibold text-slate-500">Mahasiswa</span></div>
+                  </div>
+                </div>
+
+                <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-150 flex items-center gap-4 hover:border-slate-300 transition group">
+                  <div className="w-12 h-12 bg-[#10B981]/10 text-[#10B981] rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+                    <CheckCircle className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <div className="text-slate-400 font-bold text-[11px] uppercase tracking-wider">Status Approval</div>
+                    <div className="text-base font-extrabold text-[#10B981] mt-0.5 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse"></span>
+                      Aktif / Terverifikasi
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* TAB 1: RINGKASAN */}
           {activeTab === 'ringkasan' && (
             <div id="mtr-panel-ringkasan" className="space-y-6">
-              {/* INTERACTIVE SHINE WELCOME BANNER */}
-              <div className="bg-gradient-to-br from-slate-900 to-emerald-950 rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden flex items-center justify-between" id="mtr-welcome">
-                <div className="space-y-2 max-w-lg z-14">
-                  <span className="bg-emerald-500/20 text-emerald-400 font-bold text-xs uppercase tracking-wider px-3 py-1 rounded-full border border-emerald-500/10">Mitra Resmi Kampus</span>
-                  <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Selamat Datang, Bapak/Ibu {kontakPerson}</h3>
-                  <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
-                    Sistem multi-roles portal CDC memfasilitasi Anda memposting lowongan rekrutmen magang, mengunduh lampiran berkas mahasiswa, dan menyetujui program akselerasi.
-                  </p>
-                </div>
-                <div className="hidden md:block opacity-10">
-                  <Building2 className="w-20 h-20 text-emerald-400" />
-                </div>
-              </div>
-
-              {/* METRIC ROW */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6" id="mtr-card-stats">
-                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-1">
-                  <div className="text-slate-400 font-bold text-xs uppercase tracking-wide">Total Lowongan</div>
-                  <div className="text-2xl font-extrabold text-slate-800">{myJobs.length} Posisi</div>
-                </div>
-                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-1">
-                  <div className="text-slate-400 font-bold text-xs uppercase tracking-wide">Menunggu Tinjauan</div>
-                  <div className="text-2xl font-extrabold text-emerald-600">{myApplicants.filter(a => a.status === 'submitted' || a.status === 'under_review').length} Mahasiswa</div>
-                </div>
-                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-1">
-                  <div className="text-slate-400 font-bold text-xs uppercase tracking-wide">Hasil Survei Mutu</div>
-                  <div className="text-2xl font-extrabold text-blue-600">{mySurveys.length} Respon</div>
-                </div>
-              </div>
-
               {/* LATEST APPLICANTS PREVIEW (FR-MTR-05) */}
-              <div className="space-y-4" id="latest-applicants-sec">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-slate-800 text-sm">Pelamar Magang Terbaru</h4>
-                  <button onClick={() => setActiveTab('pelamar')} className="text-emerald-500 hover:underline text-xs font-bold">Semua Pelamar</button>
+              <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm space-y-4" id="latest-applicants-sec">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div>
+                    <h4 className="font-extrabold text-slate-900 text-base">Pelamar Magang Terbaru</h4>
+                    <p className="text-xs text-slate-400">Daftar mahasiswa yang baru saja melamar ke lowongan instansi Anda</p>
+                  </div>
+                  <button onClick={() => setActiveTab('pelamar')} className="text-[#1E3A8A] hover:underline text-xs font-bold flex items-center gap-1">
+                    Semua Pelamar <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
 
                 {myApplicants.length === 0 ? (
-                  <div className="bg-white p-8 border border-slate-100 rounded-2xl text-center text-xs text-slate-500">
-                    Belum ada mahasiswa yang melamar pada postingan lowongan Anda.
+                  <div className="py-12 text-center text-xs text-slate-400 space-y-2">
+                    <Users className="w-10 h-10 text-slate-200 mx-auto" />
+                    <p>Belum ada mahasiswa yang melamar pada postingan lowongan Anda.</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {myApplicants.slice(0, 2).map((appl) => (
-                      <div key={appl.id} className="bg-white p-5 rounded-2xl border border-slate-150 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+                    {myApplicants.slice(0, 3).map((appl) => (
+                      <div key={appl.id} className="bg-slate-50/80 hover:bg-slate-50 p-5 rounded-2xl border border-slate-150 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition">
                         <div className="space-y-1">
-                          <h5 className="font-bold text-slate-850 text-sm">{appl.namaMahasiswa}</h5>
-                          <div className="text-xs text-slate-550 flex items-center gap-1.5 font-medium">
-                            NIM: {appl.nim} • Prodi: {appl.programStudi}
+                          <h5 className="font-extrabold text-slate-900 text-sm">{appl.namaMahasiswa}</h5>
+                          <div className="text-xs text-slate-600 flex items-center gap-2 font-medium">
+                            <span className="bg-white px-2 py-0.5 rounded border border-slate-200 font-mono text-[11px]">NIM: {appl.nim}</span>
+                            <span>• {appl.programStudi}</span>
                           </div>
-                          <div className="text-[10px] text-slate-400">Tujuan: <span className="font-semibold text-slate-750">{appl.tujuanMagang}</span></div>
+                          <div className="text-[11px] text-slate-500 pt-0.5">Posisi: <strong className="text-slate-800">{appl.tujuanMagang}</strong></div>
                         </div>
                         
                         <div className="flex items-center gap-3">
                           <button 
-                            onClick={() => triggerToast('success', 'Mengunduh CV & Berkas (Simulasi)...')}
-                            className="text-emerald-600 hover:underline text-xs font-bold"
+                            onClick={() => triggerToast('success', `Mengunduh CV & Berkas ${appl.namaMahasiswa} (Simulasi)...`)}
+                            className="bg-white hover:bg-slate-100 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-semibold border border-slate-200 transition flex items-center gap-1.5 shadow-2xs"
                           >
-                            Unduh Berkas
+                            <FileText className="w-3.5 h-3.5 text-slate-500" /> Unduh Berkas
                           </button>
-                          <span className="text-slate-200">|</span>
                           <button 
                             onClick={() => setActiveTab('pelamar')}
-                            className="bg-slate-50 hover:bg-slate-100 text-slate-700 px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1"
+                            className="bg-[#10B981] hover:bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm"
                           >
-                            Tinjau
+                            Tinjau & Verifikasi
                           </button>
                         </div>
                       </div>
@@ -464,16 +551,15 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
                   </div>
                 )}
               </div>
-
             </div>
           )}
 
           {/* TAB 2: PROFIL INSTANSI (FR-MTR-02) */}
           {activeTab === 'profil' && (
-            <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm space-y-6" id="mtr-panel-profil">
-              <div>
-                <h3 className="font-bold text-slate-905 text-lg">Kelola Identitas Profil Instansi</h3>
-                <p className="text-xs text-slate-400">Informasi ini akan ditampilkan pada lembar detail lowongan di halaman publik CDC.</p>
+            <div className="bg-white rounded-2xl border border-slate-100 p-6 sm:p-8 shadow-sm space-y-6" id="mtr-panel-profil">
+              <div className="border-b border-slate-100 pb-4">
+                <h3 className="font-extrabold text-slate-900 text-lg">Kelola Identitas Profil Instansi</h3>
+                <p className="text-xs text-slate-500 mt-0.5">Informasi ini akan ditampilkan pada lembar detail lowongan di halaman publik CDC.</p>
               </div>
 
               <form onSubmit={handleSaveProfile} className="space-y-5" id="profile-form">
@@ -486,7 +572,7 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
                       value={namaInstansi}
                       onChange={(e) => setNamaInstansi(e.target.value)}
                       placeholder="Contoh: PT Go Digital Kendari"
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] transition font-normal"
                     />
                   </div>
 
@@ -496,8 +582,8 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
                       type="text" 
                       value={bidangIndustri}
                       onChange={(e) => setBidangIndustri(e.target.value)}
-                      placeholder="Contoh: Perbankan Syariah"
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none"
+                      placeholder="Contoh: Teknologi Informasi & Software"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] transition font-normal"
                     />
                   </div>
 
@@ -508,7 +594,7 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
                       required
                       value={kontakPerson}
                       onChange={(e) => setKontakPerson(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] transition font-normal"
                     />
                   </div>
 
@@ -519,39 +605,39 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
                       required
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] transition font-normal"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-755">Situs Web Resmi (Website URL)</label>
+                    <label className="text-xs font-bold text-slate-700">Situs Web Resmi (Website URL)</label>
                     <input 
                       type="text" 
                       value={website}
                       onChange={(e) => setWebsite(e.target.value)}
                       placeholder="https://example.com"
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] transition font-normal"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-755">Alamat Lengkap Kantor Pusat / Regional *</label>
+                  <label className="text-xs font-bold text-slate-700">Alamat Lengkap Kantor Pusat / Regional *</label>
                   <textarea 
                     value={alamat}
                     onChange={(e) => setAlamat(e.target.value)}
                     rows={3}
                     placeholder="Contoh: Jl. Ahmad Dahlan, Kendari"
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] transition font-normal"
                   ></textarea>
                 </div>
 
-                <div className="pt-4 border-t border-slate-50 flex justify-end">
+                <div className="pt-5 border-t border-slate-100 flex justify-end">
                   <button 
                     type="submit"
-                    className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-6 py-2.5 rounded-xl text-xs font-bold transition shadow-sm"
+                    className="bg-[#10B981] hover:bg-emerald-600 text-white px-6 py-3 rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-2"
                   >
-                    Simpan Perubahan Database
+                    <CheckCircle className="w-4 h-4" /> Simpan Perubahan Profil
                   </button>
                 </div>
               </form>
@@ -563,27 +649,33 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
             <div className="space-y-6" id="mtr-panel-lowongan">
               
               {/* TOP BAR ACTION TRIGGER */}
-              <div className="flex items-center justify-between">
+              <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h3 className="font-bold text-slate-950 text-lg">Manajemen Database Postingan</h3>
-                  <p className="text-xs text-slate-400">Kelola kuota, deadline, and tipe lowongan magang atau kerja lulusan Anda.</p>
+                  <h3 className="font-extrabold text-slate-900 text-lg">Manajemen Database Lowongan</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Kelola kuota, batas tanggal pendaftaran, serta publikasi lowongan magang atau kerja.</p>
                 </div>
                 <button 
                   onClick={() => setShowAddJob(!showAddJob)}
-                  className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-sm"
+                  className="bg-[#10B981] hover:bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm shrink-0"
                 >
+                  <Plus className="w-4 h-4" />
                   {showAddJob ? "Sembunyikan Form" : "Posting Lowongan Baru"}
                 </button>
               </div>
 
               {/* ADD VACANCY FORM SCREEN */}
               {showAddJob && (
-                <div className="bg-white rounded-2xl border border-slate-150 p-6 shadow-sm space-y-6" id="add-vacancy-panel">
-                  <h4 className="font-bold text-slate-900 text-sm border-b border-slate-50 pb-3 flex items-center gap-2">
-                    <Plus className="w-5 h-5 text-emerald-500" /> Form Input Lowongan Kerja / Magang Baru
-                  </h4>
+                <div className="bg-white rounded-2xl border border-slate-100 p-6 sm:p-8 shadow-sm space-y-6 animate-fadeIn" id="add-vacancy-panel">
+                  <div className="border-b border-slate-100 pb-4 flex items-center justify-between">
+                    <div>
+                      <h4 className="font-extrabold text-slate-900 text-base flex items-center gap-2">
+                        <Plus className="w-5 h-5 text-[#10B981]" /> Form Input Lowongan Kerja / Magang Baru
+                      </h4>
+                      <p className="text-xs text-slate-400 mt-0.5">Isi detail lengkap lowongan kerja atau program magang yang akan dibuka.</p>
+                    </div>
+                  </div>
 
-                  <form onSubmit={handleAddJobPosting} className="space-y-5 text-xs font-bold" id="add-job-form">
+                  <form onSubmit={handleAddJobPosting} className="space-y-6 text-xs" id="add-job-form">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div className="space-y-1.5">
                         <label className="text-xs font-bold text-slate-700">Judul Rekrutmen Karir *</label>
@@ -593,7 +685,7 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
                           value={judul}
                           onChange={(e) => setJudul(e.target.value)}
                           placeholder="Contoh: Digital Marketer Intern"
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-normal focus:outline-none"
+                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
                         />
                       </div>
 
@@ -605,7 +697,7 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
                           value={lokasi}
                           onChange={(e) => setLokasi(e.target.value)}
                           placeholder="Contoh: Kendari (Hybrid)"
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-normal focus:outline-none"
+                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
                         />
                       </div>
 
@@ -614,7 +706,7 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
                         <select 
                           value={tipe}
                           onChange={(e) => setTipe(e.target.value as any)}
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-white font-normal"
+                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm bg-white font-normal transition"
                         >
                           <option value="magang">Magang (Mahasiswa Aktif)</option>
                           <option value="kerja">Kerja (Lulusan Baru / Alumni)</option>
@@ -627,20 +719,114 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
                           type="number" 
                           value={kuota}
                           onChange={(e) => setKuota(Number(e.target.value))}
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-normal focus:outline-none"
+                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
                         />
                       </div>
 
-                      <div className="space-y-1.5">
+                      <div className="space-y-1.5 sm:col-span-2">
                         <label className="text-xs font-bold text-slate-700">Batas Tanggal Pendaftaran (Deadline) *</label>
                         <input 
                           type="date" 
                           required
                           value={deadline}
                           onChange={(e) => setDeadline(e.target.value)}
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-normal focus:outline-none"
+                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
                         />
                       </div>
+                    </div>
+
+                    {/* Upload Poster / Foto Lowongan (Dashed Dropzone with Clean Preview) */}
+                    <div className="space-y-3 pt-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <label className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
+                          <Upload className="w-4 h-4 text-[#10B981]" /> Upload Poster / Foto Lowongan
+                        </label>
+                        <div className="flex bg-slate-100 rounded-xl p-1 border border-slate-200 self-start sm:self-auto text-xs font-bold">
+                          <button
+                            type="button"
+                            onClick={() => setImageUploadType('file')}
+                            className={`px-3 py-1.5 rounded-lg transition ${
+                              imageUploadType === 'file' 
+                                ? 'bg-white text-slate-900 shadow-xs' 
+                                : 'text-slate-500 hover:text-slate-900'
+                            }`}
+                          >
+                            Upload File (PNG/JPG)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setImageUploadType('url')}
+                            className={`px-3 py-1.5 rounded-lg transition ${
+                              imageUploadType === 'url' 
+                                ? 'bg-white text-slate-900 shadow-xs' 
+                                : 'text-slate-500 hover:text-slate-900'
+                            }`}
+                          >
+                            Input URL Gambar
+                          </button>
+                        </div>
+                      </div>
+
+                      {!imageUrl ? (
+                        <div 
+                          onClick={() => {
+                            if (imageUploadType === 'file') {
+                              document.getElementById('poster-file-input-mitra')?.click();
+                            }
+                          }}
+                          className="border-2 border-dashed border-slate-200 rounded-2xl p-8 hover:border-[#10B981] transition cursor-pointer bg-slate-50/50 flex flex-col items-center justify-center text-center group"
+                        >
+                          <div className="w-12 h-12 rounded-full bg-white shadow-sm border border-slate-200 flex items-center justify-center text-slate-400 group-hover:text-[#10B981] group-hover:scale-110 transition mb-3">
+                            <Upload className="w-6 h-6" />
+                          </div>
+                          {imageUploadType === 'file' ? (
+                            <>
+                              <p className="text-sm font-bold text-slate-700">Klik untuk mengunggah poster brosur (PNG, JPG, JPEG)</p>
+                              <p className="text-xs text-slate-400 mt-1">Maksimal ukuran file 2MB. Foto akan disimpan dan ditampilkan pada katalog lowongan.</p>
+                              <input 
+                                id="poster-file-input-mitra"
+                                type="file" 
+                                accept="image/png, image/jpeg, image/jpg"
+                                onChange={handleImageFileUpload}
+                                className="hidden"
+                              />
+                            </>
+                          ) : (
+                            <div className="w-full max-w-md space-y-2" onClick={(e) => e.stopPropagation()}>
+                              <input 
+                                type="url" 
+                                value={imageUrl}
+                                onChange={(e) => setImageUrl(e.target.value)}
+                                placeholder="https://images.unsplash.com/..."
+                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal bg-white shadow-xs transition"
+                              />
+                              <p className="text-xs text-slate-400">Tempelkan tautan langsung (URL) ke gambar poster/brosur lowongan.</p>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="border-2 border-dashed border-[#10B981]/40 rounded-2xl p-5 bg-[#10B981]/5 flex flex-col sm:flex-row items-center justify-between gap-6 transition animate-fadeIn">
+                          <div className="flex items-center gap-4">
+                            <div className="relative w-20 h-28 rounded-xl overflow-hidden border border-slate-200 bg-slate-900 shadow-md shrink-0">
+                              <img src={imageUrl} alt="Pratinjau Poster" className="w-full h-full object-cover" />
+                            </div>
+                            <div className="space-y-1 text-left">
+                              <div className="inline-flex items-center gap-1.5 text-xs font-extrabold text-[#10B981]">
+                                <CheckCircle className="w-4 h-4 fill-[#10B981] text-white" />
+                                <span>Poster Lowongan Terlampir</span>
+                              </div>
+                              <p className="text-xs text-slate-600 max-w-md leading-relaxed">Foto poster ini siap dipublikasikan ke halaman publik CDC UMK bersama rincian rekrutmen Anda.</p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setImageUrl('')}
+                            className="bg-white hover:bg-rose-50 text-slate-700 hover:text-rose-600 px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 border border-slate-200 hover:border-rose-200 shrink-0 shadow-2xs"
+                          >
+                            <Trash2 className="w-4 h-4" /> Hapus / Ganti Foto
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     <div className="space-y-1.5">
@@ -650,8 +836,8 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
                         value={deskripsi}
                         onChange={(e) => setDeskripsi(e.target.value)}
                         rows={3}
-                        placeholder="Uraikan gambaran umum, teknologi yang dipakai..."
-                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-normal focus:outline-none"
+                        placeholder="Uraikan gambaran umum, lingkup tugas, dan teknologi yang dipakai..."
+                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
                       ></textarea>
                     </div>
 
@@ -662,7 +848,7 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
                         onChange={(e) => setKualifikasi(e.target.value)}
                         rows={3}
                         placeholder="Contoh:&#10;Mahasiswa Teknik Informatika semester 6&#10;Menguasai bahasa pemrograman Javascript"
-                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-normal focus:outline-none"
+                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
                       ></textarea>
                     </div>
 
@@ -673,76 +859,105 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
                         onChange={(e) => setBenefit(e.target.value)}
                         rows={3}
                         placeholder="Contoh:&#10;Uang saku bulanan&#10;Sertifikat industri dari mitra"
-                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-normal focus:outline-none"
+                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
                       ></textarea>
                     </div>
 
-                    <div className="pt-4 border-t border-slate-50 flex justify-end gap-3">
+                    <div className="pt-5 border-t border-slate-100 flex justify-end gap-3">
                       <button 
                         type="button"
                         onClick={() => setShowAddJob(false)}
-                        className="px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-slate-50 border border-slate-150 transition"
+                        className="bg-slate-100 text-slate-700 hover:bg-slate-200 px-5 py-2.5 rounded-xl text-xs font-semibold transition"
                       >
                         Batal
                       </button>
                       <button 
                         type="submit"
-                        className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-5 py-2.5 rounded-xl text-xs font-bold transition shadow-sm"
+                        className="bg-[#10B981] hover:bg-emerald-600 text-white px-6 py-2.5 rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-2"
                       >
-                        Posting ke Publik
+                        <CheckCircle className="w-4 h-4" /> Posting Lowongan ke Publik
                       </button>
                     </div>
                   </form>
                 </div>
               )}
 
-              {/* LISTING VACANCIES */}
+              {/* LISTING VACANCIES WITH MODERN CARDS & STATUS PILLS */}
               {myJobs.length === 0 ? (
-                <div className="bg-white border border-slate-100 rounded-2xl py-12 text-center text-xs text-slate-500">
-                  Instansi Anda belum memiliki postingan lowongan karir aktif.
+                <div className="bg-white border border-slate-100 rounded-2xl py-14 text-center text-xs text-slate-400 space-y-2 shadow-sm">
+                  <Briefcase className="w-10 h-10 text-slate-200 mx-auto" />
+                  <p>Instansi Anda belum memiliki postingan lowongan karir aktif.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6" id="mitra-job-list">
                   {myJobs.map((job) => (
-                    <div key={job.id} className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm flex flex-col justify-between" id={`job-box-${job.id}`}>
+                    <div key={job.id} className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm hover:shadow-md transition flex flex-col justify-between group" id={`job-box-${job.id}`}>
                       <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] uppercase border ${
+                        <div className="flex items-center justify-between gap-2">
+                          <span className={`px-3 py-1 rounded-full font-bold text-[10px] uppercase tracking-wider border ${
                             job.tipe === 'magang' 
-                              ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
-                              : 'bg-blue-50 text-blue-600 border-blue-100'
+                              ? 'bg-blue-50 text-blue-700 border-blue-200' 
+                              : 'bg-purple-50 text-purple-700 border-purple-200'
                           }`}>
-                            {job.tipe}
+                            {job.tipe === 'magang' ? 'Program Magang' : 'Lowongan Kerja'}
                           </span>
-                          <span className={`px-2 py-0.5 rounded font-bold text-[10px] border ${
-                            job.status === 'published' 
-                              ? 'bg-green-50 text-green-700 border-green-200' 
-                              : 'bg-slate-50 text-slate-500 border-slate-200'
-                          }`}>
-                            {job.status === 'published' ? 'Aktif' : 'Tutup'}
-                          </span>
+
+                          {/* Status Pills */}
+                          {job.status === 'published' ? (
+                            <span className="bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30 px-3 py-1 rounded-full font-bold text-[11px] inline-flex items-center gap-1.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse"></span>
+                              Aktif
+                            </span>
+                          ) : job.status === 'closed' ? (
+                            <span className="bg-slate-100 text-slate-600 border border-slate-200 px-3 py-1 rounded-full font-bold text-[11px] inline-flex items-center gap-1.5">
+                              Tutup
+                            </span>
+                          ) : (
+                            <span className="bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1 rounded-full font-bold text-[11px] inline-flex items-center gap-1.5">
+                              In Review
+                            </span>
+                          )}
                         </div>
 
-                        <div className="space-y-0.5">
-                          <h4 className="font-bold text-slate-900 group-hover:text-emerald-500 transition-colors text-sm sm:text-base">{job.judul}</h4>
-                          <span className="text-[10px] text-slate-400 font-mono block">Deadline: {job.deadline}</span>
+                        <div className="flex items-start gap-4 pt-1">
+                          {(job.imageUrl || job.flyer || (job.flyers && job.flyers[0]) || job.bannerImage) ? (
+                            <img 
+                              src={job.imageUrl || job.flyer || (job.flyers && job.flyers[0]) || job.bannerImage} 
+                              alt={job.judul}
+                              className="w-16 h-20 object-cover rounded-xl border border-slate-200 shrink-0 bg-slate-100 shadow-xs" 
+                            />
+                          ) : (
+                            <div className="w-16 h-20 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
+                              <Briefcase className="w-6 h-6" />
+                            </div>
+                          )}
+                          <div className="space-y-1 min-w-0 flex-1">
+                            <h4 className="font-extrabold text-slate-900 group-hover:text-[#10B981] transition-colors text-base sm:text-lg truncate">{job.judul}</h4>
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 font-medium">
+                              <span className="flex items-center gap-1 truncate"><MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {job.lokasi}</span>
+                              <span className="flex items-center gap-1 shrink-0"><Users className="w-3.5 h-3.5 text-slate-400 shrink-0" /> Kuota: {job.kuota || 3}</span>
+                            </div>
+                            <div className="text-[11px] text-slate-400 font-medium flex items-center gap-1 pt-0.5">
+                              <Clock className="w-3 h-3 text-slate-400 shrink-0" /> Deadline: <strong className="text-slate-600 font-mono">{job.deadline}</strong>
+                            </div>
+                          </div>
                         </div>
 
-                        <p className="text-slate-650 text-xs sm:text-sm line-clamp-2 leading-relaxed">{job.deskripsi}</p>
+                        <p className="text-slate-600 text-xs sm:text-sm line-clamp-2 leading-relaxed pt-3 border-t border-slate-100">{job.deskripsi}</p>
                       </div>
 
                       {/* ACTIONS BAR */}
-                      <div className="pt-4 border-t border-slate-50 flex items-center justify-between mt-4">
+                      <div className="pt-4 border-t border-slate-100 flex items-center justify-between mt-5">
                         <button 
                           onClick={() => handleToggleJobStatus(job.id, job.status)}
-                          className="text-emerald-650 hover:text-emerald-700 font-bold text-xs"
+                          className="bg-slate-100 text-slate-700 hover:bg-slate-200 px-3.5 py-2 rounded-xl font-semibold text-xs transition"
                         >
-                          {job.status === 'published' ? 'Draft/Tutup' : 'Publish/Aktif'}
+                          {job.status === 'published' ? 'Tutup Lowongan' : 'Aktifkan Kembali'}
                         </button>
 
                         <button 
                           onClick={() => handleDeleteJob(job.id)}
-                          className="text-rose-500 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition"
+                          className="text-slate-400 hover:text-rose-600 p-2 rounded-xl hover:bg-rose-50 transition"
                           title="Hapus Lowongan"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -757,68 +972,67 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
 
           {/* TAB 4: DAFTAR PELAMAR (FR-MTR-05) */}
           {activeTab === 'pelamar' && (
-            <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm space-y-6" id="mtr-panel-pelamar">
-              <div>
-                <h3 className="font-bold text-slate-905 text-lg">Pelamar & Berkas Calon Peserta Magang</h3>
-                <p className="text-xs text-slate-400">Verifikasi berkas, baca CV, and ubah status kelayakan pelamar untuk penempatan magang industri.</p>
+            <div className="bg-white rounded-2xl border border-slate-100 p-6 sm:p-8 shadow-sm space-y-6" id="mtr-panel-pelamar">
+              <div className="border-b border-slate-100 pb-4">
+                <h3 className="font-extrabold text-slate-900 text-lg">Pelamar & Berkas Calon Peserta Magang</h3>
+                <p className="text-xs text-slate-500 mt-0.5">Verifikasi berkas, tinjau CV, serta kelola status kelayakan pelamar untuk penempatan magang industri.</p>
               </div>
 
               {myApplicants.length === 0 ? (
-                <div className="text-center py-12" id="applicants-empty">
-                  <Users className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                  <div className="text-xs text-slate-500">Belum ada pelamar masuk.</div>
+                <div className="text-center py-14 space-y-2" id="applicants-empty">
+                  <Users className="w-10 h-10 text-slate-200 mx-auto" />
+                  <div className="text-xs text-slate-400">Belum ada pelamar yang mendaftar pada lowongan Anda.</div>
                 </div>
               ) : (
-                <div className="overflow-x-auto" id="applicants-table-container">
+                <div className="overflow-x-auto rounded-xl border border-slate-100" id="applicants-table-container">
                   <table className="w-full text-left border-collapse text-xs sm:text-sm">
                     <thead>
-                      <tr className="border-b border-slate-100 text-slate-400 font-bold">
-                        <th className="py-3 px-4">Nama Pelamar</th>
-                        <th className="py-3 px-4">Instansi/Proyek</th>
-                        <th className="py-3 px-4">Rentang Tanggal</th>
-                        <th className="py-3 px-4">Status</th>
-                        <th className="py-3 px-4 text-right">Aksi Tindakan</th>
+                      <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold text-xs uppercase tracking-wider">
+                        <th className="py-3.5 px-4">Nama Pelamar</th>
+                        <th className="py-3.5 px-4">Posisi Tujuan</th>
+                        <th className="py-3.5 px-4">Periode Tanggal</th>
+                        <th className="py-3.5 px-4">Status</th>
+                        <th className="py-3.5 px-4 text-right">Tindakan Aksi</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-50 text-slate-700" id="applicants-table-body">
+                    <tbody className="divide-y divide-slate-100 text-slate-700" id="applicants-table-body">
                       {myApplicants.map((appl) => (
-                        <tr key={appl.id} className="hover:bg-slate-50/50 transition duration-150">
-                          <td className="py-4 px-4 font-semibold text-slate-900">
+                        <tr key={appl.id} className="hover:bg-slate-50/70 transition duration-150">
+                          <td className="py-4 px-4 font-bold text-slate-900">
                             <div>{appl.namaMahasiswa}</div>
-                            <span className="text-[10px] text-slate-400 block font-normal">NIM: {appl.nim} • {appl.programStudi}</span>
+                            <span className="text-[11px] text-slate-400 block font-normal mt-0.5 font-mono">NIM: {appl.nim} • {appl.programStudi}</span>
                           </td>
-                          <td className="py-4 px-4 font-medium text-slate-700">{appl.tujuanMagang}</td>
-                          <td className="py-4 px-4 text-slate-500 font-mono text-[11px] whitespace-nowrap">
-                            {appl.tanggalMulai} s/d {appl.tanggalSelesai}
+                          <td className="py-4 px-4 font-semibold text-slate-800">{appl.tujuanMagang}</td>
+                          <td className="py-4 px-4 text-slate-500 font-mono text-xs whitespace-nowrap">
+                            {appl.tanggalMulai} <span className="text-slate-300">s/d</span> {appl.tanggalSelesai}
                           </td>
-                          <td className="py-4 px-4">
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wider ${
+                          <td className="py-4 px-4 whitespace-nowrap">
+                            <span className={`px-3 py-1 rounded-full text-[11px] font-bold border uppercase tracking-wider inline-flex items-center gap-1.5 ${
                               appl.status === 'accepted' 
-                                ? 'bg-green-50 text-green-700 border-green-200' 
+                                ? 'bg-[#10B981]/15 text-[#10B981] border-[#10B981]/30' 
                                 : appl.status === 'rejected' 
-                                ? 'bg-red-50 text-red-700 border-red-200' 
-                                : 'bg-amber-50 text-amber-700 border-amber-200 animate-pulse'
+                                ? 'bg-rose-50 text-rose-700 border-rose-200' 
+                                : 'bg-amber-50 text-amber-700 border-amber-200'
                             }`}>
-                              {appl.status}
+                              {appl.status === 'under_review' ? 'In Review' : appl.status}
                             </span>
                           </td>
                           <td className="py-4 px-4 text-right whitespace-nowrap space-x-2">
                             <button 
                               onClick={() => triggerToast('success', `Simulasi download berkas lamaran ${appl.namaMahasiswa}...`)}
-                              className="text-emerald-600 hover:underline text-xs font-bold"
+                              className="bg-slate-100 text-slate-700 hover:bg-slate-200 px-3 py-1.5 rounded-lg font-semibold text-xs transition inline-flex items-center gap-1"
                             >
-                              Berkas
+                              <FileText className="w-3.5 h-3.5 text-slate-500" /> Berkas
                             </button>
-                            <span className="text-slate-250">|</span>
                             <button 
                               onClick={() => handleUpdateApplicantStatus(appl.id, 'accepted')}
-                              className="text-green-600 hover:text-green-700 text-xs font-bold"
+                              className="bg-[#10B981] hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-bold text-xs transition shadow-2xs"
                             >
                               Terima
                             </button>
                             <button 
                               onClick={() => handleUpdateApplicantStatus(appl.id, 'rejected')}
-                              className="text-rose-500 hover:text-rose-600 text-xs font-bold"
+                              className="bg-rose-50 hover:bg-rose-100 text-rose-700 px-3 py-1.5 rounded-lg font-bold text-xs transition border border-rose-200/50"
                             >
                               Tolak
                             </button>
@@ -834,10 +1048,10 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
 
           {/* TAB 5: SURVEI PENGGUNA LULUSAN (FR-MTR-06) */}
           {activeTab === 'survei' && (
-            <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm space-y-6" id="mtr-panel-survei">
-              <div>
-                <h3 className="font-bold text-slate-905 text-lg">Survei Kepuasan Mutu Pengguna Lulusan</h3>
-                <p className="text-xs text-slate-400">Tanggapan evaluasi Anda sangat penting bagi monitoring akreditasi dekanat fakultas.</p>
+            <div className="bg-white rounded-2xl border border-slate-100 p-6 sm:p-8 shadow-sm space-y-6" id="mtr-panel-survei">
+              <div className="border-b border-slate-100 pb-4">
+                <h3 className="font-extrabold text-slate-900 text-lg">Survei Kepuasan Mutu Pengguna Lulusan</h3>
+                <p className="text-xs text-slate-500 mt-0.5">Tanggapan evaluasi Anda sangat penting bagi monitoring akreditasi serta penyempurnaan kurikulum fakultas.</p>
               </div>
 
               <form onSubmit={handleSubmitSurvey} className="space-y-6" id="survey-feedback-form">
@@ -847,9 +1061,9 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
                     required
                     value={selectedAlumniId}
                     onChange={(e) => setSelectedAlumniId(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-normal bg-white"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal bg-white transition"
                   >
-                    <option value="">-- Silakan Pilih Lulusan --</option>
+                    <option value="">-- Silakan Pilih Lulusan / Alumni --</option>
                     <option value="alm_1_fadly">Muhammad Fadly Alamsyah (Teknik Informatika)</option>
                     <option value="alm_2_faisal">Fachrul Alam Prasetyo, S.Kom. (Teknik Informatika)</option>
                     <option value="alm_3_mega">Andi Megawati, S.E. (Manajemen)</option>
@@ -857,8 +1071,8 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
                 </div>
 
                 {/* FIVE CORE DIMENSIONS RATING FOR SURVEI_LULUSAN */}
-                <div className="space-y-4 border-t border-slate-50 pt-4" id="survei-ratings">
-                  <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wide">Skor Evaluasi (Skala 1 - 5)</h4>
+                <div className="space-y-3 border-t border-slate-100 pt-5" id="survei-ratings">
+                  <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider mb-2">Skor Evaluasi (Skala 1 - 5)</h4>
                   
                   {[
                     { label: 'Kualitas Umum Kinerja Lulusan', state: kualitasLulusan, setter: setKualitasLulusan },
@@ -867,41 +1081,41 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
                     { label: 'Etika, Kedisiplinan & Sikap', state: etikaKerja, setter: setEtikaKerja },
                     { label: 'Kolaborasi & Kemampuan Kerja Tim', state: kemampuanKerjaTim, setter: setKemampuanKerjaTim }
                   ].map((dim, i) => (
-                    <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-slate-50 rounded-xl" id={`dim-row-${i}`}>
-                      <span className="text-xs font-semibold text-slate-700">{dim.label}</span>
+                    <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-slate-50/80 hover:bg-slate-50 rounded-xl border border-slate-100 transition" id={`dim-row-${i}`}>
+                      <span className="text-xs font-semibold text-slate-800">{dim.label}</span>
                       
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
                         <input 
                           type="range" 
                           min="1" 
                           max="5" 
                           value={dim.state}
                           onChange={(e) => dim.setter(Number(e.target.value))}
-                          className="w-32 accent-emerald-500 rounded-lg cursor-pointer"
+                          className="w-36 accent-[#10B981] rounded-lg cursor-pointer"
                         />
-                        <span className="font-bold text-slate-800 text-xs border bg-white px-2.5 py-1 rounded-md min-w-[30px] text-center font-mono">{dim.state} ★</span>
+                        <span className="font-extrabold text-[#10B981] text-xs border border-[#10B981]/20 bg-emerald-50/50 px-2.5 py-1 rounded-lg min-w-[36px] text-center font-mono">{dim.state} ★</span>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <div className="space-y-1.5 pt-4 border-t border-slate-50">
+                <div className="space-y-1.5 pt-4 border-t border-slate-100">
                   <label className="text-xs font-bold text-slate-700">Tanggapan, Kesan & Saran Perbaikan Akademis</label>
                   <textarea 
                     value={surveiSaran}
                     onChange={(e) => setSurveiSaran(e.target.value)}
                     rows={4}
-                    placeholder="Uraikan kelebihan lulusan serta kritik penyelarasan kurikulum Anda..."
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none"
+                    placeholder="Uraikan kelebihan lulusan serta kritik saran untuk penyelarasan kurikulum ke depannya..."
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm transition font-normal"
                   ></textarea>
                 </div>
 
-                <div className="pt-4 border-t border-slate-50 flex justify-end">
+                <div className="pt-5 border-t border-slate-100 flex justify-end">
                   <button 
                     type="submit"
-                    className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-6 py-2.5 rounded-xl text-xs font-bold transition shadow-sm"
+                    className="bg-[#10B981] hover:bg-emerald-600 text-white px-6 py-3 rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-2"
                   >
-                    Kirim Hasil Evaluasi Mutu
+                    <CheckCircle className="w-4 h-4" /> Kirim Hasil Evaluasi Mutu
                   </button>
                 </div>
               </form>
@@ -914,3 +1128,4 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
     </div>
   );
 }
+

@@ -16,6 +16,8 @@ import {
   saveToDB 
 } from './data';
 import PublicLayout from './components/PublicLayout';
+import Register from './components/Register';
+import { JobDetail } from './components/JobDetail';
 import MahasiswaDashboard from './components/MahasiswaDashboard';
 import AlumniDashboard from './components/AlumniDashboard';
 import MitraDashboard from './components/MitraDashboard';
@@ -41,8 +43,9 @@ import { motion } from 'motion/react';
 
 export default function App() {
   // Routes States
-  const [currentView, setCurrentView] = useState<'public' | 'login' | 'dashboard'>('public');
+  const [currentView, setCurrentView] = useState<'public' | 'login' | 'register' | 'dashboard'>('public');
   const [publicTab, setPublicTab] = useState('beranda');
+  const [registerTab, setRegisterTab] = useState<'alumni' | 'perusahaan'>('alumni');
 
   // Detail States 
   const [viewingLowonganId, setViewingLowonganId] = useState<string | null>(null);
@@ -135,6 +138,12 @@ export default function App() {
     setCurrentView('login');
   };
 
+  const handleNavigateToRegister = (type: 'alumni' | 'perusahaan' = 'alumni') => {
+    setLoginError('');
+    setRegisterTab(type);
+    setCurrentView('register');
+  };
+
   const handleSelectLowongan = (id: string) => {
     setViewingLowonganId(id);
     setViewingBeritaSlug(null);
@@ -207,94 +216,22 @@ export default function App() {
             onSelectLowongan={handleSelectLowongan}
             onSelectBerita={handleSelectBerita}
             onNavigateToLogin={handleNavigateToLogin}
+            onNavigateToRegister={handleNavigateToRegister}
           />
         )}
 
         {/* VIEW 2: JOB VACANCY PROFILE BLOCK */}
         {currentView === 'public' && viewingLowonganId && selectedLowongan && (
-          <div className="max-w-4xl mx-auto px-4 py-16 space-y-6" id="job-detail-panel">
-            <button 
-              onClick={() => setViewingLowonganId(null)}
-              className="inline-flex items-center gap-1.5 text-slate-550 hover:text-slate-800 font-bold text-sm bg-white border border-slate-150 px-4 py-2 rounded-xl shadow-xs transition"
-              id="job-back-btn"
-            >
-              <ChevronLeft className="w-4 h-4" /> Kembali Roster
-            </button>
-
-            <article className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm space-y-8" id="job-detail-doc">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-50 pb-6" id="job-detail-top">
-                <div className="space-y-1.5">
-                  <span className="px-3 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-150 rounded-full font-bold text-xs uppercase">
-                    Mitra CDC Resmi ({selectedLowongan.tipe})
-                  </span>
-                  <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-950">{selectedLowongan.judul}</h2>
-                  <div className="flex items-center gap-1.5 text-slate-500 font-bold text-sm">
-                    <Building2 className="w-4 h-4 text-slate-400" /> {selectedLowongan.namaInstansi}
-                  </div>
-                </div>
-
-                <div className="text-slate-450 text-xs font-mono" id="job-detail-dl-field">
-                  Deadline: <span className="font-bold text-slate-800">{selectedLowongan.deadline}</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-5 rounded-2xl text-xs sm:text-sm text-slate-600 border border-slate-100" id="job-detail-meta">
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-slate-450" />
-                  <span>Lokasi: <span className="font-semibold text-slate-800">{selectedLowongan.lokasi}</span></span>
-                </div>
-                {selectedLowongan.kuota && (
-                  <div className="flex items-center gap-2">
-                    <Briefcase className="w-4 h-4 text-slate-450" />
-                    <span>Kuota Penerimaan: <span className="font-bold text-slate-800">{selectedLowongan.kuota} Orang</span></span>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-3" id="job-detail-desc-box">
-                <h4 className="font-bold text-slate-900 border-l-4 border-emerald-500 pl-3">Uraian Umum Pekerjaan</h4>
-                <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">{selectedLowongan.deskripsi}</p>
-              </div>
-
-              {selectedLowongan.kualifikasi.length > 0 && (
-                <div className="space-y-3" id="job-detail-qual-box">
-                  <h4 className="font-bold text-slate-900 border-l-4 border-emerald-500 pl-3">Persyaratan & Kualifikasi Pelamar</h4>
-                  <ul className="list-disc pl-5 space-y-1.5 text-slate-650 text-xs sm:text-sm" id="job-qual-list">
-                    {selectedLowongan.kualifikasi.map((k, idx) => (
-                      <li key={idx}>{k}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {selectedLowongan.benefit.length > 0 && (
-                <div className="space-y-3" id="job-detail-benefit-box">
-                  <h4 className="font-bold text-slate-900 border-l-4 border-emerald-500 pl-3">Kompensasi & Benefit Penempatan</h4>
-                  <ul className="list-disc pl-5 space-y-1.5 text-slate-650 text-xs sm:text-sm" id="job-benefit-list">
-                    {selectedLowongan.benefit.map((b, idx) => (
-                      <li key={idx}>{b}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* ACTION TRIGGER REDIRECTING STUDENT DIRECTLY */}
-              <div className="border-t border-slate-50 pt-8 flex justify-end" id="job-detail-actions">
-                <button 
-                  onClick={() => {
-                    setViewingLowonganId(null);
-                    setPublicTab('beranda');
-                    handleNavigateToLogin();
-                    reloadDatabase();
-                  }}
-                  className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-6 py-3 rounded-xl font-bold text-sm flex items-center gap-1.5 transition shadow-sm active:scale-95"
-                  id="job-apply-cta"
-                >
-                  Ajukan Lamaran Portofolio <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            </article>
-          </div>
+          <JobDetail
+            job={selectedLowongan}
+            onBack={() => setViewingLowonganId(null)}
+            onApply={() => {
+              setViewingLowonganId(null);
+              setPublicTab('beranda');
+              handleNavigateToLogin();
+              reloadDatabase();
+            }}
+          />
         )}
 
         {/* VIEW 3: NEWS ARTICLE BLOCK */}
@@ -396,7 +333,7 @@ export default function App() {
                   Masuk Ke Database Portal
                 </button>
 
-                <div className="pt-4 border-t border-slate-50 flex items-center justify-between text-xs text-slate-500" id="login-footer">
+                <div className="pt-4 border-t border-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500" id="login-footer">
                   <button 
                     type="button" 
                     onClick={() => {
@@ -407,11 +344,32 @@ export default function App() {
                   >
                     ← Kembali ke Beranda
                   </button>
-                  <span className="text-[10px] text-slate-400 font-mono">MVP Ver. 1.1</span>
+                  <button
+                    type="button"
+                    onClick={() => handleNavigateToRegister('alumni')}
+                    className="font-bold text-emerald-600 hover:text-emerald-700 hover:underline flex items-center gap-1"
+                  >
+                    Belum punya akun? Daftar Sekarang →
+                  </button>
                 </div>
               </form>
             </div>
           </div>
+        )}
+
+        {/* VIEW 4.5: REGISTER FORM ROUTE */}
+        {currentView === 'register' && (
+          <Register
+            initialTab={registerTab}
+            onNavigateToLogin={handleNavigateToLogin}
+            onNavigateHome={() => {
+              setCurrentView('public');
+              reloadDatabase();
+            }}
+            onRegisterSuccess={(user) => {
+              reloadDatabase();
+            }}
+          />
         )}
 
         {/* VIEW 5: DISPATCH DASHBOARDS TO ROLE-SPECIFIC PANELS */}

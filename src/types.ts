@@ -72,6 +72,11 @@ export interface Lowongan {
   judul: string;
   tipe: TipeLowongan;
   namaInstansi: string;
+  companyLogo?: string;
+  bannerImage?: string;
+  imageUrl?: string; // poster / flyer image URL
+  flyer?: string; // alias for poster image
+  flyers?: string[]; // Array of poster/flyer image URLs
   lokasi: string;
   deskripsi: string;
   kualifikasi: string[]; // parsed from JSON array
