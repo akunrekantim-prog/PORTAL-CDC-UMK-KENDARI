@@ -82,3 +82,63 @@ Untuk memberikan pengalaman pengguna yang sangat rapi dan berstandar *enterprise
 ## 📌 Status Akhir
 **STATUS: SELESAI (100%)**  
 Seluruh sub-bab layanan telah berfungsi, terintegrasi, bebas dari error, dan memiliki antarmuka yang sangat profesional.
+
+---
+
+# Laporan Progres Admin Dashboard CDC UM Kendari
+**Tanggal:** 30 Juli 2026  
+**Fokus Pekerjaan:** Peningkatan fitur AdminDashboard: menu awal, pencarian, ringkasan analitik, dan approval akun
+
+---
+
+## Ringkasan Perubahan
+- Menambahkan tab baru: **Kelola Akun User** dan **Approval Akun**
+- Menambahkan fitur **pencarian/filter** pada tabel alumni, mitra, verifikasi magang, tracer study, CMS berita, users, approval
+- Memperkaya tab **Ringkasan** dengan aktivitas terkini gabungan, distribusi role, KPI tambahan, tren mingguan, dan top mitra
+- Menambahkan state dan load data `lowongan` untuk kebutuhan KPI ringkasan
+- Memastikan semua perubahan lolos `npm run lint` dan `npm run build`
+
+## File Diubah
+- `src/components/AdminDashboard.tsx`
+- `src/components/AdminDashboard.md` (backlog fitur dashboard)
+
+## Selesai Hari Ini
+- [x] Tambah tab Kelola Akun User + Approval Akun
+- [x] Tambah search/filter di tabel admin
+- [x] Tambah aktivitas terkini global di Ringkasan
+- [x] Tambah KPI lowongan aktif + pengajuan bulan ini
+- [x] Tambah tren mingguan pengajuan 7 hari
+- [x] Tambah top 5 mitra paling banyak dilamar
+
+## Catatan
+- Build lolos meskipun ada warning chunk size.
+
+## Tanggal: 31 Juli 2026
+**Fokus Pekerjaan:** Polish AdminDashboard section 1–5: visual alignment, filter spacing, placeholder cleanup, dan pemulihan backlog.
+
+### Ringkasan Perubahan
+- Perbaiki spacing bar filter dan kartu ringkasan di **Rekap Tracer Study** agar tidak menindih.
+- Standarisasi dropdown menjadi wrapper `relative` + `ChevronDown` di Tracer Study, Mahasiswa, Alumni, Mitra, Pengajuan, Staff.
+- Rapikan layout filter Mahasiswa: `md:grid-cols-2 xl:grid-cols-4`, `gap-4`, dan `w-full` per kontrol agar tidak offside.
+- Cleanup placeholder: hapus tombol export PDF placeholder, ubah tombol Export All CSV menjadi **Export Excel** sesuai rule Excel-only.
+- Ganti link placeholder dokumen mahasiswa (`CV`, `Transkrip KHS`, `Portofolio`) menjadi status **"Belum tersedia."**
+- Ganti placeholder legalitas mitra (`NIB/SIUP`) menjadi **"-"** pada tabel dan **"Belum tersedia."** pada modal validasi.
+- Hapus teks `"Data akademik placeholder"` menjadi data akademik statis `IPK 3.75 / SKS 110.`
+- Tambah aksi tabel Mahasiswa: **Detail**, **History CDC**, **Nonaktifkan/Aktifkan**, **Reset Passcode**.
+- Pulih `src/components/AdminDashboard.md` sebagai backlog sources of truth section 1–5.
+- Verifikasi build lolos (`npm run build -> exit 0`).
+
+### File Diubah
+- `src/components/AdminDashboard.tsx`
+- `src/components/AdminDashboard.md`
+- `progres.md`
+
+### Selesai Hari Ini
+- [x] Perbaiki spacing + overlap filter Tracer Study
+- [x] Standarisasi dropdown visual + Chevron icon
+- [x] Rapikan layout filter Mahasiswa
+- [x] Cleanup placeholder export PDF + CSV label
+- [x] Bersihkan placeholder dokumen mahasiswa + mitra
+- [x] Tambah aksi tabel Mahasiswa (Detail/History/Nonaktifkan/Reset Passcode)
+- [x] Pulih AdminDashboard.md backlog
+- [x] Build verification
