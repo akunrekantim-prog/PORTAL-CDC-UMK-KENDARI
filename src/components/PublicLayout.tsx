@@ -26,6 +26,7 @@ import CareerFair from './layanan/CareerFair';
 import ExitSurvey from './layanan/ExitSurvey';
 import JobPlacement from './layanan/JobPlacement';
 import LayananContainer from './layanan/LayananContainer';
+import HeroSlider from './HeroSlider';
 
 /* ─── Types ─────────────────────────────────── */
 interface PublicLayoutProps {
@@ -68,19 +69,19 @@ function FadeIn({
 
 /* ─── Credibility badges data ─────────────────── */
 const CRED_BADGES = [
-  { icon: Shield,    label: 'Akreditasi',  sub: 'UNGGUL',           color: 'text-emerald-600' },
-  { icon: Zap,       label: 'Diktisaintek', sub: 'BERDAMPAK',        color: 'text-blue-600'    },
-  { icon: Award,     label: 'MQA',         sub: 'Certified',        color: 'text-amber-600'   },
-  { icon: Star,      label: 'AppliedHE',   sub: 'Ranked',           color: 'text-violet-600'  },
-  { icon: TrendingUp,label: 'THE Impact',  sub: 'Rankings',         color: 'text-rose-600'    },
+  { icon: Shield, label: 'Akreditasi', sub: 'UNGGUL', color: 'text-emerald-600' },
+  { icon: Zap, label: 'Diktisaintek', sub: 'BERDAMPAK', color: 'text-blue-600' },
+  { icon: Award, label: 'MQA', sub: 'Certified', color: 'text-amber-600' },
+  { icon: Star, label: 'AppliedHE', sub: 'Ranked', color: 'text-violet-600' },
+  { icon: TrendingUp, label: 'THE Impact', sub: 'Rankings', color: 'text-rose-600' },
 ];
 
 /* ─── Stat counters ───────────────────────────── */
 const STATS = [
-  { value: '5.000+', label: 'Alumni Aktif'       },
-  { value: '120+',   label: 'Mitra Perusahaan'   },
-  { value: '98%',    label: 'Tingkat Penempatan'  },
-  { value: '15+',    label: 'Tahun Pengalaman'    },
+  { value: '20.000+', label: 'Alumni' },
+  { value: '5', label: 'Mitra Perusahaan' },
+  { value: '98%', label: 'Tingkat Penempatan' },
+  { value: '10+', label: 'Tahun Pengalaman' },
 ];
 
 /* ─── Popular links ───────────────────────────── */
@@ -106,12 +107,12 @@ export default function PublicLayout({
   onNavigateToLogin,
   onNavigateToRegister,
 }: PublicLayoutProps) {
-  const [searchQuery, setSearchQuery]   = useState('');
-  const [filterType,  setFilterType]    = useState<'all' | 'magang' | 'kerja'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState<'all' | 'magang' | 'kerja'>('all');
 
   /* Data helpers */
-  const publishedLowongan   = lowongan.filter(l => l.status === 'published');
-  const publishedBerita     = berita.filter(b => b.status === 'published');
+  const publishedLowongan = lowongan.filter(l => l.status === 'published');
+  const publishedBerita = berita.filter(b => b.status === 'published');
   const publishedPengumuman = pengumuman.filter(p => p.status === 'published');
 
   const filteredLowongan = publishedLowongan.filter(item => {
@@ -147,157 +148,12 @@ export default function PublicLayout({
         {currentTab === 'beranda' && (
           <div id="tab-beranda">
 
-            {/* ══ HERO SECTION ══════════════════════════════════════════════ */}
-            <section
-              id="hero-banner"
-              className="relative overflow-hidden bg-white"
-              style={{ backgroundImage: DOT_BG }}
-            >
-              {/* Right organic shape */}
-              <div
-                className="absolute top-0 right-0 h-full w-[52%] hidden md:block pointer-events-none"
-                style={{
-                  background: 'linear-gradient(135deg, #10B981 0%, #059669 40%, #047857 100%)',
-                  clipPath: 'ellipse(90% 100% at 90% 50%)',
-                }}
-              >
-                {/* inner dot accent */}
-                <div className="absolute top-8 right-8 grid grid-cols-6 gap-2.5 opacity-20">
-                  {Array.from({ length: 36 }).map((_, i) => (
-                    <div key={i} className="w-1.5 h-1.5 rounded-full bg-white" />
-                  ))}
-                </div>
-                {/* diagonal stripe */}
-                <div className="absolute inset-0 opacity-10"
-                  style={{
-                    backgroundImage: "repeating-linear-gradient(-45deg, transparent, transparent 20px, rgba(255,255,255,0.4) 20px, rgba(255,255,255,0.4) 22px)",
-                  }}
-                />
-              </div>
-              {/* Mobile bg */}
-              <div className="absolute inset-0 bg-gradient-to-br from-white via-blue-50 to-emerald-50 md:hidden" />
-
-              <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8
-                              grid grid-cols-1 md:grid-cols-2
-                              min-h-[580px] items-center py-14 md:py-0 gap-10">
-
-                {/* LEFT */}
-                <div className="space-y-7">
-
-                  {/* Credibility badges */}
-                  <FadeIn delay={0.05}>
-                    <div className="flex flex-wrap gap-2">
-                      {CRED_BADGES.map(({ icon: Icon, label, sub, color }) => (
-                        <div key={label}
-                          className="flex items-center gap-1.5 bg-white border border-slate-200
-                                     shadow-sm rounded-lg px-2.5 py-1.5 text-[10px] font-bold text-slate-700">
-                          <Icon className={`w-3.5 h-3.5 ${color}`} />
-                          <span>{label}</span>
-                          <span className={`${color} font-extrabold`}>{sub}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </FadeIn>
-
-                  {/* Headline */}
-                  <FadeIn delay={0.12}>
-                    <div className="space-y-4">
-                      <h1 className="text-4xl sm:text-5xl lg:text-[3.75rem] font-extrabold
-                                     text-[#1E3A8A] leading-[1.08] tracking-tight uppercase">
-                        Raih Masa<br />Depanmu<br />
-                        <span className="text-[#10B981]">Bersama</span><br />
-                        <span className="text-5xl sm:text-6xl lg:text-7xl">Yang Terbaik</span>
-                      </h1>
-                      <div className="inline-flex items-center bg-[#1E3A8A] text-white
-                                      px-5 py-2.5 rounded font-bold text-sm tracking-widest shadow-lg">
-                        UNGGUL · CERDAS · TERPERCAYA
-                      </div>
-                    </div>
-                  </FadeIn>
-
-                  {/* CTA */}
-                  <FadeIn delay={0.22}>
-                    <button
-                      onClick={() => (onNavigateToRegister ? onNavigateToRegister('alumni') : onNavigateToLogin())}
-                      className="inline-flex items-center gap-2 bg-gradient-to-r
-                                 from-[#10B981] to-emerald-600 hover:from-emerald-500 hover:to-emerald-700
-                                 text-white px-8 py-4 rounded-xl font-extrabold text-lg
-                                 shadow-xl shadow-emerald-300/40 transition-transform hover:scale-105"
-                    >
-                      Daftar Sekarang <ArrowRight className="w-5 h-5" />
-                    </button>
-                  </FadeIn>
-
-                  {/* Campus addresses */}
-                  <FadeIn delay={0.30}>
-                    <div className="space-y-1.5 text-sm text-slate-600 pt-4 border-t border-slate-200/60">
-                      {[
-                        'Kampus Utama: Jl. K.H. Ahmad Dahlan No. 10 Kendari',
-                        'Kampus Pascasarjana: Jl. K.H. Ahmad Dahlan No. 10 Kendari',
-                        'Kampus III: Jl. Amersugi No. 1 Kendari',
-                      ].map(addr => (
-                        <div key={addr} className="flex items-start gap-2">
-                          <MapPin className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                          <span>{addr}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </FadeIn>
-                </div>
-
-                {/* RIGHT — student image */}
-                <div className="hidden md:flex justify-end items-end h-full relative">
-                  <div className="relative w-[88%] max-w-[460px] z-10 pt-12">
-                    <img
-                      src="https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=800&auto=format&fit=crop"
-                      alt="Mahasiswi UM Kendari"
-                      className="w-full h-auto object-cover object-top
-                                 rounded-tl-[80px] rounded-br-[80px]
-                                 border-8 border-white shadow-2xl"
-                    />
-                    {/* floating stat card */}
-                    <div className="absolute -bottom-5 -left-8 bg-white rounded-2xl shadow-xl
-                                    border border-slate-100 p-4 flex items-center gap-3">
-                      <div className="bg-emerald-100 p-2.5 rounded-full">
-                        <Users className="w-5 h-5 text-emerald-600" />
-                      </div>
-                      <div>
-                        <div className="font-extrabold text-slate-900 text-sm">5.000+ Alumni</div>
-                        <div className="text-xs text-slate-500">Tersebar di Seluruh Indonesia</div>
-                      </div>
-                    </div>
-                    {/* floating badge */}
-                    <div className="absolute -top-2 -right-4 bg-[#1E3A8A] text-white
-                                    rounded-2xl shadow-xl p-3 text-center">
-                      <div className="text-xl font-extrabold">98%</div>
-                      <div className="text-[9px] font-bold text-blue-200 leading-tight">Tingkat<br/>Penempatan</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Social / Contact strip */}
-              <div className="relative z-10 bg-slate-50 border-t border-slate-200 py-3">
-                <div className="max-w-7xl mx-auto px-4 flex flex-wrap justify-center gap-5 sm:gap-8 items-center text-xs font-bold text-slate-600">
-                  <a href="#" className="flex items-center gap-1.5 hover:text-[#1E3A8A] transition-colors">
-                    <Globe className="w-4 h-4 text-[#1E3A8A]" /> umkendari.ac.id
-                  </a>
-                  <a href="#" className="flex items-center gap-1.5 hover:text-pink-600 transition-colors">
-                    <Instagram className="w-4 h-4 text-pink-500" /> @cdcumkendari
-                  </a>
-                  <a href="#" className="flex items-center gap-1.5 hover:text-blue-700 transition-colors">
-                    <Facebook className="w-4 h-4 text-blue-600" /> CDC UM Kendari
-                  </a>
-                  <a href="#" className="flex items-center gap-1.5 hover:text-red-600 transition-colors">
-                    <Youtube className="w-4 h-4 text-red-500" /> UM Kendari TV
-                  </a>
-                  <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-slate-200 shadow-sm">
-                    <Phone className="w-3.5 h-3.5 text-emerald-600" />
-                    <span className="text-slate-800 font-bold">0852-4100-9988</span>
-                  </div>
-                </div>
-              </div>
-            </section>
+            {/* ══ HERO SLIDER SECTION ══════════════════════════════════════════════ */}
+            <HeroSlider
+              setTab={setTab}
+              onNavigateToLogin={onNavigateToLogin}
+              onNavigateToRegister={onNavigateToRegister}
+            />
 
 
             {/* ══ STATS STRIP ══════════════════════════════════════════════ */}
@@ -364,15 +220,14 @@ export default function PublicLayout({
                     <button
                       key={f}
                       onClick={() => setFilterType(f)}
-                      className={`px-5 py-2 rounded-full text-sm font-bold border transition-all ${
-                        filterType === f
-                          ? f === 'all'
-                            ? 'bg-[#1E3A8A] text-white border-[#1E3A8A] shadow-md'
-                            : f === 'kerja'
-                              ? 'bg-[#10B981] text-white border-[#10B981] shadow-md'
-                              : 'bg-violet-600 text-white border-violet-600 shadow-md'
-                          : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
-                      }`}
+                      className={`px-5 py-2 rounded-full text-sm font-bold border transition-all ${filterType === f
+                        ? f === 'all'
+                          ? 'bg-[#1E3A8A] text-white border-[#1E3A8A] shadow-md'
+                          : f === 'kerja'
+                            ? 'bg-[#10B981] text-white border-[#10B981] shadow-md'
+                            : 'bg-violet-600 text-white border-violet-600 shadow-md'
+                        : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
+                        }`}
                     >
                       {f === 'all' ? 'Semua Lowongan' : f === 'kerja' ? 'Kerja' : 'Magang'}
                     </button>
@@ -398,7 +253,7 @@ export default function PublicLayout({
                     <h3 className="text-xl sm:text-2xl font-extrabold text-[#1E3A8A]
                                    flex items-center gap-2 before:block before:w-1.5 before:h-6
                                    before:rounded-full before:bg-[#10B981]">
-                      INFO KARIR CDAC TERKINI
+                      INFO KARIR CDC TERKINI
                     </h3>
                     <button
                       onClick={() => setTab('lowongan')}
@@ -428,11 +283,10 @@ export default function PublicLayout({
                         >
                           <div className="space-y-3">
                             <div className="flex items-start justify-between gap-2">
-                              <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wide ${
-                                loker.tipe === 'magang'
-                                  ? 'bg-violet-50 text-violet-700 border border-violet-100'
-                                  : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
-                              }`}>
+                              <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wide ${loker.tipe === 'magang'
+                                ? 'bg-violet-50 text-violet-700 border border-violet-100'
+                                : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                                }`}>
                                 {loker.tipe === 'magang' ? 'Magang' : 'Kerja'}
                               </span>
                               <span className="text-xs text-slate-400 flex items-center gap-1 font-medium">
@@ -441,8 +295,8 @@ export default function PublicLayout({
                             </div>
 
                             <div className="flex items-start gap-3 pt-1">
-                              <img 
-                                src={loker.companyLogo || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop'} 
+                              <img
+                                src={loker.companyLogo || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop'}
                                 alt={loker.namaInstansi}
                                 className="w-12 h-12 rounded-xl border border-slate-200/80 shadow-xs object-cover shrink-0 bg-slate-50"
                               />
@@ -702,7 +556,7 @@ export default function PublicLayout({
                       <Users className="w-7 h-7 text-white" />
                     </div>
                     <h4 className="font-extrabold text-lg leading-tight">
-                      CDAC UM KENDARI<br />CLUB
+                      CDC UM KENDARI<br />CLUB
                     </h4>
                     <p className="text-rose-100 text-xs leading-relaxed">
                       Bergabunglah dengan komunitas alumni tangguh yang tersebar di seluruh nusantara.
@@ -758,8 +612,8 @@ export default function PublicLayout({
                         onClick={() => onSelectLowongan(loker.id)}
                         className="w-full text-left group border-b border-slate-100 last:border-0 pb-3 last:pb-0 flex items-start gap-3"
                       >
-                        <img 
-                          src={loker.companyLogo || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop'} 
+                        <img
+                          src={loker.companyLogo || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop'}
                           alt={loker.namaInstansi}
                           className="w-10 h-10 rounded-xl border border-slate-200/80 shadow-2xs object-cover shrink-0 mt-0.5 bg-slate-50"
                         />
@@ -783,10 +637,10 @@ export default function PublicLayout({
                 <div className="bg-[#F9FAFB] rounded-2xl border border-slate-200 p-5 space-y-3 shadow-sm">
                   <h4 className="font-extrabold text-sm text-[#1E3A8A] uppercase tracking-wider">Layanan Cepat</h4>
                   {[
-                    { label: 'Konseling Karier',   tab: 'konseling' },
-                    { label: 'CV Review',           tab: 'cv-review' },
-                    { label: 'Mock Interview',      tab: 'mock-interview' },
-                    { label: 'Tes Minat Bakat',     tab: 'tes-minat' },
+                    { label: 'Konseling Karier', tab: 'konseling' },
+                    { label: 'CV Review', tab: 'cv-review' },
+                    { label: 'Mock Interview', tab: 'mock-interview' },
+                    { label: 'Tes Minat Bakat', tab: 'tes-minat' },
                   ].map(s => (
                     <button
                       key={s.label}
@@ -855,9 +709,9 @@ export default function PublicLayout({
                 <h3 className="text-lg font-bold text-slate-900 border-l-4 border-[#10B981] pl-3">Langkah Pengajuan</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                   {[
-                    { n: '1', t: 'Pilih Lowongan',    d: 'Pilih lowongan magang mitra di daftar menu Portal CDC.' },
-                    { n: '2', t: 'Lengkapi & Upload',  d: 'Isi form pengajuan magang dan upload surat pengantar dekan & CV.' },
-                    { n: '3', t: 'Approval Admin',     d: 'Operator CDC serta HRD Mitra memverifikasi berkas lamaran Anda.' },
+                    { n: '1', t: 'Pilih Lowongan', d: 'Pilih lowongan magang mitra di daftar menu Portal CDC.' },
+                    { n: '2', t: 'Lengkapi & Upload', d: 'Isi form pengajuan magang dan upload surat pengantar dekan & CV.' },
+                    { n: '3', t: 'Approval Admin', d: 'Operator CDC serta HRD Mitra memverifikasi berkas lamaran Anda.' },
                   ].map(s => (
                     <div key={s.n} className="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-2">
                       <div className="w-8 h-8 rounded-full bg-[#10B981] text-white font-bold text-xs flex items-center justify-center">{s.n}</div>
@@ -883,11 +737,10 @@ export default function PublicLayout({
               <div className="flex flex-wrap items-center gap-2 bg-white p-2 rounded-2xl border border-slate-200">
                 {(['all', 'magang', 'kerja'] as const).map(f => (
                   <button key={f} onClick={() => setFilterType(f)}
-                    className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                      filterType === f
-                        ? f === 'all' ? 'bg-[#1E3A8A] text-white' : f === 'magang' ? 'bg-violet-600 text-white' : 'bg-[#10B981] text-white'
-                        : 'text-slate-500 hover:text-slate-800'
-                    }`}>
+                    className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${filterType === f
+                      ? f === 'all' ? 'bg-[#1E3A8A] text-white' : f === 'magang' ? 'bg-violet-600 text-white' : 'bg-[#10B981] text-white'
+                      : 'text-slate-500 hover:text-slate-800'
+                      }`}>
                     {f === 'all' ? 'Semua' : f === 'magang' ? 'Magang' : 'Kerja'}
                   </button>
                 ))}
@@ -913,15 +766,14 @@ export default function PublicLayout({
                     onClick={() => onSelectLowongan(item.id)}>
                     <div className="space-y-3.5">
                       <div className="flex items-center justify-between">
-                        <span className={`px-3 py-1 text-xs font-extrabold rounded-full ${
-                          item.tipe === 'magang' ? 'bg-violet-50 text-violet-700 border border-violet-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
-                        }`}>{item.tipe === 'magang' ? 'Magang' : 'Kerja'}</span>
+                        <span className={`px-3 py-1 text-xs font-extrabold rounded-full ${item.tipe === 'magang' ? 'bg-violet-50 text-violet-700 border border-violet-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                          }`}>{item.tipe === 'magang' ? 'Magang' : 'Kerja'}</span>
                         <span className="text-xs text-slate-400 flex items-center gap-1.5 font-medium"><Clock className="w-3.5 h-3.5 text-rose-500" /> {item.deadline}</span>
                       </div>
-                      
+
                       <div className="flex items-start gap-3.5 pt-1">
-                        <img 
-                          src={item.companyLogo || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop'} 
+                        <img
+                          src={item.companyLogo || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop'}
                           alt={item.namaInstansi}
                           className="w-14 h-14 rounded-2xl border border-slate-200 shadow-sm object-cover shrink-0 bg-slate-50"
                         />
@@ -992,9 +844,9 @@ export default function PublicLayout({
                 <h3 className="text-lg font-bold text-slate-900">Saluran Komunikasi Resmi</h3>
                 {[
                   { icon: MapPin, title: 'Alamat Kantor', text: 'Gedung Rektorat Lt. 1, Universitas Muhammadiyah Kendari, Jl. K.H. Ahmad Dahlan No. 10, Kendari, Sultra.' },
-                  { icon: Mail,   title: 'Email', text: 'cdc@umkendari.ac.id' },
-                  { icon: Phone,  title: 'WhatsApp / Telepon', text: '0852-4100-9988 (Hotline CDC)' },
-                  { icon: Clock,  title: 'Waktu Pelayanan', text: 'Senin — Jumat (08:00 – 16:00 WITA)' },
+                  { icon: Mail, title: 'Email', text: 'cdc@umkendari.ac.id' },
+                  { icon: Phone, title: 'WhatsApp / Telepon', text: '0852-4100-9988 (Hotline CDC)' },
+                  { icon: Clock, title: 'Waktu Pelayanan', text: 'Senin — Jumat (08:00 – 16:00 WITA)' },
                 ].map(({ icon: Icon, title, text }) => (
                   <div key={title} className="flex items-start gap-3.5">
                     <Icon className="w-5 h-5 text-[#10B981] shrink-0 mt-0.5" />
@@ -1054,14 +906,12 @@ export default function PublicLayout({
 
             {/* Brand col */}
             <div className="md:col-span-5 space-y-6">
-              <div className="flex items-center gap-3">
-                <div className="bg-[#10B981] p-2.5 rounded-xl">
-                  <GraduationCap className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="text-white font-extrabold text-xl leading-tight">Portal CDC UM Kendari</div>
-                  <div className="text-slate-500 text-xs">Career Development &amp; Alumni Centre</div>
-                </div>
+              <div className="flex items-center">
+                <img
+                  src="/logo-cdc-branding-light.png"
+                  alt="CDC Career Development Center Universitas Muhammadiyah Kendari"
+                  className="h-20 md:h-24 lg:h-28 w-auto object-contain"
+                />
               </div>
               <p className="text-slate-400 text-sm leading-relaxed max-w-sm">
                 Pusat Pengembangan Karir dan Alumni, Universitas Muhammadiyah Kendari.
@@ -1075,7 +925,7 @@ export default function PublicLayout({
                   <Users className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <div className="text-white font-extrabold text-xs">CDAC UM KENDARI CLUB</div>
+                  <div className="text-white font-extrabold text-xs">CDC UM KENDARI CLUB</div>
                   <div className="text-rose-400 text-[10px]">Komunitas alumni aktif & berkembang</div>
                 </div>
               </div>
@@ -1083,10 +933,10 @@ export default function PublicLayout({
               {/* Social icons */}
               <div className="flex gap-3">
                 {[
-                  { icon: Facebook,  color: 'hover:bg-blue-600'  },
-                  { icon: Instagram, color: 'hover:bg-pink-600'  },
-                  { icon: Youtube,   color: 'hover:bg-red-600'   },
-                  { icon: Globe,     color: 'hover:bg-[#10B981]' },
+                  { icon: Facebook, color: 'hover:bg-blue-600' },
+                  { icon: Instagram, color: 'hover:bg-pink-600' },
+                  { icon: Youtube, color: 'hover:bg-red-600' },
+                  { icon: Globe, color: 'hover:bg-[#10B981]' },
                 ].map(({ icon: Icon, color }, i) => (
                   <a key={i} href="#"
                     className={`bg-slate-800 p-2.5 rounded-full ${color} hover:text-white transition-colors`}>

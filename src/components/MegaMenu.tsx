@@ -344,9 +344,8 @@ export default function MegaMenu({
         >
           {section.label}
           <ChevronDown
-            className={`w-4 h-4 text-emerald-500 transition-transform duration-200 ${
-              isOpen ? 'rotate-180' : ''
-            }`}
+            className={`w-4 h-4 text-emerald-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''
+              }`}
           />
         </button>
 
@@ -395,17 +394,15 @@ export default function MegaMenu({
               aria-haspopup="true"
               className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-[13px]
                          font-bold tracking-wide transition-all duration-150 select-none
-                         ${
-                           openMenu === section.id
-                             ? 'bg-emerald-800 text-emerald-100 shadow-inner'
-                             : 'text-emerald-50 hover:bg-emerald-800/60 hover:text-white'
-                         }`}
+                         ${openMenu === section.id
+                  ? 'bg-emerald-800 text-emerald-100 shadow-inner'
+                  : 'text-emerald-50 hover:bg-emerald-800/60 hover:text-white'
+                }`}
             >
               {section.label}
               <ChevronDown
-                className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                  openMenu === section.id ? 'rotate-180 text-emerald-300' : 'text-emerald-500'
-                }`}
+                className={`w-3.5 h-3.5 transition-transform duration-200 ${openMenu === section.id ? 'rotate-180 text-emerald-300' : 'text-emerald-500'
+                  }`}
               />
             </button>
 
@@ -423,13 +420,12 @@ export default function MegaMenu({
             onClick={() => handleSimpleNav(item)}
             className={`px-3.5 py-2.5 text-[13px] font-bold rounded-xl transition-all duration-150
                        tracking-wide
-                       ${
-                         currentTab === item.id && !item.isAction
-                           ? 'bg-emerald-600 text-white shadow-md'
-                           : item.isAction
-                           ? 'text-emerald-300 hover:text-white hover:bg-emerald-800/60 border border-emerald-700/50'
-                           : 'text-emerald-50 hover:text-white hover:bg-emerald-800/60'
-                       }`}
+                       ${currentTab === item.id && !item.isAction
+                ? 'bg-emerald-600 text-white shadow-md'
+                : item.isAction
+                  ? 'text-emerald-300 hover:text-white hover:bg-emerald-800/60 border border-emerald-700/50'
+                  : 'text-emerald-50 hover:text-white hover:bg-emerald-800/60'
+              }`}
           >
             {item.label}
           </button>
@@ -468,13 +464,12 @@ export default function MegaMenu({
                   key={item.id}
                   onClick={() => handleSimpleNav(item)}
                   className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-colors
-                             ${
-                               currentTab === item.id && !item.isAction
-                                 ? 'bg-emerald-700 text-white'
-                                 : item.isAction
-                                 ? 'text-emerald-300 hover:bg-emerald-900/50 border border-emerald-800/40'
-                                 : 'text-emerald-100 hover:bg-emerald-900/50'
-                             }`}
+                             ${currentTab === item.id && !item.isAction
+                      ? 'bg-emerald-700 text-white'
+                      : item.isAction
+                        ? 'text-emerald-300 hover:bg-emerald-900/50 border border-emerald-800/40'
+                        : 'text-emerald-100 hover:bg-emerald-900/50'
+                    }`}
                 >
                   {item.label}
                 </button>

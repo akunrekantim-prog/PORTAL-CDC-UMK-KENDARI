@@ -53,31 +53,31 @@ const NAV_ITEMS: NavItem[] = [
     id: 'tentang',
     label: 'Tentang Kami',
     children: [
-      { label: 'Profil',                    tab: 'profil'        },
-      { label: 'Surat Keputusan CDAC',      tab: 'sk-cdac'       },
-      { label: 'Tujuan - Strategi',         tab: 'tujuan'        },
-      { label: 'Kalender Kegiatan',         tab: 'kalender'      },
-      { label: 'Laporan Kinerja',           tab: 'laporan'       },
-      { label: 'Panduan Penggunaan Situs',  tab: 'panduan'       },
-      { label: 'MOU Dengan Stakeholder',    tab: 'mou'           },
-      { label: 'Galeri',                    tab: 'galeri'        },
+      { label: 'Profil', tab: 'profil' },
+      { label: 'Surat Keputusan CDC', tab: 'sk-cdc' },
+      { label: 'Tujuan - Strategi', tab: 'tujuan' },
+      { label: 'Kalender Kegiatan', tab: 'kalender' },
+      { label: 'Laporan Kinerja', tab: 'laporan' },
+      { label: 'Panduan Penggunaan Situs', tab: 'panduan' },
+      { label: 'MOU Dengan Stakeholder', tab: 'mou' },
+      { label: 'Galeri', tab: 'galeri' },
     ],
   },
   {
     id: 'layanan',
     label: 'Layanan',
     children: [
-      { label: 'Cara Pasang Info LowKer',          tab: 'cara-pasang'     },
-      { label: 'Keanggotaan CDC',                  tab: 'keanggotaan'     },
-      { label: 'Bimbingan Karir',                  tab: 'konseling'       },
-      { label: 'Tes Potensi Minat Kerja',          tab: 'tes-minat'       },
-      { label: 'Workshop Karir',                   tab: 'workshop'        },
-      { label: 'Pelatihan Softskill & Kewirausahaan', tab: 'softskill'   },
-      { label: 'Seminar Sukses Berkarir',          tab: 'seminar'         },
-      { label: 'Bursa Kerja',                      tab: 'bursa-kerja'     },
-      { label: 'UM Kendari Job Fair',              tab: 'career-fair'     },
-      { label: 'Data Exit Survey Lulusan',         tab: 'exit-survey'     },
-      { label: 'Job Placement Program',            tab: 'job-placement'   },
+      { label: 'Cara Pasang Info LowKer', tab: 'cara-pasang' },
+      { label: 'Keanggotaan CDC', tab: 'keanggotaan' },
+      { label: 'Bimbingan Karir', tab: 'konseling' },
+      { label: 'Tes Potensi Minat Kerja', tab: 'tes-minat' },
+      { label: 'Workshop Karir', tab: 'workshop' },
+      { label: 'Pelatihan Softskill & Kewirausahaan', tab: 'softskill' },
+      { label: 'Seminar Sukses Berkarir', tab: 'seminar' },
+      { label: 'Bursa Kerja', tab: 'bursa-kerja' },
+      { label: 'UM Kendari Job Fair', tab: 'career-fair' },
+      { label: 'Data Exit Survey Lulusan', tab: 'exit-survey' },
+      { label: 'Job Placement Program', tab: 'job-placement' },
     ],
   },
   {
@@ -97,8 +97,8 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Register',
     isAction: true,
     children: [
-      { label: 'Register Alumni',     tab: 'register-alumni'    },
-      { label: 'Register Perusahaan', tab: 'register-perusahaan'},
+      { label: 'Register Alumni', tab: 'register-alumni' },
+      { label: 'Register Perusahaan', tab: 'register-perusahaan' },
     ],
   },
   {
@@ -106,7 +106,7 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Job Info',
     children: [
       { label: 'Lowongan Terbaru', tab: 'lowongan' },
-      { label: 'Magang',           tab: 'magang'   },
+      { label: 'Magang', tab: 'magang' },
     ],
   },
 ];
@@ -115,10 +115,11 @@ const NAV_ITEMS: NavItem[] = [
    UTILITY LINKS (Top bar)
 ───────────────────────────────────────────────────────────────── */
 const TOP_LINKS = [
-  'APCDA',
-  'Website UM Kendari',
-  'Entrepreneur UM Kendari',
-  'Program Jalinan Kealumnian UM Kendari',
+  { label: 'ICCN', href: 'https://indonesiacareercenter.id/' },
+  { label: 'Website UM Kendari', href: 'https://umkendari.ac.id/' },
+  { label: 'SIMBELMAWA', href: 'https://simbelmawa.kemdiktisaintek.go.id/' },
+  { label: 'SIMKATMAWA', href: 'https://simkatmawa.kemdiktisaintek.go.id/' },
+  { label: 'MTQMN', href: 'https://mtqmn.kemenag.go.id/' },
 ];
 
 /* ─────────────────────────────────────────────────────────────────
@@ -126,11 +127,11 @@ const TOP_LINKS = [
 ───────────────────────────────────────────────────────────────── */
 export default function Header({ currentTab, setTab, onNavigateToLogin, onNavigateToRegister }: HeaderProps) {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const [isMobileOpen,  setIsMobileOpen]  = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
 
-  const closeTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const navRef      = useRef<HTMLDivElement>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const navRef = useRef<HTMLDivElement>(null);
 
   /* Current date */
   const formattedDate = new Date().toLocaleDateString('en-GB', {
@@ -215,13 +216,14 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
           {/* Left: utility links */}
           <div className="flex items-center gap-0">
             {TOP_LINKS.map((link, i) => (
-              <React.Fragment key={link}>
+              <React.Fragment key={link.label}>
                 <a
-                  href="#"
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="hover:text-orange-300 transition-colors duration-150 whitespace-nowrap"
-                  onClick={e => e.preventDefault()}
                 >
-                  {link}
+                  {link.label}
                 </a>
                 {i < TOP_LINKS.length - 1 && (
                   <span className="mx-2.5 text-blue-400 select-none">•</span>
@@ -244,22 +246,14 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
             {/* ── LOGO / BRANDING ── */}
             <button
               onClick={() => navigate('beranda')}
-              className="flex items-center gap-3 group focus-visible:outline-none shrink-0"
+              className="flex items-center group focus-visible:outline-none shrink-0"
               aria-label="Portal CDC UM Kendari — Beranda"
             >
-              {/* Logo square */}
-              <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center font-extrabold
-                           text-white text-sm shadow-sm group-hover:scale-105 transition-transform"
-                style={{ backgroundColor: '#1E3A8A' }}
-              >
-                UMK
-              </div>
-              {/* Text stack */}
-              <div className="text-left leading-none">
-                <div className="font-extrabold text-gray-900 text-base tracking-tight">Portal CDC</div>
-                <div className="font-bold text-gray-500 text-sm tracking-tight">UM Kendari</div>
-              </div>
+              <img
+                src="/logo-cdc-branding-transparent.png"
+                alt="CDC Career Development Center Universitas Muhammadiyah Kendari"
+                className="h-10 sm:h-11 md:h-12 w-auto object-contain group-hover:scale-105 transition-transform"
+              />
             </button>
 
             {/* ── DESKTOP NAVIGATION ── */}
@@ -274,7 +268,7 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                   {/* Nav trigger button */}
                   <button
                     onClick={() => {
-                      if (item.href)     window.open(item.href, '_blank', 'noopener,noreferrer');
+                      if (item.href) window.open(item.href, '_blank', 'noopener,noreferrer');
                       else if (item.tab) navigate(item.tab, item.isAction);
                       else if (item.children) setOpenDropdown(
                         openDropdown === item.id ? null : item.id

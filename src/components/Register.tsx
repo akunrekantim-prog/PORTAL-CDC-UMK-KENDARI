@@ -258,7 +258,7 @@ export default function Register({
               <Sparkles className="w-3.5 h-3.5" /> Pendaftaran Akun Baru
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight">
-              Sistem Registrasi CDAC
+              Sistem Registrasi CDC
             </h2>
             <p className="text-slate-300 text-xs sm:text-sm max-w-md leading-relaxed">
               Bergabunglah dengan ekosistem karir & alumni Universitas Muhammadiyah Kendari untuk akses lowongan kerja, magang, dan tracer study.
@@ -757,7 +757,7 @@ export default function Register({
       
       {/* Footer copyright note */}
       <div className="mt-6 text-center text-[11px] text-slate-400 font-mono">
-        CDAC UM Kendari · Hak Cipta Dilindungi Undang-Undang © 2026
+        CDC UM Kendari · Hak Cipta Dilindungi Undang-Undang © 2026
       </div>
     </div>
   );
