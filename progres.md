@@ -139,6 +139,58 @@ Seluruh sub-bab layanan telah berfungsi, terintegrasi, bebas dari error, dan mem
 - [x] Rapikan layout filter Mahasiswa
 - [x] Cleanup placeholder export PDF + CSV label
 - [x] Bersihkan placeholder dokumen mahasiswa + mitra
-- [x] Tambah aksi tabel Mahasiswa (Detail/History/Nonaktifkan/Reset Passcode)
+- [x] Tambah aksi tabel Mahasiswa (Detail/History/Reset Passcode)
 - [x] Pulih AdminDashboard.md backlog
 - [x] Build verification
+
+---
+
+## Tanggal: 31 Juli 2026 (Sesi 2)
+**Fokus Pekerjaan:** Pengembangan Komponen `HeroSlider`, Revamp Public Layout Header/Footer, & Integrasi Branding CDC UM Kendari
+
+### 🚀 Ringkasan Perubahan UI & Feature Updates
+
+1. **Komponen Slider Baru `HeroSlider.tsx` (Hero Section Beranda):**
+   - Mengembangkan komponen slider hero interaktif secara modular di `src/components/HeroSlider.tsx`.
+   - **Fitur Interaktif:** Autoplay (interval 5 detik), kontrol navigasi Play/Pause, tombol panah *Next/Prev*, serta titik indikator slide (*slide counter & dots*).
+   - **3 Slide Promosi Utama:**
+     1. **UMK Job Fair 2026 & Akselerasi Karir Digital:** Menampilkan highlight bursa kerja resmi UMK.
+     2. **Pelatihan Softskill & Workshop Sertifikasi Industri:** Banner promosi program persiapan karir & sertifikasi.
+     3. **Program Magang Bersertifikat & Tracer Study Alumni:** Banner ajakan keterlibatan alumni dan mahasiswa aktif.
+   - Integration tombol CTA (*Call-to-Action*) langsung seperti *"Jelajahi Lowongan"*, *"Daftar Workshop"*, dan *"Isi Tracer Study"*.
+
+2. **Revamp Layout Halaman Publik (`PublicLayout.tsx`):**
+   - Mengintegrasikan `HeroSlider` pada section Hero Beranda menggantikan tampilan banner lama.
+   - Mengganti logo pada Footer menggunakan asset image `/logo-cdc-branding-light.png` beresolusi tinggi.
+   - Menyesuaikan penamaan branding dari `CDAC` menjadi **CDC UM KENDARI CLUB** dan **CDC UM Kendari**.
+
+3. **Pembaruan Assets & Branding Resmi (`/public`):**
+   - Menambahkan aset visual resmi CDC UM Kendari:
+     - `Poster CDC WEB UMK.svg`
+     - `logo-cdc-branding-light.png` & `logo-cdc-branding-transparent.png`
+     - `logo-cdc-branding.png` & `logo-cdc-light.png`
+     - `logo-cdc-transparent.png` & `logo-cdc.png`
+     - `logo-umk.png`
+     - `favicon.ico` & `favicon.png`
+
+4. **Pembaruan Header, MegaMenu, & Modal Registrasi:**
+   - **`Header.tsx` & `MegaMenu.tsx`:** Penyesuaian logo branding top-bar, styling, dan tautan navigasi.
+   - **`Register.tsx`:** Penyelarasan nama sistem registrasi dan copyright footer menjadi **CDC UM Kendari**.
+   - **`index.html`:** Pembaruan meta title HTML dan penautan favicon resmi.
+
+### 📁 File Diubah & Ditambahkan
+- **[NEW]** `src/components/HeroSlider.tsx`
+- **[MODIFY]** `src/components/PublicLayout.tsx`
+- **[MODIFY]** `src/components/Header.tsx`
+- **[MODIFY]** `src/components/MegaMenu.tsx`
+- **[MODIFY]** `src/components/Register.tsx`
+- **[MODIFY]** `index.html`
+- **[NEW]** `public/Poster CDC WEB UMK.svg` & variasi asset logo CDC (`public/logo-cdc-*.png`, `public/favicon.*`)
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Pembuatan komponen modular `HeroSlider.tsx` lengkap dengan autoplay dan navigasi
+- [x] Integrasi `HeroSlider` di Public Layout Landing Page
+- [x] Penambahan asset logo branding CDC UM Kendari di folder `public/`
+- [x] Penyesuaian logo & branding pada `Header.tsx`, `MegaMenu.tsx`, dan Footer `PublicLayout.tsx`
+- [x] Penyesuaian teks branding pada `Register.tsx` & `index.html`
+- [x] Verifikasi kompabilitas kompilasi dan linting
