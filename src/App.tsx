@@ -225,6 +225,14 @@ export default function App() {
           <JobDetail
             job={selectedLowongan}
             onBack={() => setViewingLowonganId(null)}
+            onSelectJob={(id) => handleSelectLowongan(id)}
+            setTab={(tab) => {
+              setViewingLowonganId(null);
+              setPublicTab(tab);
+              reloadDatabase();
+            }}
+            onNavigateToLogin={handleNavigateToLogin}
+            onNavigateToRegister={handleNavigateToRegister}
             onApply={() => {
               setViewingLowonganId(null);
               setPublicTab('beranda');

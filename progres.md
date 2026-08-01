@@ -194,3 +194,51 @@ Seluruh sub-bab layanan telah berfungsi, terintegrasi, bebas dari error, dan mem
 - [x] Penyesuaian logo & branding pada `Header.tsx`, `MegaMenu.tsx`, dan Footer `PublicLayout.tsx`
 - [x] Penyesuaian teks branding pada `Register.tsx` & `index.html`
 - [x] Verifikasi kompabilitas kompilasi dan linting
+
+---
+
+## Tanggal: 1 Agustus 2026
+**Fokus Pekerjaan:** Realisasi UI Job Info & Job Detail (Google Stitch), Layout Poster 9:16 Full-Bleed, Sticky Sidebar CDAC UMSU, & Integration Header/Footer
+
+### 🚀 Ringkasan Perubahan UI & Feature Updates
+
+1. **Realisasi Desain UI Job Info & Job Detail (Presisi Screenshot Google Stitch):**
+   - **`src/types.ts`:** Menambahkan properti pendukung pada interface `Lowongan` (`tanggungJawab`, `keahlian`, `kategori`, `gaji`).
+   - **`src/data.ts`:** Memperbarui `SEED_LOWONGAN` dengan grafik poster SVG 9:16 mitra resmi (*Job Info Academic Career Portal*, *Aethereum Design Co.*, *Infrastructure Connect*, dll.) serta mengimplementasikan migrasi data seed `v3_posters_9_16`.
+   - **`src/components/PublicLayout.tsx`:** Mengembangkan tampilan **Job Info** (Google Stitch Screenshot 1) dengan search bar, filter tabs (*Semua*, *Magang*, *Kerja*), dan grid kartu poster lowongan.
+   - **`src/components/JobDetail.tsx`:** Mengembangkan halaman **Job Detail** (Google Stitch Screenshot 2) lengkap dengan banner poster 9:16, metadata lowongan, deskripsi, tanggung jawab, kualifikasi, keahlian, tabel ringkasan pekerjaan, tombol aksi interaktif (*Lamar Pekerjaan Ini*, *Simpan Lowongan*), share link, dan modal pengajuan lamaran interaktif.
+
+2. **Pengembangan Komponen Modular `Footer.tsx` & Integrasi Header/Footer di Job Detail:**
+   - Memisahkan komponen **Footer** ke `src/components/Footer.tsx` secara modular agar digunakan bersama di `PublicLayout.tsx` dan `JobDetail.tsx`.
+   - Menampilkan komponen **Header** dan **Footer** resmi pada halaman **Job Detail** untuk pengalaman navigasi yang utuh dan konsisten.
+
+3. **Logika Sticky Sidebar Desktop (Sepresisi Web CDAC UMSU):**
+   - Menerapkan `lg:sticky lg:top-24 lg:self-start` pada sidebar kanan `JobDetail.tsx`.
+   - **Behavior Scroll:** Sidebar tetap melayang (*sticky*) di bawah header saat pengguna membaca kolom informasi pekerjaan yang panjang, lalu otomatis berhenti melayang ketika mencapai batas bawah kolom utama sehingga sejajar secara presisi sebelum area Footer.
+
+4. **Desain Kartu Poster Full-Bleed Tanpa Kuota & Tombol Detail (Sesuai Referensi Visual):**
+   - Memperbarui kartu lowongan pada halaman **Beranda (Home)** dan **Job Info**:
+     - Poster flyer diperbesar penuh (*full-bleed edge-to-edge*) dengan `object-cover`.
+     - Menghapus tampilan kuota dan tombol *Detail & Daftar* sesuai petunjuk desain.
+     - Menyusun hirarki teks: Subhead instansi aksen oranye, judul tebal, serta baris meta `by Admin Website • 🕒 [Tanggal Deadline]`.
+
+5. **Penanganan Gambar Poster Mitra di Seluruh Widget:**
+   - Memastikan widget **Info Terkini Loker** di sidebar beranda dan **Postingan Terbaru** di sidebar Job Detail memprioritaskan poster flyer resmi mitra (`flyer` / `imageUrl` / `flyers[0]` / `bannerImage`).
+
+### 📁 File Diubah & Ditambahkan
+- **[NEW]** `src/components/Footer.tsx`
+- **[MODIFY]** `src/types.ts`
+- **[MODIFY]** `src/data.ts`
+- **[MODIFY]** `src/components/PublicLayout.tsx`
+- **[MODIFY]** `src/components/JobDetail.tsx`
+- **[MODIFY]** `src/App.tsx`
+- **[MODIFY]** `progres.md`
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Realisasi UI Job Info & Job Detail presisi sesuai Google Stitch Screenshot
+- [x] Pembuatan komponen modular `Footer.tsx`
+- [x] Integrasi Header & Footer resmi pada halaman `JobDetail.tsx`
+- [x] Penerapan logika Sticky Sidebar Desktop sepresisi CDAC UMSU
+- [x] Penerapan kartu poster *full-bleed* (tanpa kuota & tombol detail) pada Beranda & Job Info
+- [x] Sinkronisasi poster mitra pada widget Info Terkini Loker & Postingan Terbaru
+- [x] Verifikasi build produksi `npx vite build` (0 error)

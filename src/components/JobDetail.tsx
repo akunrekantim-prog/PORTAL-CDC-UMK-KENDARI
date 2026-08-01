@@ -1,421 +1,617 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Lowongan } from '../types';
+import { getFromDB } from '../data';
+import Header from './Header';
+import { Footer } from './Footer';
 import { 
   ChevronLeft, 
-  ChevronRight,
   Building2, 
   MapPin, 
   Briefcase, 
-  ArrowRight, 
   Clock, 
   Users, 
-  Maximize2, 
-  ZoomIn, 
-  ZoomOut, 
-  RotateCcw, 
-  X
+  Calendar,
+  Bookmark,
+  Check,
+  Share2,
+  Link2,
+  Mail,
+  Search,
+  X,
+  UploadCloud,
+  CheckCircle2,
+  Layers,
+  Banknote,
+  Maximize2
 } from 'lucide-react';
 
 interface JobDetailProps {
   job: Lowongan;
   onBack: () => void;
-  onApply: () => void;
+  onApply?: () => void;
+  onSelectJob?: (id: string) => void;
+  setTab?: (tab: string) => void;
+  onNavigateToLogin?: () => void;
+  onNavigateToRegister?: (type?: 'alumni' | 'perusahaan') => void;
 }
 
-export const JobDetail: React.FC<JobDetailProps> = ({ job, onBack, onApply }) => {
+export const JobDetail: React.FC<JobDetailProps> = ({ 
+  job, 
+  onBack, 
+  onApply, 
+  onSelectJob,
+  setTab,
+  onNavigateToLogin,
+  onNavigateToRegister
+}) => {
   const defaultPoster = 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=800&auto=format&fit=crop';
   const defaultLogo = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop';
 
-  // Determine flyer list: use job.flyers if available, fallback to imageUrl, flyer, bannerImage, or defaultPoster
+  // Determine cover banner image
   const flyersList = (job.flyers && job.flyers.length > 0) 
     ? job.flyers 
     : [job.imageUrl || job.flyer || job.bannerImage || defaultPoster];
-
-  // The hero cover image is the first flyer or poster image
   const coverImage = flyersList[0];
   const logoUrl = job.companyLogo || defaultLogo;
-  const isMagang = job.tipe === 'magang';
 
-  // Slider state for Lightbox modal
-  const [currentSlide, setCurrentSlide] = useState<number>(0);
-  // Lightbox modal state
+  // React States for Interactivity
+  const [isSaved, setIsSaved] = useState<boolean>(() => {
+    return localStorage.getItem(`saved_job_${job.id}`) === 'true';
+  });
+  const [isApplyModalOpen, setIsApplyModalOpen] = useState<boolean>(false);
+  const [applicantName, setApplicantName] = useState<string>('Muhammad Fadly Alamsyah');
+  const [applicantEmail, setApplicantEmail] = useState<string>('mhs@umkendari.ac.id');
+  const [applicantProdi, setApplicantProdi] = useState<string>('Teknik Informatika');
+  const [applicantNotes, setApplicantNotes] = useState<string>('');
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
+
+  // Toast Notification State
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  // Sidebar Recent Postings Search Filter
+  const [sidebarSearch, setSidebarSearch] = useState<string>('');
+
+  // Lightbox Modal State
   const [isLightboxOpen, setIsLightboxOpen] = useState<boolean>(false);
-  const [zoomLevel, setZoomLevel] = useState<number>(1);
 
-  // Keyboard navigation for Lightbox
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isLightboxOpen) return;
-      if (e.key === 'Escape') {
-        setIsLightboxOpen(false);
-        setZoomLevel(1);
-      } else if (e.key === 'ArrowRight') {
-        setCurrentSlide((prev) => (prev + 1) % flyersList.length);
-      } else if (e.key === 'ArrowLeft') {
-        setCurrentSlide((prev) => (prev - 1 + flyersList.length) % flyersList.length);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isLightboxOpen, flyersList.length]);
+  // Fetch all jobs for "Postingan Terbaru" widget
+  const allLowongan = getFromDB<Lowongan>('lowongan');
+  const recentJobs = allLowongan
+    .filter(l => l.id !== job.id && l.status === 'published')
+    .filter(l => 
+      l.judul.toLowerCase().includes(sidebarSearch.toLowerCase()) ||
+      l.namaInstansi.toLowerCase().includes(sidebarSearch.toLowerCase())
+    )
+    .slice(0, 3);
 
-  const nextSlide = (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setCurrentSlide((prev) => (prev + 1) % flyersList.length);
+  // Handlers
+  const triggerToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => {
+      setToastMsg(null);
+    }, 3500);
   };
 
-  const prevSlide = (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setCurrentSlide((prev) => (prev - 1 + flyersList.length) % flyersList.length);
+  const handleToggleSave = () => {
+    const nextState = !isSaved;
+    setIsSaved(nextState);
+    localStorage.setItem(`saved_job_${job.id}`, nextState ? 'true' : 'false');
+    triggerToast(nextState ? 'Lowongan berhasil disimpan ke favorit!' : 'Lowongan dihapus dari favorit.');
   };
 
-  const openLightbox = (index: number = 0) => {
-    setCurrentSlide(index);
-    setZoomLevel(1);
-    setIsLightboxOpen(true);
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+    triggerToast('Tautan lowongan berhasil disalin ke clipboard!');
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setSubmitSuccess(true);
+      triggerToast(`Lamaran untuk ${job.judul} berhasil dikirim!`);
+    }, 1000);
+  };
+
+  const resetModal = () => {
+    setIsApplyModalOpen(false);
+    setSubmitSuccess(false);
+    setApplicantNotes('');
+    setUploadedFileName(null);
   };
 
   return (
-    <div className="bg-slate-50 min-h-screen py-8 sm:py-12" id="job-detail-panel">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
-        
-        {/* Top Navigation Bar */}
-        <div className="flex items-center justify-between">
-          <button 
-            onClick={onBack}
-            className="inline-flex items-center gap-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80 px-4 py-2.5 rounded-xl font-bold text-sm transition shadow-2xs active:scale-95 group"
-            id="job-back-btn"
-          >
-            <ChevronLeft className="w-4 h-4 text-slate-500 group-hover:-translate-x-0.5 transition-transform" /> 
-            Kembali ke Daftar Lowongan
-          </button>
+    <div className="bg-[#F8FAFC] min-h-screen flex flex-col justify-between text-slate-800 font-sans" id="job-detail-root">
+      
+      {/* 1. Global Header Component */}
+      <Header
+        currentTab="lowongan"
+        setTab={setTab || (() => {})}
+        onNavigateToLogin={onNavigateToLogin || (() => {})}
+        onNavigateToRegister={onNavigateToRegister}
+      />
+
+      {/* Toast Notification Banner */}
+      {toastMsg && (
+        <div className="fixed top-24 right-5 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl border border-slate-700 flex items-center gap-3 animate-fadeIn text-xs sm:text-sm font-semibold">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{toastMsg}</span>
         </div>
+      )}
 
-        {/* Responsive 2-Column Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      {/* Main Container */}
+      <main className="flex-grow py-8 sm:py-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
           
-          {/* Left Column: Vertical Image Container */}
-          <div className="lg:col-span-5 sticky top-6 space-y-4">
-            <div 
-              onClick={() => openLightbox(0)}
-              className="relative w-full aspect-[3/4] sm:max-h-[600px] lg:max-h-[680px] rounded-3xl overflow-hidden border border-slate-100 shadow-sm bg-slate-950 cursor-pointer group flex items-center justify-center"
+          {/* Top Back Navigation Bar */}
+          <div className="flex items-center justify-between">
+            <button 
+              onClick={onBack}
+              className="inline-flex items-center gap-1.5 text-[#0077C6] hover:text-blue-800 font-bold text-sm transition group"
+              id="job-back-link"
             >
-              {/* Ambient blurred background */}
-              <img 
-                src={coverImage} 
-                alt=""
-                className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-125 pointer-events-none transition-transform duration-700 group-hover:scale-150"
-              />
-              {/* Main crisp poster/flyer image */}
-              <img 
-                src={coverImage} 
-                alt={job.judul}
-                className="relative w-full h-full object-contain z-10 group-hover:scale-[1.03] transition-transform duration-500 ease-out drop-shadow-md"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity z-10" />
-              
-              {/* Hover zoom indicator pill */}
-              <div className="absolute bottom-4 right-4 z-20 bg-white/95 hover:bg-white text-slate-900 px-4 py-2 rounded-xl text-xs font-bold shadow-lg border border-slate-200 flex items-center gap-2 backdrop-blur-xs transition transform translate-y-1 group-hover:translate-y-0">
-                <Maximize2 className="w-4 h-4 text-[#10B981]" /> Klik untuk Memperbesar
-              </div>
-            </div>
-
-            {/* Thumbnail selector if multiple flyers exist */}
-            {flyersList.length > 1 && (
-              <div className="flex items-center gap-2.5 overflow-x-auto pb-1">
-                {flyersList.map((thumb, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => openLightbox(idx)}
-                    className="h-16 aspect-[3/4] rounded-xl overflow-hidden border-2 border-slate-200 hover:border-[#10B981] transition shrink-0 bg-slate-900 shadow-xs"
-                  >
-                    <img src={thumb} alt={`Brosur ${idx + 1}`} className="w-full h-full object-cover" />
-                  </button>
-                ))}
-              </div>
-            )}
+              <ChevronLeft className="w-4 h-4 text-[#0077C6] group-hover:-translate-x-0.5 transition-transform" /> 
+              <span>Kembali ke Lowongan</span>
+            </button>
           </div>
 
-          {/* Right Column: Job Details */}
-          <div className="lg:col-span-7 space-y-6">
+          {/* 2-Column Grid Layout (Main Content: 8 cols, Sidebar: 4 cols) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative">
             
-            {/* Header Box & Info Cards */}
-            <div className="space-y-6">
+            {/* LEFT COLUMN: Main Job Details (lg:col-span-8) */}
+            <div className="lg:col-span-8 space-y-6">
               
-              {/* Top Row: Company Icon Box + Badges */}
-              <div className="flex flex-wrap items-start gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-[#F5F2ED] border border-[#E5DFD7] flex items-center justify-center shrink-0 shadow-2xs overflow-hidden p-2">
-                  <img 
-                    src={logoUrl} 
-                    alt={job.namaInstansi} 
-                    className="w-full h-full object-contain"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = defaultLogo;
-                    }}
-                  />
+              {/* Top Large Banner Image Container (9:16 Portrait Aspect Ratio, Full Width) */}
+              <div 
+                onClick={() => setIsLightboxOpen(true)}
+                className="relative w-full aspect-[9/16] rounded-2xl overflow-hidden border border-slate-200 bg-slate-900 shadow-2xs group cursor-pointer flex items-center justify-center"
+              >
+                <img 
+                  src={coverImage} 
+                  alt={job.judul}
+                  className="w-full h-full object-contain group-hover:scale-102 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-slate-950/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <span className="bg-white/95 backdrop-blur-xs text-slate-800 px-4 py-2 rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5">
+                    <Maximize2 className="w-3.5 h-3.5 text-blue-600" /> Perbesar Poster (9:16)
+                  </span>
                 </div>
+              </div>
 
-                <div className="flex-1 min-w-0 space-y-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="bg-[#EAF3EC] text-[#2D7A4D] border border-[#D5E8D9] rounded-full font-bold text-[11px] px-3.5 py-1 inline-flex items-center gap-1.5 uppercase tracking-wider shadow-2xs">
-                      <Briefcase className="w-3.5 h-3.5 text-[#2D7A4D]" />
-                      {isMagang ? 'PROGRAM MAGANG' : 'PEKERJAAN PENUH WAKTU'}
-                    </span>
-
-                    <span className="bg-[#F3EFEA] text-[#6B5E53] border border-[#E5DFD7] rounded-full font-bold text-[11px] px-3.5 py-1 inline-flex items-center gap-1.5 uppercase tracking-wider shadow-2xs">
-                      <Clock className="w-3.5 h-3.5 text-[#8C7B6B]" />
-                      DITUTUP: {job.deadline}
-                    </span>
-                  </div>
-
-                  {/* Bold Job Title + Company Name */}
-                  <div>
-                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#1B365D] tracking-tight leading-tight">
+              {/* Header Box: Job Title, Instansi, Location, Posted Date & Lamar Sekarang CTA */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                  
+                  <div className="space-y-2 flex-1">
+                    <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-snug">
                       {job.judul}
                     </h1>
 
-                    <div className="flex items-center gap-2 text-stone-700 font-bold text-sm sm:text-base pt-1.5">
-                      <Building2 className="w-4 h-4 text-stone-500 shrink-0" />
-                      <span>{job.namaInstansi}</span>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs sm:text-sm text-slate-600 font-medium">
+                      <div className="flex items-center gap-1.5 font-bold text-slate-700">
+                        <Building2 className="w-4 h-4 text-slate-500 shrink-0" />
+                        <span>{job.namaInstansi}</span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
+                        <span>{job.lokasi}</span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 text-slate-400">
+                        <Clock className="w-4 h-4 text-slate-400 shrink-0" />
+                        <span>Diposting 2 hari yang lalu</span>
+                      </div>
                     </div>
                   </div>
+
+                  {/* Lamar Sekarang Button */}
+                  <button
+                    onClick={() => setIsApplyModalOpen(true)}
+                    className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold text-sm px-6 py-2.5 rounded-xl shadow-xs transition shrink-0 self-start active:scale-95"
+                    id="btn-lamar-sekarang-top"
+                  >
+                    Lamar Sekarang
+                  </button>
                 </div>
+
+                <div className="border-t border-slate-100 pt-4" />
+
+                {/* Section 1: Deskripsi Pekerjaan */}
+                <div className="space-y-2">
+                  <h2 className="text-lg font-extrabold text-slate-900">Deskripsi Pekerjaan</h2>
+                  <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-line">
+                    {job.deskripsi}
+                  </p>
+                </div>
+
+                {/* Section 2: Tanggung Jawab */}
+                {job.tanggungJawab && job.tanggungJawab.length > 0 && (
+                  <div className="space-y-2 pt-2">
+                    <h2 className="text-lg font-extrabold text-slate-900">Tanggung Jawab</h2>
+                    <ul className="space-y-1.5 text-slate-600 text-sm list-disc pl-5">
+                      {job.tanggungJawab.map((item, idx) => (
+                        <li key={idx} className="leading-relaxed">{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Section 3: Persyaratan & Kualifikasi */}
+                {job.kualifikasi && job.kualifikasi.length > 0 && (
+                  <div className="space-y-2 pt-2">
+                    <h2 className="text-lg font-extrabold text-slate-900">Persyaratan &amp; Kualifikasi</h2>
+                    <ul className="space-y-1.5 text-slate-600 text-sm list-disc pl-5">
+                      {job.kualifikasi.map((item, idx) => (
+                        <li key={idx} className="leading-relaxed">{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Section 4: Keahlian yang Dibutuhkan */}
+                <div className="space-y-2 pt-2">
+                  <h2 className="text-lg font-extrabold text-slate-900">Keahlian yang Dibutuhkan</h2>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {(job.keahlian && job.keahlian.length > 0
+                      ? job.keahlian 
+                      : ['JavaScript', 'React.js', 'Node.js', 'Git', 'Problem Solving']
+                    ).map((tag) => (
+                      <span 
+                        key={tag} 
+                        className="bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold px-3 py-1 rounded-full"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
               </div>
 
-              {/* Info Cards: Two side-by-side soft boxes for "LOKASI PENEMPATAN" and "KUOTA PENERIMAAN" */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div className="bg-[#F6F4F0] border border-[#ECE8E1] rounded-2xl p-4 flex items-center gap-3.5 shadow-2xs">
-                  <div className="w-11 h-11 rounded-xl bg-white text-stone-600 border border-stone-200/70 flex items-center justify-center shrink-0 shadow-2xs">
-                    <MapPin className="w-5 h-5 text-stone-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <span className="block text-[10px] font-extrabold text-[#8C7B6B] uppercase tracking-wider">LOKASI PENEMPATAN</span>
-                    <span className="font-extrabold text-slate-800 text-sm sm:text-base truncate block" title={job.lokasi}>{job.lokasi}</span>
-                  </div>
-                </div>
+            </div>
 
-                <div className="bg-[#F6F4F0] border border-[#ECE8E1] rounded-2xl p-4 flex items-center gap-3.5 shadow-2xs">
-                  <div className="w-11 h-11 rounded-xl bg-white text-stone-600 border border-stone-200/70 flex items-center justify-center shrink-0 shadow-2xs">
-                    <Users className="w-5 h-5 text-stone-600" />
+            {/* RIGHT COLUMN: Sticky Sidebar Summary Table & Widgets (lg:col-span-4) */}
+            <aside className="lg:col-span-4 space-y-6 lg:sticky lg:top-24 lg:self-start transition-all duration-300">
+              
+              {/* Widget 1: Ringkasan Pekerjaan */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-5">
+                <h3 className="text-lg font-extrabold text-slate-900 border-b border-slate-100 pb-3">
+                  Ringkasan Pekerjaan
+                </h3>
+
+                {/* Interactive Key-Value Table */}
+                <div className="space-y-3.5 text-xs sm:text-sm">
+                  <div className="flex items-center justify-between py-1 border-b border-slate-50">
+                    <div className="flex items-center gap-2 text-slate-600 font-medium">
+                      <Briefcase className="w-4 h-4 text-slate-400" />
+                      <span>Jenis Pekerjaan</span>
+                    </div>
+                    <span className="font-extrabold text-slate-800">
+                      {job.tipe === 'magang' ? 'Magang' : 'Full Time'}
+                    </span>
                   </div>
-                  <div>
-                    <span className="block text-[10px] font-extrabold text-[#8C7B6B] uppercase tracking-wider">KUOTA PENERIMAAN</span>
-                    <span className="font-extrabold text-slate-800 text-sm sm:text-base">
-                      {job.kuota ? `${job.kuota} Orang` : 'Tidak Dibatasi'}
+
+                  <div className="flex items-center justify-between py-1 border-b border-slate-50">
+                    <div className="flex items-center gap-2 text-slate-600 font-medium">
+                      <Layers className="w-4 h-4 text-slate-400" />
+                      <span>Kategori</span>
+                    </div>
+                    <span className="font-extrabold text-slate-800">
+                      {job.kategori || 'TI / Perangkat Lunak'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between py-1 border-b border-slate-50">
+                    <div className="flex items-center gap-2 text-slate-600 font-medium">
+                      <Banknote className="w-4 h-4 text-slate-400" />
+                      <span>Gaji</span>
+                    </div>
+                    <span className="font-extrabold text-slate-800">
+                      {job.gaji || 'Kompetitif'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between py-1 border-b border-slate-50">
+                    <div className="flex items-center gap-2 text-slate-600 font-medium">
+                      <Users className="w-4 h-4 text-slate-400" />
+                      <span>Kuota</span>
+                    </div>
+                    <span className="font-extrabold text-slate-800">
+                      {job.kuota ? `${job.kuota} Orang` : 'Terbuka'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between py-1">
+                    <div className="flex items-center gap-2 text-slate-600 font-medium">
+                      <Calendar className="w-4 h-4 text-slate-400" />
+                      <span>Batas Waktu</span>
+                    </div>
+                    <span className="font-extrabold text-rose-600">
+                      {job.deadline}
                     </span>
                   </div>
                 </div>
+
+                {/* Action Buttons Stack */}
+                <div className="space-y-2.5 pt-2">
+                  <button
+                    onClick={() => setIsApplyModalOpen(true)}
+                    className="w-full bg-[#0077C6] hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-xs transition text-sm text-center active:scale-95"
+                    id="btn-lamar-pekerjaan-ini"
+                  >
+                    Lamar Pekerjaan Ini
+                  </button>
+
+                  <button
+                    onClick={handleToggleSave}
+                    className={`w-full py-2.5 rounded-xl border font-bold text-sm transition flex items-center justify-center gap-2 ${
+                      isSaved
+                        ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                        : 'bg-white border-[#0077C6] text-[#0077C6] hover:bg-blue-50'
+                    }`}
+                    id="btn-simpan-lowongan"
+                  >
+                    {isSaved ? (
+                      <>
+                        <Check className="w-4 h-4 text-emerald-600" />
+                        <span>Tersimpan</span>
+                      </>
+                    ) : (
+                      <>
+                        <Bookmark className="w-4 h-4" />
+                        <span>Simpan Lowongan</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Social Share Section */}
+                <div className="pt-3 border-t border-slate-100 text-center space-y-2">
+                  <span className="text-xs text-slate-500 font-medium block">Bagikan lowongan ini</span>
+                  <div className="flex items-center justify-center gap-3">
+                    <button 
+                      onClick={handleCopyLink}
+                      className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition"
+                      title="Bagikan"
+                    >
+                      <Share2 className="w-4 h-4" />
+                    </button>
+                    <button 
+                      onClick={handleCopyLink}
+                      className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition"
+                      title="Salin Tautan"
+                    >
+                      <Link2 className="w-4 h-4" />
+                    </button>
+                    <a 
+                      href={`mailto:?subject=Lowongan%20${encodeURIComponent(job.judul)}&body=Lihat%20lowongan%20kerja%20di%20${encodeURIComponent(job.namaInstansi)}`}
+                      className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition"
+                      title="Kirim via Email"
+                    >
+                      <Mail className="w-4 h-4" />
+                    </a>
+                  </div>
+                </div>
               </div>
 
+              {/* Widget 2: Search Sidebar Input Box */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs">
+                <div className="relative">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type="text"
+                    value={sidebarSearch}
+                    onChange={(e) => setSidebarSearch(e.target.value)}
+                    placeholder="Cari lowongan lainnya..."
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs sm:text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#0077C6]/20 focus:border-[#0077C6]"
+                  />
+                </div>
+              </div>
+
+              {/* Widget 3: Postingan Terbaru */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-4">
+                <h3 className="text-lg font-extrabold text-slate-900 border-b border-slate-100 pb-3">
+                  Postingan Terbaru
+                </h3>
+
+                <div className="space-y-4">
+                  {recentJobs.map((item) => {
+                    const itemPoster = item.flyer || item.imageUrl || (item.flyers && item.flyers.length > 0 ? item.flyers[0] : null) || item.bannerImage || item.companyLogo || defaultLogo;
+                    return (
+                      <div
+                        key={item.id}
+                        onClick={() => onSelectJob && onSelectJob(item.id)}
+                        className="flex items-start gap-3.5 group cursor-pointer border-b border-slate-50 last:border-0 pb-3 last:pb-0"
+                      >
+                        <img
+                          src={itemPoster}
+                          alt={item.judul}
+                          className="w-12 h-12 rounded-xl border border-slate-200 object-cover shrink-0 bg-slate-50"
+                        />
+                        <div className="min-w-0 flex-1 space-y-0.5">
+                          <h4 className="font-extrabold text-slate-900 text-xs sm:text-sm leading-snug group-hover:text-[#0077C6] transition-colors truncate">
+                            {item.judul}
+                          </h4>
+                          <p className="text-xs text-slate-500 font-medium truncate">
+                            {item.namaInstansi}
+                          </p>
+                          <p className="text-[11px] text-slate-400">
+                            {item.deadline}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {recentJobs.length === 0 && (
+                    <p className="text-xs text-slate-400 text-center py-2">Tidak ada postingan terbaru</p>
+                  )}
+                </div>
+              </div>
+
+            </aside>
+
+          </div>
+
+        </div>
+      </main>
+
+      {/* 2. Global Footer Component */}
+      <Footer onSelectLowongan={onSelectJob} setTab={setTab} />
+
+      {/* INTERACTIVE FORM MODAL: Lamar Pekerjaan Ini */}
+      {isApplyModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white max-w-lg w-full rounded-3xl border border-slate-200 shadow-2xl overflow-hidden animate-fadeIn my-8">
+            
+            {/* Modal Header */}
+            <div className="bg-[#1B365D] text-white p-6 relative">
+              <button
+                onClick={resetModal}
+                className="absolute top-5 right-5 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              
+              <span className="text-emerald-400 font-extrabold text-[10px] uppercase tracking-wider block mb-1">
+                Portal Karir CDC UM Kendari
+              </span>
+              <h3 className="text-xl font-extrabold text-white leading-tight">Form Pengajuan Lamaran</h3>
+              <p className="text-slate-300 text-xs mt-1 truncate">{job.judul} • {job.namaInstansi}</p>
             </div>
 
-            {/* Content Sections Stacked Neatly (No White Cards, Clean Flow) */}
-            <div className="space-y-8 pt-4 border-t border-slate-200/60">
-              
-              {/* 1. Uraian Umum Pekerjaan */}
-              <div className="space-y-3" id="job-detail-desc-box">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-1.5 h-5 bg-[#2D7A4D] rounded-full inline-block shrink-0" />
-                  <h3 className="text-lg sm:text-xl font-extrabold text-[#1B365D]">Uraian Umum Pekerjaan</h3>
+            {/* Modal Content / Form */}
+            {submitSuccess ? (
+              <div className="p-8 text-center space-y-4">
+                <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-8 h-8" />
                 </div>
-                <div className="text-slate-600 text-sm sm:text-base leading-relaxed space-y-3 font-normal">
-                  {job.deskripsi.split('\n\n').map((paragraph, idx) => (
-                    <p key={idx}>{paragraph}</p>
-                  ))}
-                </div>
-              </div>
-
-              {/* 2. Persyaratan & Kualifikasi Pelamar */}
-              {job.kualifikasi && job.kualifikasi.length > 0 && (
-                <div className="space-y-3" id="job-detail-qual-box">
-                  <div className="flex items-center gap-2.5">
-                    <span className="w-1.5 h-5 bg-[#2D7A4D] rounded-full inline-block shrink-0" />
-                    <h3 className="text-lg sm:text-xl font-extrabold text-[#1B365D]">Persyaratan & Kualifikasi Pelamar</h3>
-                  </div>
-                  <ul className="space-y-2.5 pt-1" id="job-qual-list">
-                    {job.kualifikasi.map((k, idx) => (
-                      <li key={idx} className="flex items-start gap-3 text-slate-600 text-sm sm:text-base leading-relaxed">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#A89888] inline-block mt-2 shrink-0" />
-                        <span className="font-normal text-slate-700">{k}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* 3. Kompensasi & Benefit Penempatan */}
-              {job.benefit && job.benefit.length > 0 && (
-                <div className="space-y-3" id="job-detail-benefit-box">
-                  <div className="flex items-center gap-2.5">
-                    <span className="w-1.5 h-5 bg-[#2D7A4D] rounded-full inline-block shrink-0" />
-                    <h3 className="text-lg sm:text-xl font-extrabold text-[#1B365D]">Kompensasi & Benefit Penempatan</h3>
-                  </div>
-                  <ul className="space-y-2.5 pt-1" id="job-benefit-list">
-                    {job.benefit.map((b, idx) => (
-                      <li key={idx} className="flex items-start gap-3 text-slate-600 text-sm sm:text-base leading-relaxed">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#A89888] inline-block mt-2 shrink-0" />
-                        <span className="font-normal text-slate-700">{b}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Bottom CTA: Primary Green Button ("Ajukan Lamaran Sekarang ->") aligned at bottom right */}
-              <div className="pt-6 border-t border-slate-200/60 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="space-y-0.5 text-center sm:text-left">
-                  <span className="text-xs text-slate-400">Batas Akhir Pendaftaran</span>
-                  <div className="text-sm font-bold text-slate-700">{job.deadline}</div>
-                </div>
-                <button 
-                  onClick={onApply}
-                  className="w-full sm:w-auto bg-[#10B981] hover:bg-emerald-600 text-white font-extrabold text-sm sm:text-base px-7 py-3.5 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 inline-flex items-center justify-center gap-3 active:scale-95 group"
-                  id="job-apply-cta"
+                <h4 className="font-extrabold text-slate-900 text-lg">Lamaran Berhasil Terkirim!</h4>
+                <p className="text-slate-600 text-xs sm:text-sm leading-relaxed max-w-sm mx-auto">
+                  Berkas lamaran Anda telah berhasil disimpan dan diteruskan ke tim HRD <strong>{job.namaInstansi}</strong>. Status lamaran dapat dipantau berkala melalui dashboard akun Anda.
+                </p>
+                <button
+                  onClick={resetModal}
+                  className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs uppercase tracking-wider transition"
                 >
-                  <span>Ajukan Lamaran Sekarang</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  Tutup Form
                 </button>
               </div>
+            ) : (
+              <form onSubmit={handleFormSubmit} className="p-6 space-y-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700">Nama Lengkap Pelamar</label>
+                  <input
+                    type="text"
+                    required
+                    value={applicantName}
+                    onChange={(e) => setApplicantName(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20"
+                  />
+                </div>
 
-            </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700">Email Kampus / Kontak</label>
+                    <input
+                      type="email"
+                      required
+                      value={applicantEmail}
+                      onChange={(e) => setApplicantEmail(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700">Program Studi</label>
+                    <input
+                      type="text"
+                      required
+                      value={applicantProdi}
+                      onChange={(e) => setApplicantProdi(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700">Upload Berkas CV / Portofolio (PDF)</label>
+                  <div className="border-2 border-dashed border-slate-200 hover:border-[#0077C6] rounded-2xl p-4 text-center cursor-pointer bg-slate-50 transition relative">
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          setUploadedFileName(e.target.files[0].name);
+                        }
+                      }}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                    <UploadCloud className="w-8 h-8 text-slate-400 mx-auto mb-1.5" />
+                    <span className="text-xs font-bold text-[#0077C6] block">
+                      {uploadedFileName ? uploadedFileName : 'Klik atau seret berkas CV ke sini'}
+                    </span>
+                    <span className="text-[10px] text-slate-400 mt-0.5 block">Format PDF / DOC (Maks. 5MB)</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700">Catatan / Surat Pengantar (Opsional)</label>
+                  <textarea
+                    rows={3}
+                    value={applicantNotes}
+                    onChange={(e) => setApplicantNotes(e.target.value)}
+                    placeholder="Tuliskan motivasi singkat atau deskripsi keahlian Anda..."
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20"
+                  />
+                </div>
+
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={resetModal}
+                    className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs transition uppercase tracking-wider shadow-xs disabled:opacity-50"
+                  >
+                    {isSubmitting ? 'Mengirim Data...' : 'Kirim Lamaran'}
+                  </button>
+                </div>
+              </form>
+            )}
 
           </div>
         </div>
+      )}
 
-        {/* Footer Metadata */}
-        <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400 border-t border-slate-200/60">
-          <span>ID Lowongan: <strong className="font-mono text-slate-500">{job.id}</strong> · Mitra ID: <strong className="font-mono text-slate-500">{job.mitraId || 'Internal'}</strong></span>
-          <span>Hak Cipta © 2026 CDC Universitas Muhammadiyah Kendari</span>
-        </div>
-
-      </div>
-
-      {/* 5. Fullscreen Image Modal (Lightbox) */}
+      {/* Lightbox Modal */}
       {isLightboxOpen && (
         <div 
-          onClick={() => {
-            setIsLightboxOpen(false);
-            setZoomLevel(1);
-          }}
-          className="fixed inset-0 z-50 bg-slate-900/95 backdrop-blur-md flex flex-col justify-between p-4 sm:p-6 animate-fadeIn"
+          onClick={() => setIsLightboxOpen(false)}
+          className="fixed inset-0 z-50 bg-slate-900/90 backdrop-blur-md flex flex-col items-center justify-center p-4 animate-fadeIn"
         >
-          {/* Lightbox Top Control Bar with Close (X) at top right */}
-          <div 
-            onClick={(e) => e.stopPropagation()} 
-            className="flex items-center justify-between bg-white/10 border border-white/20 backdrop-blur-md px-4 py-3 rounded-2xl text-white max-w-5xl mx-auto w-full shadow-2xl"
+          <button 
+            onClick={() => setIsLightboxOpen(false)}
+            className="absolute top-5 right-5 p-2 rounded-xl bg-white/20 hover:bg-white/30 text-white font-bold text-xs flex items-center gap-1 transition"
           >
-            <div className="flex items-center gap-3">
-              <span className="font-extrabold text-sm text-white">
-                {flyersList.length > 1 ? `Brosur ${currentSlide + 1} dari ${flyersList.length}` : 'Pratinjau Resolusi Penuh'}
-              </span>
-              <span className="text-xs text-slate-300 hidden sm:inline truncate max-w-xs">
-                ({job.judul})
-              </span>
-            </div>
+            <X className="w-5 h-5" /> Tutup
+          </button>
 
-            {/* Zoom & Close Actions */}
-            <div className="flex items-center gap-2">
-              <button 
-                onClick={() => setZoomLevel(prev => Math.min(prev + 0.5, 3))}
-                className="p-2 hover:bg-white/20 rounded-xl text-white transition"
-                title="Perbesar (Zoom In)"
-              >
-                <ZoomIn className="w-5 h-5" />
-              </button>
-              <button 
-                onClick={() => setZoomLevel(prev => Math.max(prev - 0.5, 0.5))}
-                className="p-2 hover:bg-white/20 rounded-xl text-white transition"
-                title="Perkecil (Zoom Out)"
-              >
-                <ZoomOut className="w-5 h-5" />
-              </button>
-              <button 
-                onClick={() => setZoomLevel(1)}
-                className="p-2 hover:bg-white/20 rounded-xl text-white transition text-xs font-mono font-bold"
-                title="Reset Zoom"
-              >
-                <RotateCcw className="w-4 h-4" />
-              </button>
-              
-              <div className="h-5 w-px bg-white/20 mx-1" />
-
-              <button 
-                onClick={() => {
-                  setIsLightboxOpen(false);
-                  setZoomLevel(1);
-                }}
-                className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl transition flex items-center gap-1.5 text-xs font-bold shadow-lg"
-                title="Tutup (Esc)"
-              >
-                <X className="w-4 h-4" /> <span className="hidden sm:inline">Tutup</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Lightbox Main Viewport */}
-          <div 
-            onClick={(e) => e.stopPropagation()}
-            className="flex-1 overflow-auto flex items-center justify-center my-4 relative"
-          >
-            {/* Previous Arrow */}
-            {flyersList.length > 1 && (
-              <button 
-                onClick={prevSlide}
-                className="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 p-3 sm:p-4 rounded-2xl bg-white/10 hover:bg-white/20 text-white border border-white/20 shadow-xl backdrop-blur-md transition transform hover:scale-105 z-20"
-                title="Slide Sebelumnya (Arrow Left)"
-              >
-                <ChevronLeft className="w-6 h-6 sm:w-7 sm:h-7" />
-              </button>
-            )}
-
-            {/* Transform Zoomable Image */}
-            <div className="max-h-[80vh] max-w-[90vw] overflow-auto flex items-center justify-center p-2">
-              <img 
-                src={flyersList[currentSlide]} 
-                alt={`Zoom Brosur ${currentSlide + 1}`}
-                style={{ transform: `scale(${zoomLevel})`, transition: 'transform 0.2s ease-out' }}
-                className="max-h-[75vh] max-w-[85vw] object-contain rounded-xl shadow-2xl origin-center cursor-grab active:cursor-grabbing bg-white/5"
-              />
-            </div>
-
-            {/* Next Arrow */}
-            {flyersList.length > 1 && (
-              <button 
-                onClick={nextSlide}
-                className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 p-3 sm:p-4 rounded-2xl bg-white/10 hover:bg-white/20 text-white border border-white/20 shadow-xl backdrop-blur-md transition transform hover:scale-105 z-20"
-                title="Slide Berikutnya (Arrow Right)"
-              >
-                <ChevronRight className="w-6 h-6 sm:w-7 sm:h-7" />
-              </button>
-            )}
-          </div>
-
-          {/* Lightbox Bottom Thumbnails Bar */}
-          {flyersList.length > 1 ? (
-            <div 
-              onClick={(e) => e.stopPropagation()}
-              className="flex items-center justify-center gap-3 bg-white/10 border border-white/20 backdrop-blur-md px-6 py-3 rounded-2xl max-w-3xl mx-auto overflow-x-auto shadow-2xl"
-            >
-              {flyersList.map((thumb, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => {
-                    setCurrentSlide(idx);
-                    setZoomLevel(1);
-                  }}
-                  className={`h-14 aspect-[3/4] rounded-xl overflow-hidden border-2 transition-all shrink-0 bg-slate-900 ${
-                    currentSlide === idx 
-                      ? 'border-[#10B981] scale-105 shadow-md ring-2 ring-emerald-500/50' 
-                      : 'border-white/20 opacity-60 hover:opacity-100'
-                  }`}
-                >
-                  <img src={thumb} alt={`Modal Thumb ${idx + 1}`} className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="h-4" />
-          )}
+          <img 
+            src={coverImage} 
+            alt={job.judul} 
+            className="max-h-[85vh] max-w-[90vw] object-contain rounded-2xl shadow-2xl bg-white"
+          />
         </div>
       )}
 

@@ -80,6 +80,10 @@ export interface Lowongan {
   lokasi: string;
   deskripsi: string;
   kualifikasi: string[]; // parsed from JSON array
+  tanggungJawab?: string[];
+  keahlian?: string[];
+  kategori?: string;
+  gaji?: string;
   benefit: string[]; // parsed from JSON array
   kuota?: number;
   deadline: string; // YYYY-MM-DD

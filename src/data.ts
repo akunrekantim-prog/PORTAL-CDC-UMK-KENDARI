@@ -197,22 +197,32 @@ export const SEED_LOWONGAN: Lowongan[] = [
     tipe: 'magang',
     namaInstansi: 'PT Go Digital Kendari',
     companyLogo: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop',
-    bannerImage: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1200&auto=format&fit=crop',
-    imageUrl: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=800&auto=format&fit=crop',
-    flyer: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=800&auto=format&fit=crop',
+    bannerImage: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 500" width="1000" height="500"><rect width="1000" height="500" fill="%23e2e8f0"/><rect x="20" y="20" width="960" height="460" rx="16" fill="%23f8fafc" stroke="%23cbd5e1" stroke-width="2"/><g transform="translate(60, 60)"><text x="0" y="30" font-family="system-ui, sans-serif" font-weight="800" font-size="16" fill="%230284c7">QuantumTech Careers | Job Opportunities</text><text x="0" y="65" font-family="system-ui, sans-serif" font-weight="900" font-size="26" fill="%230f172a">Job Title: Fullstack Web Developer Intern</text><text x="0" y="95" font-family="system-ui, sans-serif" font-weight="600" font-size="14" fill="%23475569">Location: Kendari | Salary: Competitive</text></g><rect x="340" y="120" width="580" height="320" rx="16" fill="%230284c7"/><g transform="translate(370, 180)"><text x="0" y="30" font-family="system-ui, sans-serif" font-weight="900" font-size="32" fill="%23ffffff">JOIN OUR INNOVATIVE</text><text x="0" y="70" font-family="system-ui, sans-serif" font-weight="900" font-size="36" fill="%2338bdf8">TECH TEAM</text><text x="0" y="105" font-family="system-ui, sans-serif" font-weight="600" font-size="16" fill="%23e0f2fe">Innovate. Collaborate. Lead.</text><rect x="0" y="130" width="160" height="44" rx="8" fill="%230f172a"/><text x="80" y="157" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="800" font-size="14" fill="%23ffffff">APPLY NOW</text></g></svg>',
+    imageUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23f8fafc"/><rect x="20" y="20" width="760" height="410" rx="16" fill="%23ffffff" stroke="%23e2e8f0" stroke-width="2"/><g transform="translate(400, 200)"><circle cx="0" cy="-30" r="50" fill="none" stroke="%232563eb" stroke-width="12"/><path d="M-20 -30 L20 -60 L10 -10 Z" fill="%232563eb"/><text x="0" y="60" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="900" font-size="32" fill="%231e293b">JOB INFO</text><text x="0" y="85" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="700" font-size="14" fill="%2364748b" letter-spacing="3">ACADEMIC CAREER PORTAL</text></g></svg>',
+    flyer: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23f8fafc"/><rect x="20" y="20" width="760" height="410" rx="16" fill="%23ffffff" stroke="%23e2e8f0" stroke-width="2"/><g transform="translate(400, 200)"><circle cx="0" cy="-30" r="50" fill="none" stroke="%232563eb" stroke-width="12"/><path d="M-20 -30 L20 -60 L10 -10 Z" fill="%232563eb"/><text x="0" y="60" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="900" font-size="32" fill="%231e293b">JOB INFO</text><text x="0" y="85" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="700" font-size="14" fill="%2364748b" letter-spacing="3">ACADEMIC CAREER PORTAL</text></g></svg>',
     flyers: [
-      'https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1542744094-3a3e22035383?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=800&auto=format&fit=crop'
+      'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 500" width="1000" height="500"><rect width="1000" height="500" fill="%23e2e8f0"/><rect x="20" y="20" width="960" height="460" rx="16" fill="%23f8fafc" stroke="%23cbd5e1" stroke-width="2"/><g transform="translate(60, 60)"><text x="0" y="30" font-family="system-ui, sans-serif" font-weight="800" font-size="16" fill="%230284c7">QuantumTech Careers | Job Opportunities</text><text x="0" y="65" font-family="system-ui, sans-serif" font-weight="900" font-size="26" fill="%230f172a">Job Title: Fullstack Web Developer Intern</text><text x="0" y="95" font-family="system-ui, sans-serif" font-weight="600" font-size="14" fill="%23475569">Location: Kendari | Salary: Competitive</text></g><rect x="340" y="120" width="580" height="320" rx="16" fill="%230284c7"/><g transform="translate(370, 180)"><text x="0" y="30" font-family="system-ui, sans-serif" font-weight="900" font-size="32" fill="%23ffffff">JOIN OUR INNOVATIVE</text><text x="0" y="70" font-family="system-ui, sans-serif" font-weight="900" font-size="36" fill="%2338bdf8">TECH TEAM</text><text x="0" y="105" font-family="system-ui, sans-serif" font-weight="600" font-size="16" fill="%23e0f2fe">Innovate. Collaborate. Lead.</text><rect x="0" y="130" width="160" height="44" rx="8" fill="%230f172a"/><text x="80" y="157" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="800" font-size="14" fill="%23ffffff">APPLY NOW</text></g></svg>'
     ],
-    lokasi: 'Kendari (On-site / Hybrid)',
-    deskripsi: 'PT Go Digital Kendari membuka kesempatan magang bagi mahasiswa tingkat akhir Universitas Muhammadiyah Kendari untuk posisi Fullstack Developer. Anda akan terlibat langsung dalam pembangunan aplikasi e-commerce lokal, berkolaborasi dengan tim profesional, dan mempelajari framework modern seperti React dan Express.',
+    lokasi: 'Kendari (Hybrid)',
+    kategori: 'TI / Perangkat Lunak',
+    gaji: 'Kompetitif',
+    deskripsi: 'PT Go Digital Kendari sedang mencari Mahasiswa Magang Fullstack Web Developer yang sangat termotivasi untuk bergabung dengan tim dinamis kami. Dalam peran ini, Anda akan bekerja sama dengan insinyur senior dan manajer produk kami untuk mengembangkan, memelihara, dan meningkatkan sistem frontend dan backend untuk aplikasi web inti kami. Ini adalah kesempatan langsung untuk mendapatkan pengalaman dunia nyata di lingkungan teknologi yang serba cepat.',
+    tanggungJawab: [
+      'Membantu dalam pengembangan aplikasi web yang kuat dan dapat diskalakan.',
+      'Berkolaborasi dengan tim lintas fungsi untuk mendefinisikan, merancang, dan mengirimkan fitur baru.',
+      'Menulis kode yang bersih, dapat dipelihara, dan efisien (HTML, CSS, JavaScript, Node.js, Python).',
+      'Berpartisipasi dalam tinjauan kode dan berkontribusi pada diskusi teknis.',
+      'Memecahkan masalah, menguji, dan memelihara perangkat lunak produk inti untuk memastikan optimasi dan fungsionalitas yang kuat.'
+    ],
     kualifikasi: [
-      'Mahasiswa aktif prodi Teknik Informatika / Sistem Informasi semester 6 ke atas',
-      'Memahami dasar pemrograman Javascript/TypeScript, HTML, CSS',
-      'Mengenal React atau Node.js adalah nilai tambah',
-      'Mampu bekerja sama dalam tim dan bersedia mengikuti program magang selama 3-6 bulan'
+      'Saat ini terdaftar dalam program gelar Sarjana Ilmu Komputer, Teknologi Informasi, atau bidang terkait (minimal semester 6).',
+      'Pemahaman dasar tentang teknologi frontend (React, Vue, atau kerangka kerja serupa).',
+      'Keakraban dengan pengembangan backend (Node.js, Express, atau serupa).',
+      'Pemahaman tentang sistem basis data (SQL atau NoSQL).',
+      'Keterampilan pemecahan masalah yang kuat dan kemauan untuk belajar.',
+      'Keterampilan komunikasi yang baik dan kemampuan bekerja dalam tim.'
     ],
+    keahlian: ['JavaScript', 'React.js', 'Node.js', 'Git', 'Problem Solving'],
     benefit: [
       'Uang saku bulanan / insentif',
       'Sertifikat magang CDC Universitas Muhammadiyah Kendari',
@@ -220,7 +230,7 @@ export const SEED_LOWONGAN: Lowongan[] = [
       'Peluang direkrut menjadi karyawan tetap setelah lulus'
     ],
     kuota: 3,
-    deadline: '2026-07-15',
+    deadline: '15 Juli 2026',
     status: 'published',
     createdAt: '2026-05-10T10:00:00Z'
   },
@@ -232,26 +242,31 @@ export const SEED_LOWONGAN: Lowongan[] = [
     tipe: 'magang',
     namaInstansi: 'PT Go Digital Kendari',
     companyLogo: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop',
-    bannerImage: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=1200&auto=format&fit=crop',
-    imageUrl: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop',
-    flyer: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop',
+    bannerImage: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23f8fafc"/><rect x="40" y="30" width="720" height="390" rx="12" fill="%23ffffff" stroke="%23cbd5e1" stroke-width="2"/><rect x="40" y="30" width="720" height="36" rx="12" fill="%23f1f5f9"/><circle cx="65" cy="48" r="5" fill="%23ef4444"/><circle cx="80" cy="48" r="5" fill="%23f59e0b"/><circle cx="95" cy="48" r="5" fill="%2310b981"/><g transform="translate(80, 110)"><path d="M0 40 L30 0 L50 40 L35 40 L25 20 L15 40 Z" fill="%23d946ef"/><text x="65" y="25" font-family="system-ui, sans-serif" font-weight="900" font-size="28" fill="%231e1b4b">Aethereum</text><text x="65" y="42" font-family="system-ui, sans-serif" font-weight="700" font-size="11" fill="%23a21caf" letter-spacing="2">DESIGN CO.</text></g></svg>',
+    imageUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23f8fafc"/><rect x="40" y="30" width="720" height="390" rx="12" fill="%23ffffff" stroke="%23cbd5e1" stroke-width="2"/><rect x="40" y="30" width="720" height="36" rx="12" fill="%23f1f5f9"/><circle cx="65" cy="48" r="5" fill="%23ef4444"/><circle cx="80" cy="48" r="5" fill="%23f59e0b"/><circle cx="95" cy="48" r="5" fill="%2310b981"/><g transform="translate(80, 110)"><path d="M0 40 L30 0 L50 40 L35 40 L25 20 L15 40 Z" fill="%23d946ef"/><text x="65" y="25" font-family="system-ui, sans-serif" font-weight="900" font-size="28" fill="%231e1b4b">Aethereum</text><text x="65" y="42" font-family="system-ui, sans-serif" font-weight="700" font-size="11" fill="%23a21caf" letter-spacing="2">DESIGN CO.</text></g></svg>',
+    flyer: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23f8fafc"/><rect x="40" y="30" width="720" height="390" rx="12" fill="%23ffffff" stroke="%23cbd5e1" stroke-width="2"/><g transform="translate(80, 110)"><path d="M0 40 L30 0 L50 40 L35 40 L25 20 L15 40 Z" fill="%23d946ef"/><text x="65" y="25" font-family="system-ui, sans-serif" font-weight="900" font-size="28" fill="%231e1b4b">Aethereum</text><text x="65" y="42" font-family="system-ui, sans-serif" font-weight="700" font-size="11" fill="%23a21caf" letter-spacing="2">DESIGN CO.</text></g></svg>',
     flyers: [
-      'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=800&auto=format&fit=crop'
+      'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23f8fafc"/><rect x="40" y="30" width="720" height="390" rx="12" fill="%23ffffff" stroke="%23cbd5e1" stroke-width="2"/><g transform="translate(80, 110)"><path d="M0 40 L30 0 L50 40 L35 40 L25 20 L15 40 Z" fill="%23d946ef"/><text x="65" y="25" font-family="system-ui, sans-serif" font-weight="900" font-size="28" fill="%231e1b4b">Aethereum</text><text x="65" y="42" font-family="system-ui, sans-serif" font-weight="700" font-size="11" fill="%23a21caf" letter-spacing="2">DESIGN CO.</text></g></svg>'
     ],
     lokasi: 'Kendari (Hybrid)',
+    kategori: 'Desain Kreatif & Multimedia',
+    gaji: 'Kompetitif',
     deskripsi: 'Merancang antarmuka aplikasi mobile dan web berorientasi pengguna. Magang ini sangat cocok bagi Anda yang menyukai visual, prototipe interaktif, dan riset kebiasaan pengguna.',
-    kualifikasi: [
-      'Menguasai Figma atau Adobe XD',
-      'Memiliki portofolio desain UI dasar (meskipun tugas kuliah)',
-      'Memiliki pemahaman dasar tentang wireframing, user flows, dan grid system',
-      'Membawa laptop pribadi yang mendukung proses desain'
+    tanggungJawab: [
+      'Membuat wireframe, storyboards, user flows, dan sitemaps.',
+      'Merancang desain UI interaktif menggunakan Figma.',
+      'Melakukan usability testing dan mengumpulkan feedback pengguna.'
     ],
+    kualifikasi: [
+      'Menguasai Figma atau Adobe XD.',
+      'Memiliki portofolio desain UI dasar.',
+      'Memahami konsep Design System dan visual hierarchy.'
+    ],
+    keahlian: ['Figma', 'UI Design', 'Wireframing', 'Prototyping'],
     benefit: [
       'Uang saku bulanan',
       'Sertifikat magang resmi',
-      'Portofolio berkualitas industri',
-      'Bimbingan langsung dari UI/UX Specialist'
+      'Portofolio berkualitas industri'
     ],
     kuota: 2,
     deadline: '2026-07-20',
@@ -266,26 +281,30 @@ export const SEED_LOWONGAN: Lowongan[] = [
     tipe: 'kerja',
     namaInstansi: 'PT Go Digital Kendari',
     companyLogo: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop',
-    bannerImage: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=1200&auto=format&fit=crop',
-    imageUrl: 'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=800&auto=format&fit=crop',
-    flyer: 'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=800&auto=format&fit=crop',
+    bannerImage: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23f8fafc"/><rect x="40" y="30" width="720" height="390" rx="12" fill="%23ffffff" stroke="%23cbd5e1" stroke-width="2"/><g transform="translate(400, 200)"><path d="M-60 10 L0 -50 L40 10 L10 10 L0 -20 L-30 10 Z" fill="%230284c7"/><path d="M-20 20 L30 -40 L70 20 Z" fill="%230d9488" opacity="0.8"/><text x="0" y="65" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="900" font-size="30" fill="%230f172a" letter-spacing="2">INFRASTRUCTURE</text><text x="0" y="95" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="800" font-size="28" fill="%230284c7" letter-spacing="3">CONNECT</text></g></svg>',
+    imageUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23f8fafc"/><rect x="40" y="30" width="720" height="390" rx="12" fill="%23ffffff" stroke="%23cbd5e1" stroke-width="2"/><g transform="translate(400, 200)"><path d="M-60 10 L0 -50 L40 10 L10 10 L0 -20 L-30 10 Z" fill="%230284c7"/><path d="M-20 20 L30 -40 L70 20 Z" fill="%230d9488" opacity="0.8"/><text x="0" y="65" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="900" font-size="30" fill="%230f172a" letter-spacing="2">INFRASTRUCTURE</text><text x="0" y="95" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="800" font-size="28" fill="%230284c7" letter-spacing="3">CONNECT</text></g></svg>',
+    flyer: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23f8fafc"/><rect x="40" y="30" width="720" height="390" rx="12" fill="%23ffffff" stroke="%23cbd5e1" stroke-width="2"/><g transform="translate(400, 200)"><path d="M-60 10 L0 -50 L40 10 L10 10 L0 -20 L-30 10 Z" fill="%230284c7"/><text x="0" y="65" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="900" font-size="30" fill="%230f172a">INFRASTRUCTURE CONNECT</text></g></svg>',
     flyers: [
-      'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1542744094-3a3e22035383?q=80&w=800&auto=format&fit=crop'
+      'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23f8fafc"/><rect x="40" y="30" width="720" height="390" rx="12" fill="%23ffffff" stroke="%23cbd5e1" stroke-width="2"/><g transform="translate(400, 200)"><path d="M-60 10 L0 -50 L40 10 L10 10 L0 -20 L-30 10 Z" fill="%230284c7"/><text x="0" y="65" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="900" font-size="30" fill="%230f172a">INFRASTRUCTURE CONNECT</text></g></svg>'
     ],
     lokasi: 'Kendari (On-site)',
+    kategori: 'TI / Rekayasa Perangkat Lunak',
+    gaji: 'Rp 4.500.000 - Rp 6.000.000',
     deskripsi: 'Kami mencari lulusan baru (fresh graduate) dari alumni UM Kendari untuk bergabung dalam tim pengembang perangkat lunak utama kami.',
-    kualifikasi: [
-      'Alumni UM Kendari (diutamakan Teknik Informatika / Sistem Informasi)',
-      'Memahami RESTful API, OOP dasar, dan database SQL',
-      'IPK minimal 3.00',
-      'Siap ditempatkan di kantor pusat Kendari'
+    tanggungJawab: [
+      'Mengembangkan fitur aplikasi web berbasis React dan Node.js.',
+      'Melakukan maintenance dan fixing bug pada sistem eksisting.'
     ],
+    kualifikasi: [
+      'Alumni UM Kendari (diutamakan Teknik Informatika / Sistem Informasi).',
+      'Memahami RESTful API, OOP dasar, dan database SQL.',
+      'IPK minimal 3.00.'
+    ],
+    keahlian: ['JavaScript', 'React', 'Node.js', 'SQL'],
     benefit: [
       'Gaji pokok kompetitif',
       'BPJS Kesehatan & Ketenagakerjaan',
-      'Bonus performa tahunan',
-      'Lingkungan kerja tech-startup yang dinamis'
+      'Bonus performa tahunan'
     ],
     kuota: 2,
     deadline: '2026-06-30',
@@ -293,38 +312,70 @@ export const SEED_LOWONGAN: Lowongan[] = [
     createdAt: '2026-05-15T09:00:00Z'
   },
   {
-    id: 'low4',
-    mitraId: 'mtr2',
-    createdBy: 'usr_mitra2',
-    judul: 'Frontliner & Operational Internship',
-    tipe: 'magang',
-    namaInstansi: 'Bank Syariah Indonesia (BSI) Area Kendari',
-    companyLogo: 'https://images.unsplash.com/photo-1554774853-719586f82d77?q=80&w=200&auto=format&fit=crop',
-    bannerImage: 'https://images.unsplash.com/photo-1556742049-0a67d55febc4?q=80&w=1200&auto=format&fit=crop',
-    imageUrl: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop',
-    flyer: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop',
-    flyers: [
-      'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=800&auto=format&fit=crop'
-    ],
-    lokasi: 'Jl. Abdullah Silondae, Kendari',
-    deskripsi: 'Mempelajari sistem administrasi, pencatatan transaksi syariah, dan melayani nasabah secara profesional dengan menerapkan service excellence khas perbankan syariah syandard nasional.',
-    kualifikasi: [
-      'Mahasiswa aktif Fakultas Ekonomi dan Bisnis Islam atau Fakultas Hukum (Hukum Keluarga/Muamalah)',
-      'Berpenampilan rapi, komunikatif, dan ramah',
-      'Mampu mengoperasikan Microsoft Office (Word, Excel, PowerPoint) dengan baik',
-      'Tinggi badan minimal: Pria 165 cm, Wanita 155 cm'
-    ],
-    benefit: [
-      'Uang saku bulanan resmi dari BSI',
-      'Sertifikat industri perbankan syariah nasional',
-      'Pengalaman kerja nyata di lembaga keuangan BUMN',
-      'Seragam magang standar BSI'
-    ],
-    kuota: 5,
-    deadline: '2026-07-10',
+    id: 'low5',
+    mitraId: 'mtr1',
+    createdBy: 'usr_mitra1',
+    judul: 'Creative Director',
+    tipe: 'kerja',
+    namaInstansi: 'Tech Studio',
+    companyLogo: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?q=80&w=200&auto=format&fit=crop',
+    bannerImage: 'https://images.unsplash.com/photo-1542744094-3a3e22035383?q=80&w=800&auto=format&fit=crop',
+    imageUrl: 'https://images.unsplash.com/photo-1542744094-3a3e22035383?q=80&w=800&auto=format&fit=crop',
+    flyer: 'https://images.unsplash.com/photo-1542744094-3a3e22035383?q=80&w=800&auto=format&fit=crop',
+    lokasi: 'Kendari (Hybrid)',
+    kategori: 'Kreatif & Media',
+    gaji: 'Kompetitif',
+    deskripsi: 'Mengarahkan tim kreatif dalam pembuatan kampanye digital branding dan produksi media visual.',
+    kualifikasi: ['Pengalaman minimal 2 tahun', 'Portofolio kampanye kreatif'],
+    benefit: ['Tunjangan kesehatan', 'Bonus tahunan'],
+    kuota: 1,
+    deadline: '15 Juli 2026',
     status: 'published',
-    createdAt: '2026-05-29T10:00:00Z'
+    createdAt: '2026-05-20T08:00:00Z'
+  },
+  {
+    id: 'low6',
+    mitraId: 'mtr1',
+    createdBy: 'usr_mitra1',
+    judul: 'Accountant',
+    tipe: 'kerja',
+    namaInstansi: 'Global Finance',
+    companyLogo: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=200&auto=format&fit=crop',
+    bannerImage: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=800&auto=format&fit=crop',
+    imageUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=800&auto=format&fit=crop',
+    flyer: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=800&auto=format&fit=crop',
+    lokasi: 'Kendari (On-site)',
+    kategori: 'Keuangan & Akuntansi',
+    gaji: 'Kompetitif',
+    deskripsi: 'Mengelola laporan keuangan bulanan dan penyusunan anggaran operasional perusahaan.',
+    kualifikasi: ['Lulusan S1 Akuntansi', 'Memahami pajak & SAP'],
+    benefit: ['Gaji tetap', 'Asuransi jiwa'],
+    kuota: 2,
+    deadline: '14 Juli 2026',
+    status: 'published',
+    createdAt: '2026-05-21T09:00:00Z'
+  },
+  {
+    id: 'low7',
+    mitraId: 'mtr1',
+    createdBy: 'usr_mitra1',
+    judul: 'Marketing Manager',
+    tipe: 'kerja',
+    namaInstansi: 'Creative Agency',
+    companyLogo: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=200&auto=format&fit=crop',
+    bannerImage: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=800&auto=format&fit=crop',
+    imageUrl: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=800&auto=format&fit=crop',
+    flyer: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=800&auto=format&fit=crop',
+    lokasi: 'Kendari (Hybrid)',
+    kategori: 'Pemasaran & Digital',
+    gaji: 'Kompetitif',
+    deskripsi: 'Merencanakan dan mengeksekusi strategi pemasaran digital untuk klien korporat.',
+    kualifikasi: ['Pengalaman digital marketing', 'Keterampilan analisis data'],
+    benefit: ['Insentif performa', 'Fleksibilitas kerja'],
+    kuota: 1,
+    deadline: '13 Juli 2026',
+    status: 'published',
+    createdAt: '2026-05-22T10:00:00Z'
   }
 ];
 
@@ -572,6 +623,16 @@ const DEFAULT_SEEDS = {
 
 // Initializer to make sure local storage has everything
 export function initializeDB() {
+  const CURRENT_SEED_VERSION = 'v3_posters_9_16';
+  if (localStorage.getItem('cdc_seed_version') !== CURRENT_SEED_VERSION) {
+    Object.entries(DEFAULT_SEEDS).forEach(([key, val]) => {
+      const storageKey = `cdc_umk_${key}`;
+      localStorage.setItem(storageKey, JSON.stringify(val));
+    });
+    localStorage.setItem('cdc_seed_version', CURRENT_SEED_VERSION);
+    return;
+  }
+
   Object.entries(DEFAULT_SEEDS).forEach(([key, val]) => {
     const storageKey = `cdc_umk_${key}`;
     if (!localStorage.getItem(storageKey)) {

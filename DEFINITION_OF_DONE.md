@@ -1,4 +1,4 @@
-# DEFINITION OF DONE — KLIKTUNTAS.ID
+# DEFINITION OF DONE — CDC UM Kendari
 
 > File ini adalah standar kerja permanen. Mention file ini (`@DEFINITION_OF_DONE.md`) di SETIAP prompt yang meminta agent membangun atau mengubah fitur — bukan cuma sekali di awal project.
 
