@@ -78,43 +78,7 @@ export default function LayananContainer({ currentTab, setTab, children }: Layan
         </div>
       </div>
 
-      {/* ── Sticky Sub-Navigation Bar ── */}
-      <div className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center gap-1.5 overflow-x-auto py-3 no-scrollbar scroll-smooth">
-            {LAYANAN_MENU.map((menu) => {
-              const Icon = menu.icon;
-              const isActive = currentTab === menu.id;
 
-              return (
-                <button
-                  key={menu.id}
-                  onClick={() => setTab(menu.id)}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 relative cursor-pointer ${
-                    isActive
-                      ? 'bg-[#1E3A8A] text-white shadow-md shadow-blue-900/20 scale-[1.02]'
-                      : 'bg-slate-100/80 text-slate-600 hover:bg-slate-200/80 hover:text-slate-900'
-                  }`}
-                >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-emerald-400' : 'text-slate-500'}`} />
-                  <span>{menu.shortLabel}</span>
-
-                  {menu.badge && !isActive && (
-                    <span className="px-1.5 py-0.5 text-[9px] font-extrabold bg-slate-200 text-slate-600 rounded-md">
-                      {menu.badge}
-                    </span>
-                  )}
-                  {menu.badge && isActive && (
-                    <span className="px-1.5 py-0.5 text-[9px] font-extrabold bg-emerald-400 text-blue-950 rounded-md shadow-sm">
-                      {menu.badge}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
 
       {/* ── Main Content Area with Motion Fade Transition ── */}
       <div className="max-w-7xl mx-auto px-4 pt-6">

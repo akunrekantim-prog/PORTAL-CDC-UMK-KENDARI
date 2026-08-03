@@ -240,5 +240,29 @@ Seluruh sub-bab layanan telah berfungsi, terintegrasi, bebas dari error, dan mem
 - [x] Integrasi Header & Footer resmi pada halaman `JobDetail.tsx`
 - [x] Penerapan logika Sticky Sidebar Desktop sepresisi CDAC UMSU
 - [x] Penerapan kartu poster *full-bleed* (tanpa kuota & tombol detail) pada Beranda & Job Info
-- [x] Sinkronisasi poster mitra pada widget Info Terkini Loker & Postingan Terbaru
 - [x] Verifikasi build produksi `npx vite build` (0 error)
+
+---
+
+## Tanggal: 3 Agustus 2026
+**Fokus Pekerjaan:** Perbaikan UI/UX Menu Layanan
+
+### 🚀 Ringkasan Perubahan UI & Feature Updates
+
+1. **Penyempurnaan Styling Scrollbar:**
+   - **`src/index.css`:** Menambahkan *utility class* kustom `.no-scrollbar` untuk menyembunyikan *horizontal scrollbar* bawaan browser (Chrome, Safari, Firefox, Edge) yang merusak estetika desain, dengan tetap mempertahankan fungsionalitas usap/geser (*scroll/swipe*).
+
+2. **Pembersihan Antarmuka `LayananContainer.tsx`:**
+   - **`src/components/layanan/LayananContainer.tsx`:** Menghapus sepenuhnya elemen *Sticky Sub-Navigation Bar* (barisan tombol navigasi sub-bab secara horizontal) untuk memberikan ruang pandang yang lebih bersih dan merespons umpan balik pengguna.
+
+### 📁 File Diubah
+- **[MODIFY]** `src/index.css`
+- **[MODIFY]** `src/components/layanan/LayananContainer.tsx`
+- **[MODIFY]** `progres.md`
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Implementasi class `.no-scrollbar` pada global CSS
+- [x] Penghapusan barisan sub-bab yang berjejer (*Sticky Sub-Nav Bar*)
+- [x] Pencatatan laporan progres (3 Agustus 2026)
+- [x] Commit seluruh perubahan kode untuk kolaborasi tim di GitHub
+
