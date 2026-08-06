@@ -35,6 +35,12 @@ export interface Mahasiswa {
   angkatan: string; // e.g. "2022"
   semester: number;
   alamat?: string;
+  // Extended Profile Fields
+  graduationYear?: string;
+  nationality?: string;
+  workRights?: string;
+  opportunityType?: string;
+  preferredStartDate?: string;
 }
 
 export interface Alumni {
@@ -101,6 +107,9 @@ export interface PengajuanMagang {
   programStudi: string;
   tujuanMagang: string;
   lokasiMagang?: string;
+  catatan?: string;
+  berkasUrl?: string;
+  berkasNama?: string;
   tanggalMulai?: string; // YYYY-MM-DD
   tanggalSelesai?: string; // YYYY-MM-DD
   status: StatusPengajuan;
@@ -134,7 +143,7 @@ export interface TracerStudy {
   namaInstansi?: string;
   jabatan?: string;
   bidangPekerjaan?: string;
-  kesesuaianBidang?: 'sangat_sesuai' | 'sesuai' | 'kurang_sesuai' | 'tidak_sesuai';
+  kesesuaianBidang?: 'sangat_erat' | 'erat' | 'cukup_erat' | 'kurang_erat' | 'tidak_sama_sekali';
   rangePenghasilan?: 'kurang_2jt' | '2_5jt' | '5_10jt' | 'lebih_10jt';
   saranUntukKampus?: string;
   submittedAt: string;

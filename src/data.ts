@@ -376,6 +376,91 @@ export const SEED_LOWONGAN: Lowongan[] = [
     deadline: '13 Juli 2026',
     status: 'published',
     createdAt: '2026-05-22T10:00:00Z'
+  },
+  {
+    id: 'low8',
+    mitraId: 'mtr_trisakti1',
+    createdBy: 'usr_mitra1',
+    judul: 'Junior Project Engineer',
+    tipe: 'kerja',
+    namaInstansi: 'PT RIASARANA ELECTRINDO',
+    companyLogo: 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?q=80&w=200&auto=format&fit=crop',
+    bannerImage: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=800&auto=format&fit=crop',
+    imageUrl: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=800&auto=format&fit=crop',
+    flyer: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=800&auto=format&fit=crop',
+    flyers: ['https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=800&auto=format&fit=crop'],
+    lokasi: 'Jakarta Barat, JAKARTA BARAT, DKI JAKARTA',
+    kategori: 'Teknik/Rekayasa & Manufaktur',
+    gaji: 'Rp 6.000.000 - Rp 8.500.000',
+    deskripsi: 'PT Riasarana Electrindo membuka lowongan Junior Project Engineer untuk perencanaan, pengawasan, dan pelaksanaan proyek rekayasa elektrikal.',
+    kualifikasi: [
+      'Pendidikan S1 Teknik Elektro / Teknik Industri / Teknik Mesin.',
+      'IPK minimal 3.00.',
+      'Memahami gambar teknik (AutoCAD / Electrical CAD).',
+      'Mampu bekerja dalam tim dan bersedia perjalanan dinas.'
+    ],
+    keahlian: ['AutoCAD', 'Project Management', 'Electrical Engineering'],
+    benefit: ['Gaji Pokok & Tunjangan Proyek', 'BPJS Kesehatan & Ketenagakerjaan', 'Pelatihan Sertifikasi'],
+    kuota: 3,
+    deadline: '2026-08-31',
+    status: 'published',
+    createdAt: '2026-06-01T08:00:00Z'
+  },
+  {
+    id: 'low9',
+    mitraId: 'mtr_trisakti2',
+    createdBy: 'usr_mitra1',
+    judul: 'PT Yanasurya Bhaktipersada is Hiring for Marketing EXIM Staff!',
+    tipe: 'kerja',
+    namaInstansi: 'PT Yanasurya Bhaktipersada',
+    companyLogo: 'https://images.unsplash.com/photo-1572021335469-31706a17aaef?q=80&w=200&auto=format&fit=crop',
+    bannerImage: 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?q=80&w=800&auto=format&fit=crop',
+    imageUrl: 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?q=80&w=800&auto=format&fit=crop',
+    flyer: 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?q=80&w=800&auto=format&fit=crop',
+    flyers: ['https://images.unsplash.com/photo-1578575437130-527eed3abbec?q=80&w=800&auto=format&fit=crop'],
+    lokasi: 'Jakarta Utara, JAKARTA UTARA, DKI JAKARTA',
+    kategori: 'Pemasaran/Pemasaran Digital & PR',
+    gaji: 'Rp 5.500.000 - Rp 7.500.000',
+    deskripsi: 'Mengurus dokumen ekspor impor (EXIM), komunikasi dengan buyer luar negeri, serta penyusunan laporan administrasi perdagangan internasional.',
+    kualifikasi: [
+      'S1 Perdagangan Internasional / Manajemen / Bahasa Inggris / Administrasi Bisnis.',
+      'Memahami prosedur ekspor-impor (Incoterms, L/C, PEB, PIB).',
+      'Fasih berbahasa Inggris (lisan & tulisan).'
+    ],
+    keahlian: ['Export Import', 'International Trade', 'English Business Communication'],
+    benefit: ['Tunjangan Kesehatan', 'Bonus Performa Ekspor', 'Jalur Karir Internasional'],
+    kuota: 2,
+    deadline: '2026-08-31',
+    status: 'published',
+    createdAt: '2026-06-05T09:00:00Z'
+  },
+  {
+    id: 'low10',
+    mitraId: 'mtr_trisakti3',
+    createdBy: 'usr_mitra1',
+    judul: 'Jr Quality Assurance',
+    tipe: 'kerja',
+    namaInstansi: 'Celerates',
+    companyLogo: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=200&auto=format&fit=crop',
+    bannerImage: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=800&auto=format&fit=crop',
+    imageUrl: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=800&auto=format&fit=crop',
+    flyer: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=800&auto=format&fit=crop',
+    flyers: ['https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=800&auto=format&fit=crop'],
+    lokasi: 'North Jakarta, JAKARTA UTARA, DKI JAKARTA',
+    kategori: 'IT/Komputer & Teknologi Informasi',
+    gaji: 'Rp 6.500.000 - Rp 9.000.000',
+    deskripsi: 'Celerates mencari Jr Quality Assurance untuk melakukan pengujian manual dan otomatisasi pada aplikasi web dan mobile enterprise.',
+    kualifikasi: [
+      'Pendidikan S1 Teknik Informatika / Sistem Informasi.',
+      'Memahami Software Testing Life Cycle (STLC).',
+      'Pengalaman membuat test script & test plan.'
+    ],
+    keahlian: ['Software Testing', 'QA Automation', 'Selenium/Cypress', 'API Testing'],
+    benefit: ['Insentif Properti', 'Asuransi Kesehatan Swasta', 'Work-from-Home Hybrid'],
+    kuota: 4,
+    deadline: '2026-08-31',
+    status: 'published',
+    createdAt: '2026-06-10T10:00:00Z'
   }
 ];
 
@@ -772,5 +857,97 @@ export function registerUser(
   }
 
   return newUser;
+}
+
+export function updateUserProfile(userId: string, profileData: Partial<Mahasiswa>) {
+  const students = getFromDB<Mahasiswa>('mahasiswa');
+  let student = students.find(s => s.userId === userId);
+  
+  if (student) {
+    const updatedStudent = { ...student, ...profileData };
+    updateInDB<Mahasiswa>('mahasiswa', updatedStudent);
+    return updatedStudent;
+  }
+  
+  // If no existing record, create one
+  const newStudent: Mahasiswa = {
+    id: `mhs_${Date.now()}`,
+    userId: userId,
+    nim: profileData.nim || '',
+    nama: profileData.nama || '',
+    email: profileData.email || '',
+    phone: profileData.phone || '',
+    programStudi: profileData.programStudi || '',
+    fakultas: profileData.fakultas || '',
+    angkatan: profileData.angkatan || '',
+    semester: profileData.semester || 1,
+    ...profileData
+  };
+  insertToDB<Mahasiswa>('mahasiswa', newStudent);
+  return newStudent;
+}
+
+export function applyForJob(userId: string, job: Lowongan, extraData?: any) {
+  const students = getFromDB<Mahasiswa>('mahasiswa');
+  const student = students.find(s => s.userId === userId);
+  
+  const users = getFromDB<User>('users');
+  const currentUser = users.find(u => u.id === userId);
+
+  const applicantName = extraData?.applicantName || (student ? student.nama : (currentUser?.name || 'Mahasiswa Pelamar'));
+  const applicantEmail = extraData?.applicantEmail || (student ? student.email : (currentUser?.email || ''));
+  const applicantProdi = extraData?.applicantProdi || (student ? student.programStudi : 'Teknologi Informasi');
+  const applicantNim = student?.nim || '202201001';
+
+  const pengajuanId = `pj_${Date.now()}`;
+  const newPengajuan: PengajuanMagang = {
+    id: pengajuanId,
+    mahasiswaId: student ? student.id : `mhs_${userId}`,
+    userId: userId,
+    lowonganId: job.id,
+    namaMahasiswa: applicantName,
+    nim: applicantNim,
+    programStudi: applicantProdi,
+    tujuanMagang: job.judul,
+    lokasiMagang: job.lokasi,
+    catatan: extraData?.applicantNotes || '',
+    berkasUrl: extraData?.uploadedFileUrl || (extraData?.uploadedFileName ? `data:application/pdf;name=${encodeURIComponent(extraData.uploadedFileName)}` : undefined),
+    berkasNama: extraData?.uploadedFileName || 'CV_Mahasiswa_Pelamar.pdf',
+    tanggalMulai: new Date().toISOString().split('T')[0],
+    tanggalSelesai: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    status: 'under_review',
+    createdAt: new Date().toISOString()
+  };
+
+  insertToDB<PengajuanMagang>('pengajuan_magang', newPengajuan);
+  return newPengajuan;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   BOOKMARK / SAVED JOBS HELPERS
+───────────────────────────────────────────────────────────────── */
+export function getSavedJobIds(): string[] {
+  try {
+    const saved = localStorage.getItem('cdc_saved_job_ids');
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function toggleSaveJob(jobId: string): boolean {
+  const current = getSavedJobIds();
+  let next: string[];
+  let isSaved = false;
+  if (current.includes(jobId)) {
+    next = current.filter(id => id !== jobId);
+    isSaved = false;
+  } else {
+    next = [...current, jobId];
+    isSaved = true;
+  }
+  localStorage.setItem('cdc_saved_job_ids', JSON.stringify(next));
+  localStorage.setItem(`saved_job_${jobId}`, isSaved ? 'true' : 'false');
+  return isSaved;
 }
 

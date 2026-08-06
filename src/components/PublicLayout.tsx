@@ -28,6 +28,8 @@ import ExitSurvey from './layanan/ExitSurvey';
 import JobPlacement from './layanan/JobPlacement';
 import LayananContainer from './layanan/LayananContainer';
 import HeroSlider from './HeroSlider';
+import { JobSearchMasterDetail } from './JobSearchMasterDetail';
+
 
 /* ─── Types ─────────────────────────────────── */
 interface PublicLayoutProps {
@@ -127,7 +129,8 @@ export default function PublicLayout({
   });
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] flex flex-col font-sans text-slate-800" id="pub-root">
+    <div className="min-h-screen bg-white flex flex-col font-sans text-slate-800" id="pub-root">
+
 
       {/* ══════════════════════════════════════════
           HEADER (Top Bar + Main Navbar)
@@ -172,7 +175,8 @@ export default function PublicLayout({
 
 
             {/* ══ JOB SEARCH ENGINE ═══════════════════════════════════════ */}
-            <section id="job-search-engine" className="py-14 bg-[#F9FAFB]">
+            <section id="job-search-engine" className="py-14 bg-white">
+
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
 
                 {/* Section header */}
@@ -646,7 +650,8 @@ export default function PublicLayout({
                 </div>
 
                 {/* Quick CTA box */}
-                <div className="bg-[#F9FAFB] rounded-2xl border border-slate-200 p-5 space-y-3 shadow-sm">
+                <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3 shadow-sm">
+
                   <h4 className="font-extrabold text-sm text-[#1E3A8A] uppercase tracking-wider">Layanan Cepat</h4>
                   {[
                     { label: 'Konseling Karier', tab: 'konseling' },
@@ -798,20 +803,20 @@ export default function PublicLayout({
                     className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group"
                   >
                     <div>
-                      {/* Full-bleed enlarged poster image container */}
-                      <div className="w-full aspect-[16/9] relative overflow-hidden bg-slate-100">
-                        <img
-                          src={
-                            item.flyer ||
-                            item.imageUrl ||
-                            (item.flyers && item.flyers.length > 0 ? item.flyers[0] : null) ||
-                            item.bannerImage ||
-                            item.companyLogo ||
-                            'https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=800&auto=format&fit=crop'
-                          }
-                          alt={item.judul}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
+                      {/* Company Logo Image Container */}
+                      <div className="w-full h-44 relative overflow-hidden bg-slate-50 flex items-center justify-center p-4 border-b border-slate-100">
+                        {item.companyLogo ? (
+                          <img
+                            src={item.companyLogo}
+                            alt={item.namaInstansi}
+                            className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center text-slate-300 space-y-1">
+                            <Building2 className="w-10 h-10 text-slate-400" />
+                            <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">{item.namaInstansi}</span>
+                          </div>
+                        )}
                         <div className="absolute top-3 left-3 flex items-center gap-2">
                           <span
                             className={`px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs ${
@@ -854,6 +859,8 @@ export default function PublicLayout({
             )}
           </div>
         )}
+
+
 
 
         {/* ─── BERITA TAB ──────────────────────────────────────────── */}

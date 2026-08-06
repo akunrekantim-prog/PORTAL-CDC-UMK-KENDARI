@@ -159,7 +159,8 @@ export default function App() {
   const selectedBerita = allBerita.find(b => b.slug === viewingBeritaSlug);
 
   return (
-    <div className="bg-slate-50 min-h-screen font-sans" id="app-root">
+    <div className="bg-white min-h-screen font-sans" id="app-root">
+
       {/* QUICK ROLE SWITCH TESTING UTILITY */}
       <div 
         id="aistudio-role-switcher"
@@ -233,6 +234,7 @@ export default function App() {
             }}
             onNavigateToLogin={handleNavigateToLogin}
             onNavigateToRegister={handleNavigateToRegister}
+            isLoggedIn={false}
             onApply={() => {
               setViewingLowonganId(null);
               setPublicTab('beranda');

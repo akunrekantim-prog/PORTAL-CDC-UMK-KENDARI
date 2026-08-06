@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Lowongan } from '../types';
-import { getFromDB } from '../data';
+import { getFromDB, applyForJob, getSavedJobIds, toggleSaveJob } from '../data';
 import Header from './Header';
 import { Footer } from './Footer';
 import { 
@@ -24,6 +24,8 @@ import {
   Banknote,
   Maximize2
 } from 'lucide-react';
+import { JobApplicationModal } from './JobApplicationModal';
+
 
 interface JobDetailProps {
   job: Lowongan;
@@ -33,6 +35,9 @@ interface JobDetailProps {
   setTab?: (tab: string) => void;
   onNavigateToLogin?: () => void;
   onNavigateToRegister?: (type?: 'alumni' | 'perusahaan') => void;
+  isLoggedIn?: boolean;
+  hideHeader?: boolean;
+  hideFooter?: boolean;
 }
 
 export const JobDetail: React.FC<JobDetailProps> = ({ 
@@ -42,7 +47,10 @@ export const JobDetail: React.FC<JobDetailProps> = ({
   onSelectJob,
   setTab,
   onNavigateToLogin,
-  onNavigateToRegister
+  onNavigateToRegister,
+  isLoggedIn = false,
+  hideHeader = false,
+  hideFooter = false
 }) => {
   const defaultPoster = 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=800&auto=format&fit=crop';
   const defaultLogo = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop';
@@ -56,16 +64,10 @@ export const JobDetail: React.FC<JobDetailProps> = ({
 
   // React States for Interactivity
   const [isSaved, setIsSaved] = useState<boolean>(() => {
-    return localStorage.getItem(`saved_job_${job.id}`) === 'true';
+    return getSavedJobIds().includes(job.id);
   });
   const [isApplyModalOpen, setIsApplyModalOpen] = useState<boolean>(false);
-  const [applicantName, setApplicantName] = useState<string>('Muhammad Fadly Alamsyah');
-  const [applicantEmail, setApplicantEmail] = useState<string>('mhs@umkendari.ac.id');
-  const [applicantProdi, setApplicantProdi] = useState<string>('Teknik Informatika');
-  const [applicantNotes, setApplicantNotes] = useState<string>('');
-  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
+
 
   // Toast Notification State
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -95,9 +97,8 @@ export const JobDetail: React.FC<JobDetailProps> = ({
   };
 
   const handleToggleSave = () => {
-    const nextState = !isSaved;
+    const nextState = toggleSaveJob(job.id);
     setIsSaved(nextState);
-    localStorage.setItem(`saved_job_${job.id}`, nextState ? 'true' : 'false');
     triggerToast(nextState ? 'Lowongan berhasil disimpan ke favorit!' : 'Lowongan dihapus dari favorit.');
   };
 
@@ -106,34 +107,24 @@ export const JobDetail: React.FC<JobDetailProps> = ({
     triggerToast('Tautan lowongan berhasil disalin ke clipboard!');
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setSubmitSuccess(true);
-      triggerToast(`Lamaran untuk ${job.judul} berhasil dikirim!`);
-    }, 1000);
-  };
-
   const resetModal = () => {
     setIsApplyModalOpen(false);
-    setSubmitSuccess(false);
-    setApplicantNotes('');
-    setUploadedFileName(null);
   };
 
+
   return (
-    <div className="bg-[#F8FAFC] min-h-screen flex flex-col justify-between text-slate-800 font-sans" id="job-detail-root">
+    <div className="bg-white min-h-screen flex flex-col justify-between text-slate-800 font-sans" id="job-detail-root">
+
       
       {/* 1. Global Header Component */}
-      <Header
-        currentTab="lowongan"
-        setTab={setTab || (() => {})}
-        onNavigateToLogin={onNavigateToLogin || (() => {})}
-        onNavigateToRegister={onNavigateToRegister}
-      />
+      {!hideHeader && (
+        <Header
+          currentTab="lowongan"
+          setTab={setTab || (() => {})}
+          onNavigateToLogin={onNavigateToLogin || (() => {})}
+          onNavigateToRegister={onNavigateToRegister}
+        />
+      )}
 
       {/* Toast Notification Banner */}
       {toastMsg && (
@@ -202,16 +193,23 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                         <span>{job.lokasi}</span>
                       </div>
 
-                      <div className="flex items-center gap-1.5 text-slate-400">
+                      <div className="flex items-center gap-1.5 text-slate-500 font-medium">
                         <Clock className="w-4 h-4 text-slate-400 shrink-0" />
-                        <span>Diposting 2 hari yang lalu</span>
+                        <span>Diposting: <strong className="font-mono text-slate-700">{job.createdAt ? job.createdAt.split('T')[0] : '2026-08-04'}</strong></span>
                       </div>
                     </div>
                   </div>
 
                   {/* Lamar Sekarang Button */}
                   <button
-                    onClick={() => setIsApplyModalOpen(true)}
+                    onClick={() => {
+                      if (!isLoggedIn && onNavigateToRegister) {
+                        onNavigateToRegister('alumni');
+                      } else {
+                        setIsApplyModalOpen(true);
+                      }
+                    }}
+
                     className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold text-sm px-6 py-2.5 rounded-xl shadow-xs transition shrink-0 self-start active:scale-95"
                     id="btn-lamar-sekarang-top"
                   >
@@ -285,53 +283,75 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                 </h3>
 
                 {/* Interactive Key-Value Table */}
-                <div className="space-y-3.5 text-xs sm:text-sm">
-                  <div className="flex items-center justify-between py-1 border-b border-slate-50">
-                    <div className="flex items-center gap-2 text-slate-600 font-medium">
-                      <Briefcase className="w-4 h-4 text-slate-400" />
+                <div className="space-y-3 text-xs sm:text-sm">
+                  {/* Jenis Pekerjaan */}
+                  <div className="flex items-center justify-between py-2 border-b border-slate-100 gap-3">
+                    <div className="flex items-center gap-2 text-slate-600 font-medium shrink-0">
+                      <Briefcase className="w-4 h-4 text-slate-400 shrink-0" />
                       <span>Jenis Pekerjaan</span>
                     </div>
-                    <span className="font-extrabold text-slate-800">
+                    <span className="font-extrabold text-slate-800 text-right min-w-0">
                       {job.tipe === 'magang' ? 'Magang' : 'Full Time'}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between py-1 border-b border-slate-50">
-                    <div className="flex items-center gap-2 text-slate-600 font-medium">
-                      <Layers className="w-4 h-4 text-slate-400" />
+                  {/* Kategori */}
+                  <div className="flex items-center justify-between py-2 border-b border-slate-100 gap-3">
+                    <div className="flex items-center gap-2 text-slate-600 font-medium shrink-0">
+                      <Layers className="w-4 h-4 text-slate-400 shrink-0" />
                       <span>Kategori</span>
                     </div>
-                    <span className="font-extrabold text-slate-800">
-                      {job.kategori || 'TI / Perangkat Lunak'}
-                    </span>
+                    {(() => {
+                      const cats = (job.kategori || 'TI / Perangkat Lunak').split(',').map(c => c.trim()).filter(Boolean);
+                      const primary = cats[0] || 'TI / Perangkat Lunak';
+                      const extra = cats.length - 1;
+                      return (
+                        <div className="flex items-center justify-end gap-1.5 min-w-0 text-right">
+                          <span className="font-extrabold text-slate-800 text-xs sm:text-sm truncate" title={job.kategori}>
+                            {primary}
+                          </span>
+                          {extra > 0 && (
+                            <span 
+                              className="bg-blue-50 text-[#0077C6] font-bold px-2 py-0.5 rounded-md text-[10px] shrink-0 border border-blue-100" 
+                              title={`Kategori lainnya: ${cats.slice(1).join(', ')}`}
+                            >
+                              +{extra}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
 
-                  <div className="flex items-center justify-between py-1 border-b border-slate-50">
-                    <div className="flex items-center gap-2 text-slate-600 font-medium">
-                      <Banknote className="w-4 h-4 text-slate-400" />
+                  {/* Gaji */}
+                  <div className="flex items-center justify-between py-2 border-b border-slate-100 gap-3">
+                    <div className="flex items-center gap-2 text-slate-600 font-medium shrink-0">
+                      <Banknote className="w-4 h-4 text-slate-400 shrink-0" />
                       <span>Gaji</span>
                     </div>
-                    <span className="font-extrabold text-slate-800">
+                    <span className="font-extrabold text-slate-800 text-right min-w-0">
                       {job.gaji || 'Kompetitif'}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between py-1 border-b border-slate-50">
-                    <div className="flex items-center gap-2 text-slate-600 font-medium">
-                      <Users className="w-4 h-4 text-slate-400" />
+                  {/* Kuota */}
+                  <div className="flex items-center justify-between py-2 border-b border-slate-100 gap-3">
+                    <div className="flex items-center gap-2 text-slate-600 font-medium shrink-0">
+                      <Users className="w-4 h-4 text-slate-400 shrink-0" />
                       <span>Kuota</span>
                     </div>
-                    <span className="font-extrabold text-slate-800">
+                    <span className="font-extrabold text-slate-800 text-right min-w-0">
                       {job.kuota ? `${job.kuota} Orang` : 'Terbuka'}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between py-1">
-                    <div className="flex items-center gap-2 text-slate-600 font-medium">
-                      <Calendar className="w-4 h-4 text-slate-400" />
+                  {/* Batas Waktu */}
+                  <div className="flex items-center justify-between py-2 gap-3">
+                    <div className="flex items-center gap-2 text-slate-600 font-medium shrink-0">
+                      <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
                       <span>Batas Waktu</span>
                     </div>
-                    <span className="font-extrabold text-rose-600">
+                    <span className="font-extrabold text-rose-600 font-mono text-right min-w-0">
                       {job.deadline}
                     </span>
                   </div>
@@ -340,7 +360,14 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                 {/* Action Buttons Stack */}
                 <div className="space-y-2.5 pt-2">
                   <button
-                    onClick={() => setIsApplyModalOpen(true)}
+                    onClick={() => {
+                      if (!isLoggedIn && onNavigateToRegister) {
+                        onNavigateToRegister('alumni');
+                      } else {
+                        setIsApplyModalOpen(true);
+                      }
+                    }}
+
                     className="w-full bg-[#0077C6] hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-xs transition text-sm text-center active:scale-95"
                     id="btn-lamar-pekerjaan-ini"
                   >
@@ -462,137 +489,26 @@ export const JobDetail: React.FC<JobDetailProps> = ({
       </main>
 
       {/* 2. Global Footer Component */}
-      <Footer onSelectLowongan={onSelectJob} setTab={setTab} />
+      {!hideFooter && <Footer onSelectLowongan={onSelectJob} setTab={setTab} />}
 
       {/* INTERACTIVE FORM MODAL: Lamar Pekerjaan Ini */}
       {isApplyModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white max-w-lg w-full rounded-3xl border border-slate-200 shadow-2xl overflow-hidden animate-fadeIn my-8">
-            
-            {/* Modal Header */}
-            <div className="bg-[#1B365D] text-white p-6 relative">
-              <button
-                onClick={resetModal}
-                className="absolute top-5 right-5 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition"
-              >
-                <X className="w-5 h-5" />
-              </button>
-              
-              <span className="text-emerald-400 font-extrabold text-[10px] uppercase tracking-wider block mb-1">
-                Portal Karir CDC UM Kendari
-              </span>
-              <h3 className="text-xl font-extrabold text-white leading-tight">Form Pengajuan Lamaran</h3>
-              <p className="text-slate-300 text-xs mt-1 truncate">{job.judul} • {job.namaInstansi}</p>
-            </div>
-
-            {/* Modal Content / Form */}
-            {submitSuccess ? (
-              <div className="p-8 text-center space-y-4">
-                <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
-                  <CheckCircle2 className="w-8 h-8" />
-                </div>
-                <h4 className="font-extrabold text-slate-900 text-lg">Lamaran Berhasil Terkirim!</h4>
-                <p className="text-slate-600 text-xs sm:text-sm leading-relaxed max-w-sm mx-auto">
-                  Berkas lamaran Anda telah berhasil disimpan dan diteruskan ke tim HRD <strong>{job.namaInstansi}</strong>. Status lamaran dapat dipantau berkala melalui dashboard akun Anda.
-                </p>
-                <button
-                  onClick={resetModal}
-                  className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs uppercase tracking-wider transition"
-                >
-                  Tutup Form
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleFormSubmit} className="p-6 space-y-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Nama Lengkap Pelamar</label>
-                  <input
-                    type="text"
-                    required
-                    value={applicantName}
-                    onChange={(e) => setApplicantName(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-700">Email Kampus / Kontak</label>
-                    <input
-                      type="email"
-                      required
-                      value={applicantEmail}
-                      onChange={(e) => setApplicantEmail(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-700">Program Studi</label>
-                    <input
-                      type="text"
-                      required
-                      value={applicantProdi}
-                      onChange={(e) => setApplicantProdi(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Upload Berkas CV / Portofolio (PDF)</label>
-                  <div className="border-2 border-dashed border-slate-200 hover:border-[#0077C6] rounded-2xl p-4 text-center cursor-pointer bg-slate-50 transition relative">
-                    <input
-                      type="file"
-                      accept=".pdf,.doc,.docx"
-                      onChange={(e) => {
-                        if (e.target.files && e.target.files[0]) {
-                          setUploadedFileName(e.target.files[0].name);
-                        }
-                      }}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    />
-                    <UploadCloud className="w-8 h-8 text-slate-400 mx-auto mb-1.5" />
-                    <span className="text-xs font-bold text-[#0077C6] block">
-                      {uploadedFileName ? uploadedFileName : 'Klik atau seret berkas CV ke sini'}
-                    </span>
-                    <span className="text-[10px] text-slate-400 mt-0.5 block">Format PDF / DOC (Maks. 5MB)</span>
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Catatan / Surat Pengantar (Opsional)</label>
-                  <textarea
-                    rows={3}
-                    value={applicantNotes}
-                    onChange={(e) => setApplicantNotes(e.target.value)}
-                    placeholder="Tuliskan motivasi singkat atau deskripsi keahlian Anda..."
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20"
-                  />
-                </div>
-
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
-                  <button
-                    type="button"
-                    onClick={resetModal}
-                    className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs transition uppercase tracking-wider shadow-xs disabled:opacity-50"
-                  >
-                    {isSubmitting ? 'Mengirim Data...' : 'Kirim Lamaran'}
-                  </button>
-                </div>
-              </form>
-            )}
-
-          </div>
-        </div>
+        <JobApplicationModal
+          isOpen={isApplyModalOpen}
+          job={job}
+          onClose={resetModal}
+          onSubmit={(data) => {
+            const current = JSON.parse(localStorage.getItem('user') || '{}');
+            applyForJob(current.id || 'usr_mhs_demo', job, data);
+            triggerToast(`Lamaran untuk ${job.judul} di ${job.namaInstansi} berhasil terkirim ke Mitra!`);
+            if (onApply) onApply();
+          }}
+          defaultName="Muhammad Fadly Alamsyah"
+          defaultEmail="mhs@umkendari.ac.id"
+          defaultProdi="Teknik Informatika"
+        />
       )}
+
 
       {/* Lightbox Modal */}
       {isLightboxOpen && (

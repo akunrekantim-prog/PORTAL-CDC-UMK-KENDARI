@@ -266,3 +266,55 @@ Seluruh sub-bab layanan telah berfungsi, terintegrasi, bebas dari error, dan mem
 - [x] Pencatatan laporan progres (3 Agustus 2026)
 - [x] Commit seluruh perubahan kode untuk kolaborasi tim di GitHub
 
+---
+
+## Tanggal: 6 Agustus 2026
+**Fokus Pekerjaan:** Penyempurnaan Fitur Pencarian Loker, Integrasi Dashboard Mitra & Pelamar, Peninjauan Berkas CV Real-Time, & Manajemen Bookmark Lowongan
+
+### 🚀 Ringkasan Perubahan UI & Feature Updates
+
+1. **Rombak Katalog Pencarian Loker & Multi-Filter (`JobSearchMasterDetail.tsx`)**:
+   - Menghapus tampilan split-screen master-detail lama dan menggantinya dengan **katalog grid lowongan + halaman Job Detail mandiri**.
+   - Menyediakan fitur pencarian multi-filter (1 Textbox Kata Kunci/Jabatan/Instansi, Multi-Select Checkbox Lokasi 38 Provinsi/Kota, Multi-Select Checkbox Spesialisasi Pekerjaan).
+   - Menyelaraskan warna search bar menjadi **Corporate Blue (`#0077C6` / `#1E3A8A`)**.
+   - Menampilkan **Logo Instansi** pada kartu katalog pencarian dan **Poster Flyer Lowongan** pada halaman `JobDetail.tsx`.
+
+2. **Sinkronisasi Form Lowongan & Pelamar di Dashboard Mitra (`MitraDashboard.tsx`)**:
+   - Menghubungkan seluruh bidang informasi lowongan di Dashboard Mitra secara 100% presisi dengan halaman `JobDetail.tsx` (Logo, Poster, Spesialisasi Multi-Select Checkbox, Deskripsi, Tanggung Jawab, Kualifikasi, Keahlian, Benefit).
+   - Menghubungkan tombol **Lamar Sekarang** (`JobApplicationModal.tsx`) sehingga data lamaran mahasiswa tersimpan ke database `pengajuan_magang` dan langsung tersinkronisasi di Dashboard Mitra (Overview & Tabel Pelamar).
+
+3. **Peninjauan & Pengunduhan Berkas CV Pelamar Real-Time (`MitraDashboard.tsx` & `JobApplicationModal.tsx`)**:
+   - Mengubah mekanisme pengunggahan file CV menggunakan `FileReader.readAsDataURL` untuk menyimpan binary berkas pelamar secara utuh (`berkasUrl` & `berkasNama`).
+   - Menyediakan **Modal Interactive Document Viewer** pada Dashboard Mitra:
+     - Menampilkan identitas mahasiswa, NIM, Prodi, dan Surat Pengantar.
+     - Menyediakan tombol **Download / Buka Berkas CV** untuk mengunduh file asli pelamar (PDF, DOC, PNG, JPG, dll.).
+     - Menyediakan **Native PDF/Image Viewer Frame** langsung di dalam modal tanpa memicu SPA website fallback.
+     - Menambahkan tombol **Terima**, **Tolak**, dan **Hapus Pelamar** (`deleteInDB`).
+
+4. **Sistem Bookmark & Simpan Lowongan Terintegrasi (`JobDetail.tsx`, `JobSearchMasterDetail.tsx`, `StudentProfileView.tsx`, `data.ts`)**:
+   - Membuat fungsi helper terpusat `getSavedJobIds()` dan `toggleSaveJob()` yang terhubung ke `localStorage` (`cdc_saved_job_ids`).
+   - Menambahkan tombol **Bookmark** di kartu katalog pencarian dan tombol **Simpan Lowongan** di halaman detail.
+   - Menyederhanakan sub-tab **My Bookmarks** di profil mahasiswa menjadi daftar lowongan tersimpan *full-width* tanpa sub-sidebar yang rumit.
+   - Menambahkan fitur **Redirect Langsung**: Mengklik kartu lowongan di My Bookmarks langsung mengarahkan mahasiswa ke halaman detail lowongan (`JobDetail.tsx`) dengan header dashboard yang bersih (tanpa header publik ganda).
+
+### 📁 File Diubah & Ditambahkan
+- **[MODIFY]** `src/types.ts`
+- **[MODIFY]** `src/data.ts`
+- **[MODIFY]** `src/components/JobSearchMasterDetail.tsx`
+- **[MODIFY]** `src/components/JobDetail.tsx`
+- **[MODIFY]** `src/components/JobApplicationModal.tsx`
+- **[MODIFY]** `src/components/MitraDashboard.tsx`
+- **[MODIFY]** `src/components/MahasiswaDashboard.tsx`
+- **[MODIFY]** `src/components/StudentProfileView.tsx`
+- **[MODIFY]** `progres.md`
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Perbaikan katalog pencarian lowongan & styling warna biru corporate `#0077C6`
+- [x] Penyesuaian Logo Instansi di kartu Katalog & Poster Flyer di Job Detail
+- [x] Sinkronisasi form lowongan Mitra & multi-select checkbox spesialisasi
+- [x] Integrasi tombol Lamar Sekarang dengan daftar pelamar Mitra
+- [x] Modal peninjau & pengunduh berkas CV pelamar asli (PDF/Gambar)
+- [x] Fitur Hapus Pelamar di Dashboard Mitra
+- [x] Sistem bookmark & redirect langsung lowongan di tab My Bookmarks
+- [x] Penghapusan header ganda saat membuka detail dari Dashboard Mahasiswa
+- [x] Verifikasi build produksi `npx vite build` (0 error)

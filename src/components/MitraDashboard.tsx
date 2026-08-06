@@ -34,8 +34,15 @@ import {
   Star, 
   ArrowRight,
   Info,
-  Upload
+  Upload,
+  Edit3,
+  Image as ImageIcon,
+  Banknote,
+  Download,
+  X,
+  ExternalLink
 } from 'lucide-react';
+import { JOB_SPECIALIZATIONS } from './JobSearchMasterDetail';
 
 interface MitraDashboardProps {
   user: UserType;
@@ -50,6 +57,7 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
   const [myJobs, setMyJobs] = useState<Lowongan[]>([]);
   const [myApplicants, setMyApplicants] = useState<PengajuanMagang[]>([]);
   const [mySurveys, setMySurveys] = useState<SurveiLulusan[]>([]);
+  const [selectedApplicantDoc, setSelectedApplicantDoc] = useState<PengajuanMagang | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Profile Form States
@@ -60,18 +68,40 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
   const [phone, setPhone] = useState('');
   const [website, setWebsite] = useState('');
 
-  // Add Job Form States
+  // Add & Edit Job Form States (Matches 100% with Job Detail fields)
   const [showAddJob, setShowAddJob] = useState(false);
+  const [editingJobId, setEditingJobId] = useState<string | null>(null);
+
   const [judul, setJudul] = useState('');
   const [tipe, setTipe] = useState<'magang' | 'kerja'>('magang');
+  const [selectedKategori, setSelectedKategori] = useState<string[]>(['IT/Komputer & Teknologi Informasi']);
   const [lokasi, setLokasi] = useState('Kendari (On-site)');
-  const [deskripsi, setDeskripsi] = useState('');
-  const [kualifikasi, setKualifikasi] = useState('');
-  const [benefit, setBenefit] = useState('');
+
+  const handleCategoryToggle = (spec: string) => {
+    if (selectedKategori.includes(spec)) {
+      if (selectedKategori.length > 1) {
+        setSelectedKategori(selectedKategori.filter(c => c !== spec));
+      }
+    } else {
+      setSelectedKategori([...selectedKategori, spec]);
+    }
+  };
+  const [gaji, setGaji] = useState('Kompetitif');
   const [kuota, setKuota] = useState(3);
   const [deadline, setDeadline] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [imageUploadType, setImageUploadType] = useState<'url' | 'file'>('url');
+
+  // Media Visual Upload States (Company Logo for Job Info card & Poster for Job Detail)
+  const [companyLogoUrl, setCompanyLogoUrl] = useState('');
+  const [posterUrl, setPosterUrl] = useState('');
+  const [logoUploadType, setLogoUploadType] = useState<'url' | 'file'>('file');
+  const [posterUploadType, setPosterUploadType] = useState<'url' | 'file'>('file');
+
+  // Text & Multiline Detail Fields
+  const [deskripsi, setDeskripsi] = useState('');
+  const [tanggungJawab, setTanggungJawab] = useState('');
+  const [kualifikasi, setKualifikasi] = useState('');
+  const [keahlian, setKeahlian] = useState('');
+  const [benefit, setBenefit] = useState('');
 
   // Survey Form States
   const [selectedAlumniId, setSelectedAlumniId] = useState('');
@@ -121,7 +151,11 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
     // Load related candidates/applicants
     const candidates = getFromDB<PengajuanMagang>('pengajuan_magang');
     const jobIds = partnerPostings.map(p => p.id);
-    const partnerCandidates = candidates.filter(c => c.lowonganId && jobIds.includes(c.lowonganId));
+    const partnerCandidates = candidates.filter(c => 
+      (c.lowonganId && jobIds.includes(c.lowonganId)) ||
+      (c.tujuanMagang && partnerPostings.some(p => p.judul.toLowerCase() === c.tujuanMagang.toLowerCase() || p.namaInstansi.toLowerCase() === c.tujuanMagang.toLowerCase())) ||
+      (mit.namaInstansi && (c.tujuanMagang || '').toLowerCase().includes(mit.namaInstansi.toLowerCase()))
+    );
     setMyApplicants(partnerCandidates);
 
     // Load surveys
@@ -175,67 +209,140 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
     triggerToast('success', 'Profil mitra berhasil disimpan ke database SQL server kampus.');
   };
 
-  const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Upload Logo Perusahaan (Tampil di Kartu Job Info)
+  const handleLogoFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      triggerToast('error', 'Ukuran file foto maksimal 2MB.');
+    if (file.size > 3 * 1024 * 1024) {
+      triggerToast('error', 'Ukuran file logo maksimal 3MB.');
       return;
     }
     const reader = new FileReader();
     reader.onloadend = () => {
       if (typeof reader.result === 'string') {
-        setImageUrl(reader.result);
+        setCompanyLogoUrl(reader.result);
       }
     };
     reader.readAsDataURL(file);
   };
 
-  // Add job posting (FR-MTR-03)
+  // Upload Poster Lowongan (Tampil di Halaman Job Detail)
+  const handlePosterFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      triggerToast('error', 'Ukuran file poster maksimal 5MB.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        setPosterUrl(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Reset Job Form
+  const resetJobForm = () => {
+    setShowAddJob(false);
+    setEditingJobId(null);
+    setJudul('');
+    setTipe('magang');
+    setSelectedKategori(['IT/Komputer & Teknologi Informasi']);
+    setLokasi('Kendari (On-site)');
+    setGaji('Kompetitif');
+    setKuota(3);
+    setDeadline('');
+    setCompanyLogoUrl('');
+    setPosterUrl('');
+    setDeskripsi('');
+    setTanggungJawab('');
+    setKualifikasi('');
+    setKeahlian('');
+    setBenefit('');
+  };
+
+  // Fill Form for Editing
+  const handleEditJob = (job: Lowongan) => {
+    setEditingJobId(job.id);
+    setJudul(job.judul);
+    setTipe(job.tipe);
+    if (job.kategori) {
+      const parts = job.kategori.split(',').map(s => s.trim()).filter(Boolean);
+      setSelectedKategori(parts.length > 0 ? parts : ['IT/Komputer & Teknologi Informasi']);
+    } else {
+      setSelectedKategori(['IT/Komputer & Teknologi Informasi']);
+    }
+    setLokasi(job.lokasi);
+    setGaji(job.gaji || 'Kompetitif');
+    setKuota(job.kuota || 3);
+    setDeadline(job.deadline);
+    setCompanyLogoUrl(job.companyLogo || '');
+    setPosterUrl(job.flyer || job.imageUrl || job.bannerImage || (job.flyers && job.flyers[0]) || '');
+    setDeskripsi(job.deskripsi);
+    setTanggungJawab(Array.isArray(job.tanggungJawab) ? job.tanggungJawab.join('\n') : job.tanggungJawab || '');
+    setKualifikasi(Array.isArray(job.kualifikasi) ? job.kualifikasi.join('\n') : job.kualifikasi || '');
+    setKeahlian(Array.isArray(job.keahlian) ? job.keahlian.join('\n') : job.keahlian || '');
+    setBenefit(Array.isArray(job.benefit) ? job.benefit.join('\n') : job.benefit || '');
+    setShowAddJob(true);
+  };
+
+  // Add / Update Job Posting
   const handleAddJobPosting = (e: React.FormEvent) => {
     e.preventDefault();
     if (!mitraData) return;
 
-    if (!judul || !deadline) {
-      triggerToast('error', 'Semua field wajib bintang wajib diisi');
+    if (!judul || !lokasi || !deadline || !deskripsi) {
+      triggerToast('error', 'Semua bidang wajib (*) harus diisi');
       return;
     }
 
+    const parseLines = (txt: string): string[] => {
+      return txt
+        .split('\n')
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+    };
+
+    const logoTarget = companyLogoUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop';
+
     const newJob: Lowongan = {
-      id: `low_${Date.now()}`,
+      id: editingJobId || `low_${Date.now()}`,
       mitraId: mitraData.id,
       createdBy: user.id,
       judul,
       tipe,
       namaInstansi: mitraData.namaInstansi,
-      imageUrl: imageUrl || undefined,
-      flyer: imageUrl || undefined,
-      bannerImage: imageUrl || undefined,
-      flyers: imageUrl ? [imageUrl] : undefined,
+      companyLogo: logoTarget,
+      imageUrl: posterUrl || undefined,
+      flyer: posterUrl || undefined,
+      bannerImage: posterUrl || undefined,
+      flyers: posterUrl ? [posterUrl] : undefined,
       lokasi,
-      deskripsi,
-      kualifikasi: kualifikasi.split('\n').filter(k => k.trim() !== ''),
-      benefit: benefit.split('\n').filter(b => b.trim() !== ''),
-      kuota,
+      kategori: selectedKategori.join(', '),
+      gaji: gaji || 'Kompetitif',
+      kuota: Number(kuota) || 1,
       deadline,
-      status: 'published', // standard published immediately in demo for easy testing
+      deskripsi,
+      tanggungJawab: parseLines(tanggungJawab),
+      kualifikasi: parseLines(kualifikasi),
+      keahlian: parseLines(keahlian),
+      benefit: parseLines(benefit),
+      status: 'published',
       createdAt: new Date().toISOString()
     };
 
-    insertToDB<Lowongan>('lowongan', newJob);
+    if (editingJobId) {
+      updateInDB<Lowongan>('lowongan', newJob);
+      triggerToast('success', 'Lowongan pekerjaan berhasil diperbarui.');
+    } else {
+      insertToDB<Lowongan>('lowongan', newJob);
+      triggerToast('success', 'Lowongan baru berhasil diposting aktif ke halaman publik.');
+    }
 
-    // Reset fields
-    setJudul('');
-    setDeskripsi('');
-    setKualifikasi('');
-    setBenefit('');
-    setKuota(3);
-    setDeadline('');
-    setImageUrl('');
-    setShowAddJob(false);
-
+    resetJobForm();
     loadMitraData();
-    triggerToast('success', 'Lowongan baru berhasil diposting aktif ke halaman publik.');
   };
 
   // Change job status draft/closed (FR-MTR-04)
@@ -271,6 +378,15 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
       updateInDB<PengajuanMagang>('pengajuan_magang', target);
       loadMitraData();
       triggerToast('success', `Status pelamar berhasil diperbarui menjadi ${decision.toUpperCase()}.`);
+    }
+  };
+
+  // Delete Candidate Applicant
+  const handleDeleteApplicant = (applId: string, namaMahasiswa: string) => {
+    if (confirm(`Apakah Anda yakin ingin menghapus data pelamar ${namaMahasiswa} dari daftar?`)) {
+      deleteInDB('pengajuan_magang', applId);
+      loadMitraData();
+      triggerToast('success', `Data pelamar ${namaMahasiswa} berhasil dihapus dari database.`);
     }
   };
 
@@ -534,10 +650,10 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
                         
                         <div className="flex items-center gap-3">
                           <button 
-                            onClick={() => triggerToast('success', `Mengunduh CV & Berkas ${appl.namaMahasiswa} (Simulasi)...`)}
-                            className="bg-white hover:bg-slate-100 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-semibold border border-slate-200 transition flex items-center gap-1.5 shadow-2xs"
+                            onClick={() => setSelectedApplicantDoc(appl)}
+                            className="bg-white hover:bg-slate-100 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-semibold border border-slate-200 transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
                           >
-                            <FileText className="w-3.5 h-3.5 text-slate-500" /> Unduh Berkas
+                            <FileText className="w-3.5 h-3.5 text-[#10B981]" /> Lihat & Download Berkas
                           </button>
                           <button 
                             onClick={() => setActiveTab('pelamar')}
@@ -663,210 +779,309 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
                 </button>
               </div>
 
-              {/* ADD VACANCY FORM SCREEN */}
+              {/* ADD & EDIT VACANCY FORM SCREEN (SYNCED 100% WITH JOB DETAIL) */}
               {showAddJob && (
                 <div className="bg-white rounded-2xl border border-slate-100 p-6 sm:p-8 shadow-sm space-y-6 animate-fadeIn" id="add-vacancy-panel">
                   <div className="border-b border-slate-100 pb-4 flex items-center justify-between">
                     <div>
                       <h4 className="font-extrabold text-slate-900 text-base flex items-center gap-2">
-                        <Plus className="w-5 h-5 text-[#10B981]" /> Form Input Lowongan Kerja / Magang Baru
+                        {editingJobId ? <Edit3 className="w-5 h-5 text-[#10B981]" /> : <Plus className="w-5 h-5 text-[#10B981]" />}
+                        {editingJobId ? "Edit Lowongan Pekerjaan" : "Form Input Lowongan Kerja / Magang Baru"}
                       </h4>
-                      <p className="text-xs text-slate-400 mt-0.5">Isi detail lengkap lowongan kerja atau program magang yang akan dibuka.</p>
+                      <p className="text-xs text-slate-400 mt-0.5">Isi rincian lengkap lowongan yang akan ditampilkan pada kartu Job Info dan Halaman Job Detail.</p>
                     </div>
                   </div>
 
                   <form onSubmit={handleAddJobPosting} className="space-y-6 text-xs" id="add-job-form">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-700">Judul Rekrutmen Karir *</label>
-                        <input 
-                          type="text" 
-                          required
-                          value={judul}
-                          onChange={(e) => setJudul(e.target.value)}
-                          placeholder="Contoh: Digital Marketer Intern"
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
-                        />
-                      </div>
+                    
+                    {/* BAGIAN 1: INFORMASI UTAMA REKRUTMEN */}
+                    <div className="space-y-4">
+                      <h5 className="font-bold text-slate-800 text-xs uppercase tracking-wider border-b border-slate-100 pb-2">1. Informasi Utama Rekrutmen</h5>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div className="space-y-1.5 sm:col-span-2">
+                          <label className="text-xs font-bold text-slate-700">Judul Rekrutmen Karir / Posisi Pekerjaan *</label>
+                          <input 
+                            type="text" 
+                            required
+                            value={judul}
+                            onChange={(e) => setJudul(e.target.value)}
+                            placeholder="Contoh: Fullstack Web Developer Intern"
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
+                          />
+                        </div>
 
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-700">Lokasi Penempatan Kerja *</label>
-                        <input 
-                          type="text" 
-                          required
-                          value={lokasi}
-                          onChange={(e) => setLokasi(e.target.value)}
-                          placeholder="Contoh: Kendari (Hybrid)"
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
-                        />
-                      </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700">Tipe Lowongan *</label>
+                          <select 
+                            value={tipe}
+                            onChange={(e) => setTipe(e.target.value as any)}
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm bg-white font-normal transition"
+                          >
+                            <option value="magang">Magang (Mahasiswa Aktif)</option>
+                            <option value="kerja">Kerja (Lulusan Baru / Alumni)</option>
+                          </select>
+                        </div>
 
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-700">Tipe Lowongan *</label>
-                        <select 
-                          value={tipe}
-                          onChange={(e) => setTipe(e.target.value as any)}
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm bg-white font-normal transition"
-                        >
-                          <option value="magang">Magang (Mahasiswa Aktif)</option>
-                          <option value="kerja">Kerja (Lulusan Baru / Alumni)</option>
-                        </select>
-                      </div>
+                        <div className="space-y-2 sm:col-span-2">
+                          <div className="flex items-center justify-between">
+                            <label className="text-xs font-bold text-slate-700">
+                              Spesialisasi / Kategori Pekerjaan * (Bisa pilih lebih dari 1)
+                            </label>
+                            <span className="text-[11px] font-bold text-[#10B981] bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                              {selectedKategori.length} Kategori Dipilih
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200">
+                            {JOB_SPECIALIZATIONS.map((spec) => {
+                              const isChecked = selectedKategori.includes(spec);
+                              return (
+                                <label 
+                                  key={spec} 
+                                  className={`flex items-center gap-2.5 p-2.5 rounded-xl border text-xs font-semibold transition cursor-pointer select-none ${
+                                    isChecked 
+                                      ? 'bg-white border-[#10B981] text-slate-900 shadow-xs ring-1 ring-[#10B981]/30 font-bold' 
+                                      : 'bg-white/60 border-slate-200 text-slate-600 hover:bg-white hover:border-slate-300'
+                                  }`}
+                                >
+                                  <input 
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={() => handleCategoryToggle(spec)}
+                                    className="w-4 h-4 rounded border-slate-300 text-[#10B981] focus:ring-[#10B981] cursor-pointer accent-[#10B981]"
+                                  />
+                                  <span className="truncate">{spec}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
 
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-700">Rencana Kuota Penerimaan (Orang)</label>
-                        <input 
-                          type="number" 
-                          value={kuota}
-                          onChange={(e) => setKuota(Number(e.target.value))}
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
-                        />
-                      </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700">Lokasi Penempatan Kerja *</label>
+                          <input 
+                            type="text" 
+                            required
+                            value={lokasi}
+                            onChange={(e) => setLokasi(e.target.value)}
+                            placeholder="Contoh: Kendari (Hybrid)"
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
+                          />
+                        </div>
 
-                      <div className="space-y-1.5 sm:col-span-2">
-                        <label className="text-xs font-bold text-slate-700">Batas Tanggal Pendaftaran (Deadline) *</label>
-                        <input 
-                          type="date" 
-                          required
-                          value={deadline}
-                          onChange={(e) => setDeadline(e.target.value)}
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
-                        />
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700">Kisaran Gaji / Insentif (Opsional)</label>
+                          <input 
+                            type="text" 
+                            value={gaji}
+                            onChange={(e) => setGaji(e.target.value)}
+                            placeholder="Contoh: Rp 3.500.000 - Rp 5.000.000 / Kompetitif"
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700">Rencana Kuota Penerimaan (Orang)</label>
+                          <input 
+                            type="number" 
+                            value={kuota}
+                            onChange={(e) => setKuota(Number(e.target.value))}
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700">Batas Tanggal Pendaftaran (Deadline) *</label>
+                          <input 
+                            type="date" 
+                            required
+                            value={deadline}
+                            onChange={(e) => setDeadline(e.target.value)}
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
+                          />
+                        </div>
                       </div>
                     </div>
 
-                    {/* Upload Poster / Foto Lowongan (Dashed Dropzone with Clean Preview) */}
-                    <div className="space-y-3 pt-2">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <label className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
-                          <Upload className="w-4 h-4 text-[#10B981]" /> Upload Poster / Foto Lowongan
-                        </label>
-                        <div className="flex bg-slate-100 rounded-xl p-1 border border-slate-200 self-start sm:self-auto text-xs font-bold">
-                          <button
-                            type="button"
-                            onClick={() => setImageUploadType('file')}
-                            className={`px-3 py-1.5 rounded-lg transition ${
-                              imageUploadType === 'file' 
-                                ? 'bg-white text-slate-900 shadow-xs' 
-                                : 'text-slate-500 hover:text-slate-900'
-                            }`}
-                          >
-                            Upload File (PNG/JPG)
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setImageUploadType('url')}
-                            className={`px-3 py-1.5 rounded-lg transition ${
-                              imageUploadType === 'url' 
-                                ? 'bg-white text-slate-900 shadow-xs' 
-                                : 'text-slate-500 hover:text-slate-900'
-                            }`}
-                          >
-                            Input URL Gambar
-                          </button>
-                        </div>
-                      </div>
-
-                      {!imageUrl ? (
-                        <div 
-                          onClick={() => {
-                            if (imageUploadType === 'file') {
-                              document.getElementById('poster-file-input-mitra')?.click();
-                            }
-                          }}
-                          className="border-2 border-dashed border-slate-200 rounded-2xl p-8 hover:border-[#10B981] transition cursor-pointer bg-slate-50/50 flex flex-col items-center justify-center text-center group"
-                        >
-                          <div className="w-12 h-12 rounded-full bg-white shadow-sm border border-slate-200 flex items-center justify-center text-slate-400 group-hover:text-[#10B981] group-hover:scale-110 transition mb-3">
-                            <Upload className="w-6 h-6" />
+                    {/* BAGIAN 2: MEDIA VISUAL (LOGO PERUSAHAAN & POSTER LOWONGAN) */}
+                    <div className="space-y-4 pt-2">
+                      <h5 className="font-bold text-slate-800 text-xs uppercase tracking-wider border-b border-slate-100 pb-2">2. Visual Media (Logo Perusahaan & Poster Lowongan)</h5>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        
+                        {/* 1. LOGO PERUSAHAAN (DIPAKAI DI KARTU JOB INFO) */}
+                        <div className="space-y-3 bg-slate-50/70 p-4 rounded-2xl border border-slate-150">
+                          <div className="flex items-center justify-between">
+                            <label className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
+                              <Building2 className="w-4 h-4 text-blue-600" /> Logo Perusahaan (Kartu Job Info)
+                            </label>
+                            <div className="flex bg-white rounded-lg p-0.5 border border-slate-200 text-[11px] font-bold">
+                              <button
+                                type="button"
+                                onClick={() => setLogoUploadType('file')}
+                                className={`px-2 py-1 rounded transition ${logoUploadType === 'file' ? 'bg-slate-800 text-white' : 'text-slate-500'}`}
+                              >
+                                File
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setLogoUploadType('url')}
+                                className={`px-2 py-1 rounded transition ${logoUploadType === 'url' ? 'bg-slate-800 text-white' : 'text-slate-500'}`}
+                              >
+                                URL
+                              </button>
+                            </div>
                           </div>
-                          {imageUploadType === 'file' ? (
-                            <>
-                              <p className="text-sm font-bold text-slate-700">Klik untuk mengunggah poster brosur (PNG, JPG, JPEG)</p>
-                              <p className="text-xs text-slate-400 mt-1">Maksimal ukuran file 2MB. Foto akan disimpan dan ditampilkan pada katalog lowongan.</p>
-                              <input 
-                                id="poster-file-input-mitra"
-                                type="file" 
+
+                          {logoUploadType === 'file' ? (
+                            <div className="space-y-2">
+                              <input
+                                type="file"
                                 accept="image/png, image/jpeg, image/jpg"
-                                onChange={handleImageFileUpload}
-                                className="hidden"
+                                onChange={handleLogoFileUpload}
+                                className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
                               />
-                            </>
+                            </div>
                           ) : (
-                            <div className="w-full max-w-md space-y-2" onClick={(e) => e.stopPropagation()}>
-                              <input 
-                                type="url" 
-                                value={imageUrl}
-                                onChange={(e) => setImageUrl(e.target.value)}
-                                placeholder="https://images.unsplash.com/..."
-                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal bg-white shadow-xs transition"
-                              />
-                              <p className="text-xs text-slate-400">Tempelkan tautan langsung (URL) ke gambar poster/brosur lowongan.</p>
+                            <input 
+                              type="url"
+                              value={companyLogoUrl}
+                              onChange={(e) => setCompanyLogoUrl(e.target.value)}
+                              placeholder="https://..."
+                              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:border-blue-500"
+                            />
+                          )}
+
+                          {companyLogoUrl && (
+                            <div className="flex items-center gap-3 pt-1">
+                              <img src={companyLogoUrl} alt="Logo" className="w-12 h-12 object-contain rounded-lg border border-slate-200 bg-white p-1" />
+                              <span className="text-[11px] font-semibold text-emerald-600 flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5" /> Logo Siap Ditampilkan</span>
                             </div>
                           )}
                         </div>
-                      ) : (
-                        <div className="border-2 border-dashed border-[#10B981]/40 rounded-2xl p-5 bg-[#10B981]/5 flex flex-col sm:flex-row items-center justify-between gap-6 transition animate-fadeIn">
-                          <div className="flex items-center gap-4">
-                            <div className="relative w-20 h-28 rounded-xl overflow-hidden border border-slate-200 bg-slate-900 shadow-md shrink-0">
-                              <img src={imageUrl} alt="Pratinjau Poster" className="w-full h-full object-cover" />
-                            </div>
-                            <div className="space-y-1 text-left">
-                              <div className="inline-flex items-center gap-1.5 text-xs font-extrabold text-[#10B981]">
-                                <CheckCircle className="w-4 h-4 fill-[#10B981] text-white" />
-                                <span>Poster Lowongan Terlampir</span>
-                              </div>
-                              <p className="text-xs text-slate-600 max-w-md leading-relaxed">Foto poster ini siap dipublikasikan ke halaman publik CDC UMK bersama rincian rekrutmen Anda.</p>
+
+                        {/* 2. POSTER / FLYER LOWONGAN (DIPAKAI DI HALAMAN JOB DETAIL) */}
+                        <div className="space-y-3 bg-slate-50/70 p-4 rounded-2xl border border-slate-150">
+                          <div className="flex items-center justify-between">
+                            <label className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
+                              <ImageIcon className="w-4 h-4 text-[#10B981]" /> Poster Lowongan (Halaman Job Detail)
+                            </label>
+                            <div className="flex bg-white rounded-lg p-0.5 border border-slate-200 text-[11px] font-bold">
+                              <button
+                                type="button"
+                                onClick={() => setPosterUploadType('file')}
+                                className={`px-2 py-1 rounded transition ${posterUploadType === 'file' ? 'bg-slate-800 text-white' : 'text-slate-500'}`}
+                              >
+                                File
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setPosterUploadType('url')}
+                                className={`px-2 py-1 rounded transition ${posterUploadType === 'url' ? 'bg-slate-800 text-white' : 'text-slate-500'}`}
+                              >
+                                URL
+                              </button>
                             </div>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => setImageUrl('')}
-                            className="bg-white hover:bg-rose-50 text-slate-700 hover:text-rose-600 px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 border border-slate-200 hover:border-rose-200 shrink-0 shadow-2xs"
-                          >
-                            <Trash2 className="w-4 h-4" /> Hapus / Ganti Foto
-                          </button>
+
+                          {posterUploadType === 'file' ? (
+                            <div className="space-y-2">
+                              <input
+                                type="file"
+                                accept="image/png, image/jpeg, image/jpg"
+                                onChange={handlePosterFileUpload}
+                                className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer"
+                              />
+                            </div>
+                          ) : (
+                            <input 
+                              type="url"
+                              value={posterUrl}
+                              onChange={(e) => setPosterUrl(e.target.value)}
+                              placeholder="https://..."
+                              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:border-emerald-500"
+                            />
+                          )}
+
+                          {posterUrl && (
+                            <div className="flex items-center gap-3 pt-1">
+                              <img src={posterUrl} alt="Poster" className="w-10 h-14 object-cover rounded-lg border border-slate-200 bg-white" />
+                              <span className="text-[11px] font-semibold text-emerald-600 flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5" /> Poster Siap Ditampilkan</span>
+                            </div>
+                          )}
                         </div>
-                      )}
+
+                      </div>
                     </div>
 
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Deskripsi Ringkas Pekerjaan *</label>
-                      <textarea 
-                        required
-                        value={deskripsi}
-                        onChange={(e) => setDeskripsi(e.target.value)}
-                        rows={3}
-                        placeholder="Uraikan gambaran umum, lingkup tugas, dan teknologi yang dipakai..."
-                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
-                      ></textarea>
+                    {/* BAGIAN 3: DETAIL ISI & PERSYARATAN PEKERJAAN */}
+                    <div className="space-y-4 pt-2">
+                      <h5 className="font-bold text-slate-800 text-xs uppercase tracking-wider border-b border-slate-100 pb-2">3. Detail Konten & Kriteria Lowongan</h5>
+                      
+                      <div className="space-y-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700">Deskripsi Ringkas Pekerjaan *</label>
+                          <textarea 
+                            required
+                            value={deskripsi}
+                            onChange={(e) => setDeskripsi(e.target.value)}
+                            rows={3}
+                            placeholder="Uraikan gambaran umum, lingkup tugas, dan teknologi yang dipakai..."
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
+                          ></textarea>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700">Tanggung Jawab Pekerjaan (Satu baris untuk setiap poin)</label>
+                          <textarea 
+                            value={tanggungJawab}
+                            onChange={(e) => setTanggungJawab(e.target.value)}
+                            rows={3}
+                            placeholder="Contoh:&#10;Membantu dalam pengembangan aplikasi web&#10;Berkolaborasi dengan tim UI/UX Designer"
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
+                          ></textarea>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700">Kualifikasi & Persyaratan (Satu baris untuk setiap poin)</label>
+                          <textarea 
+                            value={kualifikasi}
+                            onChange={(e) => setKualifikasi(e.target.value)}
+                            rows={3}
+                            placeholder="Contoh:&#10;Mahasiswa Teknik Informatika semester 6&#10;Menguasai bahasa pemrograman Javascript & React"
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
+                          ></textarea>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700">Keahlian & Technical Skills yang Dibutuhkan (Satu baris untuk setiap poin)</label>
+                          <textarea 
+                            value={keahlian}
+                            onChange={(e) => setKeahlian(e.target.value)}
+                            rows={2}
+                            placeholder="Contoh:&#10;Javascript&#10;React.js&#10;TailwindCSS"
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
+                          ></textarea>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700">Benefit & Fasilitas Kompensasi (Satu baris untuk setiap poin)</label>
+                          <textarea 
+                            value={benefit}
+                            onChange={(e) => setBenefit(e.target.value)}
+                            rows={3}
+                            placeholder="Contoh:&#10;Uang saku bulanan&#10;Sertifikat magang industri resmi"
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
+                          ></textarea>
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Kualifikasi Persyaratan (Satu baris untuk setiap poin kualifikasi)</label>
-                      <textarea 
-                        value={kualifikasi}
-                        onChange={(e) => setKualifikasi(e.target.value)}
-                        rows={3}
-                        placeholder="Contoh:&#10;Mahasiswa Teknik Informatika semester 6&#10;Menguasai bahasa pemrograman Javascript"
-                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
-                      ></textarea>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Benefit Kompensasi (Satu baris untuk setiap poin benefit)</label>
-                      <textarea 
-                        value={benefit}
-                        onChange={(e) => setBenefit(e.target.value)}
-                        rows={3}
-                        placeholder="Contoh:&#10;Uang saku bulanan&#10;Sertifikat industri dari mitra"
-                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
-                      ></textarea>
-                    </div>
-
+                    {/* ACTION BUTTONS */}
                     <div className="pt-5 border-t border-slate-100 flex justify-end gap-3">
                       <button 
                         type="button"
-                        onClick={() => setShowAddJob(false)}
+                        onClick={resetJobForm}
                         className="bg-slate-100 text-slate-700 hover:bg-slate-200 px-5 py-2.5 rounded-xl text-xs font-semibold transition"
                       >
                         Batal
@@ -875,7 +1090,7 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
                         type="submit"
                         className="bg-[#10B981] hover:bg-emerald-600 text-white px-6 py-2.5 rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-2"
                       >
-                        <CheckCircle className="w-4 h-4" /> Posting Lowongan ke Publik
+                        <CheckCircle className="w-4 h-4" /> {editingJobId ? "Simpan Perubahan Lowongan" : "Posting Lowongan ke Publik"}
                       </button>
                     </div>
                   </form>
@@ -920,15 +1135,15 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
                         </div>
 
                         <div className="flex items-start gap-4 pt-1">
-                          {(job.imageUrl || job.flyer || (job.flyers && job.flyers[0]) || job.bannerImage) ? (
+                          {job.companyLogo ? (
                             <img 
-                              src={job.imageUrl || job.flyer || (job.flyers && job.flyers[0]) || job.bannerImage} 
+                              src={job.companyLogo} 
                               alt={job.judul}
-                              className="w-16 h-20 object-cover rounded-xl border border-slate-200 shrink-0 bg-slate-100 shadow-xs" 
+                              className="w-16 h-16 object-contain rounded-xl border border-slate-200 shrink-0 bg-white p-1.5 shadow-xs" 
                             />
                           ) : (
-                            <div className="w-16 h-20 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
-                              <Briefcase className="w-6 h-6" />
+                            <div className="w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
+                              <Building2 className="w-6 h-6" />
                             </div>
                           )}
                           <div className="space-y-1 min-w-0 flex-1">
@@ -947,13 +1162,21 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
                       </div>
 
                       {/* ACTIONS BAR */}
-                      <div className="pt-4 border-t border-slate-100 flex items-center justify-between mt-5">
-                        <button 
-                          onClick={() => handleToggleJobStatus(job.id, job.status)}
-                          className="bg-slate-100 text-slate-700 hover:bg-slate-200 px-3.5 py-2 rounded-xl font-semibold text-xs transition"
-                        >
-                          {job.status === 'published' ? 'Tutup Lowongan' : 'Aktifkan Kembali'}
-                        </button>
+                      <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-2 mt-5">
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={() => handleEditJob(job)}
+                            className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg font-bold text-xs transition flex items-center gap-1 border border-emerald-200"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" /> Edit Detail
+                          </button>
+                          <button 
+                            onClick={() => handleToggleJobStatus(job.id, job.status)}
+                            className="bg-slate-100 text-slate-700 hover:bg-slate-200 px-3 py-1.5 rounded-lg font-semibold text-xs transition"
+                          >
+                            {job.status === 'published' ? 'Tutup' : 'Aktifkan'}
+                          </button>
+                        </div>
 
                         <button 
                           onClick={() => handleDeleteJob(job.id)}
@@ -1019,22 +1242,29 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
                           </td>
                           <td className="py-4 px-4 text-right whitespace-nowrap space-x-2">
                             <button 
-                              onClick={() => triggerToast('success', `Simulasi download berkas lamaran ${appl.namaMahasiswa}...`)}
-                              className="bg-slate-100 text-slate-700 hover:bg-slate-200 px-3 py-1.5 rounded-lg font-semibold text-xs transition inline-flex items-center gap-1"
+                              onClick={() => setSelectedApplicantDoc(appl)}
+                              className="bg-[#0077C6]/10 hover:bg-[#0077C6]/20 text-[#0077C6] border border-[#0077C6]/20 px-3 py-1.5 rounded-lg font-bold text-xs transition inline-flex items-center gap-1 cursor-pointer"
                             >
-                              <FileText className="w-3.5 h-3.5 text-slate-500" /> Berkas
+                              <FileText className="w-3.5 h-3.5" /> Berkas CV
                             </button>
                             <button 
                               onClick={() => handleUpdateApplicantStatus(appl.id, 'accepted')}
-                              className="bg-[#10B981] hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-bold text-xs transition shadow-2xs"
+                              className="bg-[#10B981] hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-bold text-xs transition shadow-2xs cursor-pointer"
                             >
                               Terima
                             </button>
                             <button 
                               onClick={() => handleUpdateApplicantStatus(appl.id, 'rejected')}
-                              className="bg-rose-50 hover:bg-rose-100 text-rose-700 px-3 py-1.5 rounded-lg font-bold text-xs transition border border-rose-200/50"
+                              className="bg-amber-50 hover:bg-amber-100 text-amber-700 px-3 py-1.5 rounded-lg font-bold text-xs transition border border-amber-200/50 cursor-pointer"
                             >
                               Tolak
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteApplicant(appl.id, appl.namaMahasiswa)}
+                              className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-3 py-1.5 rounded-lg font-bold text-xs transition inline-flex items-center gap-1 cursor-pointer"
+                              title="Hapus Pelamar"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" /> Hapus
                             </button>
                           </td>
                         </tr>
@@ -1078,35 +1308,36 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
                     { label: 'Kualitas Umum Kinerja Lulusan', state: kualitasLulusan, setter: setKualitasLulusan },
                     { label: 'Kemampuan Teknis Keilmuan', state: kemampuanTeknis, setter: setKemampuanTeknis },
                     { label: 'Cakupan Kemampuan Komunikasi', state: kemampuanKomunikasi, setter: setKemampuanKomunikasi },
-                    { label: 'Etika, Kedisiplinan & Sikap', state: etikaKerja, setter: setEtikaKerja },
-                    { label: 'Kolaborasi & Kemampuan Kerja Tim', state: kemampuanKerjaTim, setter: setKemampuanKerjaTim }
-                  ].map((dim, i) => (
-                    <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-slate-50/80 hover:bg-slate-50 rounded-xl border border-slate-100 transition" id={`dim-row-${i}`}>
-                      <span className="text-xs font-semibold text-slate-800">{dim.label}</span>
-                      
-                      <div className="flex items-center gap-3">
-                        <input 
-                          type="range" 
-                          min="1" 
-                          max="5" 
-                          value={dim.state}
-                          onChange={(e) => dim.setter(Number(e.target.value))}
-                          className="w-36 accent-[#10B981] rounded-lg cursor-pointer"
-                        />
-                        <span className="font-extrabold text-[#10B981] text-xs border border-[#10B981]/20 bg-emerald-50/50 px-2.5 py-1 rounded-lg min-w-[36px] text-center font-mono">{dim.state} ★</span>
+                    { label: 'Tingkat Etika & Integritas Kerja', state: etikaKerja, setter: setEtikaKerja },
+                    { label: 'Kemampuan Kerjasama Tim', state: kemampuanKerjaTim, setter: setKemampuanKerjaTim },
+                  ].map((dim, idx) => (
+                    <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                      <span className="text-xs font-semibold text-slate-700">{dim.label}</span>
+                      <div className="flex items-center gap-1.5">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => dim.setter(star)}
+                            className={`p-1 rounded transition ${star <= dim.state ? 'text-amber-400' : 'text-slate-200'}`}
+                          >
+                            <Star className="w-4 h-4 fill-current" />
+                          </button>
+                        ))}
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <div className="space-y-1.5 pt-4 border-t border-slate-100">
-                  <label className="text-xs font-bold text-slate-700">Tanggapan, Kesan & Saran Perbaikan Akademis</label>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700">Masukan & Saran Konstruktif untuk Pengembangan Kurikulum *</label>
                   <textarea 
+                    required
                     value={surveiSaran}
                     onChange={(e) => setSurveiSaran(e.target.value)}
                     rows={4}
-                    placeholder="Uraikan kelebihan lulusan serta kritik saran untuk penyelarasan kurikulum ke depannya..."
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm transition font-normal"
+                    placeholder="Tuliskan saran rekomendasi Anda mengenai skill atau kompetensi yang perlu ditingkatkan oleh perguruan tinggi..."
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
                   ></textarea>
                 </div>
 
@@ -1125,7 +1356,178 @@ export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) 
         </main>
       </div>
 
+      {/* MODAL PENINJAUAN & DOWNLOAD BERKAS CV PELAMAR */}
+      {selectedApplicantDoc && (
+        <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
+          <div className="bg-white max-w-2xl w-full rounded-3xl border border-slate-200 shadow-2xl overflow-hidden my-8">
+            
+            {/* Header */}
+            <div className="bg-[#1E3A8A] text-white p-6 relative flex items-center justify-between">
+              <div>
+                <span className="text-emerald-400 font-extrabold text-[10px] uppercase tracking-wider block mb-1">
+                  Berkas & Lamaran Pelamar • {selectedApplicantDoc.tujuanMagang}
+                </span>
+                <h3 className="text-xl font-extrabold text-white leading-tight">
+                  {selectedApplicantDoc.namaMahasiswa}
+                </h3>
+                <p className="text-slate-300 text-xs mt-1 font-mono">
+                  NIM: {selectedApplicantDoc.nim} • {selectedApplicantDoc.programStudi}
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedApplicantDoc(null)}
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition shrink-0"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Body Content */}
+            <div className="p-6 sm:p-8 space-y-6 text-xs sm:text-sm">
+              
+              {/* Status Pill */}
+              <div className="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <span className="text-xs font-bold text-slate-600">Status Kelayakan Pelamar:</span>
+                <span className={`px-3 py-1 rounded-full text-xs font-extrabold border uppercase tracking-wider ${
+                  selectedApplicantDoc.status === 'accepted' 
+                    ? 'bg-[#10B981]/15 text-[#10B981] border-[#10B981]/30' 
+                    : selectedApplicantDoc.status === 'rejected' 
+                    ? 'bg-rose-50 text-rose-700 border-rose-200' 
+                    : 'bg-amber-50 text-amber-700 border-amber-200'
+                }`}>
+                  {selectedApplicantDoc.status === 'under_review' ? 'Dalam Peninjauan (In Review)' : selectedApplicantDoc.status}
+                </span>
+              </div>
+
+              {/* Catatan / Surat Pengantar */}
+              <div className="space-y-2">
+                <label className="text-xs font-extrabold text-slate-800 uppercase tracking-wider block">
+                  Catatan / Surat Pengantar (Application Letter)
+                </label>
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-150 text-slate-700 text-xs leading-relaxed italic">
+                  "{selectedApplicantDoc.catatan || 'Tidak ada catatan khusus dari pelamar.'}"
+                </div>
+              </div>
+
+              {/* Document Card & Download */}
+              <div className="space-y-2">
+                <label className="text-xs font-extrabold text-slate-800 uppercase tracking-wider block">
+                  Dokumen Curriculum Vitae (CV) & Portofolio
+                </label>
+                
+                <div className="border-2 border-dashed border-emerald-300 bg-emerald-50/40 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-12 h-12 rounded-xl bg-[#10B981] text-white flex items-center justify-center font-extrabold text-xs shrink-0 shadow-xs">
+                      PDF/DOC
+                    </div>
+                    <div className="space-y-0.5 min-w-0">
+                      <h4 className="font-extrabold text-slate-900 text-sm truncate">
+                        {selectedApplicantDoc.berkasNama || `CV_${selectedApplicantDoc.namaMahasiswa.replace(/\s+/g, '_')}.pdf`}
+                      </h4>
+                      <p className="text-[11px] text-emerald-700 font-medium flex items-center gap-1">
+                        <CheckCircle className="w-3.5 h-3.5 text-[#10B981]" /> Berkas Siap Diunduh & Diperiksa
+                      </p>
+                    </div>
+                  </div>
+
+                  <a
+                    href={selectedApplicantDoc.berkasUrl || 'data:application/pdf;base64,JVBERi0xLjQKJSDi48jNCjEgMCBvYmoKPDwvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFI+PgplbmRvYmoKMiAwIG9iaiA8PC9UeXBlIC9QYWdlcyAvQ291bnQgMSAvS2lkcyBbMyAwIFJdPj4KZW5kb2JqCjMgMCBvYmoKPDwvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9Db250ZW50cyA0IDAgUj4+CmVuZG9iaiA0IDAgb2JqCjw8L0xlbmd0aCA0NCA+PgpzdHJlYW0KQlQKL0YxIDEyIFRmCjEwMCA3MDAgVGRgCihDVl9QZWxhbWFyX0NEQ19VTUtlbmRhcmkpIFRqCkVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDUNCjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAxNSAwMDAwMCBuIAowMDAwMDAwMDY4IDA0MDAwIG4gCjAwMDAwMDAxMjUgMDAwMDAgbiAKMDAwMDAwMDIxMyAwMDAwMCBuIAp0cmFpbGVyCjw8L1NpemUgNSAvUm9vdCAxIDAgUj4+CnN0YXJ0eHJlZgozMDcKJSVFT0Y='}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    download={selectedApplicantDoc.berkasNama || `CV_${selectedApplicantDoc.namaMahasiswa.replace(/\s+/g, '_')}.pdf`}
+                    className="bg-[#10B981] hover:bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold text-xs transition flex items-center gap-2 shadow-xs shrink-0 cursor-pointer"
+                  >
+                    <Download className="w-4 h-4" /> Download / Buka Berkas CV
+                  </a>
+                </div>
+              </div>
+              {(() => {
+                const pdfTargetUrl = (selectedApplicantDoc.berkasUrl && selectedApplicantDoc.berkasUrl.startsWith('data:'))
+                  ? selectedApplicantDoc.berkasUrl
+                  : 'data:application/pdf;base64,JVBERi0xLjQKJSDi48jNCjEgMCBvYmoKPDwvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFI+PgplbmRvYmoKMiAwIG9iaiA8PC9UeXBlIC9QYWdlcyAvQ291bnQgMSAvS2lkcyBbMyAwIFJdPj4KZW5kb2JqCjMgMCBvYmoKPDwvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9Db250ZW50cyA0IDAgUj4+CmVuZG9iaiA0IDAgb2JqCjw8L0xlbmd0aCA0NCA+PgpzdHJlYW0KQlQKL0YxIDEyIFRmCjEwMCA3MDAgVGRgCihDVl9QZWxhbWFyX0NEQ19VTUtlbmRhcmkpIFRqCkVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDUNCjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAxNSAwMDAwMCBuIAowMDAwMDAwMDY4IDA0MDAwIG4gCjAwMDAwMDAxMjUgMDAwMDAgbiAKMDAwMDAwMDIxMyAwMDAwMCBuIAp0cmFpbGVyCjw8L1NpemUgNSAvUm9vdCAxIDAgUj4+CnN0YXJ0eHJlZgozMDcKJSVFT0Y=';
+
+                const isImg = pdfTargetUrl.startsWith('data:image/');
+
+                return (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-extrabold text-slate-800 uppercase tracking-wider block">
+                        Pratinjau Berkas Dokumen CV (PDF / Gambar)
+                      </label>
+                      <span className="text-[11px] font-mono text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        {selectedApplicantDoc.berkasNama || `CV_${selectedApplicantDoc.namaMahasiswa.replace(/\s+/g, '_')}.pdf`}
+                      </span>
+                    </div>
+
+                    <div className="w-full h-96 border border-slate-300 rounded-2xl overflow-hidden bg-slate-100 flex items-center justify-center relative shadow-inner">
+                      {isImg ? (
+                        <img src={pdfTargetUrl} alt="Preview Berkas CV" className="max-h-full object-contain mx-auto" />
+                      ) : (
+                        <object 
+                          data={pdfTargetUrl} 
+                          type="application/pdf" 
+                          className="w-full h-full bg-white"
+                        >
+                          <iframe 
+                            src={pdfTargetUrl} 
+                            className="w-full h-full border-0 bg-white" 
+                            title="Dokumen CV PDF" 
+                          />
+                        </object>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Actions inside Modal */}
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSelectedApplicantDoc(null)}
+                  className="bg-slate-100 text-slate-700 hover:bg-slate-200 px-4 py-2.5 rounded-xl font-semibold text-xs transition"
+                >
+                  Tutup Modal
+                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleUpdateApplicantStatus(selectedApplicantDoc.id, 'accepted');
+                      setSelectedApplicantDoc(null);
+                    }}
+                    className="bg-[#10B981] hover:bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-2xs flex items-center gap-1.5"
+                  >
+                    <CheckCircle className="w-4 h-4" /> Terima Pelamar Ini
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleUpdateApplicantStatus(selectedApplicantDoc.id, 'rejected');
+                      setSelectedApplicantDoc(null);
+                    }}
+                    className="bg-amber-50 hover:bg-amber-100 text-amber-700 px-4 py-2.5 rounded-xl text-xs font-bold transition border border-amber-200 cursor-pointer"
+                  >
+                    Tolak Pelamar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleDeleteApplicant(selectedApplicantDoc.id, selectedApplicantDoc.namaMahasiswa);
+                      setSelectedApplicantDoc(null);
+                    }}
+                    className="bg-rose-50 hover:bg-rose-100 text-rose-700 px-4 py-2.5 rounded-xl text-xs font-bold transition border border-rose-200 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" /> Hapus Pelamar
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
-

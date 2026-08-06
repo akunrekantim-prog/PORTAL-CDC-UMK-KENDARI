@@ -32,6 +32,8 @@ import {
   Sparkles,
   Info 
 } from 'lucide-react';
+import TracerStudyForm, { TracerFormData } from './TracerStudyForm';
+
 
 interface AlumniDashboardProps {
   user: UserType;
@@ -57,15 +59,9 @@ export default function AlumniDashboard({ user, onLogout, allLowongan }: AlumniD
   const [instansiKerja, setInstansiKerja] = useState('');
   const [jabatan, setJabatan] = useState('');
 
-  // Tracer Study Form States
+  // Tracer Study Form States (deprecated in favor of Component state, kept for reference if needed elsewhere)
   const [tracerStatusJob, setTracerStatusJob] = useState<'bekerja' | 'wirausaha' | 'lanjut_studi' | 'belum_bekerja'>('bekerja');
-  const [masaTunggu, setMasaTunggu] = useState<'kurang_3_bulan' | '3_6_bulan' | '6_12_bulan' | 'lebih_12_bulan'>('kurang_3_bulan');
-  const [tracerInstansi, setTracerInstansi] = useState('');
-  const [tracerJabatan, setTracerJabatan] = useState('');
-  const [tracerBidang, setTracerBidang] = useState('');
-  const [kesesuaian, setKesesuaian] = useState<'sangat_sesuai' | 'sesuai' | 'kurang_sesuai' | 'tidak_sesuai'>('sangat_sesuai');
-  const [penghasilan, setPenghasilan] = useState<'kurang_2jt' | '2_5jt' | '5_10jt' | 'lebih_10jt'>('2_5jt');
-  const [saranKampus, setSaranKampus] = useState('');
+
 
   // Load alumni profiles
   const loadAlumniData = () => {
@@ -104,8 +100,6 @@ export default function AlumniDashboard({ user, onLogout, allLowongan }: AlumniD
 
     // Set tracer form initial synced items
     setTracerStatusJob(alum.statusPekerjaan || 'bekerja');
-    setTracerInstansi(alum.instansiKerja || '');
-    setTracerJabatan(alum.jabatan || '');
 
     // Load History
     const tracers = getFromDB<TracerStudy>('tracer_studies');
@@ -156,8 +150,7 @@ export default function AlumniDashboard({ user, onLogout, allLowongan }: AlumniD
   };
 
   // Submit Tracer Study Form (FR-ALM-03)
-  const handleSubmitTracer = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleTracerSubmit = (data: TracerFormData) => {
     if (!alumniData) return;
 
     if (!tahunLulus) {
@@ -172,14 +165,11 @@ export default function AlumniDashboard({ user, onLogout, allLowongan }: AlumniD
       nama: user.name,
       programStudi: programStudi,
       tahunLulus: tahunLulus,
-      statusPekerjaan: tracerStatusJob,
-      masaTungguKerja: tracerStatusJob === 'bekerja' || tracerStatusJob === 'wirausaha' ? masaTunggu : undefined,
-      namaInstansi: tracerStatusJob === 'bekerja' || tracerStatusJob === 'wirausaha' ? tracerInstansi : undefined,
-      jabatan: tracerStatusJob === 'bekerja' || tracerStatusJob === 'wirausaha' ? tracerJabatan : undefined,
-      bidangPekerjaan: tracerStatusJob === 'bekerja' || tracerStatusJob === 'wirausaha' ? tracerBidang : undefined,
-      kesesuaianBidang: tracerStatusJob === 'bekerja' || tracerStatusJob === 'wirausaha' ? kesesuaian : undefined,
-      rangePenghasilan: tracerStatusJob === 'bekerja' || tracerStatusJob === 'wirausaha' ? penghasilan : undefined,
-      saranUntukKampus: saranKampus || undefined,
+      statusPekerjaan: data.statusPekerjaan,
+      namaInstansi: data.namaInstansi,
+      kesesuaianBidang: data.kesesuaianBidang,
+      rangePenghasilan: data.rangePenghasilan,
+      saranUntukKampus: data.saranUntukKampus,
       submittedAt: new Date().toISOString()
     };
 
@@ -188,21 +178,22 @@ export default function AlumniDashboard({ user, onLogout, allLowongan }: AlumniD
     // Also update student job status globally for consistency
     const updatedAlum: Alumni = {
       ...alumniData,
-      statusPekerjaan: tracerStatusJob,
-      instansiKerja: tracerInstansi,
-      jabatan: tracerJabatan
+      statusPekerjaan: data.statusPekerjaan,
+      instansiKerja: data.namaInstansi
     };
     updateInDB<Alumni>('alumni', updatedAlum);
     setAlumniData(updatedAlum);
 
-    // Clean tracer fields
-    setSaranKampus('');
-    
     // Refresh History
     loadAlumniData();
-    setActiveTab('ringkasan');
     triggerToast('success', 'Tracer Study berhasil disimpan dan direkap di dashboard operator CDC.');
+    
+    // Switch to history tab after 2 seconds to see the result
+    setTimeout(() => {
+      setActiveTab('riwayat');
+    }, 2000);
   };
+
 
   const alreadySubmitted = myTracerHistory.length > 0;
 
@@ -535,138 +526,16 @@ export default function AlumniDashboard({ user, onLogout, allLowongan }: AlumniD
 
           {/* TAB 3: TRACER STUDY FORM (FR-ALM-03) */}
           {activeTab === 'tracer' && (
-            <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm space-y-6" id="alm-panel-tracer">
-              <div>
-                <h3 className="font-bold text-slate-905 text-lg">Instrumen Kuisioner Tracer Study</h3>
-                <p className="text-xs text-slate-400">Lembar pelacakan masa tunggu lulusan serta keselarasan kurikulum akademis UM Kendari dengan ekosistem kerja.</p>
+            <div className="space-y-6" id="alm-panel-tracer">
+              <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
+                <h3 className="font-bold text-[#1E3A8A] text-lg">Instrumen Kuisioner Tracer Study</h3>
+                <p className="text-xs text-slate-500 mt-1">Lembar pelacakan masa tunggu lulusan serta keselarasan kurikulum akademis UM Kendari dengan ekosistem kerja.</p>
               </div>
 
-              <form onSubmit={handleSubmitTracer} className="space-y-6" id="tracer-form">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5" id="tracer-survey-1">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700">Status Pekerjaan *</label>
-                    <select 
-                      value={tracerStatusJob}
-                      onChange={(e) => setTracerStatusJob(e.target.value as any)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-white"
-                    >
-                      <option value="bekerja">Bekerja</option>
-                      <option value="wirausaha">Wirausaha</option>
-                      <option value="lanjut_studi">Lanjut Studi</option>
-                      <option value="belum_bekerja">Belum Bekerja</option>
-                    </select>
-                  </div>
-
-                  {/* VISIBLE ONLY IF BEKERJA/WIRAUSAHA */}
-                  {(tracerStatusJob === 'bekerja' || tracerStatusJob === 'wirausaha') && (
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Masa Tunggu Mendapat Pekerjaan *</label>
-                      <select 
-                        value={masaTunggu}
-                        onChange={(e) => setMasaTunggu(e.target.value as any)}
-                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-white"
-                      >
-                        <option value="kurang_3_bulan">Kurang dari 3 Bulan</option>
-                        <option value="3_6_bulan">3 - 6 Bulan</option>
-                        <option value="6_12_bulan">6 - 12 Bulan</option>
-                        <option value="lebih_12_bulan">Lebih dari 12 Bulan</option>
-                      </select>
-                    </div>
-                  )}
-                </div>
-
-                {(tracerStatusJob === 'bekerja' || tracerStatusJob === 'wirausaha') && (
-                  <div className="space-y-5 pt-4 border-t border-slate-50" id="tracer-survey-2">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-700">Nama Instansi / Perusahaan *</label>
-                        <input 
-                          type="text" 
-                          required
-                          value={tracerInstansi}
-                          onChange={(e) => setTracerInstansi(e.target.value)}
-                          placeholder="Contoh: PT Go Digital Kendari"
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none"
-                        />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-700">Nama Jabatan *</label>
-                        <input 
-                          type="text" 
-                          required
-                          value={tracerJabatan}
-                          onChange={(e) => setTracerJabatan(e.target.value)}
-                          placeholder="Contoh: Officer IT"
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none"
-                        />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-700">Bidang Kerjaan *</label>
-                        <input 
-                          type="text" 
-                          required
-                          value={tracerBidang}
-                          onChange={(e) => setTracerBidang(e.target.value)}
-                          placeholder="Contoh: Perbankan / Teknologi / Layanan"
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none"
-                        />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-700">Kesesuaian Bidang Keilmuan / Prodi *</label>
-                        <select 
-                          value={kesesuaian}
-                          onChange={(e) => setKesesuaian(e.target.value as any)}
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-white"
-                        >
-                          <option value="sangat_sesuai">Sangat Sesuai</option>
-                          <option value="sesuai">Sesuai</option>
-                          <option value="kurang_sesuai">Kurang Sesuai</option>
-                          <option value="tidak_sesuai">Tidak Sesuai / Bergeser</option>
-                        </select>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-700">Range Pendapatan / Gaji Bulanan *</label>
-                        <select 
-                          value={penghasilan}
-                          onChange={(e) => setPenghasilan(e.target.value as any)}
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-white"
-                        >
-                          <option value="kurang_2jt">Kurang dari Rp 2.000.000</option>
-                          <option value="2_5jt">Rp 2.000.000 - Rp 5.000.000</option>
-                          <option value="5_10jt">Rp 5.000.000 - Rp 10.000.000</option>
-                          <option value="lebih_10jt">Lebih dari Rp 10.000.000</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="space-y-1.5 pt-4 border-t border-slate-50">
-                  <label className="text-xs font-bold text-slate-700">Saran / Rekomendasi Kritik Untuk Perbaikan Kurikulum Kampus</label>
-                  <textarea 
-                    value={saranKampus}
-                    onChange={(e) => setSaranKampus(e.target.value)}
-                    rows={4}
-                    placeholder="Contoh: Pembelajaran soft-skills komunikasi and praktik lab basis data nyata diperbanyak."
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none"
-                  ></textarea>
-                </div>
-
-                <div className="pt-4 border-t border-slate-50 flex justify-end">
-                  <button 
-                    type="submit"
-                    className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl text-xs font-bold transition shadow-sm"
-                  >
-                    Kirim Lembar Survei Sensus
-                  </button>
-                </div>
-              </form>
+              <TracerStudyForm onSubmit={handleTracerSubmit} />
             </div>
           )}
+
 
           {/* TAB 4: RIWAYAT TRACER STUDY */}
           {activeTab === 'riwayat' && (
