@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Award, CheckSquare, Square, CheckCircle2, TrendingUp, Sparkles, BookOpen } from 'lucide-react';
+import { PageHeader, Card, CtaBlock } from './ui';
 
 interface Module {
   id: string;
@@ -10,11 +11,12 @@ interface Module {
 }
 
 const MODULES: Module[] = [
-  { id: 'm1', title: 'Komunikasi Efektif & Public Speaking', duration: '2 Jam', category: 'Softskill', desc: 'Melatih kemampuan berbicara di depan umum, presentasi kerja, dan mendengarkan secara aktif.' },
-  { id: 'm2', title: 'Kepemimpinan & Kerja Sama Tim (Teamwork)', duration: '2.5 Jam', category: 'Softskill', desc: 'Memahami dinamika kelompok, kepemimpinan kolaboratif, dan teknik pemecahan masalah.' },
-  { id: 'm3', title: 'Berpikir Kritis & Manajemen Waktu', duration: '2 Jam', category: 'Softskill', desc: 'Mengasah kemampuan analisis keputusan taktis serta cara memprioritaskan tugas kerja.' },
-  { id: 'm4', title: 'Dasar Kewirausahaan & Ideasi Bisnis', duration: '3 Jam', category: 'Kewirausahaan', desc: 'Mempelajari cara merancang ide bisnis kreatif yang sesuai dengan kebutuhan pasar modern.' },
-  { id: 'm5', title: 'Business Model Canvas (BMC) & Pitching', duration: '3 Jam', category: 'Kewirausahaan', desc: 'Menyusun kerangka rencana bisnis kanvas dan teknik presentasi di hadapan investor.' },
+  { id: 'm1', title: 'Komunikasi Efektif & Public Speaking', duration: '2 Jam', category: 'Softskill', desc: 'Mampu menyampaikan ide dengan jelas, menulis pesan kerja profesional, dan berbicara di depan publik tanpa hambatan komunikasi.' },
+  { id: 'm2', title: 'Kepemimpinan & Kerja Sama Tim', duration: '2.5 Jam', category: 'Softskill', desc: 'Mampu memimpin Diskusi kelompok, mendelegasi tugas, dan menyelesaikan konflik dalam tim kerja maupun organisasi kampus.' },
+  { id: 'm3', title: 'Personal Branding & Pitching Karir', duration: '2 Jam', category: 'Softskill', desc: 'Mampu membentuk identitas profesional, menyusun profil LinkedIn, dan melakukan pitch 1 menit untuk lowongan atau proyek.' },
+  { id: 'm4', title: 'Berpikir Kritis & Manajemen Waktu', duration: '2 Jam', category: 'Softskill', desc: 'Mampu memprioritaskan tugas, mengambil keputusan berbasis data, dan menghindari prokrastinasi dalam lingkungan kerja.' },
+  { id: 'm5', title: 'Dasar Kewirausahaan & Ideasi Bisnis Lokal', duration: '3 Jam', category: 'Kewirausahaan', desc: 'Mampu mengidentifikasi peluang bisnis berbasis kebutuhan lokal Kendari/Sultra, menyusun nilai jual, dan memvalidasi ide pasar.' },
+  { id: 'm6', title: 'Business Model Canvas & Pitching Investor', duration: '3 Jam', category: 'Kewirausahaan', desc: 'Mampu menyusun kerangka bisnis BMC dan mempresentasikan rencana bisnis dengan narasi yang meyakinkan di hadapan investor/panel.' },
 ];
 
 export default function Softskill() {
@@ -22,7 +24,7 @@ export default function Softskill() {
   const [certClaimed, setCertClaimed] = useState(false);
 
   const toggleModule = (id: string) => {
-    if (certClaimed) return; // Prevent change after claiming
+    if (certClaimed) return;
     setCompletedIds(prev =>
       prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
     );
@@ -38,22 +40,17 @@ export default function Softskill() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-12 space-y-12" id="layanan-softskill">
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <span className="px-3 py-1 bg-violet-50 text-violet-600 border border-violet-100 rounded-full font-bold text-xs uppercase tracking-wider">
-          Kurikulum Mandiri
-        </span>
-        <h2 className="text-3xl font-extrabold text-[#1E3A8A]">Pelatihan Softskill & Kewirausahaan</h2>
-        <p className="text-slate-500 text-sm max-w-xl mx-auto">
-          Asah keterampilan interpersonal dan jiwa wirausaha Anda melalui kurikulum mandiri terstruktur CDC UM Kendari.
-        </p>
-      </div>
+    <div className="max-w-5xl mx-auto px-4 py-12 space-y-10" id="layanan-softskill">
+      <PageHeader
+        badge="Kurikulum Mandiri"
+        title="Pelatihan Softskill & Kewirausahaan"
+        description="Kembangkan kompetensi kerja dan jiwa wirausaha melalui modul terstruktur yang relevan dengan kebutuhan industri dan UMKM lokal Kendari."
+        accent="violet"
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Column: Progress Tracker */}
         <div className="lg:col-span-7 space-y-6">
-          <div className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm space-y-6">
+          <Card>
             <div className="flex justify-between items-center pb-4 border-b border-slate-100">
               <h3 className="font-extrabold text-slate-900 text-lg">Modul Kurikulum Mandiri</h3>
               <span className="text-xs text-slate-400 font-bold">{completedIds.length} dari {MODULES.length} Selesai</span>
@@ -68,8 +65,8 @@ export default function Softskill() {
                     onClick={() => toggleModule(mod.id)}
                     className={`p-5 rounded-2xl border transition duration-150 cursor-pointer flex gap-4 items-start ${
                       isDone
-                        ? 'bg-emerald-50/40 border-emerald-250 border-emerald-200'
-                        : 'bg-slate-50 border-slate-200 hover:border-slate-350'
+                        ? 'bg-emerald-50/40 border-emerald-200'
+                        : 'bg-slate-50 border-slate-200 hover:border-slate-300'
                     }`}
                   >
                     <button className="pt-0.5 text-slate-400 hover:text-emerald-500 shrink-0">
@@ -84,8 +81,8 @@ export default function Softskill() {
                       <div className="flex items-center gap-2">
                         <span className={`px-2 py-0.5 rounded text-[9px] font-extrabold uppercase ${
                           mod.category === 'Softskill'
-                            ? 'bg-blue-150 bg-blue-100 text-blue-700'
-                            : 'bg-amber-150 bg-amber-100 text-amber-700'
+                            ? 'bg-blue-100 text-blue-700'
+                            : 'bg-amber-100 text-amber-700'
                         }`}>
                           {mod.category}
                         </span>
@@ -100,15 +97,13 @@ export default function Softskill() {
                 );
               })}
             </div>
-          </div>
+          </Card>
         </div>
 
-        {/* Right Column: Dynamic Certificate Widget */}
-        <div className="lg:col-span-5">
-          <div className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm space-y-6">
+        <div className="lg:col-span-5 space-y-6">
+          <Card>
             <h3 className="font-extrabold text-slate-900 text-lg">Progres Pelatihan</h3>
 
-            {/* Circular or Bar Progress */}
             <div className="space-y-3">
               <div className="flex justify-between text-xs font-bold text-slate-600">
                 <span>Persentase Selesai</span>
@@ -116,7 +111,7 @@ export default function Softskill() {
               </div>
               <div className="h-3.5 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200">
                 <div
-                  className="h-full bg-gradient-to-r from-violet-500 to-indigo-650 rounded-full transition-all duration-500 flex items-center justify-end px-2"
+                  className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full transition-all duration-500 flex items-center justify-end px-2"
                   style={{ width: `${progressPercent}%` }}
                 >
                   {progressPercent > 15 && (
@@ -126,26 +121,25 @@ export default function Softskill() {
               </div>
             </div>
 
-            {/* Certificate Status Widget */}
             <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 text-center space-y-4">
               {certClaimed ? (
                 <div className="space-y-3" id="cert-claimed-widget">
                   <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-600">
                     <Award className="w-7 h-7" />
                   </div>
-                  <h4 className="font-extrabold text-slate-900 text-sm">Sertifikat Berhasil Diklaim!</h4>
+                  <h4 className="font-extrabold text-slate-900 text-sm">Sertifikat Berhasil Diklaim</h4>
                   <p className="text-slate-500 text-xs leading-relaxed">
-                    E-Certificate pelatihan Anda telah dikirimkan ke alamat email terdaftar di Portal CDC. Silakan periksa kotak masuk atau spam email Anda.
+                    E-Sertifikat kompetensi CDC UM Kendari telah dikirim ke email terdaftar. Simpan bukti ini untuk portfolio karir Anda.
                   </p>
                 </div>
               ) : allCompleted ? (
                 <div className="space-y-4" id="cert-claim-ready">
-                  <div className="w-12 h-12 bg-violet-50 text-violet-600 rounded-full flex items-center justify-center mx-auto animate-bounce">
+                  <div className="w-12 h-12 bg-violet-50 text-violet-600 rounded-full flex items-center justify-center mx-auto">
                     <Sparkles className="w-7 h-7" />
                   </div>
-                  <h4 className="font-extrabold text-slate-900 text-sm">Pelatihan Mandiri Selesai!</h4>
+                  <h4 className="font-extrabold text-slate-900 text-sm">Pelatihan Mandiri Selesai</h4>
                   <p className="text-slate-500 text-xs leading-relaxed">
-                    Selamat! Anda telah menyelesaikan seluruh modul pelatihan. Klik tombol di bawah untuk mengklaim sertifikat kelulusan Anda.
+                    Selamat! Anda telah menyelesaikan seluruh modul. Klik tombol di bawah untuk mengklaim e-sertifikat kompetensi CDC UM Kendari.
                   </p>
                   <button
                     onClick={handleClaimCert}
@@ -166,7 +160,7 @@ export default function Softskill() {
                 </div>
               )}
             </div>
-          </div>
+          </Card>
         </div>
       </div>
     </div>

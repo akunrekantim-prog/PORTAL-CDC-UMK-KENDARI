@@ -67,8 +67,6 @@ const NAV_ITEMS: NavItem[] = [
     id: 'layanan',
     label: 'Layanan',
     children: [
-      { label: 'Cara Pasang Info LowKer', tab: 'cara-pasang' },
-      { label: 'Keanggotaan CDC', tab: 'keanggotaan' },
       { label: 'Bimbingan Karir', tab: 'konseling' },
       { label: 'Tes Potensi Minat Kerja', tab: 'tes-minat' },
       { label: 'Workshop Karir', tab: 'workshop' },
@@ -76,8 +74,8 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Seminar Sukses Berkarir', tab: 'seminar' },
       { label: 'Bursa Kerja', tab: 'bursa-kerja' },
       { label: 'UM Kendari Job Fair', tab: 'career-fair' },
-      { label: 'Data Exit Survey Lulusan', tab: 'exit-survey' },
-      { label: 'Job Placement Program', tab: 'job-placement' },
+      { label: 'Campus Hiring - Recruitment', tab: 'campus-hiring' },
+      { label: 'Magang', tab: 'magang' },
     ],
   },
   {
@@ -106,7 +104,6 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Job Info',
     children: [
       { label: 'Lowongan Terbaru', tab: 'lowongan' },
-      { label: 'Magang', tab: 'magang' },
     ],
   },
 ];

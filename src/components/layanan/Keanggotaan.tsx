@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Search, Users, Award, BookOpen, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { PageHeader, Card, TwoColumn } from './ui';
 
 interface MemberData {
   nim: string;
@@ -19,7 +20,6 @@ export default function Keanggotaan() {
   const [searchNim, setSearchNim] = useState('');
   const [searchResult, setSearchResult] = useState<MemberData | null | 'not_found'>(null);
   const [hasSearched, setHasSearched] = useState(false);
-
   const [isSearching, setIsSearching] = useState(false);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -46,23 +46,18 @@ export default function Keanggotaan() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-12 space-y-12" id="layanan-keanggotaan">
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <span className="px-3 py-1 bg-blue-50 text-blue-600 border border-blue-100 rounded-full font-bold text-xs uppercase tracking-wider">
-          Program Member
-        </span>
-        <h2 className="text-3xl font-extrabold text-[#1E3A8A]">Keanggotaan CDC UM Kendari</h2>
-        <p className="text-slate-500 text-sm max-w-2xl mx-auto">
-          Bergabunglah menjadi anggota CDC untuk mendapatkan akses eksklusif pelatihan karir, prioritas undangan bursa kerja, serta bimbingan karir personal.
-        </p>
-      </div>
+    <div className="max-w-5xl mx-auto px-4 py-12 space-y-10" id="layanan-keanggotaan">
+      <PageHeader
+        badge="Program Member"
+        title="Keanggotaan CDC UM Kendari"
+        description="Bergabunglah menjadi anggota CDC untuk mendapatkan akses eksklusif pelatihan karir, prioritas undangan bursa kerja, serta bimbingan karir personal."
+        accent="blue"
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Column: Benefits & Registration */}
-        <div className="lg:col-span-7 space-y-6">
-          <div className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm space-y-6">
-            <h3 className="font-extrabold text-slate-900 text-lg border-l-4 border-[#10B981] pl-3">
+      <TwoColumn
+        left={
+          <Card>
+            <h3 className="font-extrabold text-slate-900 text-lg border-l-4 border-emerald-500 pl-3">
               Manfaat Anggota CDC
             </h3>
 
@@ -75,7 +70,7 @@ export default function Keanggotaan() {
               ].map((item, idx) => (
                 <div key={idx} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
                   <div className="bg-white p-2 rounded-xl w-fit shadow-xs">
-                    <item.icon className="w-5 h-5 text-[#10B981]" />
+                    <item.icon className="w-5 h-5 text-emerald-500" />
                   </div>
                   <h4 className="font-bold text-slate-800 text-sm">{item.title}</h4>
                   <p className="text-slate-500 text-xs leading-relaxed">{item.desc}</p>
@@ -89,12 +84,10 @@ export default function Keanggotaan() {
                 Pendaftaran keanggotaan dilakukan secara otomatis ketika Anda membuat akun mahasiswa atau alumni di portal ini. Silakan pilih menu <strong>Register</strong> di bagian atas header untuk mendaftarkan akun baru Anda.
               </p>
             </div>
-          </div>
-        </div>
-
-        {/* Right Column: Status Checker */}
-        <div className="lg:col-span-5">
-          <div className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm space-y-6">
+          </Card>
+        }
+        right={
+          <Card>
             <h3 className="font-extrabold text-slate-900 text-lg">Cek Status Keanggotaan</h3>
             
             <form onSubmit={handleSearch} className="space-y-4">
@@ -110,7 +103,7 @@ export default function Keanggotaan() {
                     value={searchNim}
                     onChange={e => setSearchNim(e.target.value)}
                     placeholder="Contoh: 202201001"
-                    className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#10B981]"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-emerald-500"
                   />
                 </div>
                 <p className="text-[10px] text-slate-400">Gunakan NIM terdaftar untuk pengujian (contoh: 202201001)</p>
@@ -120,7 +113,7 @@ export default function Keanggotaan() {
                 <button
                   type="submit"
                   disabled={isSearching}
-                  className="flex-grow bg-[#1E3A8A] hover:bg-blue-800 disabled:bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition shadow-md active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer disabled:cursor-not-allowed"
+                  className="flex-grow bg-slate-900 hover:bg-slate-800 disabled:bg-slate-700 text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition shadow-md active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer disabled:cursor-not-allowed"
                 >
                   {isSearching ? (
                     <>
@@ -142,7 +135,6 @@ export default function Keanggotaan() {
               </div>
             </form>
 
-            {/* Results Output */}
             {hasSearched && (
               <div className="pt-4 border-t border-slate-100" id="membership-result">
                 {searchResult === 'not_found' ? (
@@ -161,8 +153,7 @@ export default function Keanggotaan() {
                       </div>
                     </div>
 
-                    {/* Virtual Member Card */}
-                    <div className="bg-gradient-to-br from-[#1E3A8A] to-blue-900 text-white rounded-2xl p-6 shadow-lg relative overflow-hidden font-mono text-xs">
+                    <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-6 relative overflow-hidden font-mono text-xs">
                       <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none translate-y-6 translate-x-6">
                         <Award className="w-32 h-32" />
                       </div>
@@ -197,9 +188,9 @@ export default function Keanggotaan() {
                 )}
               </div>
             )}
-          </div>
-        </div>
-      </div>
+          </Card>
+        }
+      />
     </div>
   );
 }

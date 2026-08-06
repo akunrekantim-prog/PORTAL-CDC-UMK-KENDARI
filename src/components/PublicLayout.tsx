@@ -15,8 +15,6 @@ import { Lowongan, Berita, Pengumuman } from '../types';
 import { motion } from 'motion/react';
 import Header from './Header';
 import { Footer } from './Footer';
-import CaraPasang from './layanan/CaraPasang';
-import Keanggotaan from './layanan/Keanggotaan';
 import BimbinganKarir from './layanan/BimbinganKarir';
 import TesMinat from './layanan/TesMinat';
 import Workshop from './layanan/Workshop';
@@ -24,8 +22,8 @@ import Softskill from './layanan/Softskill';
 import Seminar from './layanan/Seminar';
 import BursaKerja from './layanan/BursaKerja';
 import CareerFair from './layanan/CareerFair';
-import ExitSurvey from './layanan/ExitSurvey';
-import JobPlacement from './layanan/JobPlacement';
+import CampusHiring from './layanan/CampusHiring';
+import Magang from './layanan/Magang';
 import LayananContainer from './layanan/LayananContainer';
 import HeroSlider from './HeroSlider';
 import { JobSearchMasterDetail } from './JobSearchMasterDetail';
@@ -705,44 +703,6 @@ export default function PublicLayout({
           </div>
         )}
 
-        {/* ─── MAGANG TAB ──────────────────────────────────────────── */}
-        {currentTab === 'magang' && (
-          <div className="max-w-4xl mx-auto px-4 py-12 space-y-10" id="tab-magang">
-            <div className="text-center space-y-2">
-              <h2 className="text-3xl font-extrabold text-[#1E3A8A]">Sistem & Alur Informasi Magang</h2>
-              <p className="text-slate-500 text-sm">Alur administrasi pengajuan magang di Universitas Muhammadiyah Kendari</p>
-            </div>
-            <div className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm space-y-8">
-              <div className="space-y-4">
-                <h3 className="text-lg font-bold text-slate-900 border-l-4 border-[#10B981] pl-3">Persyaratan Umum</h3>
-                <ul className="list-disc pl-5 space-y-1.5 text-slate-600 text-sm">
-                  <li>Mahasiswa aktif Universitas Muhammadiyah Kendari</li>
-                  <li>Telah menempuh minimal 90 SKS</li>
-                  <li>Mendapatkan surat pengantar tanda tangan Dekanat Fakultas</li>
-                  <li>Melampirkan CV dan Transkrip Nilai Sementara</li>
-                </ul>
-              </div>
-              <div className="space-y-4">
-                <h3 className="text-lg font-bold text-slate-900 border-l-4 border-[#10B981] pl-3">Langkah Pengajuan</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                  {[
-                    { n: '1', t: 'Pilih Lowongan', d: 'Pilih lowongan magang mitra di daftar menu Portal CDC.' },
-                    { n: '2', t: 'Lengkapi & Upload', d: 'Isi form pengajuan magang dan upload surat pengantar dekan & CV.' },
-                    { n: '3', t: 'Approval Admin', d: 'Operator CDC serta HRD Mitra memverifikasi berkas lamaran Anda.' },
-                  ].map(s => (
-                    <div key={s.n} className="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-2">
-                      <div className="w-8 h-8 rounded-full bg-[#10B981] text-white font-bold text-xs flex items-center justify-center">{s.n}</div>
-                      <h4 className="font-bold text-slate-900 text-sm">{s.t}</h4>
-                      <p className="text-slate-500 text-xs">{s.d}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-
         {/* ─── LOWONGAN TAB (JOB INFO - GOOGLE STITCH REPLICA) ──────────────── */}
         {currentTab === 'lowongan' && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8" id="tab-lowongan">
@@ -939,10 +899,8 @@ export default function PublicLayout({
         )}
 
         {/* ─── LAYANAN SUB-TABS ───────────────────────────────────── */}
-        {['cara-pasang', 'keanggotaan', 'konseling', 'tes-minat', 'workshop', 'softskill', 'seminar', 'bursa-kerja', 'career-fair', 'exit-survey', 'job-placement'].includes(currentTab) && (
+        {['konseling', 'tes-minat', 'workshop', 'softskill', 'seminar', 'bursa-kerja', 'career-fair', 'campus-hiring', 'magang'].includes(currentTab) && (
           <LayananContainer currentTab={currentTab} setTab={setTab}>
-            {currentTab === 'cara-pasang' && <CaraPasang />}
-            {currentTab === 'keanggotaan' && <Keanggotaan />}
             {currentTab === 'konseling' && <BimbinganKarir />}
             {currentTab === 'tes-minat' && <TesMinat />}
             {currentTab === 'workshop' && <Workshop />}
@@ -950,8 +908,8 @@ export default function PublicLayout({
             {currentTab === 'seminar' && <Seminar />}
             {currentTab === 'bursa-kerja' && <BursaKerja />}
             {currentTab === 'career-fair' && <CareerFair />}
-            {currentTab === 'exit-survey' && <ExitSurvey />}
-            {currentTab === 'job-placement' && <JobPlacement />}
+            {currentTab === 'campus-hiring' && <CampusHiring />}
+            {currentTab === 'magang' && <Magang />}
           </LayananContainer>
         )}
 

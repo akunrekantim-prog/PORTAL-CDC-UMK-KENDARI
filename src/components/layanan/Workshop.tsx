@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { Calendar, Users, MapPin, CheckCircle, ArrowRight, Clock } from 'lucide-react';
+import {
+  Calendar, Users, MapPin, CheckCircle, ArrowRight, Clock
+} from 'lucide-react';
+import { PageHeader, Card, CtaBlock } from './ui';
 
 interface WorkshopItem {
   id: string;
@@ -80,7 +83,6 @@ export default function Workshop() {
     }
 
     if (selectedWorkshop) {
-      // Deduct quota
       setWorkshops(prev =>
         prev.map(w => (w.id === selectedWorkshop.id ? { ...w, quotaLeft: w.quotaLeft - 1 } : w))
       );
@@ -90,40 +92,30 @@ export default function Workshop() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-12 space-y-12" id="layanan-workshop">
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <span className="px-3 py-1 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full font-bold text-xs uppercase tracking-wider">
-          Pelatihan Karir
-        </span>
-        <h2 className="text-3xl font-extrabold text-[#1E3A8A]">Workshop & Pelatihan Karir</h2>
-        <p className="text-slate-500 text-sm max-w-xl mx-auto">
-          Tingkatkan kesiapan kerja Anda melalui berbagai program workshop interaktif terstruktur bersama para pemateri andal.
-        </p>
-      </div>
+    <div className="max-w-5xl mx-auto px-4 py-12 space-y-10" id="layanan-workshop">
+      <PageHeader
+        badge="Pelatihan Karir"
+        title="Workshop & Pelatihan Karir"
+        description="Tingkatkan kesiapan kerja Anda melalui berbagai program workshop interaktif terstruktur bersama para pemateri andal."
+        accent="emerald"
+      />
 
-      {/* Workshop Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {workshops.map(item => {
           const isRegistered = registeredIds.includes(item.id);
           const isCompleted = item.status === 'completed';
 
           return (
-            <div
-              key={item.id}
-              className={`bg-white rounded-3xl border border-slate-100 p-6 shadow-sm flex flex-col justify-between space-y-6 ${
-                isCompleted ? 'opacity-70' : ''
-              }`}
-            >
+            <Card key={item.id} className={isCompleted ? 'opacity-70' : ''}>
               <div className="space-y-3">
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-start">
                   <span
                     className={`px-2.5 py-1 text-xs font-bold rounded-full ${
                       isCompleted
                         ? 'bg-slate-100 text-slate-500'
                         : isRegistered
                         ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                        : 'bg-blue-50 text-[#1E3A8A] border border-blue-100'
+                        : 'bg-blue-50 text-slate-900 border border-blue-100'
                     }`}
                   >
                     {isCompleted ? 'Selesai' : isRegistered ? 'Terdaftar' : 'Pendaftaran Buka'}
@@ -136,9 +128,8 @@ export default function Workshop() {
                 </div>
 
                 <h3 className="font-extrabold text-slate-900 text-lg leading-snug">{item.title}</h3>
-                <div className="text-xs font-bold text-[#10B981]">Pemateri: {item.speaker}</div>
+                <div className="text-xs font-bold text-emerald-600">Pemateri: {item.speaker}</div>
 
-                {/* Details list */}
                 <div className="pt-2 space-y-1.5 text-xs text-slate-500 font-medium">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
@@ -163,14 +154,13 @@ export default function Workshop() {
                 </div>
               </div>
 
-              {/* Action Button */}
               <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
                 {isCompleted ? (
                   <span className="text-xs text-slate-400 font-medium font-mono">
                     Materi & Sertifikat telah dikirim ke peserta.
                   </span>
                 ) : isRegistered ? (
-                  <div className="text-emerald-600 font-bold text-xs flex items-center gap-1 animate-pulse">
+                  <div className="text-emerald-600 font-bold text-xs flex items-center gap-1">
                     <CheckCircle className="w-4 h-4" /> Anda terdaftar untuk workshop ini!
                   </div>
                 ) : (
@@ -182,12 +172,11 @@ export default function Workshop() {
                   </button>
                 )}
               </div>
-            </div>
+            </Card>
           );
         })}
       </div>
 
-      {/* Registration Modal Overlay */}
       {selectedWorkshop && (
         <div
           className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-[999]"
@@ -200,66 +189,15 @@ export default function Workshop() {
             </div>
 
             <form onSubmit={handleRegisterSubmit} className="space-y-4">
-              {/* Name */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Nama Lengkap</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={e => handleInputChange('name', e.target.value)}
-                  className={`w-full px-3 py-2 rounded-xl border text-sm focus:outline-none ${
-                    errors.name ? 'border-red-500' : 'border-slate-200 focus:border-[#10B981]'
-                  }`}
-                  placeholder="Contoh: Ahmad Faisal"
-                />
-                {errors.name && <p className="text-red-500 text-[10px] font-bold">{errors.name}</p>}
-              </div>
-
-              {/* NIM */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Nomor Induk Mahasiswa (NIM)</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.nim}
-                  onChange={e => handleInputChange('nim', e.target.value)}
-                  className={`w-full px-3 py-2 rounded-xl border text-sm focus:outline-none ${
-                    errors.nim ? 'border-red-500' : 'border-slate-200 focus:border-[#10B981]'
-                  }`}
-                  placeholder="Contoh: 202201001"
-                />
-                {errors.nim && <p className="text-red-500 text-[10px] font-bold">{errors.nim}</p>}
-              </div>
-
-              {/* Email */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Email Aktif</label>
-                <input
-                  type="email"
-                  required
-                  value={formData.email}
-                  onChange={e => handleInputChange('email', e.target.value)}
-                  className={`w-full px-3 py-2 rounded-xl border text-sm focus:outline-none ${
-                    errors.email ? 'border-red-500' : 'border-slate-200 focus:border-[#10B981]'
-                  }`}
-                  placeholder="mhs@umkendari.ac.id"
-                />
-                {errors.email && <p className="text-red-500 text-[10px] font-bold">{errors.email}</p>}
-              </div>
+              <Field label="Nama Lengkap" name="name" value={formData.name} onChange={handleInputChange} placeholder="Contoh: Ahmad Faisal" error={errors.name} />
+              <Field label="Nomor Induk Mahasiswa (NIM)" name="nim" value={formData.nim} onChange={handleInputChange} placeholder="Contoh: 202201001" error={errors.nim} />
+              <Field label="Email Aktif" name="email" value={formData.email} onChange={handleInputChange} placeholder="mhs@umkendari.ac.id" error={errors.email} />
 
               <div className="flex gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setSelectedWorkshop(null)}
-                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs uppercase transition"
-                >
+                <button type="button" onClick={() => setSelectedWorkshop(null)} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs uppercase transition">
                   Batal
                 </button>
-                <button
-                  type="submit"
-                  className="flex-1 bg-[#10B981] hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition shadow-md"
-                >
+                <button type="submit" className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition shadow-md">
                   Kirim Pendaftaran
                 </button>
               </div>
@@ -267,6 +205,30 @@ export default function Workshop() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function Field({ label, name, value, onChange, placeholder, error }: {
+  label: string;
+  name: string;
+  value: string;
+  onChange: (name: string, value: string) => void;
+  placeholder?: string;
+  error?: string;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-xs font-bold text-slate-700">{label}</label>
+      <input
+        type="text"
+        required
+        value={value}
+        onChange={e => onChange(name, e.target.value)}
+        placeholder={placeholder}
+        className={`w-full px-3 py-2 rounded-xl border text-sm focus:outline-none ${error ? 'border-red-500' : 'border-slate-200 focus:border-emerald-500'}`}
+      />
+      {error && <p className="text-red-500 text-[10px] font-bold">{error}</p>}
     </div>
   );
 }

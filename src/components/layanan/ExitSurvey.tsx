@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FileSpreadsheet, CheckCircle2, ChevronRight, ChevronLeft, Sparkles } from 'lucide-react';
+import { PageHeader, Card, CtaBlock } from './ui';
 
 export default function ExitSurvey() {
   const [step, setStep] = useState(1);
@@ -93,19 +94,15 @@ export default function ExitSurvey() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12 space-y-12" id="layanan-exit-survey">
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <span className="px-3 py-1 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full font-bold text-xs uppercase tracking-wider">
-          Tracer Kuesioner
-        </span>
-        <h2 className="text-3xl font-extrabold text-[#1E3A8A]">Data Exit Survey Lulusan</h2>
-        <p className="text-slate-500 text-sm max-w-xl mx-auto">
-          Kuisioner wajib bagi calon wisudawan Universitas Muhammadiyah Kendari untuk pemetaan penyerapan lulusan di dunia kerja.
-        </p>
-      </div>
+    <div className="max-w-4xl mx-auto px-4 py-12 space-y-10" id="layanan-exit-survey">
+      <PageHeader
+        badge="Tracer Kuesioner"
+        title="Data Exit Survey Lulusan"
+        description="Kuisioner wajib bagi calon wisudawan Universitas Muhammadiyah Kendari untuk pemetaan penyerapan lulusan di dunia kerja."
+        accent="emerald"
+      />
 
-      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+      <Card>
         {isSubmitted ? (
           <div className="p-8 sm:p-10 text-center space-y-4" id="survey-success-state">
             <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
@@ -116,16 +113,16 @@ export default function ExitSurvey() {
               Terima kasih telah berpartisipasi. Pengisian Exit Survey Anda telah tercatat secara resmi sebagai syarat kelulusan dan pengambilan ijazah.
             </p>
 
-            <div className="p-5 bg-slate-55 bg-slate-50 rounded-2xl border border-slate-150 text-left space-y-3 font-mono text-xs text-slate-700 max-w-md mx-auto">
+            <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200 text-left space-y-3 font-mono text-xs text-slate-700 max-w-md mx-auto">
               <div className="border-b border-dashed border-slate-300 pb-3 flex justify-between items-center">
-                <span className="font-bold text-slate-900 font-sans">BUKTI BEBAS TRACER CDC</span>
-                <span className="text-emerald-600 font-extrabold font-sans">ACTIVE</span>
+                <span className="font-bold text-slate-900">BUKTI BEBAS TRACER CDC</span>
+                <span className="text-emerald-600 font-extrabold">ACTIVE</span>
               </div>
-              <div className="space-y-1 font-sans">
+              <div className="space-y-1">
                 <div>Nama: <span className="font-bold text-slate-800">{formData.name}</span></div>
                 <div>NIM: <span className="font-bold text-slate-800">{formData.nim}</span></div>
                 <div>Program Studi: <span className="font-bold text-slate-800">{formData.prodi}</span></div>
-                <div className="text-[10px] text-slate-400 pt-2 font-mono">
+                <div className="text-[10px] text-slate-400 pt-2">
                   ID Verifikasi: CDC-EXS-{Math.floor(100000 + Math.random() * 900000)}
                 </div>
               </div>
@@ -140,7 +137,6 @@ export default function ExitSurvey() {
           </div>
         ) : (
           <div className="p-8 sm:p-10 space-y-8">
-            {/* Steps indicator */}
             <div className="flex items-center justify-between max-w-md mx-auto">
               {[
                 { s: 1, label: 'Biodata' },
@@ -152,7 +148,7 @@ export default function ExitSurvey() {
                     <div
                       className={`w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center border transition-all ${
                         step === item.s
-                          ? 'bg-[#1E3A8A] text-white border-[#1E3A8A] shadow-md scale-105'
+                          ? 'bg-slate-900 text-white border-slate-900 shadow-md scale-105'
                           : step > item.s
                           ? 'bg-emerald-500 text-white border-emerald-500'
                           : 'bg-white text-slate-400 border-slate-200'
@@ -166,111 +162,44 @@ export default function ExitSurvey() {
                   </div>
                   {idx < 2 && (
                     <div
-                      className={`h-0.5 flex-grow mx-2 rounded ${
-                        step > item.s ? 'bg-emerald-500' : 'bg-slate-200'
-                      }`}
+                      className={`h-0.5 flex-grow mx-2 rounded ${step > item.s ? 'bg-emerald-500' : 'bg-slate-200'}`}
                     />
                   )}
                 </React.Fragment>
               ))}
             </div>
 
-            {/* Steps contents */}
             <form onSubmit={e => e.preventDefault()} className="space-y-6" id="exit-survey-steps-form">
-              {/* STEP 1: Biodata */}
               {step === 1 && (
-                <div className="space-y-4 animate-fade-in" id="survey-step-1">
-                  <h3 className="font-extrabold text-slate-900 text-base border-l-4 border-[#1E3A8A] pl-3">
+                <div className="space-y-4">
+                  <h3 className="font-extrabold text-slate-900 text-base border-l-4 border-slate-900 pl-3">
                     Langkah 1: Informasi Biodata Lulusan
                   </h3>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Nama Lengkap</label>
-                      <input
-                        type="text"
-                        value={formData.name}
-                        onChange={e => handleInputChange('name', e.target.value)}
-                        placeholder="Nama Lengkap & Gelar"
-                        className={`w-full px-3 py-2 rounded-xl border text-sm focus:outline-none ${
-                          errors.name ? 'border-red-500 animate-shake' : 'border-slate-200 focus:border-[#10B981]'
-                        }`}
-                      />
-                      {errors.name && <p className="text-red-500 text-[10px] font-bold">{errors.name}</p>}
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Nomor Induk Mahasiswa (NIM)</label>
-                      <input
-                        type="text"
-                        value={formData.nim}
-                        onChange={e => handleInputChange('nim', e.target.value)}
-                        placeholder="Contoh: 202201001"
-                        className={`w-full px-3 py-2 rounded-xl border text-sm focus:outline-none ${
-                          errors.nim ? 'border-red-500' : 'border-slate-200 focus:border-[#10B981]'
-                        }`}
-                      />
-                      {errors.nim && <p className="text-red-500 text-[10px] font-bold">{errors.nim}</p>}
-                    </div>
+                    <Field label="Nama Lengkap" name="name" value={formData.name} onChange={handleInputChange} placeholder="Nama Lengkap & Gelar" error={errors.name} />
+                    <Field label="Nomor Induk Mahasiswa (NIM)" name="nim" value={formData.nim} onChange={handleInputChange} placeholder="Contoh: 202201001" error={errors.nim} />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Program Studi</label>
-                      <input
-                        type="text"
-                        value={formData.prodi}
-                        onChange={e => handleInputChange('prodi', e.target.value)}
-                        placeholder="Teknik Informatika"
-                        className={`w-full px-3 py-2 rounded-xl border text-sm focus:outline-none ${
-                          errors.prodi ? 'border-red-500' : 'border-slate-200 focus:border-[#10B981]'
-                        }`}
-                      />
-                      {errors.prodi && <p className="text-red-500 text-[10px] font-bold">{errors.prodi}</p>}
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Tahun Lulus</label>
-                      <select
-                        value={formData.gradYear}
-                        onChange={e => handleInputChange('gradYear', e.target.value)}
-                        className={`w-full px-3 py-2 rounded-xl border text-sm bg-white focus:outline-none ${
-                          errors.gradYear ? 'border-red-500' : 'border-slate-200 focus:border-[#10B981]'
-                        }`}
-                      >
-                        <option value="">-- Pilih Tahun --</option>
-                        <option value="2026">2026</option>
-                        <option value="2025">2025</option>
-                        <option value="2024">2024</option>
-                      </select>
-                      {errors.gradYear && <p className="text-red-500 text-[10px] font-bold">{errors.gradYear}</p>}
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">IPK Terakhir</label>
-                      <input
-                        type="text"
-                        value={formData.gpa}
-                        onChange={e => handleInputChange('gpa', e.target.value)}
-                        placeholder="Contoh: 3.50"
-                        className={`w-full px-3 py-2 rounded-xl border text-sm focus:outline-none ${
-                          errors.gpa ? 'border-red-500' : 'border-slate-200 focus:border-[#10B981]'
-                        }`}
-                      />
-                      {errors.gpa && <p className="text-red-500 text-[10px] font-bold">{errors.gpa}</p>}
-                    </div>
+                    <Field label="Program Studi" name="prodi" value={formData.prodi} onChange={handleInputChange} placeholder="Teknik Informatika" error={errors.prodi} />
+                    <SelectField label="Tahun Lulus" name="gradYear" value={formData.gradYear} onChange={handleInputChange} error={errors.gradYear}>
+                      <option value="">-- Pilih Tahun --</option>
+                      <option value="2026">2026</option>
+                      <option value="2025">2025</option>
+                      <option value="2024">2024</option>
+                    </SelectField>
+                    <Field label="IPK Terakhir" name="gpa" value={formData.gpa} onChange={handleInputChange} placeholder="Contoh: 3.50" error={errors.gpa} />
                   </div>
                 </div>
               )}
 
-              {/* STEP 2: Akademik */}
               {step === 2 && (
-                <div className="space-y-6 animate-fade-in" id="survey-step-2">
-                  <h3 className="font-extrabold text-slate-900 text-base border-l-4 border-[#1E3A8A] pl-3">
+                <div className="space-y-6">
+                  <h3 className="font-extrabold text-slate-900 text-base border-l-4 border-slate-900 pl-3">
                     Langkah 2: Evaluasi Layanan Akademik
                   </h3>
 
-                  {/* Curriculum Satisfaction */}
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-700 block">
                       Tingkat Kepuasan Relevansi Kurikulum Perkuliahan dengan Dunia Kerja:
@@ -283,8 +212,8 @@ export default function ExitSurvey() {
                           onClick={() => handleInputChange('curriculumSatisfaction', val)}
                           className={`flex-grow px-3 py-2 rounded-xl text-xs font-bold border transition ${
                             formData.curriculumSatisfaction === val
-                              ? 'bg-blue-50 border-[#1E3A8A] text-[#1E3A8A]'
-                              : 'bg-slate-50 border-slate-200 text-slate-655'
+                              ? 'bg-blue-50 border-slate-900 text-slate-900'
+                              : 'bg-slate-50 border-slate-200 text-slate-700'
                           }`}
                         >
                           {val}
@@ -296,7 +225,6 @@ export default function ExitSurvey() {
                     )}
                   </div>
 
-                  {/* Facility Satisfaction */}
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-700 block">
                       Tingkat Kepuasan Fasilitas Penunjang Softskill di Kampus:
@@ -309,8 +237,8 @@ export default function ExitSurvey() {
                           onClick={() => handleInputChange('facilitySatisfaction', val)}
                           className={`flex-grow px-3 py-2 rounded-xl text-xs font-bold border transition ${
                             formData.facilitySatisfaction === val
-                              ? 'bg-blue-50 border-[#1E3A8A] text-[#1E3A8A]'
-                              : 'bg-slate-50 border-slate-200 text-slate-655'
+                              ? 'bg-blue-50 border-slate-900 text-slate-900'
+                              : 'bg-slate-50 border-slate-200 text-slate-700'
                           }`}
                         >
                           {val}
@@ -324,14 +252,12 @@ export default function ExitSurvey() {
                 </div>
               )}
 
-              {/* STEP 3: Karir */}
               {step === 3 && (
-                <div className="space-y-6 animate-fade-in" id="survey-step-3">
-                  <h3 className="font-extrabold text-slate-900 text-base border-l-4 border-[#1E3A8A] pl-3">
+                <div className="space-y-6">
+                  <h3 className="font-extrabold text-slate-900 text-base border-l-4 border-slate-900 pl-3">
                     Langkah 3: Status Karir Saat Ini & Masukan
                   </h3>
 
-                  {/* Career Status */}
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-700 block">Status Aktivitas Karir Anda Saat Ini:</label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -347,14 +273,14 @@ export default function ExitSurvey() {
                           onClick={() => handleInputChange('careerStatus', item.v)}
                           className={`p-4 rounded-2xl border text-left text-xs font-bold transition flex gap-3 items-center ${
                             formData.careerStatus === item.v
-                              ? 'bg-blue-50 border-[#1E3A8A] text-[#1E3A8A]'
+                              ? 'bg-blue-50 border-slate-900 text-slate-900'
                               : 'bg-slate-50 border-slate-200 text-slate-700'
                           }`}
                         >
                           <div
                             className={`w-4 h-4 rounded-full border-2 shrink-0 ${
                               formData.careerStatus === item.v
-                                ? 'border-[#1E3A8A] bg-[#1E3A8A]'
+                                ? 'border-slate-900 bg-slate-900'
                                 : 'border-slate-300'
                             }`}
                           />
@@ -365,21 +291,19 @@ export default function ExitSurvey() {
                     {errors.careerStatus && <p className="text-red-500 text-[10px] font-bold">{errors.careerStatus}</p>}
                   </div>
 
-                  {/* Feedback */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700">Masukan &amp; Saran Konstruktif untuk Almamater</label>
+                    <label className="text-xs font-bold text-slate-700">Masukan & Saran Konstruktif untuk Almamater</label>
                     <textarea
                       rows={3}
                       value={formData.feedback}
                       onChange={e => handleInputChange('feedback', e.target.value)}
                       placeholder="Tuliskan masukan demi peningkatan kualitas kurikulum fakultas..."
-                      className="w-full p-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#10B981]"
+                      className="w-full p-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-emerald-500"
                     />
                   </div>
                 </div>
               )}
 
-              {/* Navigation buttons */}
               <div className="flex gap-3 pt-6 border-t border-slate-100">
                 {step > 1 && (
                   <button
@@ -403,7 +327,7 @@ export default function ExitSurvey() {
                   <button
                     type="button"
                     onClick={handleSubmit}
-                    className="ml-auto bg-[#10B981] hover:bg-emerald-500 text-white font-bold py-2.5 px-6 rounded-xl text-xs uppercase tracking-wider transition shadow-md flex items-center gap-1.5 active:scale-95"
+                    className="ml-auto bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-6 rounded-xl text-xs uppercase tracking-wider transition shadow-md flex items-center gap-1.5 active:scale-95"
                   >
                     Kirim Kuisioner <Sparkles className="w-3.5 h-3.5" />
                   </button>
@@ -412,7 +336,54 @@ export default function ExitSurvey() {
             </form>
           </div>
         )}
-      </div>
+      </Card>
+    </div>
+  );
+}
+
+function Field({ label, name, value, onChange, placeholder, error }: {
+  label: string;
+  name: string;
+  value: string;
+  onChange: (name: string, value: string) => void;
+  placeholder?: string;
+  error?: string;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-xs font-bold text-slate-700">{label}</label>
+      <input
+        type="text"
+        value={value}
+        onChange={e => onChange(name, e.target.value)}
+        placeholder={placeholder}
+        className={`w-full px-3 py-2 rounded-xl border text-sm focus:outline-none ${error ? 'border-red-500' : 'border-slate-200 focus:border-emerald-500'}`}
+      />
+      {error && <p className="text-red-500 text-[10px] font-bold">{error}</p>}
+    </div>
+  );
+}
+
+function SelectField({ label, name, value, onChange, error, children }: {
+  label: string;
+  name: string;
+  value: string;
+  onChange: (name: string, value: string) => void;
+  error?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-xs font-bold text-slate-700">{label}</label>
+      <select
+        name={name}
+        value={value}
+        onChange={e => onChange(name, e.target.value)}
+        className={`w-full px-3 py-2 rounded-xl border text-sm bg-white focus:outline-none ${error ? 'border-red-500' : 'border-slate-200 focus:border-emerald-500'}`}
+      >
+        {children}
+      </select>
+      {error && <p className="text-red-500 text-[10px] font-bold">{error}</p>}
     </div>
   );
 }

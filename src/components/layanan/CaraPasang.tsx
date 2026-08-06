@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FileText, Send, Building2, User, Mail, CheckCircle2, Info, Loader2 } from 'lucide-react';
+import { PageHeader, Card, CtaBlock, TwoColumn } from './ui';
 
 export default function CaraPasang() {
   const [formData, setFormData] = useState({
@@ -66,23 +67,18 @@ export default function CaraPasang() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-12 space-y-12" id="layanan-cara-pasang">
-      {/* Hero Header */}
-      <div className="text-center space-y-2">
-        <span className="px-3 py-1 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full font-bold text-xs uppercase tracking-wider">
-          Mitra Perusahaan
-        </span>
-        <h2 className="text-3xl font-extrabold text-[#1E3A8A]">Pemasangan Informasi Lowongan Kerja</h2>
-        <p className="text-slate-500 text-sm max-w-2xl mx-auto">
-          Temukan lulusan terbaik Universitas Muhammadiyah Kendari yang siap kerja dengan mempublikasikan lowongan perusahaan Anda di Portal CDC.
-        </p>
-      </div>
+    <div className="max-w-5xl mx-auto px-4 py-12 space-y-10" id="layanan-cara-pasang">
+      <PageHeader
+        badge="Mitra Perusahaan"
+        title="Pemasangan Informasi Lowongan Kerja"
+        description="Temukan lulusan terbaik Universitas Muhammadiyah Kendari yang siap kerja dengan mempublikasikan lowongan perusahaan Anda di Portal CDC."
+        accent="emerald"
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Column: Instructions */}
-        <div className="lg:col-span-5 space-y-6">
-          <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm space-y-6">
-            <h3 className="font-extrabold text-slate-900 text-lg border-l-4 border-[#10B981] pl-3">
+      <TwoColumn
+        left={
+          <Card>
+            <h3 className="font-extrabold text-slate-900 text-lg border-l-4 border-emerald-500 pl-3">
               Alur & Prosedur Pemasangan
             </h3>
             
@@ -93,7 +89,7 @@ export default function CaraPasang() {
                 { step: '3', title: 'Lowongan Tayang', desc: 'Setelah disetujui, lowongan akan tampil di portal utama dan aplikasi dashboard mahasiswa/alumni.' },
               ].map(item => (
                 <div key={item.step} className="flex gap-4">
-                  <div className="w-8 h-8 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0 font-bold text-[#1E3A8A] text-sm">
+                  <div className="w-8 h-8 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0 font-bold text-slate-900 text-sm">
                     {item.step}
                   </div>
                   <div>
@@ -110,12 +106,10 @@ export default function CaraPasang() {
                 <span className="font-bold">Layanan Gratis:</span> Pemasangan lowongan kerja di Portal CDC tidak dipungut biaya apapun bagi seluruh perusahaan mitra resmi.
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Right Column: Form */}
-        <div className="lg:col-span-7">
-          <div className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
+          </Card>
+        }
+        right={
+          <Card>
             {isSubmitted ? (
               <div className="text-center py-8 space-y-4" id="form-success-state">
                 <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-600">
@@ -137,94 +131,15 @@ export default function CaraPasang() {
                 <h3 className="font-extrabold text-slate-900 text-lg">Formulir Pengajuan Loker</h3>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Company Name */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700">Nama Perusahaan / Instansi</label>
-                    <div className="relative">
-                      <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
-                        <Building2 className="w-4 h-4" />
-                      </span>
-                      <input
-                        type="text"
-                        name="companyName"
-                        value={formData.companyName}
-                        onChange={e => handleInputChange('companyName', e.target.value)}
-                        placeholder="Contoh: PT Teknologi Bangsa"
-                        className={`w-full pl-9 pr-3 py-2 rounded-xl border text-sm focus:outline-none ${
-                          errors.companyName ? 'border-red-500' : 'border-slate-200 focus:border-[#10B981]'
-                        }`}
-                      />
-                    </div>
-                    {errors.companyName && <p className="text-red-500 text-[10px] font-bold">{errors.companyName}</p>}
-                  </div>
-
-                  {/* PIC Name */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700">Nama PIC Perusahaan</label>
-                    <div className="relative">
-                      <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
-                        <User className="w-4 h-4" />
-                      </span>
-                      <input
-                        type="text"
-                        name="picName"
-                        value={formData.picName}
-                        onChange={e => handleInputChange('picName', e.target.value)}
-                        placeholder="Nama Narahubung"
-                        className={`w-full pl-9 pr-3 py-2 rounded-xl border text-sm focus:outline-none ${
-                          errors.picName ? 'border-red-500' : 'border-slate-200 focus:border-[#10B981]'
-                        }`}
-                      />
-                    </div>
-                    {errors.picName && <p className="text-red-500 text-[10px] font-bold">{errors.picName}</p>}
-                  </div>
+                  <FieldWithIcon label="Nama Perusahaan / Instansi" name="companyName" value={formData.companyName} onChange={handleInputChange} placeholder="Contoh: PT Teknologi Bangsa" error={errors.companyName} icon={<Building2 className="w-4 h-4" />} />
+                  <FieldWithIcon label="Nama PIC Perusahaan" name="picName" value={formData.picName} onChange={handleInputChange} placeholder="Nama Narahubung" error={errors.picName} icon={<User className="w-4 h-4" />} />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Email */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700">Email Perusahaan</label>
-                    <div className="relative">
-                      <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
-                        <Mail className="w-4 h-4" />
-                      </span>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={e => handleInputChange('email', e.target.value)}
-                        placeholder="hrd@perusahaan.com"
-                        className={`w-full pl-9 pr-3 py-2 rounded-xl border text-sm focus:outline-none ${
-                          errors.email ? 'border-red-500' : 'border-slate-200 focus:border-[#10B981]'
-                        }`}
-                      />
-                    </div>
-                    {errors.email && <p className="text-red-500 text-[10px] font-bold">{errors.email}</p>}
-                  </div>
-
-                  {/* Job Title */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700">Judul Posisi Lowongan</label>
-                    <div className="relative">
-                      <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
-                        <FileText className="w-4 h-4" />
-                      </span>
-                      <input
-                        type="text"
-                        name="jobTitle"
-                        value={formData.jobTitle}
-                        onChange={e => handleInputChange('jobTitle', e.target.value)}
-                        placeholder="Contoh: Staff Keuangan"
-                        className={`w-full pl-9 pr-3 py-2 rounded-xl border text-sm focus:outline-none ${
-                          errors.jobTitle ? 'border-red-500' : 'border-slate-200 focus:border-[#10B981]'
-                        }`}
-                      />
-                    </div>
-                    {errors.jobTitle && <p className="text-red-500 text-[10px] font-bold">{errors.jobTitle}</p>}
-                  </div>
+                  <FieldWithIcon label="Email Perusahaan" name="email" value={formData.email} onChange={handleInputChange} placeholder="hrd@perusahaan.com" error={errors.email} icon={<Mail className="w-4 h-4" />} />
+                  <FieldWithIcon label="Judul Posisi Lowongan" name="jobTitle" value={formData.jobTitle} onChange={handleInputChange} placeholder="Contoh: Staff Keuangan" error={errors.jobTitle} icon={<FileText className="w-4 h-4" />} />
                 </div>
 
-                {/* Description */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700">Uraian Tugas & Deskripsi Pekerjaan</label>
                   <textarea
@@ -233,14 +148,11 @@ export default function CaraPasang() {
                     value={formData.description}
                     onChange={e => handleInputChange('description', e.target.value)}
                     placeholder="Jelaskan uraian pekerjaan secara singkat dan jelas..."
-                    className={`w-full p-3 rounded-xl border text-sm focus:outline-none ${
-                      errors.description ? 'border-red-500' : 'border-slate-200 focus:border-[#10B981]'
-                    }`}
+                    className={`w-full p-3 rounded-xl border text-sm focus:outline-none ${errors.description ? 'border-red-500' : 'border-slate-200 focus:border-emerald-500'}`}
                   />
                   {errors.description && <p className="text-red-500 text-[10px] font-bold">{errors.description}</p>}
                 </div>
 
-                {/* Requirements */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700">Kualifikasi Pelamar</label>
                   <textarea
@@ -249,9 +161,7 @@ export default function CaraPasang() {
                     value={formData.requirements}
                     onChange={e => handleInputChange('requirements', e.target.value)}
                     placeholder="Contoh: Lulusan S1 Ekonomi, IPK minimal 3.00, Mampu berkomunikasi dengan baik..."
-                    className={`w-full p-3 rounded-xl border text-sm focus:outline-none ${
-                      errors.requirements ? 'border-red-500' : 'border-slate-200 focus:border-[#10B981]'
-                    }`}
+                    className={`w-full p-3 rounded-xl border text-sm focus:outline-none ${errors.requirements ? 'border-red-500' : 'border-slate-200 focus:border-emerald-500'}`}
                   />
                   {errors.requirements && <p className="text-red-500 text-[10px] font-bold">{errors.requirements}</p>}
                 </div>
@@ -259,7 +169,7 @@ export default function CaraPasang() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-[#10B981] hover:bg-emerald-500 disabled:bg-emerald-400 text-white font-bold py-3 rounded-xl text-xs uppercase tracking-wider transition shadow-md flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer disabled:cursor-not-allowed"
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-400 text-white font-bold py-3 rounded-xl text-xs uppercase tracking-wider transition shadow-md flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (
                     <>
@@ -273,9 +183,37 @@ export default function CaraPasang() {
                 </button>
               </form>
             )}
-          </div>
-        </div>
+          </Card>
+        }
+      />
+    </div>
+  );
+}
+
+function FieldWithIcon({ label, name, value, onChange, placeholder, error, icon }: {
+  label: string;
+  name: string;
+  value: string;
+  onChange: (name: string, value: string) => void;
+  placeholder?: string;
+  error?: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-xs font-bold text-slate-700">{label}</label>
+      <div className="relative">
+        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">{icon}</span>
+        <input
+          type="text"
+          name={name}
+          value={value}
+          onChange={e => onChange(name, e.target.value)}
+          placeholder={placeholder}
+          className={`w-full pl-9 pr-3 py-2 rounded-xl border text-sm focus:outline-none ${error ? 'border-red-500' : 'border-slate-200 focus:border-emerald-500'}`}
+        />
       </div>
+      {error && <p className="text-red-500 text-[10px] font-bold">{error}</p>}
     </div>
   );
 }

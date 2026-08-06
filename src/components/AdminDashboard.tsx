@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   User as UserType,
+  UserRole,
   Mahasiswa,
   Alumni,
   Mitra,
@@ -20,7 +21,8 @@ import {
   saveToDB,
   insertToDB,
   updateInDB,
-  deleteInDB
+  deleteInDB,
+  DBKey
 } from '../data';
 import {
   Building2,
@@ -96,7 +98,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   const [showAddNews, setShowAddNews] = useState(false);
   const [nTitle, setNTitle] = useState('');
   const [nContent, setNContent] = useState('');
-  const [newsCategory, setNewsCategory] = useState<Berita['category']>('magang');
+  const [newsCategory, setNewsCategory] = useState<string>('magang');
   const [newsExcerpt, setNewsExcerpt] = useState('');
   const [newsCoverDataUrl, setNewsCoverDataUrl] = useState('');
   const [newsMode, setNewsMode] = useState<'create' | 'edit'>('create');
@@ -222,28 +224,29 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
 
   const persistNewsFromForm = (status: 'draft' | 'published' | 'unpublished') => {
     if (!nTitle || !nContent) return;
+    const normalizedStatus: 'draft' | 'published' = status === 'unpublished' ? 'draft' : status;
     const now = new Date().toISOString();
-    const base = { title: nTitle, content: nContent, excerpt: newsExcerpt || nContent.substring(0, 100) + '...', coverImageUrl: newsCoverDataUrl || undefined, category: newsCategory };
+    const base = { title: nTitle, slug: nTitle.toLowerCase().replace(/ /g, '-').replace(/[^\w-]/g, ''), content: nContent, excerpt: newsExcerpt || nContent.substring(0, 100) + '...', coverImageUrl: newsCoverDataUrl || undefined, category: newsCategory };
 
     if (newsMode === 'edit' && editingNews) {
       const updated: Berita = {
         ...editingNews,
         ...base,
-        status,
-        publishedAt: status === 'published' ? now : editingNews.publishedAt,
+        status: normalizedStatus,
+        publishedAt: normalizedStatus === 'published' ? now : editingNews.publishedAt,
       };
       updateInDB<Berita>('berita', updated);
       setEditingNews(null);
       setShowAddNews(false);
       reloadAll();
-      triggerToast('success', status === 'draft' ? 'Draft berita disimpan.' : 'Perubahan berita disimpan.');
+      triggerToast('success', normalizedStatus === 'draft' ? 'Draft berita disimpan.' : 'Perubahan berita disimpan.');
     } else {
       const newArticle: Berita = {
         id: `news_${Date.now()}`,
         ...base,
-        status,
+        status: normalizedStatus,
         authorId: user.id,
-        publishedAt: status === 'published' ? now : undefined,
+        publishedAt: normalizedStatus === 'published' ? now : undefined,
         createdAt: now,
       };
       insertToDB<Berita>('berita', newArticle);
@@ -1077,7 +1080,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                               History CDC
                             </button>
                             <button
-                              onClick={() => { updateInDB('students', { ...st, status: st.status === 'Nonaktif' ? 'Aktif' : 'Nonaktif' }); reloadAll(); }}
+                              onClick={() => { updateInDB<any>('mahasiswa', { ...st, status: st.status === 'Nonaktif' ? 'Aktif' : 'Nonaktif' }); reloadAll(); }}
                               className="inline-flex items-center px-2.5 py-1 rounded-full border border-amber-200 text-amber-700 hover:bg-amber-50 text-[11px] font-bold transition active:scale-95"
                             >
                               {st.status === 'Nonaktif' ? 'Aktifkan' : 'Nonaktifkan'}

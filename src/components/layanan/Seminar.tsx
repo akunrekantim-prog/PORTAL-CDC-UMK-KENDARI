@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Calendar, MapPin, Clock, Award, CheckCircle2, Ticket } from 'lucide-react';
+import { PageHeader, Card, CtaBlock } from './ui';
 
 export default function Seminar() {
   const [formData, setFormData] = useState({ name: '', nim: '', prodi: '', phone: '' });
@@ -30,7 +31,6 @@ export default function Seminar() {
       return;
     }
 
-    // Deduct quota, generate random ticket number
     setQuota(q => q - 1);
     setTicketNum('SEM-' + Math.floor(100000 + Math.random() * 900000));
     setIsRegistered(true);
@@ -43,27 +43,22 @@ export default function Seminar() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-12 space-y-12" id="layanan-seminar">
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <span className="px-3 py-1 bg-rose-50 text-rose-600 border border-rose-100 rounded-full font-bold text-xs uppercase tracking-wider">
-          Agenda Terdekat
-        </span>
-        <h2 className="text-3xl font-extrabold text-[#1E3A8A]">Seminar Sukses Berkarir</h2>
-        <p className="text-slate-500 text-sm max-w-xl mx-auto">
-          Ikuti seminar rutin pembekalan karir pasca-kampus bersama narasumber handal, praktisi industri, dan alumni sukses.
-        </p>
-      </div>
+    <div className="max-w-5xl mx-auto px-4 py-12 space-y-10" id="layanan-seminar">
+      <PageHeader
+        badge="Agenda Terdekat"
+        title="Seminar Sukses Berkarir"
+        description="Ikuti seminar rutin pembekalan karir pasca-kampus bersama narasumber handal, praktisi industri, dan alumni sukses."
+        accent="fuchsia"
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Column: Seminar Detail Card */}
         <div className="lg:col-span-5 space-y-6">
-          <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm space-y-6">
-            <h3 className="font-extrabold text-slate-900 text-lg border-l-4 border-rose-500 pl-3">
+          <Card>
+            <h3 className="font-extrabold text-slate-900 text-lg border-l-4 border-fuchsia-500 pl-3">
               Informasi Acara
             </h3>
 
-            <div className="space-y-4 text-xs font-semibold text-slate-650 text-slate-700">
+            <div className="space-y-4 text-xs font-semibold text-slate-700">
               <h4 className="font-extrabold text-slate-900 text-sm">
                 Seminar Nasional: "Menavigasi Karir di Era Kecerdasan Buatan (AI) 2026"
               </h4>
@@ -86,23 +81,22 @@ export default function Seminar() {
                 </div>
                 <div className="flex items-center gap-2.5">
                   <Award className="w-4 h-4 text-slate-400" />
-                  <span className="text-[#10B981] font-bold">Gratis &amp; Bersertifikat Resmi CDC</span>
+                  <span className="text-emerald-600 font-bold">Gratis & Bersertifikat Resmi CDC</span>
                 </div>
               </div>
             </div>
 
             <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-bold">
               <span>Kuota Peserta Tersedia:</span>
-              <span className="text-rose-600 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-100">
+              <span className="text-fuchsia-600 bg-fuchsia-50 px-2.5 py-1 rounded-full border border-fuchsia-100">
                 {quota} Kursi
               </span>
             </div>
-          </div>
+          </Card>
         </div>
 
-        {/* Right Column: Interactive Registration / E-Ticket */}
         <div className="lg:col-span-7">
-          <div className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
+          <Card>
             {isRegistered ? (
               <div className="text-center py-6 space-y-6" id="seminar-success-state">
                 <div className="space-y-2">
@@ -115,18 +109,17 @@ export default function Seminar() {
                   </p>
                 </div>
 
-                {/* Printable E-Ticket Widget */}
                 <div className="border border-slate-200 rounded-3xl bg-slate-50/50 p-6 max-w-sm mx-auto relative overflow-hidden font-sans shadow-xs text-left text-xs">
-                  <div className="absolute top-0 left-0 right-0 h-1.5 bg-rose-500" />
-                  <div className="flex justify-between items-start pb-4 border-b border-dashed border-slate-350 border-slate-300">
+                  <div className="absolute top-0 left-0 right-0 h-1.5 bg-fuchsia-500" />
+                  <div className="flex justify-between items-start pb-4 border-b border-dashed border-slate-300">
                     <div>
-                      <span className="text-[10px] font-extrabold text-rose-600 tracking-wider">E-TICKET ACARA</span>
+                      <span className="text-[10px] font-extrabold text-fuchsia-600 tracking-wider">E-TICKET ACARA</span>
                       <h4 className="font-extrabold text-slate-900 text-sm">SEMINAR CDC UMK</h4>
                     </div>
                     <Ticket className="w-6 h-6 text-slate-400" />
                   </div>
 
-                  <div className="py-4 space-y-2.5 font-medium text-slate-650">
+                  <div className="py-4 space-y-2.5 font-medium text-slate-700">
                     <div className="grid grid-cols-3">
                       <span className="text-slate-400">Kode Tiket:</span>
                       <span className="col-span-2 font-bold text-slate-900 font-mono text-sm">{ticketNum}</span>
@@ -147,13 +140,13 @@ export default function Seminar() {
 
                   <div className="pt-4 border-t border-slate-200 flex flex-col items-center gap-1">
                     <div className="h-6 w-48 bg-slate-300 rounded animate-pulse" />
-                    <span className="text-[9px] text-slate-450 font-mono">Scan Barcode untuk Presensi</span>
+                    <span className="text-[9px] text-slate-400 font-mono">Scan Barcode untuk Presensi</span>
                   </div>
                 </div>
 
                 <button
                   onClick={handleReset}
-                  className="px-6 py-2.5 bg-slate-950 text-white text-xs font-bold rounded-xl hover:bg-slate-800 transition uppercase tracking-wider"
+                  className="px-6 py-2.5 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-slate-800 transition uppercase tracking-wider"
                 >
                   Registrasi Acara Lain
                 </button>
@@ -162,83 +155,48 @@ export default function Seminar() {
               <form onSubmit={handleSubmit} className="space-y-6" id="seminar-form">
                 <h3 className="font-extrabold text-slate-900 text-lg">Formulir Peserta Seminar</h3>
 
-                {/* Name Input */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700">Nama Lengkap</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={e => handleInputChange('name', e.target.value)}
-                    placeholder="Nama sesuai KTM"
-                    className={`w-full px-3 py-2 rounded-xl border text-sm focus:outline-none ${
-                      errors.name ? 'border-red-500' : 'border-slate-200 focus:border-[#10B981]'
-                    }`}
-                  />
-                  {errors.name && <p className="text-red-500 text-[10px] font-bold">{errors.name}</p>}
-                </div>
-
+                <Field label="Nama Lengkap" name="name" value={formData.name} onChange={handleInputChange} placeholder="Nama sesuai KTM" error={errors.name} />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* NIM */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700">NIM / NIDN</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.nim}
-                      onChange={e => handleInputChange('nim', e.target.value)}
-                      placeholder="Contoh: 202201001"
-                      className={`w-full px-3 py-2 rounded-xl border text-sm focus:outline-none ${
-                        errors.nim ? 'border-red-500' : 'border-slate-200 focus:border-[#10B981]'
-                      }`}
-                    />
-                    {errors.nim && <p className="text-red-500 text-[10px] font-bold">{errors.nim}</p>}
-                  </div>
-
-                  {/* Prodi */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700">Program Studi</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.prodi}
-                      onChange={e => handleInputChange('prodi', e.target.value)}
-                      placeholder="Contoh: Teknik Informatika"
-                      className={`w-full px-3 py-2 rounded-xl border text-sm focus:outline-none ${
-                        errors.prodi ? 'border-red-500' : 'border-slate-200 focus:border-[#10B981]'
-                      }`}
-                    />
-                    {errors.prodi && <p className="text-red-500 text-[10px] font-bold">{errors.prodi}</p>}
-                  </div>
+                  <Field label="NIM / NIDN" name="nim" value={formData.nim} onChange={handleInputChange} placeholder="Contoh: 202201001" error={errors.nim} />
+                  <Field label="Program Studi" name="prodi" value={formData.prodi} onChange={handleInputChange} placeholder="Contoh: Teknik Informatika" error={errors.prodi} />
                 </div>
-
-                {/* Phone */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700">Nomor WhatsApp Aktif</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.phone}
-                    onChange={e => handleInputChange('phone', e.target.value)}
-                    placeholder="Contoh: 085241009988"
-                    className={`w-full px-3 py-2 rounded-xl border text-sm focus:outline-none ${
-                      errors.phone ? 'border-red-500' : 'border-slate-200 focus:border-[#10B981]'
-                    }`}
-                  />
-                  {errors.phone && <p className="text-red-500 text-[10px] font-bold">{errors.phone}</p>}
-                </div>
+                <Field label="Nomor WhatsApp Aktif" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="Contoh: 085241009988" error={errors.phone} />
 
                 <button
                   type="submit"
-                  className="w-full bg-[#10B981] hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs uppercase tracking-wider transition shadow-md active:scale-95"
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs uppercase tracking-wider transition shadow-md active:scale-95"
                 >
                   Kirim Pendaftaran Seminar
                 </button>
               </form>
             )}
-          </div>
+          </Card>
         </div>
       </div>
+    </div>
+  );
+}
+
+function Field({ label, name, value, onChange, placeholder, error }: {
+  label: string;
+  name: string;
+  value: string;
+  onChange: (name: string, value: string) => void;
+  placeholder?: string;
+  error?: string;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-xs font-bold text-slate-700">{label}</label>
+      <input
+        type="text"
+        required
+        value={value}
+        onChange={e => onChange(name, e.target.value)}
+        placeholder={placeholder}
+        className={`w-full px-3 py-2 rounded-xl border text-sm focus:outline-none ${error ? 'border-red-500' : 'border-slate-200 focus:border-emerald-500'}`}
+      />
+      {error && <p className="text-red-500 text-[10px] font-bold">{error}</p>}
     </div>
   );
 }
