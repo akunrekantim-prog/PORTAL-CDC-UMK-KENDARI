@@ -21,7 +21,9 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 ───────────────────────────────────────────────────────────────── */
 interface NavChild {
   label: string;
-  tab: string;
+  tab?: string;
+  href?: string;
+  children?: NavChild[];
 }
 
 interface NavItem {
@@ -53,12 +55,17 @@ const NAV_ITEMS: NavItem[] = [
     id: 'tentang',
     label: 'Tentang Kami',
     children: [
-      { label: 'Profil', tab: 'profil' },
+      {
+        label: 'Profil',
+        tab: 'profil',
+        children: [
+          { label: 'Visi – Misi', tab: 'profil' },
+          { label: 'Keanggotaan', tab: 'keanggotaan' },
+        ],
+      },
       { label: 'Surat Keputusan CDC', tab: 'sk-cdc' },
-      { label: 'Tujuan - Strategi', tab: 'tujuan' },
       { label: 'Kalender Kegiatan', tab: 'kalender' },
       { label: 'Laporan Kinerja', tab: 'laporan' },
-      { label: 'Panduan Penggunaan Situs', tab: 'panduan' },
       { label: 'MOU Dengan Stakeholder', tab: 'mou' },
       { label: 'Galeri', tab: 'galeri' },
     ],
@@ -81,13 +88,9 @@ const NAV_ITEMS: NavItem[] = [
   {
     id: 'tracer',
     label: 'Tracer Study',
-    href: 'https://tracerstudy.umkendari.ac.id',
-  },
-  {
-    id: 'survey',
-    label: 'User Survey',
     children: [
-      { label: 'Kuesioner Pengguna Lulusan', tab: 'survey-pengguna' },
+      { label: 'Tracer Study Alumni', href: 'https://tracerstudy.umkendari.ac.id' },
+      { label: 'Kuesioner Pengguna Lulusan', href: 'https://tracerstudy.umkendari.ac.id/page/survey' },
     ],
   },
   {
@@ -116,7 +119,6 @@ const TOP_LINKS = [
   { label: 'Website UM Kendari', href: 'https://umkendari.ac.id/' },
   { label: 'SIMBELMAWA', href: 'https://simbelmawa.kemdiktisaintek.go.id/' },
   { label: 'SIMKATMAWA', href: 'https://simkatmawa.kemdiktisaintek.go.id/' },
-  { label: 'MTQMN', href: 'https://mtqmn.kemenag.go.id/' },
 ];
 
 /* ─────────────────────────────────────────────────────────────────
@@ -126,6 +128,8 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
+  const [subMobileExpanded, setSubMobileExpanded] = useState<string | null>(null);
+  const [activeSubMenu, setActiveSubMenu] = useState<string | null>('Profil');
 
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const navRef = useRef<HTMLDivElement>(null);
@@ -191,7 +195,13 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
   /* ── Is a nav item "active"? ── */
   const isActive = (item: NavItem): boolean => {
     if (item.tab) return currentTab === item.tab;
-    if (item.children) return item.children.some(c => c.tab === currentTab);
+    if (item.children) {
+      return item.children.some(c => {
+        if (c.tab && c.tab === currentTab) return true;
+        if (c.children) return c.children.some(sc => sc.tab && sc.tab === currentTab);
+        return false;
+      });
+    }
     return false;
   };
 
@@ -283,7 +293,6 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                   >
                     {item.label}
                     {item.children && (
-                      /* inline SVG chevron — no lucide-react inside dropdown area */
                       <svg
                         className={[
                           'w-3.5 h-3.5 transition-transform duration-200 shrink-0',
@@ -300,34 +309,93 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                   {/* ── DROPDOWN PANEL ── */}
                   {item.children && openDropdown === item.id && (
                     <div
-                      className="absolute top-full left-0 z-[100] min-w-[220px] w-max
-                                 bg-white border border-gray-100 shadow-lg rounded-b-lg
-                                 overflow-hidden"
+                      className="absolute top-full left-0 z-[100] flex bg-white border border-gray-200/80
+                                 shadow-xl rounded-b-lg overflow-hidden min-w-max"
                       onMouseEnter={cancelClose}
                       onMouseLeave={handleMouseLeave}
                       role="menu"
                     >
-                      {item.children.map((child, idx) => (
-                        <React.Fragment key={child.tab}>
-                          <button
-                            onClick={() => navigate(child.tab, item.isAction)}
-                            role="menuitem"
-                            className={[
-                              'w-full text-left px-5 py-2.5 text-sm font-medium',
-                              'transition-colors duration-100',
-                              currentTab === child.tab
-                                ? 'text-[#F26522] bg-orange-50'
-                                : 'text-gray-700 hover:text-[#F26522] hover:bg-gray-50',
-                            ].join(' ')}
-                          >
-                            {child.label}
-                          </button>
-                          {/* Divider between items (not after last) */}
-                          {idx < item.children!.length - 1 && (
-                            <div className="h-px bg-gray-100 mx-4" aria-hidden="true" />
-                          )}
-                        </React.Fragment>
-                      ))}
+                      {/* Left Column: Main Dropdown List */}
+                      <div className="min-w-[220px] bg-white py-1 divide-y divide-gray-100">
+                        {item.children.map((child) => {
+                          const hasSub = !!(child.children && child.children.length > 0);
+                          const isSubActive = hasSub && activeSubMenu === child.label;
+
+                          return (
+                            <button
+                              key={child.label}
+                              onMouseEnter={() => {
+                                if (hasSub) setActiveSubMenu(child.label);
+                                else setActiveSubMenu(null);
+                              }}
+                              onClick={() => {
+                                if (hasSub) {
+                                  setActiveSubMenu(child.label);
+                                } else {
+                                  setOpenDropdown(null);
+                                  if (child.href) window.open(child.href, '_blank', 'noopener,noreferrer');
+                                  else if (child.tab) navigate(child.tab, item.isAction);
+                                }
+                              }}
+                              role="menuitem"
+                              className={[
+                                'w-full text-left px-5 py-3 text-sm font-medium flex items-center justify-between gap-4 transition-colors duration-150',
+                                isSubActive
+                                  ? 'bg-gray-100/90 text-gray-900 font-semibold'
+                                  : child.tab && currentTab === child.tab
+                                  ? 'text-[#F26522] bg-orange-50/60 font-semibold'
+                                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900',
+                              ].join(' ')}
+                            >
+                              <span>{child.label}</span>
+                              {hasSub && (
+                                <svg
+                                  className={[
+                                    'w-3.5 h-3.5 transition-colors',
+                                    isSubActive ? 'text-gray-800' : 'text-gray-400',
+                                  ].join(' ')}
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  strokeWidth={2}
+                                >
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                                </svg>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Right Column: Attached Side Sub-Menu (e.g. Visi - Misi & Keanggotaan) */}
+                      {item.children.some(c => c.children && c.label === activeSubMenu) && (
+                        <div className="min-w-[200px] bg-white py-1 divide-y divide-gray-100 border-l border-gray-100">
+                          {item.children
+                            .find(c => c.label === activeSubMenu)
+                            ?.children?.map((subChild) => (
+                              <button
+                                key={subChild.label}
+                                onClick={() => {
+                                  setOpenDropdown(null);
+                                  if (subChild.href) {
+                                    window.open(subChild.href, '_blank', 'noopener,noreferrer');
+                                  } else if (subChild.tab) {
+                                    navigate(subChild.tab, item.isAction);
+                                  }
+                                }}
+                                role="menuitem"
+                                className={[
+                                  'w-full text-left px-5 py-3 text-sm font-medium transition-colors duration-150',
+                                  subChild.tab && currentTab === subChild.tab
+                                    ? 'text-[#F26522] bg-orange-50/60 font-semibold'
+                                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900',
+                                ].join(' ')}
+                              >
+                                {subChild.label}
+                              </button>
+                            ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -414,19 +482,58 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                   {item.children && expanded && (
                     <div className="bg-gray-50 pb-1">
                       {item.children.map((child, idx) => (
-                        <React.Fragment key={child.tab}>
+                        <React.Fragment key={child.label}>
                           <button
-                            onClick={() => navigate(child.tab, item.isAction)}
+                            onClick={() => {
+                              if (!child.children) {
+                                setIsMobileOpen(false);
+                                setMobileExpanded(null);
+                              }
+                              if (child.href) {
+                                window.open(child.href, '_blank', 'noopener,noreferrer');
+                              } else if (child.tab) {
+                                navigate(child.tab, item.isAction);
+                              }
+                            }}
                             className={[
-                              'w-full text-left px-10 py-3 text-sm font-medium transition-colors duration-100',
-                              currentTab === child.tab
+                              'w-full text-left px-10 py-2.5 text-sm font-semibold transition-colors duration-100 flex items-center justify-between',
+                              child.tab && currentTab === child.tab
                                 ? 'text-[#F26522]'
-                                : 'text-gray-600 hover:text-[#F26522]',
+                                : 'text-gray-700 hover:text-[#F26522]',
                             ].join(' ')}
                           >
-                            {child.label}
+                            <span>{child.label}</span>
                           </button>
-                          {idx < item.children!.length - 1 && (
+
+                          {child.children && (
+                            <div className="bg-gray-100/80 py-1 space-y-0.5 border-y border-gray-200/60">
+                              {child.children.map((subChild) => (
+                                <button
+                                  key={subChild.label}
+                                  onClick={() => {
+                                    setIsMobileOpen(false);
+                                    setMobileExpanded(null);
+                                    if (subChild.href) {
+                                      window.open(subChild.href, '_blank', 'noopener,noreferrer');
+                                    } else if (subChild.tab) {
+                                      navigate(subChild.tab, item.isAction);
+                                    }
+                                  }}
+                                  className={[
+                                    'w-full text-left pl-14 pr-6 py-2 text-xs font-semibold flex items-center gap-1.5 transition-colors duration-100',
+                                    subChild.tab && currentTab === subChild.tab
+                                      ? 'text-[#F26522]'
+                                      : 'text-gray-600 hover:text-[#F26522]',
+                                  ].join(' ')}
+                                >
+                                  <span className="text-[#F26522] font-bold text-[10px]">└</span>
+                                  <span>{subChild.label}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+
+                          {idx < item.children!.length - 1 && !child.children && (
                             <div className="h-px bg-gray-200 mx-10" aria-hidden="true" />
                           )}
                         </React.Fragment>

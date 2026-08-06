@@ -269,21 +269,35 @@ Seluruh sub-bab layanan telah berfungsi, terintegrasi, bebas dari error, dan mem
 ---
 
 ## Tanggal: 6 Agustus 2026
-**Fokus Pekerjaan:** Penyempurnaan Fitur Pencarian Loker, Integrasi Dashboard Mitra & Pelamar, Peninjauan Berkas CV Real-Time, & Manajemen Bookmark Lowongan
+**Fokus Pekerjaan:** Penyempurnaan Navigasi Header, Sub-Menu Profil 2-Kolom, Restrukturisasi Menu Tracer Study, Fitur Pencarian Loker, & Dashboard Mitra
 
 ### 🚀 Ringkasan Perubahan UI & Feature Updates
 
-1. **Rombak Katalog Pencarian Loker & Multi-Filter (`JobSearchMasterDetail.tsx`)**:
+1. **Restrukturisasi Menu Tracer Study & User Survey (`Header.tsx`):**
+   - **`src/components/Header.tsx`:** Menghapus menu utama *standalone* "User Survey" dan memindahkan **Kuesioner Pengguna Lulusan** menjadi sub-menu di bawah **Tracer Study**.
+   - Menambahkan dukungan *external link* (`href`) pada tipe `NavChild` sehingga saat diklik langsung membuka tautan survei resmi di tab baru (`_blank`).
+   - Struktur sub-menu Tracer Study:
+     - **Tracer Study Alumni**: `https://tracerstudy.umkendari.ac.id`
+     - **Kuesioner Pengguna Lulusan**: `https://tracerstudy.umkendari.ac.id/page/survey`
+
+2. **Implementasi UI/UX 2-Kolom Flyout Dropdown untuk Profil (`Header.tsx`):**
+   - Memindahkan sub-menu **Visi – Misi** (mengarahkan ke `tab: 'profil'`) dan **Keanggotaan** (mengarahkan ke `tab: 'keanggotaan'`) di bawah item `Profil` pada menu **Tentang Kami**.
+   - Merancang tampilan *2-Column Side-by-Side Flyout Dropdown* yang presisi sesuai acuan desain portal CDAC UMSU:
+     - **Kolom Kiri**: Daftar menu utama (*Profil* dengan penanda ikon chevron `>`, SK CDC, Kalender Kegiatan, Laporan Kinerja, MOU, Galeri) dengan *active hover highlight* berwarna abu-abu terang.
+     - **Kolom Kanan**: Panel sub-menu samping terhubung yang memuat *Visi – Misi* dan *Keanggotaan* dengan pembatas garis halus (`divide-y divide-gray-100`).
+   - Interaksi kursor dibuat 100% mulus (menggunakan kontainer flexbox terintegrasi untuk mencegah *flicker* / menu tertutup mendadak) serta mendukung penuh tampilan *mobile drawer accordion*.
+
+3. **Rombak Katalog Pencarian Loker & Multi-Filter (`JobSearchMasterDetail.tsx`)**:
    - Menghapus tampilan split-screen master-detail lama dan menggantinya dengan **katalog grid lowongan + halaman Job Detail mandiri**.
    - Menyediakan fitur pencarian multi-filter (1 Textbox Kata Kunci/Jabatan/Instansi, Multi-Select Checkbox Lokasi 38 Provinsi/Kota, Multi-Select Checkbox Spesialisasi Pekerjaan).
    - Menyelaraskan warna search bar menjadi **Corporate Blue (`#0077C6` / `#1E3A8A`)**.
    - Menampilkan **Logo Instansi** pada kartu katalog pencarian dan **Poster Flyer Lowongan** pada halaman `JobDetail.tsx`.
 
-2. **Sinkronisasi Form Lowongan & Pelamar di Dashboard Mitra (`MitraDashboard.tsx`)**:
+4. **Sinkronisasi Form Lowongan & Pelamar di Dashboard Mitra (`MitraDashboard.tsx`)**:
    - Menghubungkan seluruh bidang informasi lowongan di Dashboard Mitra secara 100% presisi dengan halaman `JobDetail.tsx` (Logo, Poster, Spesialisasi Multi-Select Checkbox, Deskripsi, Tanggung Jawab, Kualifikasi, Keahlian, Benefit).
    - Menghubungkan tombol **Lamar Sekarang** (`JobApplicationModal.tsx`) sehingga data lamaran mahasiswa tersimpan ke database `pengajuan_magang` dan langsung tersinkronisasi di Dashboard Mitra (Overview & Tabel Pelamar).
 
-3. **Peninjauan & Pengunduhan Berkas CV Pelamar Real-Time (`MitraDashboard.tsx` & `JobApplicationModal.tsx`)**:
+5. **Peninjauan & Pengunduhan Berkas CV Pelamar Real-Time (`MitraDashboard.tsx` & `JobApplicationModal.tsx`)**:
    - Mengubah mekanisme pengunggahan file CV menggunakan `FileReader.readAsDataURL` untuk menyimpan binary berkas pelamar secara utuh (`berkasUrl` & `berkasNama`).
    - Menyediakan **Modal Interactive Document Viewer** pada Dashboard Mitra:
      - Menampilkan identitas mahasiswa, NIM, Prodi, dan Surat Pengantar.
@@ -291,13 +305,18 @@ Seluruh sub-bab layanan telah berfungsi, terintegrasi, bebas dari error, dan mem
      - Menyediakan **Native PDF/Image Viewer Frame** langsung di dalam modal tanpa memicu SPA website fallback.
      - Menambahkan tombol **Terima**, **Tolak**, dan **Hapus Pelamar** (`deleteInDB`).
 
-4. **Sistem Bookmark & Simpan Lowongan Terintegrasi (`JobDetail.tsx`, `JobSearchMasterDetail.tsx`, `StudentProfileView.tsx`, `data.ts`)**:
+6. **Sistem Bookmark & Simpan Lowongan Terintegrasi (`JobDetail.tsx`, `JobSearchMasterDetail.tsx`, `StudentProfileView.tsx`, `data.ts`)**:
    - Membuat fungsi helper terpusat `getSavedJobIds()` dan `toggleSaveJob()` yang terhubung ke `localStorage` (`cdc_saved_job_ids`).
    - Menambahkan tombol **Bookmark** di kartu katalog pencarian dan tombol **Simpan Lowongan** di halaman detail.
    - Menyederhanakan sub-tab **My Bookmarks** di profil mahasiswa menjadi daftar lowongan tersimpan *full-width* tanpa sub-sidebar yang rumit.
    - Menambahkan fitur **Redirect Langsung**: Mengklik kartu lowongan di My Bookmarks langsung mengarahkan mahasiswa ke halaman detail lowongan (`JobDetail.tsx`) dengan header dashboard yang bersih (tanpa header publik ganda).
 
+7. **Inisialisasi Project & Environment Setup:**
+   - Menjalankan `npm install` untuk menginstal seluruh dependensi npm project (214 paket, termasuk Vite 6 dan React 19).
+   - Menjalankan *development server* (`npm run dev`).
+
 ### 📁 File Diubah & Ditambahkan
+- **[MODIFY]** `src/components/Header.tsx`
 - **[MODIFY]** `src/types.ts`
 - **[MODIFY]** `src/data.ts`
 - **[MODIFY]** `src/components/JobSearchMasterDetail.tsx`
@@ -309,6 +328,9 @@ Seluruh sub-bab layanan telah berfungsi, terintegrasi, bebas dari error, dan mem
 - **[MODIFY]** `progres.md`
 
 ### 📋 Checklist Selesai Sesi Ini
+- [x] Restrukturisasi menu Tracer Study & penambahan tautan external kuesioner pengguna lulusan
+- [x] Implementasi UI/UX 2-kolom side-by-side flyout dropdown pada menu Profil (Visi – Misi & Keanggotaan)
+- [x] Pengujian interaksi kursor mulus tanpa flicker di Desktop & Mobile
 - [x] Perbaikan katalog pencarian lowongan & styling warna biru corporate `#0077C6`
 - [x] Penyesuaian Logo Instansi di kartu Katalog & Poster Flyer di Job Detail
 - [x] Sinkronisasi form lowongan Mitra & multi-select checkbox spesialisasi
@@ -317,4 +339,5 @@ Seluruh sub-bab layanan telah berfungsi, terintegrasi, bebas dari error, dan mem
 - [x] Fitur Hapus Pelamar di Dashboard Mitra
 - [x] Sistem bookmark & redirect langsung lowongan di tab My Bookmarks
 - [x] Penghapusan header ganda saat membuka detail dari Dashboard Mahasiswa
-- [x] Verifikasi build produksi `npx vite build` (0 error)
+- [x] Instalasi dependensi npm (`npm install`) & jalankan dev server (`npm run dev`)
+- [x] Pencatatan laporan progres (6 Agustus 2026)
