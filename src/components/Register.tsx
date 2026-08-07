@@ -5,7 +5,7 @@
  * Register Component — Portal CDC UM Kendari
  * ─────────────────────────────────────────────────────────────────
  * Modern, responsive registration module supporting two account types:
- *   1. Alumni (Mahasiswa / Lulusan UM Kendari)
+ *   1. User (Mahasiswa / Lulusan UM Kendari)
  *   2. Perusahaan / Mitra (Employer / Recruiter)
  */
 
@@ -261,7 +261,7 @@ export default function Register({
               Sistem Registrasi CDC
             </h2>
             <p className="text-slate-300 text-xs sm:text-sm max-w-md leading-relaxed">
-              Bergabunglah dengan ekosistem karir & alumni Universitas Muhammadiyah Kendari untuk akses lowongan kerja, magang, dan tracer study.
+              Bergabunglah dengan ekosistem karir & user Universitas Muhammadiyah Kendari untuk akses lowongan kerja, magang, dan tracer study.
             </p>
           </div>
         </div>
@@ -344,7 +344,7 @@ export default function Register({
                   ].join(' ')}
                 >
                   <GraduationCap className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>Register Alumni</span>
+                  <span>Register User</span>
                 </button>
                 <button
                   type="button"
@@ -370,13 +370,13 @@ export default function Register({
               )}
 
               {/* ══════════════════════════════════════════════════════════
-                  FORM A: REGISTER ALUMNI
+                  FORM A: REGISTER USER
               ══════════════════════════════════════════════════════════ */}
               {activeTab === 'alumni' && (
-                <form onSubmit={handleSubmitAlumni} className="space-y-4" id="form-register-alumni">
+                <form onSubmit={handleSubmitAlumni} className="space-y-4" id="form-register-user">
                   <div className="bg-emerald-50/60 border border-emerald-100 p-3.5 rounded-2xl text-xs text-emerald-800 flex items-center gap-2">
                     <Award className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Diperuntukkan bagi mahasiswa aktif tingkat akhir atau lulusan (alumni) UM Kendari.</span>
+                    <span>Diperuntukkan bagi mahasiswa aktif tingkat akhir atau lulusan (user) UM Kendari.</span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -549,11 +549,11 @@ export default function Register({
                     >
                       {isLoading ? (
                         <>
-                          <Loader2 className="w-4 h-4 animate-spin" /> Memproses Registrasi Alumni...
+                          <Loader2 className="w-4 h-4 animate-spin" /> Memproses Registrasi User...
                         </>
                       ) : (
                         <>
-                          Daftarkan Akun Alumni Sekarang <ArrowRight className="w-4 h-4" />
+                          Daftarkan Akun User Sekarang <ArrowRight className="w-4 h-4" />
                         </>
                       )}
                     </button>

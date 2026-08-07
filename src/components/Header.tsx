@@ -59,7 +59,7 @@ const NAV_ITEMS: NavItem[] = [
         label: 'Profil',
         tab: 'profil',
         children: [
-          { label: 'Visi – Misi', tab: 'profil' },
+          { label: 'Visi – Misi', tab: 'visi-misi' },
           { label: 'Keanggotaan', tab: 'keanggotaan' },
         ],
       },
@@ -81,7 +81,7 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Seminar Sukses Berkarir', tab: 'seminar' },
       { label: 'Job Fair & Bursa Kerja', tab: 'career-fair' },
       { label: 'Campus Hiring - Recruitment', tab: 'campus-hiring' },
-      { label: 'Magang', tab: 'magang' },
+      { label: 'Internship', tab: 'magang' },
     ],
   },
   {
@@ -93,12 +93,23 @@ const NAV_ITEMS: NavItem[] = [
     ],
   },
   {
+    id: 'simbelmawa',
+    label: 'SIMBELMAWA',
+    children: [
+      { label: 'PKM', href: 'https://simbelmawa.kemdiktisaintek.go.id/pkm' },
+      { label: 'PPK ORMAWA', href: 'https://ppkormawa.kemdiktisaintek.go.id/' },
+      { label: 'P2MW', href: 'https://p2mw.kemdiktisaintek.go.id/' },
+      { label: 'KMI EXPO', href: 'https://simbelmawa.kemdiktisaintek.go.id/' },
+      { label: 'PILMAPRES', href: 'https://pilmapres.kemdiktisaintek.go.id/' },
+    ],
+  },
+  {
     id: 'register',
     label: 'Register',
     isAction: true,
     children: [
-      { label: 'Register Alumni', tab: 'register-alumni' },
-      { label: 'Register Perusahaan', tab: 'register-perusahaan' },
+      { label: 'Register User', tab: 'register-alumni' },
+      { label: 'Register Mitra', tab: 'register-perusahaan' },
     ],
   },
   {
@@ -106,6 +117,7 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Job Info',
     children: [
       { label: 'Lowongan Terbaru', tab: 'lowongan' },
+      { label: 'APSKAR PTMA', href: 'https://apskarptma.or.id/' },
     ],
   },
 ];
@@ -118,6 +130,7 @@ const TOP_LINKS = [
   { label: 'Website UM Kendari', href: 'https://umkendari.ac.id/' },
   { label: 'SIMBELMAWA', href: 'https://simbelmawa.kemdiktisaintek.go.id/' },
   { label: 'SIMKATMAWA', href: 'https://simkatmawa.kemdiktisaintek.go.id/' },
+  { label: 'MTQMN', href: 'https://mtqmn.kemdikbud.go.id/' },
 ];
 
 /* ─────────────────────────────────────────────────────────────────
@@ -342,8 +355,8 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                                 isSubActive
                                   ? 'bg-gray-100/90 text-gray-900 font-semibold'
                                   : child.tab && currentTab === child.tab
-                                  ? 'text-[#F26522] bg-orange-50/60 font-semibold'
-                                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900',
+                                    ? 'text-[#F26522] bg-orange-50/60 font-semibold'
+                                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900',
                               ].join(' ')}
                             >
                               <span>{child.label}</span>

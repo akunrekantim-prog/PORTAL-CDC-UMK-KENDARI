@@ -296,11 +296,10 @@ export default function PublicLayout({
                               />
                               <div className="absolute top-3 left-3 flex items-center gap-2">
                                 <span
-                                  className={`px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs ${
-                                    item.tipe === 'magang'
+                                  className={`px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs ${item.tipe === 'magang'
                                       ? 'bg-purple-600 text-white'
                                       : 'bg-emerald-600 text-white'
-                                  }`}
+                                    }`}
                                 >
                                   {item.tipe === 'magang' ? 'Magang' : 'Kerja'}
                                 </span>
@@ -677,7 +676,7 @@ export default function PublicLayout({
 
         {/* ─── PROFIL TAB ──────────────────────────────────────────── */}
         {currentTab === 'profil' && (
-          <div className="max-w-4xl mx-auto px-4 py-12 space-y-10" id="tab-profil">
+          <div className="max-w-5xl mx-auto px-4 py-12 space-y-10" id="tab-profil">
             <div className="text-center space-y-2">
               <h2 className="text-3xl font-extrabold text-[#1E3A8A]">Profil Career Development Center</h2>
               <div className="text-[#10B981] font-bold text-sm">Universitas Muhammadiyah Kendari</div>
@@ -685,17 +684,32 @@ export default function PublicLayout({
             <div className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm space-y-6 text-slate-600 text-sm leading-relaxed">
               <h3 className="text-lg font-bold text-slate-900 border-l-4 border-[#10B981] pl-3">Tentang CDC</h3>
               <p>Career Development Center (CDC) Universitas Muhammadiyah Kendari adalah unit kerja penjamin mutu yang didirikan untuk menjalin kerja sama profesional, mendampingi pengembangan karir mahasiswa sejak dini, serta menjejaki kualitas kerja para alumni.</p>
-              <h3 className="text-lg font-bold text-slate-900 border-l-4 border-[#10B981] pl-3">Visi Utama</h3>
-              <p className="italic bg-slate-50 p-4 rounded-2xl text-slate-700 font-medium">
-                "Menjadi pusat bimbingan karir, integrasi magang, dan tracer studi alumni terpadu berbasis moral islami yang unggul dan diakui secara nasional pada tahun 2028."
-              </p>
-              <h3 className="text-lg font-bold text-slate-900 border-l-4 border-[#10B981] pl-3">Misi Unggulan</h3>
-              <ul className="list-disc pl-5 space-y-2">
-                <li>Menyelenggarakan pelatihan kesiapan kerja dan bimbingan konseling karir mahasiswa secara berkala.</li>
-                <li>Membangun kemitraan strategis dengan BUMN, lembaga swasta, kementerian, dan startup terpercaya daerah.</li>
-                <li>Menjalankan survei berkala Tracer Study alumni sebagai instrumen vital akreditasi program studi.</li>
-                <li>Memfasilitasi penempatan magang terstruktur yang diakui penuh secara akademis.</li>
-              </ul>
+              
+              <h3 className="text-lg font-bold text-slate-900 border-l-4 border-[#10B981] pl-3">Visi &amp; Misi</h3>
+              <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm mt-4 bg-slate-50 p-2 sm:p-4">
+                <img
+                  src="/visi-misi-cdc.svg"
+                  alt="Visi & Misi UPT. Pusat Pengembangan Kreativitas, Inovasi dan Konseling Mahasiswa Universitas Muhammadiyah Kendari"
+                  className="w-full h-auto object-contain rounded-xl"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─── VISI & MISI TAB ──────────────────────────────────────────── */}
+        {currentTab === 'visi-misi' && (
+          <div className="max-w-5xl mx-auto px-4 py-12 space-y-8" id="tab-visi-misi">
+            <div className="text-center space-y-2">
+              <h2 className="text-3xl font-extrabold text-[#1E3A8A]">Visi &amp; Misi CDC</h2>
+              <div className="text-[#10B981] font-bold text-sm">Universitas Muhammadiyah Kendari</div>
+            </div>
+            <div className="bg-white rounded-3xl border border-slate-200/80 p-4 sm:p-6 shadow-lg overflow-hidden">
+              <img
+                src="/visi-misi-cdc.svg"
+                alt="Visi & Misi UPT. Pusat Pengembangan Kreativitas, Inovasi dan Konseling Mahasiswa Universitas Muhammadiyah Kendari"
+                className="w-full h-auto rounded-2xl object-contain shadow-sm"
+              />
             </div>
           </div>
         )}
@@ -776,11 +790,10 @@ export default function PublicLayout({
                         )}
                         <div className="absolute top-3 left-3 flex items-center gap-2">
                           <span
-                            className={`px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs ${
-                              item.tipe === 'magang'
+                            className={`px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs ${item.tipe === 'magang'
                                 ? 'bg-purple-600 text-white'
                                 : 'bg-emerald-600 text-white'
-                            }`}
+                              }`}
                           >
                             {item.tipe === 'magang' ? 'Magang' : 'Kerja'}
                           </span>

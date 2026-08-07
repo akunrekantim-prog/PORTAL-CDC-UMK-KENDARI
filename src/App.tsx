@@ -19,10 +19,8 @@ import PublicLayout from './components/PublicLayout';
 import Register from './components/Register';
 import { JobDetail } from './components/JobDetail';
 import MahasiswaDashboard from './components/MahasiswaDashboard';
-import AlumniDashboard from './components/AlumniDashboard';
 import MitraDashboard from './components/MitraDashboard';
 import AdminDashboard from './components/AdminDashboard';
-import ViewerDashboard from './components/ViewerDashboard';
 import { 
   Briefcase, 
   Clock, 
@@ -176,9 +174,7 @@ export default function App() {
           {[
             { id: 'admin', label: 'Admin CDC', color: 'bg-indigo-650 hover:bg-slate-800 hover:text-white border-slate-700 font-bold' },
             { id: 'mahasiswa', label: 'Mahasiswa', color: 'bg-emerald-650 hover:bg-slate-800 border-slate-700 font-bold' },
-            { id: 'alumni', label: 'Alumni', color: 'bg-blue-650 hover:bg-slate-800 border-slate-700 font-bold' },
-            { id: 'mitra', label: 'Mitra', color: 'bg-teal-650 hover:bg-slate-800 border-slate-700 font-bold' },
-            { id: 'viewer', label: 'Viewer/Prodi', color: 'bg-slate-700 hover:bg-slate-800 border-slate-700' }
+            { id: 'mitra', label: 'Mitra', color: 'bg-teal-650 hover:bg-slate-800 border-slate-700 font-bold' }
           ].map((item) => (
             <button
               key={item.id}
@@ -392,13 +388,6 @@ export default function App() {
                 allLowongan={allLowongan}
               />
             )}
-            {currentUser.role === 'alumni' && (
-              <AlumniDashboard 
-                user={currentUser} 
-                onLogout={handleLogout} 
-                allLowongan={allLowongan}
-              />
-            )}
             {currentUser.role === 'mitra' && (
               <MitraDashboard 
                 user={currentUser} 
@@ -407,12 +396,6 @@ export default function App() {
             )}
             {currentUser.role === 'admin' && (
               <AdminDashboard 
-                user={currentUser} 
-                onLogout={handleLogout}
-              />
-            )}
-            {currentUser.role === 'viewer' && (
-              <ViewerDashboard 
                 user={currentUser} 
                 onLogout={handleLogout}
               />
