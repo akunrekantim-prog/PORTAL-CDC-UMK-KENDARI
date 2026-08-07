@@ -1,97 +1,109 @@
-# Laporan Progres Pengembangan Portal CDC UM Kendari
-**Tanggal:** 22 Juli 2026  
-**Fokus Pekerjaan:** Penyelesaian & Perapihan UI/UX Sub-Bab Layanan (Mahasiswa & Alumni)
+# Progres Pengerjaan — Portal CDC UM Kendari
+
+Periode: 6 Agustus 2026  
+Branch: `main`  
+Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 
 ---
 
-## 📋 Ringkasan Pekerjaan Hari Ini
-
-Hari ini kita telah berhasil menyelesaikan pembuatan, integrasi, audit bebas bug, dan perapihan antarmuka (UI/UX) tingkat profesional untuk seluruh **11 sub-bab** dari menu **Layanan** di Portal CDC Universitas Muhammadiyah Kendari.
-
----
-
-## 🛠️ 1. Pembangunan Komponen Sub-Bab Layanan
-
-Semua komponen sub-bab dikembangkan secara terpisah dan modular di dalam folder `src/components/layanan/`:
-
-1. **`CaraPasang.tsx` (Cara Pasang Info LowKer):**
-   - Form pengajuan lowongan kerja bagi mitra perusahaan.
-   - Fitur validasi input, animasi *loading spinner* submission, dan konfirmasi pengajuan berhasil.
-
-2. **`Keanggotaan.tsx` (Keanggotaan CDC):**
-   - Fitur pencarian NIM anggota mahasiswa/alumni.
-   - Penerbitan otomatis **Kartu Anggota Digital (*Virtual Member Card*)** beserta detail data keanggotaan.
-
-3. **`BimbinganKarir.tsx` (Bimbingan Karir / Konseling):**
-   - Form reservasi jadwal konseling dengan konselor CDC terdaftar.
-   - Penerbitan **Tiket Reservasi Digital CDC** ber-status *CONFIRMED*.
-
-4. **`TesMinat.tsx` (Tes Potensi Minat Kerja - RIASEC):**
-   - Kuis mini 5 pertanyaan interaktif berbasis model standar industri RIASEC.
-   - Kalkulasi skor otomatis untuk menentukan tipe kepribadian kerja dominan (*Realistic, Investigative, Artistic, Social, Enterprising, Conventional*).
-   - Visualisasi distribusi skor berbasis grafik batang dan rekomendasi karir/prodi.
-
-5. **`Workshop.tsx` (Workshop Karir):**
-   - Katalog workshop karir aktif dengan fitur pendaftaran *modal popup*.
-   - Pengurangan kuota otomatis dan penanda status *"Terdaftar"*.
-
-6. **`Softskill.tsx` (Pelatihan Softskill & Kewirausahaan):**
-   - Tracker modul kurikulum mandiri dengan indikator *progress bar* persentase.
-   - Pembukaan otomatis fitur *"Klaim E-Certificate"* saat progres mencapai 100%.
-
-7. **`Seminar.tsx` (Seminar Sukses Berkarir):**
-   - Form pendaftaran seminar nasional dan penerbitan **E-Ticket Resmi** ber-barcode unik.
-
-8. **`BursaKerja.tsx` (Bursa Kerja / Loker Lokal):**
-   - Papan lowongan kerja lokal area Kendari & Sultra dengan pencarian & filter kategori.
-   - Modal *"Lamar Cepat"* lengkap dengan zona simulasi unggah resume CV (PDF).
-
-9. **`CareerFair.tsx` (UM Kendari Job Fair):**
-   - Peta stan *booth* perusahaan virtual interaktif (BSI, Pertamina, Kalla Group, Telkomsel).
-   - Drawer informasi profil perusahaan dan tombol lamaran pekerjaan instan.
-
-10. **`ExitSurvey.tsx` (Data Exit Survey Lulusan):**
-    - Kuisioner tracer kelulusan *multi-step wizard* 3 langkah (Biodata, Evaluasi Akademik, Status Karir).
-    - Penerbitan **Bukti Bebas Tracer CDC** setelah survei diselesaikan.
-
-11. **`JobPlacement.tsx` (Job Placement Program):**
-    - Kalkulator algoritma kelayakan program akselerasi penyaluran kerja (IPK ≥ 3.00 & TOEFL ≥ 450).
-    - Penerbitan **Surat Rekomendasi Kelayakan** & form pendaftaran penyaluran.
+## Ringkasan
+Pada sesi ini fokusnya adalah **penyusunan ulang struktur sub-menu Layanan**, **perapihan konten layanan**, dan **standarisasi tampilan UI** agar tidak terlihat generik dan tetap profesional.
 
 ---
 
-## 🎨 2. Perapihan Antarmuka (UI/UX) Tingkat Profesional
-
-Untuk memberikan pengalaman pengguna yang sangat rapi dan berstandar *enterprise*, kami membangun kontainer navigasi khusus:
-
-- **`LayananContainer.tsx` (Wrapper Layout Layanan):**
-  - **Breadcrumbs Bar:** Penunjuk jejak lokasi otomatis (`Beranda > Layanan CDC > [Sub-Bab]`).
-  - **Hero Header Premium:** Banner bergradien warna biru tua (`#0F1F4B` hingga `#1E3A8A`) dengan penanda *badge* resmi.
-  - **Sticky Sub-Navigation Bar:** Baris tab navigasi melayang yang memudahkan pengguna berpindah dari satu sub-layanan ke sub-layanan lain tanpa perlu kembali scroll ke menu utama.
-  - **Motion Animation:** Efek transisi *fade-in & slide-up* yang sangat mulus saat berpindah halaman menggunakan `motion/react` (`AnimatePresence`).
-
----
-
-## 🔍 3. Verifikasi, Audit Error, & Type Checking
-
-- **TypeScript Typecheck:** Menjalankan `npm run lint` (`tsc --noEmit`) untuk memastikan seluruh kode terkompilasi **100% Lulus (0 Error / 0 Warning)**.
-- **Browser Runtime Testing:** Menguji langsung di server pengembangan `http://localhost:3000/` menggunakan browser agent. Pengujian formulir, kuis RIASEC, navigasi *sticky tab*, dan pengisian data berhasil dengan lancar.
-
----
-
-## 📌 Status Akhir
-**STATUS: SELESAI (100%)**  
-Seluruh sub-bab layanan telah berfungsi, terintegrasi, bebas dari error, dan memiliki antarmuka yang sangat profesional.
+## 1. Restrukturisasi Menu Layanan
+- **Pemindahan sub-menu:**
+  - `Magang` dipindah dari **Job Info** ke **Layanan**.
+- **Penghapusan item lama di Job Info:**
+  - `Cara Pasang Info LowKer`
+  - `Keanggotaan CDC -1`
+  - `Data Exit Survey Lulusan`
+  - `Job Placement Program`
+- **Penambahan item baru di Layanan:**
+  - `Campus Hiring - Recruitment` (tab: `campus-hiring`)
+- **File yang diubah:**
+  - `src/components/Header.tsx`
+  - `src/components/PublicLayout.tsx`
+  - `src/components/layanan/LayananContainer.tsx`
+- **File baru:**
+  - `src/components/layanan/CampusHiring.tsx`
+  - `src/components/layanan/Magang.tsx`
 
 ---
 
-# Laporan Progres Admin Dashboard CDC UM Kendari
-**Tanggal:** 30 Juli 2026  
-**Fokus Pekerjaan:** Peningkatan fitur AdminDashboard: menu awal, pencarian, ringkasan analitik, dan approval akun
+## 2. Perbaikan Tipe TypeScript
+- Memperbaiki error di `src/components/AdminDashboard.tsx` dan `src/types.ts`.
+- Menyelaraskan penggunaan tipe `Berita` agar konsisten.
+- Hasil: `npm run lint` dan `npm run build` **passed**.
 
 ---
 
-## Ringkasan Perubahan
+## 3. Redesign UI Sub-menu Layanan
+- Membuat **design system bersama** di `src/components/layanan/ui/`:
+  - `PageHeader.tsx`
+  - `Section.tsx`
+  - `Card.tsx`
+  - `StepList.tsx`
+  - `CtaBlock.tsx`
+  - `TwoColumn.tsx`
+  - `index.tsx`
+- Menerapkan wrapper-wrapper tersebut ke **14 komponen layanan** agar tampilannya konsisten:
+  - `BimbinganKarir.tsx`
+  - `TesMinat.tsx`
+  - `Workshop.tsx`
+  - `Softskill.tsx`
+  - `Seminar.tsx`
+  - `BursaKerja.tsx`
+  - `CareerFair.tsx`
+  - `CampusHiring.tsx`
+  - `Magang.tsx`
+  - `Keanggotaan.tsx`
+  - `ExitSurvey.tsx`
+  - `JobPlacement.tsx`
+  - `CaraPasang.tsx`
+- Menyesuaikan `Card.tsx` agar mendukung:
+  - `children`
+  - `className`
+  - `hover`
+  - `key`
+  - `onClick`
+- Menghindari gaya “AI slop” dengan:
+  - Mengurangi gradient yang tidak perlu
+  - Menstandarkan radius, spacing, dan tipografi
+  - Mempertahankan ikon dari `lucide-react`
+
+---
+
+## 4. Revisi Konten Softskill & Kewirausahaan
+- Menambah **1 modul baru** sebagai penghubung:
+  - `Personal Branding & Pitching Karir`
+- Menjadikan total **6 modul**:
+  - 4 modul Softskill
+  - 2 modul Kewirausahaan
+- Mengubah penulisan menjadi **outcome-based**, contoh:
+  - “Mampu menyampaikan ide dengan jelas…”
+  - “Mampu menyusun profil LinkedIn…”
+- Menambahkan konteks lokal:
+  - `Dasar Kewirausahaan & Ideasi Bisnis Lokal` (Kendari/Sultra)
+- Memperbaiki teks di:
+  - Header section
+  - Widget progres
+  - Status sertifikat
+- File yang diubah:
+  - `src/components/layanan/Softskill.tsx`
+
+---
+
+## 5. Verifikasi
+Perintah yang dijalankan:
+```bash
+npm run lint
+npm run build
+```
+
+Hasil verifikasi:
+- ✅ `npm run lint` **passed**
+- ✅ `npm run build`## Ringkasan Perubahan
 - Menambahkan tab baru: **Kelola Akun User** dan **Approval Akun**
 - Menambahkan fitur **pencarian/filter** pada tabel alumni, mitra, verifikasi magang, tracer study, CMS berita, users, approval
 - Memperkaya tab **Ringkasan** dengan aktivitas terkini gabungan, distribusi role, KPI tambahan, tren mingguan, dan top mitra
@@ -341,3 +353,13 @@ Seluruh sub-bab layanan telah berfungsi, terintegrasi, bebas dari error, dan mem
 - [x] Penghapusan header ganda saat membuka detail dari Dashboard Mahasiswa
 - [x] Instalasi dependensi npm (`npm install`) & jalankan dev server (`npm run dev`)
 - [x] Pencatatan laporan progres (6 Agustus 2026)
+
+---
+
+## Catatan Lanjutan
+- Build menampilkan warning ukuran chunk >500kB. Ini bukan error, tapi bisa ditinjau code-splitting jika nanti dianggap perlu.
+- Saat ini tidak ada modifikasi pada routing utama atau struktur data `LAYANAN_MENU` yang rusak.
+- Jika ingin, langkah berikut bisa dilakukan:
+  - Menyusun skema penilaian untuk modul Softskill
+  - Menghubungkan e-sertifikat ke halaman portfolio/skills
+  - Menyamakan palet warna aksen sesuai brand CDC
