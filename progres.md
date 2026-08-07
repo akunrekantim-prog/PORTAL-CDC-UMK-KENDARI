@@ -454,3 +454,56 @@ Hasil verifikasi:
 - [x] Perapihan UI komponen layanan agar profesional dan tidak generik
 - [x] Perbaiki error lint pre-existing `kesesuaianBidang`
 - [x] Verifikasi `npm run lint` dan `npm run build` passed
+
+---
+
+## Tanggal: 7 Agustus 2026 (Sesi 2)
+**Fokus Pekerjaan:** Update Tampilan Beranda, Integrasi Asset Poster SVG & Visi-Misi, Pembaruan HeroSlider, Refactoring Register, & Cleanup Dashboard
+
+### 🚀 Ringkasan Perubahan
+
+1. **Penambahan Aset Poster & Visi-Misi Resmi (`public/`):**
+   - Menambahkan aset SVG resmi CDC UMK:
+     - `Poster CDC WEB UMK (1).svg` & `Poster CDC WEB UMK slide 1.svg`
+     - `VISI & MISI (3).svg` & `visi-misi-cdc.svg`
+     - `poster-cdc-web-umk-1.svg` & `poster-cdc-web-umk-2.svg`
+
+2. **Pembaruan Komponen Hero Slider (`HeroSlider.tsx`):**
+   - Menyelaraskan slide banner hero beranda menggunakan gambar poster SVG CDC UMK terbaru.
+   - Memperbarui teks overlay, deskripsi slide, dan tombol CTA.
+
+3. **Pembaruan Halaman Utama Beranda (`PublicLayout.tsx` & `Header.tsx`):**
+   - Mengintegrasikan banner hero terbaru dan penyesuaian layout beranda.
+   - Penyesuaian header dan penataan link navigasi.
+
+4. **Refactoring Tampilan Form Registrasi (`Register.tsx`):**
+   - Merapikan struktur form registrasi pengguna agar lebih responsif dan clean.
+
+5. **Pembersihan Komponen Unused & Optimization (`App.tsx`):**
+   - Menghapus komponen dashboard lama/unused: `AlumniDashboard.tsx` dan `ViewerDashboard.tsx`.
+   - Merapikan import dan routing aplikasi di `App.tsx`.
+
+### 📁 File Diubah & Ditambahkan
+- **[NEW]** `public/Poster CDC WEB UMK (1).svg`
+- **[NEW]** `public/Poster CDC WEB UMK slide 1.svg`
+- **[NEW]** `public/VISI & MISI (3).svg`
+- **[NEW]** `public/poster-cdc-web-umk-1.svg`
+- **[NEW]** `public/poster-cdc-web-umk-2.svg`
+- **[NEW]** `public/visi-misi-cdc.svg`
+- **[MODIFY]** `src/App.tsx`
+- **[MODIFY]** `src/components/Header.tsx`
+- **[MODIFY]** `src/components/HeroSlider.tsx`
+- **[MODIFY]** `src/components/PublicLayout.tsx`
+- **[MODIFY]** `src/components/Register.tsx`
+- **[DELETE]** `src/components/AlumniDashboard.tsx`
+- **[DELETE]** `src/components/ViewerDashboard.tsx`
+- **[MODIFY]** `progres.md`
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Penambahan asset poster SVG CDC UMK & Visi-Misi di folder `public/`
+- [x] Pembaruan banner slider hero (`HeroSlider.tsx`)
+- [x] Integration layout baru di Beranda (`PublicLayout.tsx`)
+- [x] Refactoring tampilan form registrasi (`Register.tsx`)
+- [x] Removal file komponen unused `AlumniDashboard.tsx` & `ViewerDashboard.tsx`
+- [x] Verifikasi build & lint passed
+
