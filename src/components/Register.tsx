@@ -232,10 +232,10 @@ export default function Register({
 
   return (
     <div className="min-h-[85vh] py-12 px-4 sm:px-6 lg:px-8 bg-slate-50 flex flex-col justify-center items-center font-sans" id="register-module-root">
-      
+
       {/* Top Breadcrumb / Home Button */}
       <div className="max-w-xl w-full mb-4 flex items-center justify-between">
-        <button 
+        <button
           onClick={onNavigateHome}
           className="inline-flex items-center gap-1.5 text-slate-600 hover:text-slate-900 font-bold text-xs bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs transition hover:border-slate-300"
         >
@@ -247,12 +247,12 @@ export default function Register({
       </div>
 
       <div className="bg-white max-w-xl w-full rounded-3xl border border-slate-200/80 shadow-xl overflow-hidden relative" id="register-card-container">
-        
+
         {/* Card Header Banner */}
         <div className="bg-[#0F1F4B] p-8 text-white relative overflow-hidden" id="register-header-banner">
           <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none"></div>
           <div className="absolute -bottom-6 -left-6 w-36 h-36 bg-blue-500/20 rounded-full blur-2xl pointer-events-none"></div>
-          
+
           <div className="relative z-10 space-y-2 text-center sm:text-left">
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-white/10 backdrop-blur-md text-emerald-400 text-[11px] font-bold tracking-wider uppercase border border-white/10">
               <Sparkles className="w-3.5 h-3.5" /> Pendaftaran Akun Baru
@@ -269,7 +269,7 @@ export default function Register({
         {/* Success Screen (Rendered when registration succeeds) */}
         <AnimatePresence mode="wait">
           {successUser ? (
-            <motion.div 
+            <motion.div
               key="success-screen"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -286,7 +286,7 @@ export default function Register({
                   Registrasi Berhasil!
                 </h3>
                 <p className="text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
-                  Selamat datang di Portal CDC UM Kendari, <strong className="text-slate-900 font-bold">{successUser.name}</strong>. 
+                  Selamat datang di Portal CDC UM Kendari, <strong className="text-slate-900 font-bold">{successUser.name}</strong>.
                   Akun Anda telah terdaftar sebagai <span className="uppercase font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">{successUser.role}</span>.
                 </p>
               </div>
@@ -324,7 +324,7 @@ export default function Register({
               </div>
             </motion.div>
           ) : (
-            <motion.div 
+            <motion.div
               key="form-screen"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -754,7 +754,7 @@ export default function Register({
         </AnimatePresence>
 
       </div>
-      
+
       {/* Footer copyright note */}
       <div className="mt-6 text-center text-[11px] text-slate-400 font-mono">
         CDC UM Kendari · Hak Cipta Dilindungi Undang-Undang © 2026

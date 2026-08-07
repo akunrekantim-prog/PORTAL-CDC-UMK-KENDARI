@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export type UserRole = 'mahasiswa' | 'alumni' | 'mitra' | 'admin' | 'viewer';
+export type UserRole = 'user' | 'mitra' | 'admin' | 'viewer' | 'mahasiswa' | 'alumni';
 export type UserStatus = 'pending' | 'active' | 'inactive' | 'rejected';
 export type TipeLowongan = 'magang' | 'kerja';
 export type StatusLowongan = 'draft' | 'published' | 'closed' | 'archived';

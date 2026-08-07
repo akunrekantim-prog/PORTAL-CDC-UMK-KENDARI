@@ -12,6 +12,7 @@ import {
   ExternalLink, Calendar,
 } from 'lucide-react';
 import { Lowongan, Berita, Pengumuman } from '../types';
+import { sortJobsByNewest, formatDateDisplay } from '../data';
 import { motion } from 'motion/react';
 import Header from './Header';
 import { Footer } from './Footer';
@@ -25,7 +26,6 @@ import Magang from './layanan/Magang';
 import LayananContainer from './layanan/LayananContainer';
 import HeroSlider from './HeroSlider';
 import { JobSearchMasterDetail } from './JobSearchMasterDetail';
-
 
 /* ─── Types ─────────────────────────────────── */
 interface PublicLayoutProps {
@@ -109,8 +109,8 @@ export default function PublicLayout({
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'magang' | 'kerja'>('all');
 
-  /* Data helpers */
-  const publishedLowongan = lowongan.filter(l => l.status === 'published');
+  /* Data helpers: Lowongan terbaru (newest created) selalu di atas */
+  const publishedLowongan = sortJobsByNewest(lowongan.filter(l => l.status === 'published'));
   const publishedBerita = berita.filter(b => b.status === 'published');
   const publishedPengumuman = pengumuman.filter(p => p.status === 'published');
 
@@ -280,20 +280,23 @@ export default function PublicLayout({
                           className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group"
                         >
                           <div>
-                            {/* Full-bleed enlarged poster image container */}
-                            <div className="w-full aspect-[16/9] relative overflow-hidden bg-slate-100">
-                              <img
-                                src={
-                                  item.flyer ||
-                                  item.imageUrl ||
-                                  (item.flyers && item.flyers.length > 0 ? item.flyers[0] : null) ||
-                                  item.bannerImage ||
-                                  item.companyLogo ||
-                                  'https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=800&auto=format&fit=crop'
-                                }
-                                alt={item.judul}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                              />
+                            {/* Company Logo Image Container (1:1 matching Job Info card layout) */}
+                            <div className="w-full h-44 relative overflow-hidden bg-slate-50 flex items-center justify-center p-4 border-b border-slate-100">
+                              {item.companyLogo ? (
+                                <img
+                                  src={item.companyLogo}
+                                  alt={item.namaInstansi}
+                                  className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
+                                  onError={(e) => {
+                                    (e.currentTarget as HTMLElement).style.display = 'none';
+                                  }}
+                                />
+                              ) : (
+                                <div className="flex flex-col items-center justify-center text-slate-300 space-y-1">
+                                  <Building2 className="w-10 h-10 text-slate-400" />
+                                  <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">{item.namaInstansi}</span>
+                                </div>
+                              )}
                               <div className="absolute top-3 left-3 flex items-center gap-2">
                                 <span
                                   className={`px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs ${item.tipe === 'magang'
@@ -308,7 +311,7 @@ export default function PublicLayout({
 
                             {/* Card Content */}
                             <div className="p-5 space-y-2">
-                              {/* Category / Instansi Subheading in Accent Orange */}
+                              {/* Instansi Subheading in Accent Orange */}
                               <div className="text-xs font-bold text-orange-600 tracking-wide uppercase truncate">
                                 {item.namaInstansi}
                               </div>
@@ -318,13 +321,12 @@ export default function PublicLayout({
                                 {item.judul}
                               </h3>
 
-                              {/* Meta Footer: by Admin Website + Deadline Date */}
-                              <div className="flex items-center gap-2 text-xs text-slate-400 font-medium pt-2">
-                                <span>by Admin Website</span>
-                                <span>•</span>
-                                <span className="flex items-center gap-1">
+                              {/* Meta Footer: by Admin Website + Upload Date */}
+                              <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
+                                <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
+                                <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
                                   <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                                  {item.deadline}
+                                  {formatDateDisplay(item.createdAt || item.deadline)}
                                 </span>
                               </div>
                             </div>
@@ -516,7 +518,7 @@ export default function PublicLayout({
                             </h4>
                             <p className="text-slate-500 text-xs line-clamp-2 leading-relaxed">{item.excerpt}</p>
                             <div className="text-xs text-slate-400 font-medium pt-1">
-                              Admin CDC · {new Date(item.createdAt).toLocaleDateString('id-ID')}
+                              Admin CDC · {formatDateDisplay(item.createdAt)}
                             </div>
                           </div>
                         </motion.div>
@@ -781,6 +783,9 @@ export default function PublicLayout({
                             src={item.companyLogo}
                             alt={item.namaInstansi}
                             className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
+                            onError={(e) => {
+                              (e.currentTarget as HTMLElement).style.display = 'none';
+                            }}
                           />
                         ) : (
                           <div className="flex flex-col items-center justify-center text-slate-300 space-y-1">
@@ -812,13 +817,12 @@ export default function PublicLayout({
                           {item.judul}
                         </h3>
 
-                        {/* Meta Footer: by Admin Website + Deadline Date */}
-                        <div className="flex items-center gap-2 text-xs text-slate-400 font-medium pt-2">
-                          <span>by Admin Website</span>
-                          <span>•</span>
-                          <span className="flex items-center gap-1">
+                        {/* Meta Footer: by Admin Website + Upload Date */}
+                        <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
+                          <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
+                          <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
                             <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                            {item.deadline}
+                            {formatDateDisplay(item.createdAt || item.deadline)}
                           </span>
                         </div>
                       </div>
@@ -857,7 +861,7 @@ export default function PublicLayout({
                       <h4 className="font-bold text-slate-900 text-base leading-snug line-clamp-2 hover:text-[#10B981] transition-colors">{item.title}</h4>
                       <p className="text-slate-500 text-sm line-clamp-3 leading-relaxed">{item.excerpt}</p>
                     </div>
-                    <div className="text-xs text-slate-400 font-medium">Admin CDC · {new Date(item.createdAt).toLocaleDateString('id-ID')}</div>
+                    <div className="text-xs text-slate-400 font-medium">Admin CDC · {formatDateDisplay(item.createdAt)}</div>
                   </div>
                 </div>
               ))}

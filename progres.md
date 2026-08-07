@@ -506,4 +506,87 @@ Hasil verifikasi:
 - [x] Refactoring tampilan form registrasi (`Register.tsx`)
 - [x] Removal file komponen unused `AlumniDashboard.tsx` & `ViewerDashboard.tsx`
 - [x] Verifikasi build & lint passed
+## Tanggal: 7 Agustus 2026
+**Fokus Pekerjaan:** Perbaikan Layout Beranda, Pengaturan Dinamis Form Lowongan, Perbaikan Filter Lokasi & Kategori "Lainnya", Restrukturisasi Profil User, Penyederhanaan Role System, & Upload Foto Lokal.
+
+### 🚀 Ringkasan Perubahan UI & Feature Updates
+
+1. **Perbaikan Tampilan Tanggal Upload Info Karir CDC Terkini (`Beranda` & `Sidebar`)**:
+   - Memperbaiki tata letak badge tanggal penguploadan lowongan pada kartu Info Karir CDC Terkini agar rapi dan tidak menumpuk (*text overlap*).
+
+2. **Pengaturan Form Lamaran & Sub-Judul Dinamis (`JobApplicationModal.tsx` & `JobDetail.tsx`)**:
+   - Mengatur agar unggah berkas CV bersifat **wajib** (*required*) saat mengajukan lamaran pekerjaan.
+   - Mengatur kondisional tampilan sub-judul pada halaman `JobDetail.tsx`: Jika Mitra tidak mengisi detail konten tertentu (seperti Tanggung Jawab, Persyaratan/Kualifikasi, Benefit), maka sub-judul terkait otomatis **disembunyikan** dari halaman detail lowongan.
+
+3. **Perbaikan Input Kuota Penerimaan (`MitraDashboard.tsx`)**:
+   - Menghapus perilaku default angka `0` saat menghapus input kuota penerimaan pada form posting lowongan mitra.
+   - Mencegah timbulnya angka nol di depan (*leading zero*, contoh: `08` saat menginput `8`).
+
+4. **Integrasi Edit Lowongan & Pengurutan Lowongan Terbaru (`data.ts`, `MitraDashboard.tsx`, `JobSearchMasterDetail.tsx`)**:
+   - Menghubungkan fitur edit lowongan sehingga perubahan data oleh Mitra langsung **terrefleksi secara real-time** pada tampilan *Job Info*, *Search Job*, *Beranda*, dan detail lowongan.
+   - Pengurutan lowongan (*sorting*): Mengatur agar lowongan teratas diurutkan berdasarkan **tanggal penguploadan terbaru** (`createdAt`), dan saat lowongan diedit, posisinya **tidak tergeser ke paling atas**.
+   - Menampilkan tanggal penguploadan asli di label poster.
+
+5. **Penyempurnaan Filter Lokasi & Kategori "Lainnya" untuk Luar Indonesia (`JobSearchMasterDetail.tsx`, `MitraDashboard.tsx`)**:
+   - Perbaikan hirarki filter Provinsi & Kota: Jika suatu kota tidak diceklis namun provinsinya diceklis (contoh: *Sumatera Utara* diceklis, *Medan* tidak diceklis), lowongan dari kota di provinsi tersebut **tetap muncul di hasil pencarian**.
+   - Menambahkan checkbox **"Lainnya"** pada filter lokasi untuk opsi luar Indonesia. Jika Mitra menginput lokasi luar negeri (seperti *Jepang, Jerman, Tokyo, dll.*), data otomatis terkategori ke lokasi **"Lainnya"** saat difilter, tetapi tetap menampilkan nama lokasi asli di halaman detail lowongan.
+
+6. **Penterjemahan Antarmuka Dashboard User ke Bahasa Indonesia (`MahasiswaDashboard.tsx`, `StudentProfileView.tsx`)**:
+   - Mengubah seluruh teks navigasi, header, label, dan tombol pada Dashboard Mahasiswa / User menjadi **Bahasa Indonesia** yang bersih dan profesional dengan tetap mempertahankan istilah baku industri (*CV, Email, WhatsApp, Career Portal UMK*).
+
+7. **Restrukturisasi Halaman Profil Saya (`StudentProfileView.tsx`)**:
+   - Merombak total susunan halaman *Profil Saya* menjadi urutan hirarki berikut:
+     1. **Foto Profil** (Avatar + tombol upload kamera)
+     2. **Nama** (Nama Lengkap)
+     3. **Status** (Badge Mahasiswa / Alumni)
+     4. **Universitas** (Universitas Muhammadiyah Kendari)
+     5. **Tentang Saya** (Bio & profil singkat + tombol Edit Bio)
+     6. **Data Pribadi** (Nama Lengkap, Email, No. Telepon/WA, Jenis Kelamin, Kewarganegaraan, Agama, Suku/Etnis, Hak Kerja)
+     7. **Pendidikan** (Perguruan Tinggi & Sekolah Menengah + Tombol Tambah Pendidikan)
+     8. **Skill / Keahlian** (Badges skill interaktif + Tombol Kelola Skill)
+     9. **Pengalaman** (Pengalaman Kerja / Organisasi + Tombol Tambah Pengalaman)
+     10. **Bahasa** (Daftar Bahasa yang dikuasai + Tombol Tambah Bahasa)
+     11. **Preferensi Karir** (Jenis Kesempatan, Tanggal Siap Kerja, Industri Diminati, Lokasi Kerja Impian)
+
+8. **Unggah Foto Profil dari Berkas Lokal (`StudentProfileView.tsx`)**:
+   - Mengganti prompt URL foto profil menjadi **unggahan berkas langsung dari penyimpanan lokal** (`<input type="file" accept="image/*" />`).
+
+9. **Penyederhanaan Peranan System & Unifikasi Role User (`App.tsx`, `types.ts`, `data.ts`, `Register.tsx`)**:
+   - Menyederhanakan peranan pengguna menjadi **3 Role Utama**: **`USER`** (Mahasiswa / Alumni / Pencari Kerja), **`MITRA`** (Perusahaan), dan **`ADMIN CDC`**.
+   - Menghapus peranan/dashboard alumni terpisah dan menyatukannya ke dalam **Dashboard User**.
+
+10. **Interaktivitas Edit Info Utama di Hero Header Profil (`StudentProfileView.tsx`)**:
+    - Membuat Status Badge (**`Mahasiswa` / `Alumni`**), **Nama Lengkap**, dan **Nama Universitas** di *Hero Banner* dapat diklik dan diedit langsung melalui modal **Edit Info Utama Profil**.
+
+11. **Penghapusan Halaman / Tab Pengalaman Virtual (`StudentProfileView.tsx`)**:
+    - Menghapus tab dan konten **Pengalaman Virtual** dari navigasi profil pengguna agar antarmuka lebih padat, ringkas, dan fokus.
+
+### 📁 File Diubah & Ditambahkan
+- **[MODIFY]** `src/types.ts`
+- **[MODIFY]** `src/data.ts`
+- **[MODIFY]** `src/App.tsx`
+- **[MODIFY]** `src/components/MahasiswaDashboard.tsx`
+- **[MODIFY]** `src/components/StudentProfileView.tsx`
+- **[MODIFY]** `src/components/JobSearchMasterDetail.tsx`
+- **[MODIFY]** `src/components/JobDetail.tsx`
+- **[MODIFY]** `src/components/JobApplicationModal.tsx`
+- **[MODIFY]** `src/components/MitraDashboard.tsx`
+- **[MODIFY]** `src/components/Register.tsx`
+- **[MODIFY]** `progres.md`
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Perbaikan tampilan tanggal upload lowongan tidak menumpuk di Beranda & Sidebar
+- [x] Syarat wajib upload CV pada form lamaran pekerjaan
+- [x] Sub-judul dinamis di Job Detail (menyembunyikan bagian yang tidak diisi mitra)
+- [x] Perbaikan form input kuota penerimaan mitra (tanpa angka 0 di depan)
+- [x] Integrasi edit lowongan real-time & pengurutan lowongan berdasarkan tanggal upload terbaru
+- [x] Filter lokasi presisi (provinsi diceklis mencakup kota) & opsi checkbox "Lainnya" untuk luar Indonesia
+- [x] Penterjemahan lengkap Dashboard Mahasiswa/User ke Bahasa Indonesia
+- [x] Restrukturisasi hirarki halaman Profil Saya sesuai urutan spesifik
+- [x] Unggah foto profil dari berkas lokal (native file input accept image/*)
+- [x] Penyederhanaan role system menjadi 3 role utama (USER, MITRA, ADMIN CDC)
+- [x] Interaktivitas edit Status (Mahasiswa/Alumni), Nama, dan Universitas di Hero Header Profil
+- [x] Penghapusan tab/halaman Pengalaman Virtual dari profil pengguna
+- [x] Verifikasi kompilasi build produksi `npm run build` (0 error)
+- [x] Pencatatan laporan progres lengkap di `progres.md` (7 Agustus 2026)
 

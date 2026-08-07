@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Lowongan } from '../types';
-import { getFromDB, applyForJob, getSavedJobIds, toggleSaveJob } from '../data';
+import { getFromDB, applyForJob, getSavedJobIds, toggleSaveJob, formatDateDisplay } from '../data';
 import Header from './Header';
 import { Footer } from './Footer';
 import { 
@@ -220,19 +220,21 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                 <div className="border-t border-slate-100 pt-4" />
 
                 {/* Section 1: Deskripsi Pekerjaan */}
-                <div className="space-y-2">
-                  <h2 className="text-lg font-extrabold text-slate-900">Deskripsi Pekerjaan</h2>
-                  <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-line">
-                    {job.deskripsi}
-                  </p>
-                </div>
+                {job.deskripsi && job.deskripsi.trim().length > 0 && (
+                  <div className="space-y-2">
+                    <h2 className="text-lg font-extrabold text-slate-900">Deskripsi Pekerjaan</h2>
+                    <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-line">
+                      {job.deskripsi}
+                    </p>
+                  </div>
+                )}
 
                 {/* Section 2: Tanggung Jawab */}
-                {job.tanggungJawab && job.tanggungJawab.length > 0 && (
+                {job.tanggungJawab && job.tanggungJawab.length > 0 && job.tanggungJawab.some(item => item && item.trim().length > 0) && (
                   <div className="space-y-2 pt-2">
-                    <h2 className="text-lg font-extrabold text-slate-900">Tanggung Jawab</h2>
+                    <h2 className="text-lg font-extrabold text-slate-900">Tanggung Jawab Pekerjaan</h2>
                     <ul className="space-y-1.5 text-slate-600 text-sm list-disc pl-5">
-                      {job.tanggungJawab.map((item, idx) => (
+                      {job.tanggungJawab.filter(item => item && item.trim().length > 0).map((item, idx) => (
                         <li key={idx} className="leading-relaxed">{item}</li>
                       ))}
                     </ul>
@@ -240,11 +242,11 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                 )}
 
                 {/* Section 3: Persyaratan & Kualifikasi */}
-                {job.kualifikasi && job.kualifikasi.length > 0 && (
+                {job.kualifikasi && job.kualifikasi.length > 0 && job.kualifikasi.some(item => item && item.trim().length > 0) && (
                   <div className="space-y-2 pt-2">
                     <h2 className="text-lg font-extrabold text-slate-900">Persyaratan &amp; Kualifikasi</h2>
                     <ul className="space-y-1.5 text-slate-600 text-sm list-disc pl-5">
-                      {job.kualifikasi.map((item, idx) => (
+                      {job.kualifikasi.filter(item => item && item.trim().length > 0).map((item, idx) => (
                         <li key={idx} className="leading-relaxed">{item}</li>
                       ))}
                     </ul>
@@ -252,22 +254,33 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                 )}
 
                 {/* Section 4: Keahlian yang Dibutuhkan */}
-                <div className="space-y-2 pt-2">
-                  <h2 className="text-lg font-extrabold text-slate-900">Keahlian yang Dibutuhkan</h2>
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {(job.keahlian && job.keahlian.length > 0
-                      ? job.keahlian 
-                      : ['JavaScript', 'React.js', 'Node.js', 'Git', 'Problem Solving']
-                    ).map((tag) => (
-                      <span 
-                        key={tag} 
-                        className="bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold px-3 py-1 rounded-full"
-                      >
-                        {tag}
-                      </span>
-                    ))}
+                {job.keahlian && job.keahlian.length > 0 && job.keahlian.some(tag => tag && tag.trim().length > 0) && (
+                  <div className="space-y-2 pt-2">
+                    <h2 className="text-lg font-extrabold text-slate-900">Keahlian yang Dibutuhkan</h2>
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {job.keahlian.filter(tag => tag && tag.trim().length > 0).map((tag) => (
+                        <span 
+                          key={tag} 
+                          className="bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold px-3 py-1 rounded-full"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {/* Section 5: Benefit & Fasilitas Kompensasi */}
+                {job.benefit && job.benefit.length > 0 && job.benefit.some(item => item && item.trim().length > 0) && (
+                  <div className="space-y-2 pt-2">
+                    <h2 className="text-lg font-extrabold text-slate-900">Benefit &amp; Fasilitas Kompensasi</h2>
+                    <ul className="space-y-1.5 text-slate-600 text-sm list-disc pl-5">
+                      {job.benefit.filter(item => item && item.trim().length > 0).map((item, idx) => (
+                        <li key={idx} className="leading-relaxed">{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
               </div>
 
@@ -352,7 +365,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                       <span>Batas Waktu</span>
                     </div>
                     <span className="font-extrabold text-rose-600 font-mono text-right min-w-0">
-                      {job.deadline}
+                      {formatDateDisplay(job.deadline)}
                     </span>
                   </div>
                 </div>
@@ -468,7 +481,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                             {item.namaInstansi}
                           </p>
                           <p className="text-[11px] text-slate-400">
-                            {item.deadline}
+                            {formatDateDisplay(item.createdAt || item.deadline)}
                           </p>
                         </div>
                       </div>
