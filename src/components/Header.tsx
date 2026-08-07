@@ -74,13 +74,12 @@ const NAV_ITEMS: NavItem[] = [
     id: 'layanan',
     label: 'Layanan',
     children: [
-      { label: 'Bimbingan Karir', tab: 'konseling' },
-      { label: 'Tes Potensi Minat Kerja', tab: 'tes-minat' },
-      { label: 'Workshop Karir', tab: 'workshop' },
+      { label: 'Konseling Karir', tab: 'konseling' },
+
+      { label: 'Workshop Pengembangan Karir', tab: 'workshop' },
       { label: 'Pelatihan Softskill & Kewirausahaan', tab: 'softskill' },
       { label: 'Seminar Sukses Berkarir', tab: 'seminar' },
-      { label: 'Bursa Kerja', tab: 'bursa-kerja' },
-      { label: 'UM Kendari Job Fair', tab: 'career-fair' },
+      { label: 'Job Fair & Bursa Kerja', tab: 'career-fair' },
       { label: 'Campus Hiring - Recruitment', tab: 'campus-hiring' },
       { label: 'Magang', tab: 'magang' },
     ],

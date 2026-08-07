@@ -363,3 +363,94 @@ Hasil verifikasi:
   - Menyusun skema penilaian untuk modul Softskill
   - Menghubungkan e-sertifikat ke halaman portfolio/skills
   - Menyamakan palet warna aksen sesuai brand CDC
+
+---
+
+## Tanggal: 7 Agustus 2026
+**Fokus Pekerjaan:** Revisi Menu Layanan Menuju Format CDC UMSU, Penghapusan Sub-Menu, dan Perapihan UI Sub-Menu Layanan
+
+### 🚀 Ringkasan Perubahan
+
+1. **Penyesuaian Nama Sub-Menu Berdasarkan Instruksi Project Manager:**
+   - `Bimbingan Karir` → `Konseling Karir` di `Header.tsx`, `LayananContainer.tsx`, `MegaMenu.tsx`, `JobPlacement.tsx`
+   - `Workshop Karir` → `Workshop Pengembangan Karir` di menu dan halaman `Workshop.tsx`
+   - `UM Kendari Job Fair` → `Job Fair & Bursa Kerja` di menu dan halaman `CareerFair.tsx`
+   - Menghapus sub-menu terpisah **Bursa Kerja** dari dropdown dan navigasi, digabung menjadi satu menu **Job Fair & Bursa Kerja**
+   - Menghapus sub-menu **Tes Potensi Minat Kerja** dari `Header.tsx`, `LayananContainer.tsx`, `MegaMenu.tsx`, dan `PublicLayout.tsx`
+
+2. **Redesign Konten Halaman Layanan Berbasis Pamphlet/Admin Input:**
+   Semua halaman layanan disusun ulang menjadi format pamphlet informasi yang hanya berisi deskripsi layanan, tanpa form interaksi pengguna:
+   - `BimbinganKarir.tsx`
+   - `Workshop.tsx`
+   - `Softskill.tsx`
+   - `Seminar.tsx`
+   - `BursaKerja.tsx`
+   - `CareerFair.tsx`
+   - `JobPlacement.tsx`
+   - `CampusHiring.tsx`
+   - `Magang.tsx`
+   - `TesMinat.tsx`
+   - `Keanggotaan.tsx`
+   - `ExitSurvey.tsx`
+   - `CaraPasang.tsx`
+
+3. **Perapihan & Modernisasi UI Komponen Layanan:**
+   - Membuat komponen UI modular baru di `src/components/layanan/ui/`:
+     - `PageHeader.tsx` — header dengan gradient, badge, dan icon
+     - `Card.tsx` — card dengan border halus, backdrop blur, dan hover state
+     - `InfoRow.tsx` — baris info dengan nomor/langkah
+     - `MetaList.tsx` — timeline-style list untuk Deskripsi/Tujuan/Pihak/Tempat/Alat
+     - `Divider.tsx` — gradient divider antar section
+     - `PillRow.tsx` — inline pills untuk jadwal/alat
+     - `index.tsx` — export barrel untuk komponen UI
+   - Menghindari gaya generik dengan:
+     - Spacing dan tipografi yang konsisten
+     - Warna aksen yang sesuai per layanan
+     - Layout 2 kolom yang rapi (`lg:grid-cols-12`)
+
+4. **Perbaikan Lint TypeScript:**
+   - Memperbaiki error pre-existing pada `kesesuaianBidang` di `src/types.ts` dan `src/components/TracerStudyForm.tsx`
+   - Hasil: `npm run lint` kembali **passed**
+
+5. **Verifikasi Berulang:**
+   - Menjalankan `npm run dev` dan memastikan server merespons `200 OK`
+   - Menjalankan `npm run lint` dan `npm run build` setelah setiap batch perubahan besar
+   - Hasil akhir verifikasi:
+     - ✅ `npm run lint` **passed**
+     - ✅ `npm run build` **passed**
+
+### 📁 File Diubah
+- `src/components/Header.tsx`
+- `src/components/layanan/LayananContainer.tsx`
+- `src/components/MegaMenu.tsx`
+- `src/components/PublicLayout.tsx`
+- `src/components/layanan/BimbinganKarir.tsx`
+- `src/components/layanan/Workshop.tsx`
+- `src/components/layanan/Softskill.tsx`
+- `src/components/layanan/Seminar.tsx`
+- `src/components/layanan/CareerFair.tsx`
+- `src/components/layanan/JobPlacement.tsx`
+- `src/components/layanan/CampusHiring.tsx`
+- `src/components/layanan/Magang.tsx`
+- `src/components/layanan/Keanggotaan.tsx`
+- `src/components/layanan/ExitSurvey.tsx`
+- `src/components/layanan/CaraPasang.tsx`
+- `src/components/layanan/ui/PageHeader.tsx`
+- `src/components/layanan/ui/Card.tsx`
+- `src/components/layanan/ui/InfoRow.tsx`
+- `src/components/layanan/ui/MetaList.tsx`
+- `src/components/layanan/ui/Divider.tsx`
+- `src/components/layanan/ui/PillRow.tsx`
+- `src/components/layanan/ui/index.tsx`
+- `src/types.ts`
+- `src/components/TracerStudyForm.tsx`
+- `progres.md`
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Rename sub-menu sesuai arahan project manager
+- [x] Hapus sub-menu Tes Potensi Minat Kerja
+- [x] Hapus sub-menu Bursa Kerja terpisah, gabung ke Job Fair & Bursa Kerja
+- [x] Redesign semua halaman layanan menjadi pamphlet/admin input
+- [x] Perapihan UI komponen layanan agar profesional dan tidak generik
+- [x] Perbaiki error lint pre-existing `kesesuaianBidang`
+- [x] Verifikasi `npm run lint` dan `npm run build` passed

@@ -16,11 +16,9 @@ import { motion } from 'motion/react';
 import Header from './Header';
 import { Footer } from './Footer';
 import BimbinganKarir from './layanan/BimbinganKarir';
-import TesMinat from './layanan/TesMinat';
 import Workshop from './layanan/Workshop';
 import Softskill from './layanan/Softskill';
 import Seminar from './layanan/Seminar';
-import BursaKerja from './layanan/BursaKerja';
 import CareerFair from './layanan/CareerFair';
 import CampusHiring from './layanan/CampusHiring';
 import Magang from './layanan/Magang';
@@ -655,7 +653,6 @@ export default function PublicLayout({
                     { label: 'Konseling Karier', tab: 'konseling' },
                     { label: 'CV Review', tab: 'cv-review' },
                     { label: 'Mock Interview', tab: 'mock-interview' },
-                    { label: 'Tes Minat Bakat', tab: 'tes-minat' },
                   ].map(s => (
                     <button
                       key={s.label}
@@ -899,14 +896,12 @@ export default function PublicLayout({
         )}
 
         {/* ─── LAYANAN SUB-TABS ───────────────────────────────────── */}
-        {['konseling', 'tes-minat', 'workshop', 'softskill', 'seminar', 'bursa-kerja', 'career-fair', 'campus-hiring', 'magang'].includes(currentTab) && (
+        {['konseling', 'workshop', 'softskill', 'seminar', 'career-fair', 'campus-hiring', 'magang'].includes(currentTab) && (
           <LayananContainer currentTab={currentTab} setTab={setTab}>
             {currentTab === 'konseling' && <BimbinganKarir />}
-            {currentTab === 'tes-minat' && <TesMinat />}
             {currentTab === 'workshop' && <Workshop />}
             {currentTab === 'softskill' && <Softskill />}
             {currentTab === 'seminar' && <Seminar />}
-            {currentTab === 'bursa-kerja' && <BursaKerja />}
             {currentTab === 'career-fair' && <CareerFair />}
             {currentTab === 'campus-hiring' && <CampusHiring />}
             {currentTab === 'magang' && <Magang />}
