@@ -27,6 +27,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
   const [applicantNotes, setApplicantNotes] = useState<string>('');
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
   const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
 
@@ -34,6 +35,13 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!uploadedFileName && !uploadedFileUrl) {
+      setFileError('Berkas CV / Portofolio wajib diunggah sebelum mengirim lamaran.');
+      return;
+    }
+
+    setFileError(null);
     setIsSubmitting(true);
 
     // Simulate API call
@@ -48,6 +56,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setUploadedFileName(file.name);
+      setFileError(null);
       const reader = new FileReader();
       reader.onload = (event) => {
         if (event.target?.result) {
@@ -67,6 +76,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
     setApplicantNotes('');
     setUploadedFileName(null);
     setUploadedFileUrl(null);
+    setFileError(null);
     onClose();
   };
 
@@ -145,20 +155,30 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-700">Upload Berkas CV / Portofolio (PDF)</label>
-              <div className="border-2 border-dashed border-slate-200 hover:border-[#0077C6] rounded-2xl p-4 text-center cursor-pointer bg-slate-50 transition relative">
+              <label className="text-xs font-bold text-slate-700">
+                Upload Berkas CV / Portofolio (PDF) <span className="text-rose-500 font-extrabold">(Wajib)</span>
+              </label>
+              <div className={`border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer bg-slate-50 transition relative ${
+                fileError ? 'border-rose-400 bg-rose-50/50' : 'border-slate-200 hover:border-[#0077C6]'
+              }`}>
                 <input
                   type="file"
+                  required
                   accept=".pdf,.doc,.docx,image/*"
                   onChange={handleFileChange}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 />
-                <UploadCloud className="w-8 h-8 text-slate-400 mx-auto mb-1.5" />
-                <span className="text-xs font-bold text-[#0077C6] block">
+                <UploadCloud className={`w-8 h-8 mx-auto mb-1.5 ${fileError ? 'text-rose-400' : 'text-slate-400'}`} />
+                <span className={`text-xs font-bold block ${fileError ? 'text-rose-600' : 'text-[#0077C6]'}`}>
                   {uploadedFileName ? uploadedFileName : 'Klik atau seret berkas CV ke sini'}
                 </span>
                 <span className="text-[10px] text-slate-400 mt-0.5 block">Format PDF / DOC (Maks. 5MB)</span>
               </div>
+              {fileError && (
+                <p className="text-[11px] font-bold text-rose-600 mt-1 flex items-center gap-1">
+                  ⚠️ {fileError}
+                </p>
+              )}
             </div>
 
             <div className="space-y-1">

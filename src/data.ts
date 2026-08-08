@@ -14,8 +14,7 @@ import {
   TracerStudy,
   Berita,
   Pengumuman,
-  SurveiLulusan,
-  KontenKarir
+  SurveiLulusan
 } from './types';
 
 // Mock Password: all seeded accounts use "password"
@@ -35,7 +34,7 @@ export const SEED_USERS: User[] = [
     name: 'Muhammad Fadly Alamsyah',
     email: 'mhs@umkendari.ac.id',
     phone: '085241009988',
-    role: 'mahasiswa',
+    role: 'user',
     status: 'active',
     photoUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200&auto=format&fit=crop',
     createdAt: '2026-02-15T09:30:00Z'
@@ -45,7 +44,7 @@ export const SEED_USERS: User[] = [
     name: 'Siti Rahmawati',
     email: 'rahma@umkendari.ac.id',
     phone: '082199008811',
-    role: 'mahasiswa',
+    role: 'user',
     status: 'pending',
     photoUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop',
     createdAt: '2026-06-01T10:15:00Z'
@@ -55,7 +54,7 @@ export const SEED_USERS: User[] = [
     name: 'Fachrul Alam Prasetyo, S.Kom.',
     email: 'alumni@umkendari.ac.id',
     phone: '081122334455',
-    role: 'alumni',
+    role: 'user',
     status: 'active',
     photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop',
     createdAt: '2026-01-20T11:00:00Z'
@@ -65,7 +64,7 @@ export const SEED_USERS: User[] = [
     name: 'Andi Megawati, S.E.',
     email: 'mega@umkendari.ac.id',
     phone: '085311223344',
-    role: 'alumni',
+    role: 'user',
     status: 'active',
     photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
     createdAt: '2026-03-05T14:20:00Z'
@@ -189,6 +188,17 @@ export const SEED_MITRA: Mitra[] = [
   }
 ];
 
+export function sortJobsByNewest(jobs: Lowongan[]): Lowongan[] {
+  return [...jobs].sort((a, b) => {
+    const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    if (timeA !== timeB) {
+      return timeB - timeA; // Newest first
+    }
+    return b.id.localeCompare(a.id, undefined, { numeric: true });
+  });
+}
+
 export const SEED_LOWONGAN: Lowongan[] = [
   {
     id: 'low1',
@@ -197,7 +207,7 @@ export const SEED_LOWONGAN: Lowongan[] = [
     judul: 'Fullstack Web Developer Intern',
     tipe: 'magang',
     namaInstansi: 'PT Go Digital Kendari',
-    companyLogo: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop',
+    companyLogo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200"><rect width="200" height="200" rx="36" fill="%230f172a"/><g transform="translate(100,100)" text-anchor="middle"><circle cx="0" cy="-15" r="32" fill="%230284c7"/><text y="-6" font-family="sans-serif" font-weight="900" font-size="26" fill="%23ffffff">GD</text><text y="42" font-family="sans-serif" font-weight="800" font-size="14" fill="%2338bdf8" letter-spacing="1">GO DIGITAL</text></g></svg>',
     bannerImage: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 500" width="1000" height="500"><rect width="1000" height="500" fill="%23e2e8f0"/><rect x="20" y="20" width="960" height="460" rx="16" fill="%23f8fafc" stroke="%23cbd5e1" stroke-width="2"/><g transform="translate(60, 60)"><text x="0" y="30" font-family="system-ui, sans-serif" font-weight="800" font-size="16" fill="%230284c7">QuantumTech Careers | Job Opportunities</text><text x="0" y="65" font-family="system-ui, sans-serif" font-weight="900" font-size="26" fill="%230f172a">Job Title: Fullstack Web Developer Intern</text><text x="0" y="95" font-family="system-ui, sans-serif" font-weight="600" font-size="14" fill="%23475569">Location: Kendari | Salary: Competitive</text></g><rect x="340" y="120" width="580" height="320" rx="16" fill="%230284c7"/><g transform="translate(370, 180)"><text x="0" y="30" font-family="system-ui, sans-serif" font-weight="900" font-size="32" fill="%23ffffff">JOIN OUR INNOVATIVE</text><text x="0" y="70" font-family="system-ui, sans-serif" font-weight="900" font-size="36" fill="%2338bdf8">TECH TEAM</text><text x="0" y="105" font-family="system-ui, sans-serif" font-weight="600" font-size="16" fill="%23e0f2fe">Innovate. Collaborate. Lead.</text><rect x="0" y="130" width="160" height="44" rx="8" fill="%230f172a"/><text x="80" y="157" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="800" font-size="14" fill="%23ffffff">APPLY NOW</text></g></svg>',
     imageUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23f8fafc"/><rect x="20" y="20" width="760" height="410" rx="16" fill="%23ffffff" stroke="%23e2e8f0" stroke-width="2"/><g transform="translate(400, 200)"><circle cx="0" cy="-30" r="50" fill="none" stroke="%232563eb" stroke-width="12"/><path d="M-20 -30 L20 -60 L10 -10 Z" fill="%232563eb"/><text x="0" y="60" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="900" font-size="32" fill="%231e293b">JOB INFO</text><text x="0" y="85" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="700" font-size="14" fill="%2364748b" letter-spacing="3">ACADEMIC CAREER PORTAL</text></g></svg>',
     flyer: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23f8fafc"/><rect x="20" y="20" width="760" height="410" rx="16" fill="%23ffffff" stroke="%23e2e8f0" stroke-width="2"/><g transform="translate(400, 200)"><circle cx="0" cy="-30" r="50" fill="none" stroke="%232563eb" stroke-width="12"/><path d="M-20 -30 L20 -60 L10 -10 Z" fill="%232563eb"/><text x="0" y="60" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="900" font-size="32" fill="%231e293b">JOB INFO</text><text x="0" y="85" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="700" font-size="14" fill="%2364748b" letter-spacing="3">ACADEMIC CAREER PORTAL</text></g></svg>',
@@ -242,7 +252,7 @@ export const SEED_LOWONGAN: Lowongan[] = [
     judul: 'UI/UX Designer Intern',
     tipe: 'magang',
     namaInstansi: 'PT Go Digital Kendari',
-    companyLogo: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop',
+    companyLogo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200"><rect width="200" height="200" rx="36" fill="%230f172a"/><g transform="translate(100,100)" text-anchor="middle"><circle cx="0" cy="-15" r="32" fill="%230284c7"/><text y="-6" font-family="sans-serif" font-weight="900" font-size="26" fill="%23ffffff">GD</text><text y="42" font-family="sans-serif" font-weight="800" font-size="14" fill="%2338bdf8" letter-spacing="1">GO DIGITAL</text></g></svg>',
     bannerImage: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23f8fafc"/><rect x="40" y="30" width="720" height="390" rx="12" fill="%23ffffff" stroke="%23cbd5e1" stroke-width="2"/><rect x="40" y="30" width="720" height="36" rx="12" fill="%23f1f5f9"/><circle cx="65" cy="48" r="5" fill="%23ef4444"/><circle cx="80" cy="48" r="5" fill="%23f59e0b"/><circle cx="95" cy="48" r="5" fill="%2310b981"/><g transform="translate(80, 110)"><path d="M0 40 L30 0 L50 40 L35 40 L25 20 L15 40 Z" fill="%23d946ef"/><text x="65" y="25" font-family="system-ui, sans-serif" font-weight="900" font-size="28" fill="%231e1b4b">Aethereum</text><text x="65" y="42" font-family="system-ui, sans-serif" font-weight="700" font-size="11" fill="%23a21caf" letter-spacing="2">DESIGN CO.</text></g></svg>',
     imageUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23f8fafc"/><rect x="40" y="30" width="720" height="390" rx="12" fill="%23ffffff" stroke="%23cbd5e1" stroke-width="2"/><rect x="40" y="30" width="720" height="36" rx="12" fill="%23f1f5f9"/><circle cx="65" cy="48" r="5" fill="%23ef4444"/><circle cx="80" cy="48" r="5" fill="%23f59e0b"/><circle cx="95" cy="48" r="5" fill="%2310b981"/><g transform="translate(80, 110)"><path d="M0 40 L30 0 L50 40 L35 40 L25 20 L15 40 Z" fill="%23d946ef"/><text x="65" y="25" font-family="system-ui, sans-serif" font-weight="900" font-size="28" fill="%231e1b4b">Aethereum</text><text x="65" y="42" font-family="system-ui, sans-serif" font-weight="700" font-size="11" fill="%23a21caf" letter-spacing="2">DESIGN CO.</text></g></svg>',
     flyer: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23f8fafc"/><rect x="40" y="30" width="720" height="390" rx="12" fill="%23ffffff" stroke="%23cbd5e1" stroke-width="2"/><g transform="translate(80, 110)"><path d="M0 40 L30 0 L50 40 L35 40 L25 20 L15 40 Z" fill="%23d946ef"/><text x="65" y="25" font-family="system-ui, sans-serif" font-weight="900" font-size="28" fill="%231e1b4b">Aethereum</text><text x="65" y="42" font-family="system-ui, sans-serif" font-weight="700" font-size="11" fill="%23a21caf" letter-spacing="2">DESIGN CO.</text></g></svg>',
@@ -281,7 +291,7 @@ export const SEED_LOWONGAN: Lowongan[] = [
     judul: 'Junior Web Developer (Lulusan Baru)',
     tipe: 'kerja',
     namaInstansi: 'PT Go Digital Kendari',
-    companyLogo: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop',
+    companyLogo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200"><rect width="200" height="200" rx="36" fill="%230f172a"/><g transform="translate(100,100)" text-anchor="middle"><circle cx="0" cy="-15" r="32" fill="%230284c7"/><text y="-6" font-family="sans-serif" font-weight="900" font-size="26" fill="%23ffffff">GD</text><text y="42" font-family="sans-serif" font-weight="800" font-size="14" fill="%2338bdf8" letter-spacing="1">GO DIGITAL</text></g></svg>',
     bannerImage: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23f8fafc"/><rect x="40" y="30" width="720" height="390" rx="12" fill="%23ffffff" stroke="%23cbd5e1" stroke-width="2"/><g transform="translate(400, 200)"><path d="M-60 10 L0 -50 L40 10 L10 10 L0 -20 L-30 10 Z" fill="%230284c7"/><path d="M-20 20 L30 -40 L70 20 Z" fill="%230d9488" opacity="0.8"/><text x="0" y="65" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="900" font-size="30" fill="%230f172a" letter-spacing="2">INFRASTRUCTURE</text><text x="0" y="95" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="800" font-size="28" fill="%230284c7" letter-spacing="3">CONNECT</text></g></svg>',
     imageUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23f8fafc"/><rect x="40" y="30" width="720" height="390" rx="12" fill="%23ffffff" stroke="%23cbd5e1" stroke-width="2"/><g transform="translate(400, 200)"><path d="M-60 10 L0 -50 L40 10 L10 10 L0 -20 L-30 10 Z" fill="%230284c7"/><path d="M-20 20 L30 -40 L70 20 Z" fill="%230d9488" opacity="0.8"/><text x="0" y="65" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="900" font-size="30" fill="%230f172a" letter-spacing="2">INFRASTRUCTURE</text><text x="0" y="95" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="800" font-size="28" fill="%230284c7" letter-spacing="3">CONNECT</text></g></svg>',
     flyer: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23f8fafc"/><rect x="40" y="30" width="720" height="390" rx="12" fill="%23ffffff" stroke="%23cbd5e1" stroke-width="2"/><g transform="translate(400, 200)"><path d="M-60 10 L0 -50 L40 10 L10 10 L0 -20 L-30 10 Z" fill="%230284c7"/><text x="0" y="65" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="900" font-size="30" fill="%230f172a">INFRASTRUCTURE CONNECT</text></g></svg>',
@@ -319,10 +329,13 @@ export const SEED_LOWONGAN: Lowongan[] = [
     judul: 'Creative Director',
     tipe: 'kerja',
     namaInstansi: 'Tech Studio',
-    companyLogo: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?q=80&w=200&auto=format&fit=crop',
-    bannerImage: 'https://images.unsplash.com/photo-1542744094-3a3e22035383?q=80&w=800&auto=format&fit=crop',
-    imageUrl: 'https://images.unsplash.com/photo-1542744094-3a3e22035383?q=80&w=800&auto=format&fit=crop',
-    flyer: 'https://images.unsplash.com/photo-1542744094-3a3e22035383?q=80&w=800&auto=format&fit=crop',
+    companyLogo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200"><rect width="200" height="200" rx="36" fill="%23701a75"/><g transform="translate(100,100)" text-anchor="middle"><circle cx="0" cy="-15" r="32" fill="%23d946ef"/><text y="-6" font-family="sans-serif" font-weight="900" font-size="26" fill="%23ffffff">TS</text><text y="42" font-family="sans-serif" font-weight="800" font-size="14" fill="%23f0abfc" letter-spacing="1">TECH STUDIO</text></g></svg>',
+    bannerImage: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23fdf4ff"/><rect x="30" y="30" width="740" height="390" rx="16" fill="%23ffffff" stroke="%23f0abfc" stroke-width="2"/><g transform="translate(400, 200)"><text x="0" y="20" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="32" fill="%23701a75">TECH STUDIO CREATIVE</text><text x="0" y="55" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="%23c026d3">HIRING: CREATIVE DIRECTOR</text></g></svg>',
+    imageUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23fdf4ff"/><rect x="30" y="30" width="740" height="390" rx="16" fill="%23ffffff" stroke="%23f0abfc" stroke-width="2"/><g transform="translate(400, 200)"><text x="0" y="20" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="32" fill="%23701a75">TECH STUDIO CREATIVE</text><text x="0" y="55" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="%23c026d3">HIRING: CREATIVE DIRECTOR</text></g></svg>',
+    flyer: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23fdf4ff"/><rect x="30" y="30" width="740" height="390" rx="16" fill="%23ffffff" stroke="%23f0abfc" stroke-width="2"/><g transform="translate(400, 200)"><text x="0" y="20" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="32" fill="%23701a75">TECH STUDIO CREATIVE</text><text x="0" y="55" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="%23c026d3">HIRING: CREATIVE DIRECTOR</text></g></svg>',
+    flyers: [
+      'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23fdf4ff"/><rect x="30" y="30" width="740" height="390" rx="16" fill="%23ffffff" stroke="%23f0abfc" stroke-width="2"/><g transform="translate(400, 200)"><text x="0" y="20" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="32" fill="%23701a75">TECH STUDIO CREATIVE</text><text x="0" y="55" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="%23c026d3">HIRING: CREATIVE DIRECTOR</text></g></svg>'
+    ],
     lokasi: 'Kendari (Hybrid)',
     kategori: 'Kreatif & Media',
     gaji: 'Kompetitif',
@@ -341,10 +354,13 @@ export const SEED_LOWONGAN: Lowongan[] = [
     judul: 'Accountant',
     tipe: 'kerja',
     namaInstansi: 'Global Finance',
-    companyLogo: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=200&auto=format&fit=crop',
-    bannerImage: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=800&auto=format&fit=crop',
-    imageUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=800&auto=format&fit=crop',
-    flyer: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=800&auto=format&fit=crop',
+    companyLogo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200"><rect width="200" height="200" rx="36" fill="%231e3a8a"/><g transform="translate(100,100)" text-anchor="middle"><circle cx="0" cy="-15" r="32" fill="%232563eb"/><text y="-6" font-family="sans-serif" font-weight="900" font-size="26" fill="%23ffffff">GF</text><text y="42" font-family="sans-serif" font-weight="800" font-size="14" fill="%2393c5fd" letter-spacing="1">GLOBAL FINANCE</text></g></svg>',
+    bannerImage: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23eff6ff"/><rect x="30" y="30" width="740" height="390" rx="16" fill="%23ffffff" stroke="%2393c5fd" stroke-width="2"/><g transform="translate(400, 200)"><text x="0" y="20" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="32" fill="%231e3a8a">GLOBAL FINANCE</text><text x="0" y="55" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="%232563eb">HIRING: ACCOUNTANT</text></g></svg>',
+    imageUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23eff6ff"/><rect x="30" y="30" width="740" height="390" rx="16" fill="%23ffffff" stroke="%2393c5fd" stroke-width="2"/><g transform="translate(400, 200)"><text x="0" y="20" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="32" fill="%231e3a8a">GLOBAL FINANCE</text><text x="0" y="55" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="%232563eb">HIRING: ACCOUNTANT</text></g></svg>',
+    flyer: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23eff6ff"/><rect x="30" y="30" width="740" height="390" rx="16" fill="%23ffffff" stroke="%2393c5fd" stroke-width="2"/><g transform="translate(400, 200)"><text x="0" y="20" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="32" fill="%231e3a8a">GLOBAL FINANCE</text><text x="0" y="55" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="%232563eb">HIRING: ACCOUNTANT</text></g></svg>',
+    flyers: [
+      'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23eff6ff"/><rect x="30" y="30" width="740" height="390" rx="16" fill="%23ffffff" stroke="%2393c5fd" stroke-width="2"/><g transform="translate(400, 200)"><text x="0" y="20" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="32" fill="%231e3a8a">GLOBAL FINANCE</text><text x="0" y="55" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="%232563eb">HIRING: ACCOUNTANT</text></g></svg>'
+    ],
     lokasi: 'Kendari (On-site)',
     kategori: 'Keuangan & Akuntansi',
     gaji: 'Kompetitif',
@@ -363,10 +379,13 @@ export const SEED_LOWONGAN: Lowongan[] = [
     judul: 'Marketing Manager',
     tipe: 'kerja',
     namaInstansi: 'Creative Agency',
-    companyLogo: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=200&auto=format&fit=crop',
-    bannerImage: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=800&auto=format&fit=crop',
-    imageUrl: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=800&auto=format&fit=crop',
-    flyer: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=800&auto=format&fit=crop',
+    companyLogo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200"><rect width="200" height="200" rx="36" fill="%23c2410c"/><g transform="translate(100,100)" text-anchor="middle"><circle cx="0" cy="-15" r="32" fill="%23ea580c"/><text y="-6" font-family="sans-serif" font-weight="900" font-size="26" fill="%23ffffff">CA</text><text y="42" font-family="sans-serif" font-weight="800" font-size="14" fill="%23fdba74" letter-spacing="1">CREATIVE AGENCY</text></g></svg>',
+    bannerImage: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23fff7ed"/><rect x="30" y="30" width="740" height="390" rx="16" fill="%23ffffff" stroke="%23fdba74" stroke-width="2"/><g transform="translate(400, 200)"><text x="0" y="20" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="32" fill="%23c2410c">CREATIVE AGENCY</text><text x="0" y="55" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="%23ea580c">HIRING: MARKETING MANAGER</text></g></svg>',
+    imageUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23fff7ed"/><rect x="30" y="30" width="740" height="390" rx="16" fill="%23ffffff" stroke="%23fdba74" stroke-width="2"/><g transform="translate(400, 200)"><text x="0" y="20" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="32" fill="%23c2410c">CREATIVE AGENCY</text><text x="0" y="55" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="%23ea580c">HIRING: MARKETING MANAGER</text></g></svg>',
+    flyer: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23fff7ed"/><rect x="30" y="30" width="740" height="390" rx="16" fill="%23ffffff" stroke="%23fdba74" stroke-width="2"/><g transform="translate(400, 200)"><text x="0" y="20" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="32" fill="%23c2410c">CREATIVE AGENCY</text><text x="0" y="55" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="%23ea580c">HIRING: MARKETING MANAGER</text></g></svg>',
+    flyers: [
+      'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23fff7ed"/><rect x="30" y="30" width="740" height="390" rx="16" fill="%23ffffff" stroke="%23fdba74" stroke-width="2"/><g transform="translate(400, 200)"><text x="0" y="20" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="32" fill="%23c2410c">CREATIVE AGENCY</text><text x="0" y="55" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="%23ea580c">HIRING: MARKETING MANAGER</text></g></svg>'
+    ],
     lokasi: 'Kendari (Hybrid)',
     kategori: 'Pemasaran & Digital',
     gaji: 'Kompetitif',
@@ -385,11 +404,11 @@ export const SEED_LOWONGAN: Lowongan[] = [
     judul: 'Junior Project Engineer',
     tipe: 'kerja',
     namaInstansi: 'PT RIASARANA ELECTRINDO',
-    companyLogo: 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?q=80&w=200&auto=format&fit=crop',
-    bannerImage: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=800&auto=format&fit=crop',
-    imageUrl: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=800&auto=format&fit=crop',
-    flyer: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=800&auto=format&fit=crop',
-    flyers: ['https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=800&auto=format&fit=crop'],
+    companyLogo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200"><rect width="200" height="200" rx="36" fill="%23047857"/><g transform="translate(100,100)" text-anchor="middle"><circle cx="0" cy="-15" r="32" fill="%2310b981"/><text y="-6" font-family="sans-serif" font-weight="900" font-size="26" fill="%23ffffff">RE</text><text y="42" font-family="sans-serif" font-weight="800" font-size="14" fill="%23a7f3d0" letter-spacing="1">RIASARANA</text></g></svg>',
+    bannerImage: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23ecfdf5"/><rect x="30" y="30" width="740" height="390" rx="16" fill="%23ffffff" stroke="%236ee7b7" stroke-width="2"/><g transform="translate(400, 200)"><text x="0" y="20" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="32" fill="%23047857">PT RIASARANA ELECTRINDO</text><text x="0" y="55" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="%23059669">HIRING: JUNIOR PROJECT ENGINEER</text></g></svg>',
+    imageUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23ecfdf5"/><rect x="30" y="30" width="740" height="390" rx="16" fill="%23ffffff" stroke="%236ee7b7" stroke-width="2"/><g transform="translate(400, 200)"><text x="0" y="20" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="32" fill="%23047857">PT RIASARANA ELECTRINDO</text><text x="0" y="55" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="%23059669">HIRING: JUNIOR PROJECT ENGINEER</text></g></svg>',
+    flyer: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23ecfdf5"/><rect x="30" y="30" width="740" height="390" rx="16" fill="%23ffffff" stroke="%236ee7b7" stroke-width="2"/><g transform="translate(400, 200)"><text x="0" y="20" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="32" fill="%23047857">PT RIASARANA ELECTRINDO</text><text x="0" y="55" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="%23059669">HIRING: JUNIOR PROJECT ENGINEER</text></g></svg>',
+    flyers: ['data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23ecfdf5"/><rect x="30" y="30" width="740" height="390" rx="16" fill="%23ffffff" stroke="%236ee7b7" stroke-width="2"/><g transform="translate(400, 200)"><text x="0" y="20" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="32" fill="%23047857">PT RIASARANA ELECTRINDO</text><text x="0" y="55" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="%23059669">HIRING: JUNIOR PROJECT ENGINEER</text></g></svg>'],
     lokasi: 'Jakarta Barat, JAKARTA BARAT, DKI JAKARTA',
     kategori: 'Teknik/Rekayasa & Manufaktur',
     gaji: 'Rp 6.000.000 - Rp 8.500.000',
@@ -414,11 +433,11 @@ export const SEED_LOWONGAN: Lowongan[] = [
     judul: 'PT Yanasurya Bhaktipersada is Hiring for Marketing EXIM Staff!',
     tipe: 'kerja',
     namaInstansi: 'PT Yanasurya Bhaktipersada',
-    companyLogo: 'https://images.unsplash.com/photo-1572021335469-31706a17aaef?q=80&w=200&auto=format&fit=crop',
-    bannerImage: 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?q=80&w=800&auto=format&fit=crop',
-    imageUrl: 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?q=80&w=800&auto=format&fit=crop',
-    flyer: 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?q=80&w=800&auto=format&fit=crop',
-    flyers: ['https://images.unsplash.com/photo-1578575437130-527eed3abbec?q=80&w=800&auto=format&fit=crop'],
+    companyLogo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200"><rect width="200" height="200" rx="36" fill="%233730a3"/><g transform="translate(100,100)" text-anchor="middle"><circle cx="0" cy="-15" r="32" fill="%236366f1"/><text y="-6" font-family="sans-serif" font-weight="900" font-size="26" fill="%23ffffff">YB</text><text y="42" font-family="sans-serif" font-weight="800" font-size="14" fill="%23c7d2fe" letter-spacing="1">YANASURYA</text></g></svg>',
+    bannerImage: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23eef2ff"/><rect x="30" y="30" width="740" height="390" rx="16" fill="%23ffffff" stroke="%23a5b4fc" stroke-width="2"/><g transform="translate(400, 200)"><text x="0" y="20" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="32" fill="%233730a3">PT YANASURYA BHAKTIPERSADA</text><text x="0" y="55" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="%234f46e5">HIRING: MARKETING EXIM STAFF</text></g></svg>',
+    imageUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23eef2ff"/><rect x="30" y="30" width="740" height="390" rx="16" fill="%23ffffff" stroke="%23a5b4fc" stroke-width="2"/><g transform="translate(400, 200)"><text x="0" y="20" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="32" fill="%233730a3">PT YANASURYA BHAKTIPERSADA</text><text x="0" y="55" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="%234f46e5">HIRING: MARKETING EXIM STAFF</text></g></svg>',
+    flyer: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23eef2ff"/><rect x="30" y="30" width="740" height="390" rx="16" fill="%23ffffff" stroke="%23a5b4fc" stroke-width="2"/><g transform="translate(400, 200)"><text x="0" y="20" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="32" fill="%233730a3">PT YANASURYA BHAKTIPERSADA</text><text x="0" y="55" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="%234f46e5">HIRING: MARKETING EXIM STAFF</text></g></svg>',
+    flyers: ['data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23eef2ff"/><rect x="30" y="30" width="740" height="390" rx="16" fill="%23ffffff" stroke="%23a5b4fc" stroke-width="2"/><g transform="translate(400, 200)"><text x="0" y="20" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="32" fill="%233730a3">PT YANASURYA BHAKTIPERSADA</text><text x="0" y="55" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="%234f46e5">HIRING: MARKETING EXIM STAFF</text></g></svg>'],
     lokasi: 'Jakarta Utara, JAKARTA UTARA, DKI JAKARTA',
     kategori: 'Pemasaran/Pemasaran Digital & PR',
     gaji: 'Rp 5.500.000 - Rp 7.500.000',
@@ -442,11 +461,11 @@ export const SEED_LOWONGAN: Lowongan[] = [
     judul: 'Jr Quality Assurance',
     tipe: 'kerja',
     namaInstansi: 'Celerates',
-    companyLogo: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=200&auto=format&fit=crop',
-    bannerImage: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=800&auto=format&fit=crop',
-    imageUrl: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=800&auto=format&fit=crop',
-    flyer: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=800&auto=format&fit=crop',
-    flyers: ['https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=800&auto=format&fit=crop'],
+    companyLogo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200"><rect width="200" height="200" rx="36" fill="%230f766e"/><g transform="translate(100,100)" text-anchor="middle"><circle cx="0" cy="-15" r="32" fill="%2314b8a6"/><text y="-6" font-family="sans-serif" font-weight="900" font-size="26" fill="%23ffffff">CL</text><text y="42" font-family="sans-serif" font-weight="800" font-size="14" fill="%2399f6e4" letter-spacing="1">CELERATES</text></g></svg>',
+    bannerImage: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23ccfbf1"/><rect x="30" y="30" width="740" height="390" rx="16" fill="%23ffffff" stroke="%235eead4" stroke-width="2"/><g transform="translate(400, 200)"><text x="0" y="20" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="32" fill="%230f766e">CELERATES</text><text x="0" y="55" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="%230d9488">HIRING: JR QUALITY ASSURANCE</text></g></svg>',
+    imageUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23ccfbf1"/><rect x="30" y="30" width="740" height="390" rx="16" fill="%23ffffff" stroke="%235eead4" stroke-width="2"/><g transform="translate(400, 200)"><text x="0" y="20" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="32" fill="%230f766e">CELERATES</text><text x="0" y="55" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="%230d9488">HIRING: JR QUALITY ASSURANCE</text></g></svg>',
+    flyer: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23ccfbf1"/><rect x="30" y="30" width="740" height="390" rx="16" fill="%23ffffff" stroke="%235eead4" stroke-width="2"/><g transform="translate(400, 200)"><text x="0" y="20" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="32" fill="%230f766e">CELERATES</text><text x="0" y="55" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="%230d9488">HIRING: JR QUALITY ASSURANCE</text></g></svg>',
+    flyers: ['data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450"><rect width="800" height="450" fill="%23ccfbf1"/><rect x="30" y="30" width="740" height="390" rx="16" fill="%23ffffff" stroke="%235eead4" stroke-width="2"/><g transform="translate(400, 200)"><text x="0" y="20" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="32" fill="%230f766e">CELERATES</text><text x="0" y="55" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="%230d9488">HIRING: JR QUALITY ASSURANCE</text></g></svg>'],
     lokasi: 'North Jakarta, JAKARTA UTARA, DKI JAKARTA',
     kategori: 'IT/Komputer & Teknologi Informasi',
     gaji: 'Rp 6.500.000 - Rp 9.000.000',
@@ -679,8 +698,6 @@ export const SEED_SURVEI_LULUSAN: SurveiLulusan[] = [
   }
 ];
 
-export const SEED_KONTEN_KARIR: KontenKarir[] = [];
-
 // Helper to safely access database keys
 export type DBKey =
   | 'users'
@@ -693,8 +710,7 @@ export type DBKey =
   | 'tracer_studies'
   | 'berita'
   | 'pengumuman'
-  | 'survei_lulusan'
-  | 'konten_karir';
+  | 'survei_lulusan';
 
 const DEFAULT_SEEDS = {
   users: SEED_USERS,
@@ -707,8 +723,7 @@ const DEFAULT_SEEDS = {
   tracer_studies: SEED_TRACER_STUDIES,
   berita: SEED_BERITA,
   pengumuman: SEED_PENGUMUMAN,
-  survei_lulusan: SEED_SURVEI_LULUSAN,
-  konten_karir: SEED_KONTEN_KARIR
+  survei_lulusan: SEED_SURVEI_LULUSAN
 };
 
 // Initializer to make sure local storage has everything
@@ -954,5 +969,22 @@ export function toggleSaveJob(jobId: string): boolean {
   localStorage.setItem('cdc_saved_job_ids', JSON.stringify(next));
   localStorage.setItem(`saved_job_${jobId}`, isSaved ? 'true' : 'false');
   return isSaved;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   DATE FORMATTER HELPER
+───────────────────────────────────────────────────────────────── */
+export function formatDateDisplay(dateStr?: string): string {
+  if (!dateStr) return '';
+  if (/^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+    const cleanDate = dateStr.split('T')[0];
+    const [year, month, day] = cleanDate.split('-');
+    const monthIdx = parseInt(month, 10) - 1;
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    if (!isNaN(parseInt(day, 10)) && monthIdx >= 0 && monthIdx < 12) {
+      return `${parseInt(day, 10)} ${months[monthIdx]} ${year}`;
+    }
+  }
+  return dateStr;
 }
 

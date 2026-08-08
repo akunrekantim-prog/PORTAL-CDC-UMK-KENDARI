@@ -1,97 +1,109 @@
-# Laporan Progres Pengembangan Portal CDC UM Kendari
-**Tanggal:** 22 Juli 2026  
-**Fokus Pekerjaan:** Penyelesaian & Perapihan UI/UX Sub-Bab Layanan (Mahasiswa & Alumni)
+# Progres Pengerjaan — Portal CDC UM Kendari
+
+Periode: 6 Agustus 2026  
+Branch: `main`  
+Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 
 ---
 
-## 📋 Ringkasan Pekerjaan Hari Ini
-
-Hari ini kita telah berhasil menyelesaikan pembuatan, integrasi, audit bebas bug, dan perapihan antarmuka (UI/UX) tingkat profesional untuk seluruh **11 sub-bab** dari menu **Layanan** di Portal CDC Universitas Muhammadiyah Kendari.
-
----
-
-## 🛠️ 1. Pembangunan Komponen Sub-Bab Layanan
-
-Semua komponen sub-bab dikembangkan secara terpisah dan modular di dalam folder `src/components/layanan/`:
-
-1. **`CaraPasang.tsx` (Cara Pasang Info LowKer):**
-   - Form pengajuan lowongan kerja bagi mitra perusahaan.
-   - Fitur validasi input, animasi *loading spinner* submission, dan konfirmasi pengajuan berhasil.
-
-2. **`Keanggotaan.tsx` (Keanggotaan CDC):**
-   - Fitur pencarian NIM anggota mahasiswa/alumni.
-   - Penerbitan otomatis **Kartu Anggota Digital (*Virtual Member Card*)** beserta detail data keanggotaan.
-
-3. **`BimbinganKarir.tsx` (Bimbingan Karir / Konseling):**
-   - Form reservasi jadwal konseling dengan konselor CDC terdaftar.
-   - Penerbitan **Tiket Reservasi Digital CDC** ber-status *CONFIRMED*.
-
-4. **`TesMinat.tsx` (Tes Potensi Minat Kerja - RIASEC):**
-   - Kuis mini 5 pertanyaan interaktif berbasis model standar industri RIASEC.
-   - Kalkulasi skor otomatis untuk menentukan tipe kepribadian kerja dominan (*Realistic, Investigative, Artistic, Social, Enterprising, Conventional*).
-   - Visualisasi distribusi skor berbasis grafik batang dan rekomendasi karir/prodi.
-
-5. **`Workshop.tsx` (Workshop Karir):**
-   - Katalog workshop karir aktif dengan fitur pendaftaran *modal popup*.
-   - Pengurangan kuota otomatis dan penanda status *"Terdaftar"*.
-
-6. **`Softskill.tsx` (Pelatihan Softskill & Kewirausahaan):**
-   - Tracker modul kurikulum mandiri dengan indikator *progress bar* persentase.
-   - Pembukaan otomatis fitur *"Klaim E-Certificate"* saat progres mencapai 100%.
-
-7. **`Seminar.tsx` (Seminar Sukses Berkarir):**
-   - Form pendaftaran seminar nasional dan penerbitan **E-Ticket Resmi** ber-barcode unik.
-
-8. **`BursaKerja.tsx` (Bursa Kerja / Loker Lokal):**
-   - Papan lowongan kerja lokal area Kendari & Sultra dengan pencarian & filter kategori.
-   - Modal *"Lamar Cepat"* lengkap dengan zona simulasi unggah resume CV (PDF).
-
-9. **`CareerFair.tsx` (UM Kendari Job Fair):**
-   - Peta stan *booth* perusahaan virtual interaktif (BSI, Pertamina, Kalla Group, Telkomsel).
-   - Drawer informasi profil perusahaan dan tombol lamaran pekerjaan instan.
-
-10. **`ExitSurvey.tsx` (Data Exit Survey Lulusan):**
-    - Kuisioner tracer kelulusan *multi-step wizard* 3 langkah (Biodata, Evaluasi Akademik, Status Karir).
-    - Penerbitan **Bukti Bebas Tracer CDC** setelah survei diselesaikan.
-
-11. **`JobPlacement.tsx` (Job Placement Program):**
-    - Kalkulator algoritma kelayakan program akselerasi penyaluran kerja (IPK ≥ 3.00 & TOEFL ≥ 450).
-    - Penerbitan **Surat Rekomendasi Kelayakan** & form pendaftaran penyaluran.
+## Ringkasan
+Pada sesi ini fokusnya adalah **penyusunan ulang struktur sub-menu Layanan**, **perapihan konten layanan**, dan **standarisasi tampilan UI** agar tidak terlihat generik dan tetap profesional.
 
 ---
 
-## 🎨 2. Perapihan Antarmuka (UI/UX) Tingkat Profesional
-
-Untuk memberikan pengalaman pengguna yang sangat rapi dan berstandar *enterprise*, kami membangun kontainer navigasi khusus:
-
-- **`LayananContainer.tsx` (Wrapper Layout Layanan):**
-  - **Breadcrumbs Bar:** Penunjuk jejak lokasi otomatis (`Beranda > Layanan CDC > [Sub-Bab]`).
-  - **Hero Header Premium:** Banner bergradien warna biru tua (`#0F1F4B` hingga `#1E3A8A`) dengan penanda *badge* resmi.
-  - **Sticky Sub-Navigation Bar:** Baris tab navigasi melayang yang memudahkan pengguna berpindah dari satu sub-layanan ke sub-layanan lain tanpa perlu kembali scroll ke menu utama.
-  - **Motion Animation:** Efek transisi *fade-in & slide-up* yang sangat mulus saat berpindah halaman menggunakan `motion/react` (`AnimatePresence`).
-
----
-
-## 🔍 3. Verifikasi, Audit Error, & Type Checking
-
-- **TypeScript Typecheck:** Menjalankan `npm run lint` (`tsc --noEmit`) untuk memastikan seluruh kode terkompilasi **100% Lulus (0 Error / 0 Warning)**.
-- **Browser Runtime Testing:** Menguji langsung di server pengembangan `http://localhost:3000/` menggunakan browser agent. Pengujian formulir, kuis RIASEC, navigasi *sticky tab*, dan pengisian data berhasil dengan lancar.
-
----
-
-## 📌 Status Akhir
-**STATUS: SELESAI (100%)**  
-Seluruh sub-bab layanan telah berfungsi, terintegrasi, bebas dari error, dan memiliki antarmuka yang sangat profesional.
+## 1. Restrukturisasi Menu Layanan
+- **Pemindahan sub-menu:**
+  - `Magang` dipindah dari **Job Info** ke **Layanan**.
+- **Penghapusan item lama di Job Info:**
+  - `Cara Pasang Info LowKer`
+  - `Keanggotaan CDC -1`
+  - `Data Exit Survey Lulusan`
+  - `Job Placement Program`
+- **Penambahan item baru di Layanan:**
+  - `Campus Hiring - Recruitment` (tab: `campus-hiring`)
+- **File yang diubah:**
+  - `src/components/Header.tsx`
+  - `src/components/PublicLayout.tsx`
+  - `src/components/layanan/LayananContainer.tsx`
+- **File baru:**
+  - `src/components/layanan/CampusHiring.tsx`
+  - `src/components/layanan/Magang.tsx`
 
 ---
 
-# Laporan Progres Admin Dashboard CDC UM Kendari
-**Tanggal:** 30 Juli 2026  
-**Fokus Pekerjaan:** Peningkatan fitur AdminDashboard: menu awal, pencarian, ringkasan analitik, dan approval akun
+## 2. Perbaikan Tipe TypeScript
+- Memperbaiki error di `src/components/AdminDashboard.tsx` dan `src/types.ts`.
+- Menyelaraskan penggunaan tipe `Berita` agar konsisten.
+- Hasil: `npm run lint` dan `npm run build` **passed**.
 
 ---
 
-## Ringkasan Perubahan
+## 3. Redesign UI Sub-menu Layanan
+- Membuat **design system bersama** di `src/components/layanan/ui/`:
+  - `PageHeader.tsx`
+  - `Section.tsx`
+  - `Card.tsx`
+  - `StepList.tsx`
+  - `CtaBlock.tsx`
+  - `TwoColumn.tsx`
+  - `index.tsx`
+- Menerapkan wrapper-wrapper tersebut ke **14 komponen layanan** agar tampilannya konsisten:
+  - `BimbinganKarir.tsx`
+  - `TesMinat.tsx`
+  - `Workshop.tsx`
+  - `Softskill.tsx`
+  - `Seminar.tsx`
+  - `BursaKerja.tsx`
+  - `CareerFair.tsx`
+  - `CampusHiring.tsx`
+  - `Magang.tsx`
+  - `Keanggotaan.tsx`
+  - `ExitSurvey.tsx`
+  - `JobPlacement.tsx`
+  - `CaraPasang.tsx`
+- Menyesuaikan `Card.tsx` agar mendukung:
+  - `children`
+  - `className`
+  - `hover`
+  - `key`
+  - `onClick`
+- Menghindari gaya “AI slop” dengan:
+  - Mengurangi gradient yang tidak perlu
+  - Menstandarkan radius, spacing, dan tipografi
+  - Mempertahankan ikon dari `lucide-react`
+
+---
+
+## 4. Revisi Konten Softskill & Kewirausahaan
+- Menambah **1 modul baru** sebagai penghubung:
+  - `Personal Branding & Pitching Karir`
+- Menjadikan total **6 modul**:
+  - 4 modul Softskill
+  - 2 modul Kewirausahaan
+- Mengubah penulisan menjadi **outcome-based**, contoh:
+  - “Mampu menyampaikan ide dengan jelas…”
+  - “Mampu menyusun profil LinkedIn…”
+- Menambahkan konteks lokal:
+  - `Dasar Kewirausahaan & Ideasi Bisnis Lokal` (Kendari/Sultra)
+- Memperbaiki teks di:
+  - Header section
+  - Widget progres
+  - Status sertifikat
+- File yang diubah:
+  - `src/components/layanan/Softskill.tsx`
+
+---
+
+## 5. Verifikasi
+Perintah yang dijalankan:
+```bash
+npm run lint
+npm run build
+```
+
+Hasil verifikasi:
+- ✅ `npm run lint` **passed**
+- ✅ `npm run build`## Ringkasan Perubahan
 - Menambahkan tab baru: **Kelola Akun User** dan **Approval Akun**
 - Menambahkan fitur **pencarian/filter** pada tabel alumni, mitra, verifikasi magang, tracer study, CMS berita, users, approval
 - Memperkaya tab **Ringkasan** dengan aktivitas terkini gabungan, distribusi role, KPI tambahan, tren mingguan, dan top mitra
@@ -344,137 +356,241 @@ Seluruh sub-bab layanan telah berfungsi, terintegrasi, bebas dari error, dan mem
 
 ---
 
-## Tanggal: 8 Agustus 2026
-**Fokus Pekerjaan:** Restrukturisasi Total AdminDashboard — 5 Menu Baru + Model Konten Karir Terpadu (Medium-Style)
-
-### 🚀 Ringkasan Perubahan Besar
-Seluruh `AdminDashboard.tsx` di-rewrite dari 10 tab lama menjadi **5 menu utama berkelompok** (sesuai `StrukturAdminDashboard.md` / `FiturAdminDashboard.md`), dengan model data `KontenKarir` terpadu untuk seluruh konten karir.
-
-1. **Model Data `KontenKarir` Terpadu (`src/types.ts` & `src/data.ts`):**
-   - Interface baru `KontenKarir` dengan `jenis` ∈ `berita | lowongan | program | workshop | softskill | seminar`.
-   - Persisted via key `konten_karir` (`cdc_umk_konten_karir`), seed empty `SEED_KONTEN_KARIR`, key didaftarkan di `DEFAULT_SEEDS`.
-   - CRUD lewat `getFromDB / insertToDB / updateInDB / deleteInDB` + `reloadAll()`.
-
-2. **5 Menu Admin Baru (sidebar + switch):**
-   - **Dashboard Awal (Ringkasan Laporan):** 8 statistik (Total Mahasiswa, Lowongan Aktif, Pengajuan Bulan Ini, Total Alumni, Total Mitra, Pelamar Pending, Konten Dipublikasikan, Menunggu Approval) + **Grafik Frekuensi Publikasi** 5 interval (Harian/Mingguan/Bulanan/3bulanan/Tahunan) + Menunggu Approval (approve/reject) + Aktivitas Terkini + Top 5 Mitra + Berita Terbaru.
-   - **Konten Karir:** Internal tab **Riwayat** (filter jenis + search + list + Edit/Hapus) & **Pembuatan** (grid pilih 5 jenis). Editor **Medium-style** (bold/italic/underline/H1/H2/quote/divider/bullet/nomor/lokasi/kalender/jam), preview live, thumbnail per-jenis (Berita 16:9 wajib, Lowongan 9:16 wajib, Workshop/Softskill 16:9 wajib + zoom, Program tanpa thumbnail), CTA link, status Published/Draft.
-   - **Manajemen Mitra:** Tab Approval (Terima/Tolak + catatan) & List (detail modal, ban/unban, delete).
-   - **Manajemen Hak Akses:** List user + ganti role (Mahasiswa/Alumni/Mitra/Admin/Viewer) + status aktif/nonaktif + setujui/tolak user pending.
-   - **Kelola Admin:** List admin + Tambah Admin + Nonaktifkan + Hapus (guard min 1 admin).
-
-3. **Helper Baru:** `formatInline`, `renderMedium` (parser gaya Medium), `ToolbarBtn`, `zoomImage` modal.
-
-### 📁 File Diubah
-- **[MODIFY]** `src/components/AdminDashboard.tsx` (rewrite total ~1040 baris)
-- **[MODIFY]** `src/types.ts` (interface `KontenKarir`)
-- **[MODIFY]** `src/data.ts` (key `konten_karir` + seed + import)
-- **[MODIFY]** `progres.md`
-
-### 📋 Checklist Selesai Sesi Ini
-- [x] Hapus seluruh isi AdminDashboard lama (10 tab) & rewrite ke 5 menu baru
-- [x] Buat model `KontenKarir` + key `konten_karir` + seed empty
-- [x] Dashboard Awal: statistik + grafik frekuensi 5 interval + approval + aktivitas
-- [x] Konten Karir: Riwayat (filter/search/edit/delete) + Pembuatan (grid jenis)
-- [x] Editor Medium-style (11 toolbar + preview + thumbnail per-aturan + CTA + status)
-- [x] Manajemen Mitra: approval + list (ban/unban/delete + detail modal)
-- [x] Manajemen Hak Akses: role switch + status + approve/reject pending
-- [x] Kelola Admin: list + tambah + nonaktifkan + hapus (guard)
-- [x] Verifikasi `npm run build` (0 error)
-
-### ✅ Status Verifikasi Runtime
-- Build produksi lolos (`npm run build` → exit 0).
-- Diuji via browser (dev server + `vite preview`): login admin (fast-role switcher), navigasi ke-5 menu, CRUD Konten Karir terbukti **persist** di `localStorage` (`cdc_umk_konten_karir` = 1 setelah save) dan muncul di Dashboard (grafik "Mg 1/8" = 1, Aktivitas Terkini "Konten Program & Pengumuman dibuat: Job Preparation 2026"), Approval Mitra BSI pending → aktif berhasil, semua menu render tanpa crash.
-
-### 📝 Catatan / Belum Dikerjakan
-- **Upload thumbnail sungguhan (FileReader)** belum diuji end-to-end lewat UI (logic ada).
-- **Halaman detail/publik konten** (render Medium-style di beranda/login) belum dibuat — baru CRUD admin + preview internal.
-- **Seminar Sukses Berkarir & Bursa Kerja**: ditunda (deferred) sesuai kesepakatan; jenis `seminar` sudah disiapkan di model tapi belum ada UI pembuatan terpisah.
-- Catatan tooling: `browser_click` (berbasis koordinat) gagal memicu handler di editor Konten Karir yang panjang; verifikasi handler tetap jalan via `element.click()` di console.
+## Catatan Lanjutan
+- Build menampilkan warning ukuran chunk >500kB. Ini bukan error, tapi bisa ditinjau code-splitting jika nanti dianggap perlu.
+- Saat ini tidak ada modifikasi pada routing utama atau struktur data `LAYANAN_MENU` yang rusak.
+- Jika ingin, langkah berikut bisa dilakukan:
+  - Menyusun skema penilaian untuk modul Softskill
+  - Menghubungkan e-sertifikat ke halaman portfolio/skills
+  - Menyamakan palet warna aksen sesuai brand CDC
 
 ---
 
-## Tanggal: 8 Agustus 2026 (Sesi 2)
-**Fokus Pekerjaan:** Penghapusan Menu Manajemen Hak Akses dari AdminDashboard
+## Tanggal: 7 Agustus 2026
+**Fokus Pekerjaan:** Revisi Menu Layanan Menuju Format CDC UMSU, Penghapusan Sub-Menu, dan Perapihan UI Sub-Menu Layanan
 
 ### 🚀 Ringkasan Perubahan
-Menghapus seluruh fitur **Manajemen Hak Akses** dari AdminDashboard sesuai instruksi (cukup Kelola Admin). Admin tidak lagi bisa mengubah role/status user lain secara bebas.
 
-1. **Sidebar:** Hapus item `Manajemen Hak Akses` (group `MANAJEMEN HAK AKSES`). Sisa 4 menu: Ringkasan Laporan, Konten Karir, Manajemen Mitra, Kelola Admin.
-2. **Ringkasan Laporan:** Hapus konten manajemen akses — kartu "Menunggu Approval" sekarang **hanya** menghitung mitra pending (`pendingMitra`), tidak lagi menjumlahkan user pending. Blok approve/reject user pending di panel "Menunggu Approval" dihapus.
-3. **Dead code dibersihkan:** Hapus import `UserRole` & `ShieldCheck`, state `hakQuery`, `roleLabel`, fungsi `changeUserRole` / `changeUserStatus` / `filteredHak`, dan block render `activeTab === 'hakakses'`. Tidak ada sisa referensi.
+1. **Penyesuaian Nama Sub-Menu Berdasarkan Instruksi Project Manager:**
+   - `Bimbingan Karir` → `Konseling Karir` di `Header.tsx`, `LayananContainer.tsx`, `MegaMenu.tsx`, `JobPlacement.tsx`
+   - `Workshop Karir` → `Workshop Pengembangan Karir` di menu dan halaman `Workshop.tsx`
+   - `UM Kendari Job Fair` → `Job Fair & Bursa Kerja` di menu dan halaman `CareerFair.tsx`
+   - Menghapus sub-menu terpisah **Bursa Kerja** dari dropdown dan navigasi, digabung menjadi satu menu **Job Fair & Bursa Kerja**
+   - Menghapus sub-menu **Tes Potensi Minat Kerja** dari `Header.tsx`, `LayananContainer.tsx`, `MegaMenu.tsx`, dan `PublicLayout.tsx`
+
+2. **Redesign Konten Halaman Layanan Berbasis Pamphlet/Admin Input:**
+   Semua halaman layanan disusun ulang menjadi format pamphlet informasi yang hanya berisi deskripsi layanan, tanpa form interaksi pengguna:
+   - `BimbinganKarir.tsx`
+   - `Workshop.tsx`
+   - `Softskill.tsx`
+   - `Seminar.tsx`
+   - `BursaKerja.tsx`
+   - `CareerFair.tsx`
+   - `JobPlacement.tsx`
+   - `CampusHiring.tsx`
+   - `Magang.tsx`
+   - `TesMinat.tsx`
+   - `Keanggotaan.tsx`
+   - `ExitSurvey.tsx`
+   - `CaraPasang.tsx`
+
+3. **Perapihan & Modernisasi UI Komponen Layanan:**
+   - Membuat komponen UI modular baru di `src/components/layanan/ui/`:
+     - `PageHeader.tsx` — header dengan gradient, badge, dan icon
+     - `Card.tsx` — card dengan border halus, backdrop blur, dan hover state
+     - `InfoRow.tsx` — baris info dengan nomor/langkah
+     - `MetaList.tsx` — timeline-style list untuk Deskripsi/Tujuan/Pihak/Tempat/Alat
+     - `Divider.tsx` — gradient divider antar section
+     - `PillRow.tsx` — inline pills untuk jadwal/alat
+     - `index.tsx` — export barrel untuk komponen UI
+   - Menghindari gaya generik dengan:
+     - Spacing dan tipografi yang konsisten
+     - Warna aksen yang sesuai per layanan
+     - Layout 2 kolom yang rapi (`lg:grid-cols-12`)
+
+4. **Perbaikan Lint TypeScript:**
+   - Memperbaiki error pre-existing pada `kesesuaianBidang` di `src/types.ts` dan `src/components/TracerStudyForm.tsx`
+   - Hasil: `npm run lint` kembali **passed**
+
+5. **Verifikasi Berulang:**
+   - Menjalankan `npm run dev` dan memastikan server merespons `200 OK`
+   - Menjalankan `npm run lint` dan `npm run build` setelah setiap batch perubahan besar
+   - Hasil akhir verifikasi:
+     - ✅ `npm run lint` **passed**
+     - ✅ `npm run build` **passed**
 
 ### 📁 File Diubah
-- **[MODIFY]** `src/components/AdminDashboard.tsx`
-- **[MODIFY]** `progres.md`
+- `src/components/Header.tsx`
+- `src/components/layanan/LayananContainer.tsx`
+- `src/components/MegaMenu.tsx`
+- `src/components/PublicLayout.tsx`
+- `src/components/layanan/BimbinganKarir.tsx`
+- `src/components/layanan/Workshop.tsx`
+- `src/components/layanan/Softskill.tsx`
+- `src/components/layanan/Seminar.tsx`
+- `src/components/layanan/CareerFair.tsx`
+- `src/components/layanan/JobPlacement.tsx`
+- `src/components/layanan/CampusHiring.tsx`
+- `src/components/layanan/Magang.tsx`
+- `src/components/layanan/Keanggotaan.tsx`
+- `src/components/layanan/ExitSurvey.tsx`
+- `src/components/layanan/CaraPasang.tsx`
+- `src/components/layanan/ui/PageHeader.tsx`
+- `src/components/layanan/ui/Card.tsx`
+- `src/components/layanan/ui/InfoRow.tsx`
+- `src/components/layanan/ui/MetaList.tsx`
+- `src/components/layanan/ui/Divider.tsx`
+- `src/components/layanan/ui/PillRow.tsx`
+- `src/components/layanan/ui/index.tsx`
+- `src/types.ts`
+- `src/components/TracerStudyForm.tsx`
+- `progres.md`
 
 ### 📋 Checklist Selesai Sesi Ini
-- [x] Hapus menu Manajemen Hak Akses di sidebar
-- [x] Hapus panel approve/reject user pending di Ringkasan
-- [x] Hapus seluruh handler & render block manajemen hak akses
-- [x] Bersihkan import & state yang tidak terpakai
-- [x] Verifikasi `npm run build` (exit 0)
-
-### ✅ Status Verifikasi Runtime
-- Build produksi lolos (`npm run build` → exit 0).
-- Diuji via browser (`vite preview` + fast-role switcher "Admin CDC"): sidebar hanya menampilkan **Ringkasan Laporan, Konten Karir, Manajemen Mitra, Kelola Admin** — tidak ada "Manajemen Hak Akses". Ringkasan Laporan render tanpa crash: kartu "Menunggu Approval" menampilkan nilai 1 (only mitra BSI pending), grafik frekuensi, aktivitas terkini, Top 5 Mitra, dan Berita Terbaru semua tampil normal. Tidak ada error konsol.
+- [x] Rename sub-menu sesuai arahan project manager
+- [x] Hapus sub-menu Tes Potensi Minat Kerja
+- [x] Hapus sub-menu Bursa Kerja terpisah, gabung ke Job Fair & Bursa Kerja
+- [x] Redesign semua halaman layanan menjadi pamphlet/admin input
+- [x] Perapihan UI komponen layanan agar profesional dan tidak generik
+- [x] Perbaiki error lint pre-existing `kesesuaianBidang`
+- [x] Verifikasi `npm run lint` dan `npm run build` passed
 
 ---
 
-## Tanggal: 8 Agustus 2026 (Sesi 3)
-**Fokus Pekerjaan:** Penyederhanaan Kartu Statistik Ringkasan Laporan
+## Tanggal: 7 Agustus 2026 (Sesi 2)
+**Fokus Pekerjaan:** Update Tampilan Beranda, Integrasi Asset Poster SVG & Visi-Misi, Pembaruan HeroSlider, Refactoring Register, & Cleanup Dashboard
 
 ### 🚀 Ringkasan Perubahan
-Menghapus 3 kartu statistik di Ringkasan Laporan yang dianggap tidak relevan: **Mahasiswa**, **Alumni**, dan **Total Berita** (berita tergolong konten, sudah terwakili oleh "Total Konten").
 
-1. **Stat-cards Ringkasan:** Sisa 5 kartu: Mitra, Menunggu Approval, Lowongan Aktif, Pengajuan Bulan Ini, Total Konten.
-2. **Dead code:** Hapus variabel `beritaCount` (tidak dipakai lagi setelah kartu Total Berita dihapus). State `students`/`alumni` tetap dipertahankan karena masih dipakai `reloadAll`.
+1. **Penambahan Aset Poster & Visi-Misi Resmi (`public/`):**
+   - Menambahkan aset SVG resmi CDC UMK:
+     - `Poster CDC WEB UMK (1).svg` & `Poster CDC WEB UMK slide 1.svg`
+     - `VISI & MISI (3).svg` & `visi-misi-cdc.svg`
+     - `poster-cdc-web-umk-1.svg` & `poster-cdc-web-umk-2.svg`
 
-### 📁 File Diubah
-- **[MODIFY]** `src/components/AdminDashboard.tsx`
+2. **Pembaruan Komponen Hero Slider (`HeroSlider.tsx`):**
+   - Menyelaraskan slide banner hero beranda menggunakan gambar poster SVG CDC UMK terbaru.
+   - Memperbarui teks overlay, deskripsi slide, dan tombol CTA.
+
+3. **Pembaruan Halaman Utama Beranda (`PublicLayout.tsx` & `Header.tsx`):**
+   - Mengintegrasikan banner hero terbaru dan penyesuaian layout beranda.
+   - Penyesuaian header dan penataan link navigasi.
+
+4. **Refactoring Tampilan Form Registrasi (`Register.tsx`):**
+   - Merapikan struktur form registrasi pengguna agar lebih responsif dan clean.
+
+5. **Pembersihan Komponen Unused & Optimization (`App.tsx`):**
+   - Menghapus komponen dashboard lama/unused: `AlumniDashboard.tsx` dan `ViewerDashboard.tsx`.
+   - Merapikan import dan routing aplikasi di `App.tsx`.
+
+### 📁 File Diubah & Ditambahkan
+- **[NEW]** `public/Poster CDC WEB UMK (1).svg`
+- **[NEW]** `public/Poster CDC WEB UMK slide 1.svg`
+- **[NEW]** `public/VISI & MISI (3).svg`
+- **[NEW]** `public/poster-cdc-web-umk-1.svg`
+- **[NEW]** `public/poster-cdc-web-umk-2.svg`
+- **[NEW]** `public/visi-misi-cdc.svg`
+- **[MODIFY]** `src/App.tsx`
+- **[MODIFY]** `src/components/Header.tsx`
+- **[MODIFY]** `src/components/HeroSlider.tsx`
+- **[MODIFY]** `src/components/PublicLayout.tsx`
+- **[MODIFY]** `src/components/Register.tsx`
+- **[DELETE]** `src/components/AlumniDashboard.tsx`
+- **[DELETE]** `src/components/ViewerDashboard.tsx`
 - **[MODIFY]** `progres.md`
 
 ### 📋 Checklist Selesai Sesi Ini
-- [x] Hapus kartu Mahasiswa, Alumni, Total Berita dari Ringkasan
-- [x] Bersihkan variabel `beritaCount` yang unused
-- [x] Verifikasi `npm run build` (exit 0)
+- [x] Penambahan asset poster SVG CDC UMK & Visi-Misi di folder `public/`
+- [x] Pembaruan banner slider hero (`HeroSlider.tsx`)
+- [x] Integration layout baru di Beranda (`PublicLayout.tsx`)
+- [x] Refactoring tampilan form registrasi (`Register.tsx`)
+- [x] Removal file komponen unused `AlumniDashboard.tsx` & `ViewerDashboard.tsx`
+- [x] Verifikasi build & lint passed
+## Tanggal: 7 Agustus 2026
+**Fokus Pekerjaan:** Perbaikan Layout Beranda, Pengaturan Dinamis Form Lowongan, Perbaikan Filter Lokasi & Kategori "Lainnya", Restrukturisasi Profil User, Penyederhanaan Role System, & Upload Foto Lokal.
 
-### ✅ Status Verifikasi Runtime
-- Build produksi lolos (`npm run build` → exit 0).
-- Diuji via browser (`vite preview` + fast-role switcher "Admin CDC"): Ringkasan Laporan menampilkan **hanya 5 kartu** (MITRA 2, MENUNGGU APPROVAL 1, LOWONGAN AKTIF 9, PENGAJUAN BULAN INI 0, TOTAL KONTEN 0). Kartu Mahasiswa/Alumni/Total Berita benar-benar tidak muncul. Grafik frekuensi, Menunggu Approval, Aktivitas Terkini, Top 5 Mitra, Berita Terbaru render normal tanpa error.
+### 🚀 Ringkasan Perubahan UI & Feature Updates
 
-### 📝 Catatan / Belum Dikerjakan
-- Penghapusan menu ini mengubah alur: user dengan status `pending` (mahasiswa/alumni/mitra baru) kini **tidak bisa di-approve dari admin dashboard**. Jika suatu saat butuh approve user baru, perlu dibuat menu/panel khusus (bukan manajemen hak akses global).
+1. **Perbaikan Tampilan Tanggal Upload Info Karir CDC Terkini (`Beranda` & `Sidebar`)**:
+   - Memperbaiki tata letak badge tanggal penguploadan lowongan pada kartu Info Karir CDC Terkini agar rapi dan tidak menumpuk (*text overlap*).
 
----
+2. **Pengaturan Form Lamaran & Sub-Judul Dinamis (`JobApplicationModal.tsx` & `JobDetail.tsx`)**:
+   - Mengatur agar unggah berkas CV bersifat **wajib** (*required*) saat mengajukan lamaran pekerjaan.
+   - Mengatur kondisional tampilan sub-judul pada halaman `JobDetail.tsx`: Jika Mitra tidak mengisi detail konten tertentu (seperti Tanggung Jawab, Persyaratan/Kualifikasi, Benefit), maka sub-judul terkait otomatis **disembunyikan** dari halaman detail lowongan.
 
-## Tanggal: 8 Agustus 2026 (Sesi 4)
-**Fokus Pekerjaan:** Upgrade Editor Konten jadi Ribbon Format ala Microsoft Word
+3. **Perbaikan Input Kuota Penerimaan (`MitraDashboard.tsx`)**:
+   - Menghapus perilaku default angka `0` saat menghapus input kuota penerimaan pada form posting lowongan mitra.
+   - Mencegah timbulnya angka nol di depan (*leading zero*, contoh: `08` saat menginput `8`).
 
-### 🚀 Ringkasan Perubahan
-Editor "Isi Konten" di Pembuatan Konten ditingkatkan dari toolbar Medium dasar menjadi ribbon format lengkap bergaya Word, namun tetap menyimpan model token plaintext (konsisten dengan spes Medium & localStorage-friendly).
+4. **Integrasi Edit Lowongan & Pengurutan Lowongan Terbaru (`data.ts`, `MitraDashboard.tsx`, `JobSearchMasterDetail.tsx`)**:
+   - Menghubungkan fitur edit lowongan sehingga perubahan data oleh Mitra langsung **terrefleksi secara real-time** pada tampilan *Job Info*, *Search Job*, *Beranda*, dan detail lowongan.
+   - Pengurutan lowongan (*sorting*): Mengatur agar lowongan teratas diurutkan berdasarkan **tanggal penguploadan terbaru** (`createdAt`), dan saat lowongan diedit, posisinya **tidak tergeser ke paling atas**.
+   - Menampilkan tanggal penguploadan asli di label poster.
 
-1. **Toolbar baru (berkelompok + divider):** Warna Teks (color picker), Sorot/Highlight (color picker), Bold, Italic, Underline, Strikethrough, Subscript, Superscript, Upper/Lower/Title Case, Font Size +/-, Clear All Formatting, Bullets, Numbering, Align Left/Center/Right/Justify, Line & Paragraph Spacing (+/- 0–6), H1/H2, Quote, Divider, Lokasi/Kalender/Jam.
-2. **Token syntax baru:** `~~strike~~`, `[sub]..[/sub]`, `[sup]..[/sup]`, `[hl:#hex]..[/hl]`, `[c:#hex]..[/c]`, `[fs:N]..[/fs]`, dan block `[block align=.. spacing=..]..[/block]`. Token lama (`**`, `*`, `__`, `#`, `##`, `>`, `---`, `- `, `1. `, `[lokasi:/kalender:/jam:]`) tetap didukung.
-3. **Helper baru:** `wrapInline`, `wrapInlineArg`, `insertLineToken`, `toggleLinePrefix`, `changeCase`, `clearFormatting`, `fontSizeAdjust`, `wrapBlock`, `applyBlock` + state `blockAlign`/`blockSpacing`.
-4. **Renderer upgrade:** `renderInline` (nested inline token) + `renderMedium` (parse block align/spacing + ikon + list + heading + quote). Preview live menampilkan semua format.
+5. **Penyempurnaan Filter Lokasi & Kategori "Lainnya" untuk Luar Indonesia (`JobSearchMasterDetail.tsx`, `MitraDashboard.tsx`)**:
+   - Perbaikan hirarki filter Provinsi & Kota: Jika suatu kota tidak diceklis namun provinsinya diceklis (contoh: *Sumatera Utara* diceklis, *Medan* tidak diceklis), lowongan dari kota di provinsi tersebut **tetap muncul di hasil pencarian**.
+   - Menambahkan checkbox **"Lainnya"** pada filter lokasi untuk opsi luar Indonesia. Jika Mitra menginput lokasi luar negeri (seperti *Jepang, Jerman, Tokyo, dll.*), data otomatis terkategori ke lokasi **"Lainnya"** saat difilter, tetapi tetap menampilkan nama lokasi asli di halaman detail lowongan.
 
-### 📁 File Diubah
-- **[MODIFY]** `src/components/AdminDashboard.tsx`
+6. **Penterjemahan Antarmuka Dashboard User ke Bahasa Indonesia (`MahasiswaDashboard.tsx`, `StudentProfileView.tsx`)**:
+   - Mengubah seluruh teks navigasi, header, label, dan tombol pada Dashboard Mahasiswa / User menjadi **Bahasa Indonesia** yang bersih dan profesional dengan tetap mempertahankan istilah baku industri (*CV, Email, WhatsApp, Career Portal UMK*).
+
+7. **Restrukturisasi Halaman Profil Saya (`StudentProfileView.tsx`)**:
+   - Merombak total susunan halaman *Profil Saya* menjadi urutan hirarki berikut:
+     1. **Foto Profil** (Avatar + tombol upload kamera)
+     2. **Nama** (Nama Lengkap)
+     3. **Status** (Badge Mahasiswa / Alumni)
+     4. **Universitas** (Universitas Muhammadiyah Kendari)
+     5. **Tentang Saya** (Bio & profil singkat + tombol Edit Bio)
+     6. **Data Pribadi** (Nama Lengkap, Email, No. Telepon/WA, Jenis Kelamin, Kewarganegaraan, Agama, Suku/Etnis, Hak Kerja)
+     7. **Pendidikan** (Perguruan Tinggi & Sekolah Menengah + Tombol Tambah Pendidikan)
+     8. **Skill / Keahlian** (Badges skill interaktif + Tombol Kelola Skill)
+     9. **Pengalaman** (Pengalaman Kerja / Organisasi + Tombol Tambah Pengalaman)
+     10. **Bahasa** (Daftar Bahasa yang dikuasai + Tombol Tambah Bahasa)
+     11. **Preferensi Karir** (Jenis Kesempatan, Tanggal Siap Kerja, Industri Diminati, Lokasi Kerja Impian)
+
+8. **Unggah Foto Profil dari Berkas Lokal (`StudentProfileView.tsx`)**:
+   - Mengganti prompt URL foto profil menjadi **unggahan berkas langsung dari penyimpanan lokal** (`<input type="file" accept="image/*" />`).
+
+9. **Penyederhanaan Peranan System & Unifikasi Role User (`App.tsx`, `types.ts`, `data.ts`, `Register.tsx`)**:
+   - Menyederhanakan peranan pengguna menjadi **3 Role Utama**: **`USER`** (Mahasiswa / Alumni / Pencari Kerja), **`MITRA`** (Perusahaan), dan **`ADMIN CDC`**.
+   - Menghapus peranan/dashboard alumni terpisah dan menyatukannya ke dalam **Dashboard User**.
+
+10. **Interaktivitas Edit Info Utama di Hero Header Profil (`StudentProfileView.tsx`)**:
+    - Membuat Status Badge (**`Mahasiswa` / `Alumni`**), **Nama Lengkap**, dan **Nama Universitas** di *Hero Banner* dapat diklik dan diedit langsung melalui modal **Edit Info Utama Profil**.
+
+11. **Penghapusan Halaman / Tab Pengalaman Virtual (`StudentProfileView.tsx`)**:
+    - Menghapus tab dan konten **Pengalaman Virtual** dari navigasi profil pengguna agar antarmuka lebih padat, ringkas, dan fokus.
+
+### 📁 File Diubah & Ditambahkan
+- **[MODIFY]** `src/types.ts`
+- **[MODIFY]** `src/data.ts`
+- **[MODIFY]** `src/App.tsx`
+- **[MODIFY]** `src/components/MahasiswaDashboard.tsx`
+- **[MODIFY]** `src/components/StudentProfileView.tsx`
+- **[MODIFY]** `src/components/JobSearchMasterDetail.tsx`
+- **[MODIFY]** `src/components/JobDetail.tsx`
+- **[MODIFY]** `src/components/JobApplicationModal.tsx`
+- **[MODIFY]** `src/components/MitraDashboard.tsx`
+- **[MODIFY]** `src/components/Register.tsx`
 - **[MODIFY]** `progres.md`
 
 ### 📋 Checklist Selesai Sesi Ini
-- [x] Tambah 19 tombol/control ribbon Word-like
-- [x] Bold, Italic, Underline, Strikethrough, Sub, Sup
-- [x] Font Color + Highlight (color picker)
-- [x] Change Case (upper/lower/title)
-- [x] Font Size +/-
-- [x] Clear All Formatting
-- [x] Bullets + Numbering
-- [x] Align Left/Center/Right/Justify
-- [x] Line & Paragraph Spacing
-- [x] Upgrade renderInline + renderMedium untuk semua token
-- [x] Verifikasi `npm run build` (exit 0)
+- [x] Perbaikan tampilan tanggal upload lowongan tidak menumpuk di Beranda & Sidebar
+- [x] Syarat wajib upload CV pada form lamaran pekerjaan
+- [x] Sub-judul dinamis di Job Detail (menyembunyikan bagian yang tidak diisi mitra)
+- [x] Perbaikan form input kuota penerimaan mitra (tanpa angka 0 di depan)
+- [x] Integrasi edit lowongan real-time & pengurutan lowongan berdasarkan tanggal upload terbaru
+- [x] Filter lokasi presisi (provinsi diceklis mencakup kota) & opsi checkbox "Lainnya" untuk luar Indonesia
+- [x] Penterjemahan lengkap Dashboard Mahasiswa/User ke Bahasa Indonesia
+- [x] Restrukturisasi hirarki halaman Profil Saya sesuai urutan spesifik
+- [x] Unggah foto profil dari berkas lokal (native file input accept image/*)
+- [x] Penyederhanaan role system menjadi 3 role utama (USER, MITRA, ADMIN CDC)
+- [x] Interaktivitas edit Status (Mahasiswa/Alumni), Nama, dan Universitas di Hero Header Profil
+- [x] Penghapusan tab/halaman Pengalaman Virtual dari profil pengguna
+- [x] Verifikasi kompilasi build produksi `npm run build` (0 error)
+- [x] Pencatatan laporan progres lengkap di `progres.md` (7 Agustus 2026)
 
+<<<<<<< HEAD
 ### ✅ Status Verifikasi Runtime
 - Build produksi lolos (`npm run build` → exit 0).
 - Diuji via browser (`vite preview` + fast-role Admin CDC → Konten Karir → Pembuatan → Berita & Artikel): ribbon 19 kontrol muncul lengkap. Ketik "Ini teks uji coba format" → seleksi semua → klik **Bold** → textarea jadi `**Ini teks uji coba format**` dan preview render `<strong>` (bold terbukti). Klik **Align Center** → textarea jadi `**...**[block align=center spacing=1]\n[/block]` dan preview render 2 paragraf (block terbungkus terbukti). Mekanisme shared helper (`wrapInline`/`wrapInlineArg`/`toggleLinePrefix`/`changeCase`/`fontSizeAdjust`/`clearFormatting`/`wrapBlock`) dipakai seluruh tombol, sehingga Italic/Underline/Strike/Sub/Sup/Case/FontSize/Clear/List/Spacing/Color/Highlight berjalan dengan logika sama.
@@ -565,3 +681,5 @@ Tampilan AdminDashboard diremajakan agar tidak flat/bosan, tanpa ubah fungsional
 ### ✅ Status Verifikasi Runtime
 - Lolos typechecking TypeScript (`npm run lint` → 0 error).
 - Server pengembangan berjalan lancar dan navigasi menu desktop maupun mobile berfungsi normal mengarah ke tautan eksternal portal Tracer Study resmi.
+=======
+>>>>>>> parent of e9a7e01 (Update fitur portal CDC UMK)

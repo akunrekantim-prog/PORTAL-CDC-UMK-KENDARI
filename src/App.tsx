@@ -4,30 +4,29 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { 
-  User as UserType, 
-  Lowongan, 
-  Berita, 
-  Pengumuman 
+import {
+  User as UserType,
+  Lowongan,
+  Berita,
+  Pengumuman
 } from './types';
-import { 
-  initializeDB, 
-  getFromDB, 
-  saveToDB 
+import {
+  initializeDB,
+  getFromDB,
+  saveToDB,
+  sortJobsByNewest
 } from './data';
 import PublicLayout from './components/PublicLayout';
 import Register from './components/Register';
 import { JobDetail } from './components/JobDetail';
 import MahasiswaDashboard from './components/MahasiswaDashboard';
-import AlumniDashboard from './components/AlumniDashboard';
 import MitraDashboard from './components/MitraDashboard';
 import AdminDashboard from './components/AdminDashboard';
-import ViewerDashboard from './components/ViewerDashboard';
-import { 
-  Briefcase, 
-  Clock, 
-  MapPin, 
-  Building2, 
+import {
+  Briefcase,
+  Clock,
+  MapPin,
+  Building2,
   Calendar,
   ChevronLeft,
   Shield,
@@ -69,7 +68,7 @@ export default function App() {
   }, []);
 
   const reloadDatabase = () => {
-    setAllLowongan(getFromDB<Lowongan>('lowongan'));
+    setAllLowongan(sortJobsByNewest(getFromDB<Lowongan>('lowongan')));
     setAllBerita(getFromDB<Berita>('berita'));
     setAllPengumuman(getFromDB<Pengumuman>('pengumuman'));
   };
@@ -114,10 +113,10 @@ export default function App() {
   };
 
   // Development Direct-Switch tool (very powerful for multi-role testing in AI Studio iframe!)
-  const handleFastRoleSwitch = (role: 'admin' | 'mahasiswa' | 'alumni' | 'mitra' | 'viewer') => {
+  const handleFastRoleSwitch = (role: 'admin' | 'user' | 'mitra' | 'viewer') => {
     const users = getFromDB<UserType>('users');
-    let target = users.find(u => u.role === role && u.status === 'active');
-    
+    let target = users.find(u => (u.role === role || (role === 'user' && (u.role === 'mahasiswa' || u.role === 'alumni' || u.role === 'user'))) && u.status === 'active');
+
     if (target) {
       setCurrentUser(target);
       setCurrentView('dashboard');
@@ -162,13 +161,13 @@ export default function App() {
     <div className="bg-white min-h-screen font-sans" id="app-root">
 
       {/* QUICK ROLE SWITCH TESTING UTILITY */}
-      <div 
+      <div
         id="aistudio-role-switcher"
         className="bg-slate-900 border-b border-slate-800 py-2.5 px-4 flex flex-wrap items-center justify-between gap-3 text-white"
       >
         <div id="switcher-lbl" className="flex items-center gap-1.5 text-xs text-slate-300">
           <Shield className="w-4 h-4 text-emerald-400" />
-          <span className="font-bold text-white">Fast-Role Tester:</span> 
+          <span className="font-bold text-white">Fast-Role Tester:</span>
           <span>Pilih role di bawah untuk instan menguji UI dashboard</span>
         </div>
 
@@ -176,21 +175,19 @@ export default function App() {
           {[
             { id: 'admin', label: 'Admin CDC', color: 'bg-indigo-650 hover:bg-slate-800 hover:text-white border-slate-700 font-bold' },
             { id: 'mahasiswa', label: 'Mahasiswa', color: 'bg-emerald-650 hover:bg-slate-800 border-slate-700 font-bold' },
-            { id: 'alumni', label: 'Alumni', color: 'bg-blue-650 hover:bg-slate-800 border-slate-700 font-bold' },
-            { id: 'mitra', label: 'Mitra', color: 'bg-teal-650 hover:bg-slate-800 border-slate-700 font-bold' },
-            { id: 'viewer', label: 'Viewer/Prodi', color: 'bg-slate-700 hover:bg-slate-800 border-slate-700' }
+            { id: 'mitra', label: 'Mitra', color: 'bg-teal-650 hover:bg-slate-800 border-slate-700 font-bold' }
           ].map((item) => (
             <button
               key={item.id}
               id={`fast-auth-${item.id}`}
               onClick={() => handleFastRoleSwitch(item.id as any)}
-              className={`px-3 py-1 rounded text-xs border bg-slate-800 text-slate-200 transition-colors uppercase font-mono ${item.color}`}
+              className={`px-3 py-1 rounded text-xs border transition-colors uppercase font-mono ${item.color}`}
             >
               {item.label}
             </button>
           ))}
           {currentUser && (
-            <button 
+            <button
               onClick={handleLogout}
               className="px-2.5 py-1 rounded text-xs bg-rose-950 text-rose-450 border border-rose-900 font-bold font-mono transition uppercase"
             >
@@ -202,7 +199,7 @@ export default function App() {
 
       {/* CORE VIEWPORT RESOLVER */}
       <div id="core-viewport">
-        
+
         {/* VIEW 1: PUBLIC GENERAL CHANNELS */}
         {currentView === 'public' && !viewingLowonganId && !viewingBeritaSlug && (
           <PublicLayout
@@ -247,7 +244,7 @@ export default function App() {
         {/* VIEW 3: NEWS ARTICLE BLOCK */}
         {currentView === 'public' && viewingBeritaSlug && selectedBerita && (
           <div className="max-w-3xl mx-auto px-4 py-16 space-y-6" id="berita-detail-panel">
-            <button 
+            <button
               onClick={() => setViewingBeritaSlug(null)}
               className="inline-flex items-center gap-1.5 text-slate-550 hover:text-slate-800 font-bold text-sm bg-white border border-slate-150 px-4 py-2 rounded-xl shadow-xs transition"
               id="berita-back-btn"
@@ -258,9 +255,9 @@ export default function App() {
             <article className="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm" id="berita-detail-doc">
               {selectedBerita.coverImageUrl && (
                 <div className="aspect-[21/9]" id="berita-detail-cover">
-                  <img 
-                    src={selectedBerita.coverImageUrl} 
-                    alt={selectedBerita.title} 
+                  <img
+                    src={selectedBerita.coverImageUrl}
+                    alt={selectedBerita.title}
                     className="w-full h-full object-cover"
                     referrerPolicy="no-referrer"
                   />
@@ -268,17 +265,19 @@ export default function App() {
               )}
 
               <div className="p-8 sm:p-10 space-y-6" id="berita-detail-body">
-                <div className="space-y-2" id="berita-detail-hdr">
-                  <div className="text-xs text-emerald-600 font-bold flex items-center gap-1.5">
-                    <Calendar className="w-4 h-4" /> Rilis Akademik CDC
-                  </div>
-                  <h2 className="text-3xl font-extrabold text-slate-900 leading-tight">{selectedBerita.title}</h2>
-                  <div className="text-slate-400 text-[11px] font-medium pt-1">
+                <div className="space-y-3">
+                  <span className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold uppercase tracking-wider">
+                    {selectedBerita.status === 'published' ? 'Dipublikasikan' : 'Draft'}
+                  </span>
+                  <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 leading-tight">
+                    {selectedBerita.title}
+                  </h1>
+                  <p className="text-xs text-slate-400 font-medium">
                     Dipublikasikan oleh: Admin CDC • {new Date(selectedBerita.createdAt).toLocaleDateString('id-ID')}
-                  </div>
+                  </p>
                 </div>
 
-                <div className="text-slate-650 text-xs sm:text-sm leading-relaxed whitespace-pre-line font-sans" id="berita-detail-text">
+                <div className="border-t border-slate-100 pt-6 text-slate-700 text-sm sm:text-base leading-relaxed space-y-4 whitespace-pre-line">
                   {selectedBerita.content}
                 </div>
               </div>
@@ -286,15 +285,40 @@ export default function App() {
           </div>
         )}
 
+        {/* VIEW 3: PUBLIC LANDING & PUBLIC PORTAL */}
+        {currentView === 'public' && !viewingLowonganId && !viewingBeritaSlug && (
+          <PublicLayout
+            currentTab={publicTab}
+            setTab={setPublicTab}
+            lowongan={allLowongan}
+            berita={allBerita}
+            pengumuman={allPengumuman}
+            onSelectLowongan={handleSelectLowongan}
+            onSelectBerita={handleSelectBerita}
+            onNavigateToLogin={handleNavigateToLogin}
+            onNavigateToRegister={handleNavigateToRegister}
+          />
+        )}
+
         {/* VIEW 4: LOGIN FORM ROUTE */}
         {currentView === 'login' && (
-          <div className="min-h-[80vh] flex items-center justify-center p-4" id="login-sec">
-            <div className="bg-white max-w-md w-full rounded-3xl border border-slate-150 shadow-xl overflow-hidden" id="login-card">
-              <div className="bg-slate-900 p-8 text-white space-y-2 text-center relative" id="login-hdr">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl"></div>
-                
-                <h3 className="font-extrabold text-white text-xl">Sistem Autentikasi Kampus</h3>
-                <p className="text-slate-400 text-xs">Akses Layanan CDC, Magang dan Tracer Universitas Muhammadiyah Kendari</p>
+          <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 relative overflow-hidden" id="login-screen">
+            {/* Ambient Lighting FX */}
+            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div className="bg-white max-w-md w-full rounded-3xl border border-slate-200 shadow-2xl overflow-hidden z-10 animate-fadeIn">
+              <div className="bg-slate-900 text-white p-8 relative border-b border-slate-800">
+                <button
+                  onClick={() => setCurrentView('public')}
+                  className="absolute top-5 right-5 p-2 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-blue-500/30">
+                  <Shield className="w-6 h-6" />
+                </div>
+                <h2 className="text-2xl font-extrabold text-white">Masuk Ke Sistem Portal</h2>
+                <p className="text-slate-400 text-xs mt-1">Sistem Otentikasi Terpadu CDC Universitas Muhammadiyah Kendari</p>
               </div>
 
               <form onSubmit={handleLoginSubmit} className="p-8 space-y-5" id="login-form">
@@ -309,8 +333,8 @@ export default function App() {
                   <label className="text-xs font-bold text-slate-700">Alamat Surat Elektronik (Email)</label>
                   <div className="relative">
                     <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><Mail className="w-4 h-4" /></span>
-                    <input 
-                      type="email" 
+                    <input
+                      type="email"
                       required
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
@@ -324,8 +348,8 @@ export default function App() {
                   <label className="text-xs font-bold text-slate-700">Kata Sandi (Password)</label>
                   <div className="relative">
                     <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><Lock className="w-4 h-4" /></span>
-                    <input 
-                      type="password" 
+                    <input
+                      type="password"
                       required
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
@@ -335,7 +359,7 @@ export default function App() {
                   </div>
                 </div>
 
-                <button 
+                <button
                   type="submit"
                   className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl text-xs uppercase tracking-wider transition shadow-md active:scale-95"
                   id="login-btn-start"
@@ -344,12 +368,12 @@ export default function App() {
                 </button>
 
                 <div className="pt-4 border-t border-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500" id="login-footer">
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => {
                       setCurrentView('public');
                       reloadDatabase();
-                    }} 
+                    }}
                     className="hover:underline font-bold text-slate-750"
                   >
                     ← Kembali ke Beranda
@@ -385,36 +409,25 @@ export default function App() {
         {/* VIEW 5: DISPATCH DASHBOARDS TO ROLE-SPECIFIC PANELS */}
         {currentView === 'dashboard' && currentUser && (
           <div id="dashboard-panel-resolver">
-            {currentUser.role === 'mahasiswa' && (
-              <MahasiswaDashboard 
-                user={currentUser} 
-                onLogout={handleLogout} 
-                allLowongan={allLowongan}
-              />
-            )}
-            {currentUser.role === 'alumni' && (
-              <AlumniDashboard 
-                user={currentUser} 
-                onLogout={handleLogout} 
+            {(currentUser.role === 'user' || currentUser.role === 'mahasiswa' || currentUser.role === 'alumni') && (
+              <MahasiswaDashboard
+                user={currentUser}
+                onLogout={handleLogout}
                 allLowongan={allLowongan}
               />
             )}
             {currentUser.role === 'mitra' && (
-              <MitraDashboard 
-                user={currentUser} 
+              <MitraDashboard
+                user={currentUser}
                 onLogout={handleLogout}
+                onReloadData={reloadDatabase}
               />
             )}
             {currentUser.role === 'admin' && (
-              <AdminDashboard 
-                user={currentUser} 
+              <AdminDashboard
+                user={currentUser}
                 onLogout={handleLogout}
-              />
-            )}
-            {currentUser.role === 'viewer' && (
-              <ViewerDashboard 
-                user={currentUser} 
-                onLogout={handleLogout}
+                onReloadData={reloadDatabase}
               />
             )}
           </div>

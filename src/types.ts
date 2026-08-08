@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export type UserRole = 'mahasiswa' | 'alumni' | 'mitra' | 'admin' | 'viewer';
+export type UserRole = 'user' | 'mitra' | 'admin' | 'viewer' | 'mahasiswa' | 'alumni';
 export type UserStatus = 'pending' | 'active' | 'inactive' | 'rejected';
 export type TipeLowongan = 'magang' | 'kerja';
 export type StatusLowongan = 'draft' | 'published' | 'closed' | 'archived';
@@ -143,7 +143,7 @@ export interface TracerStudy {
   namaInstansi?: string;
   jabatan?: string;
   bidangPekerjaan?: string;
-  kesesuaianBidang?: 'sangat_erat' | 'erat' | 'cukup_erat' | 'kurang_erat' | 'tidak_sama_sekali';
+  kesesuaianBidang?: 'sangat_sesuai' | 'sesuai' | 'cukup_sesuai' | 'kurang_sesuai' | 'tidak_sesuai' | 'sangat_erat' | 'erat' | 'cukup_erat' | 'kurang_erat' | 'tidak_sama_sekali';
   rangePenghasilan?: 'kurang_2jt' | '2_5jt' | '5_10jt' | 'lebih_10jt';
   saranUntukKampus?: string;
   submittedAt: string;
@@ -184,41 +184,4 @@ export interface SurveiLulusan {
   kemampuanKerjaTim: number;
   saran?: string;
   submittedAt: string;
-}
-
-// ─────────────────────────────────────────────────────────────────
-// KONTEN KARIR (Admin — satu model terpadu untuk 5 jenis konten)
-// ─────────────────────────────────────────────────────────────────
-export type JenisKonten = 'berita' | 'lowongan' | 'program' | 'workshop' | 'softskill';
-export type AlignmentGambar = 'kiri' | 'tengah' | 'kanan';
-
-export interface KontenKarir {
-  id: string;
-  jenis: JenisKonten;           // berita | lowongan | program | workshop | softskill
-  judul: string;
-  // Body gaya Medium: plain text dengan markup ringan (# H1, ## H2, **bold**, *italic*, __underline__, ---, > quote, daftar)
-  body: string;
-  // Berita & Artikel
-  penulis?: string;
-  gambarLain?: string[];        // data URL gambar tambahan (alignment paralel)
-  alignment?: AlignmentGambar[];// alignment per gambarLain
-  // Lowongan (Magang/Kerja)
-  namaInstansi?: string;
-  tipe?: 'magang' | 'kerja';
-  linkLamar?: string;           // URL lamar
-  kategori?: string;
-  gaji?: string;
-  kuota?: number;
-  deadline?: string;            // YYYY-MM-DD
-  // Program & Pengumuman / Workshop / SoftSkill (CTA eksternal)
-  linkCta?: string;            // URL daftar/register/kontak
-  // Thumbnail
-  // - berita/workshop/softskill: rasio 16:9 (wajib)
-  // - lowongan: rasio 9:16 (poster, wajib)
-  // - program: tidak ada
-  thumbnail?: string;          // data URL
-  // Status & meta
-  status: 'draft' | 'published';
-  createdAt: string;
-  updatedAt?: string;
 }

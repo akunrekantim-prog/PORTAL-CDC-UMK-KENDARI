@@ -5,7 +5,7 @@ export interface TracerFormData {
   statusPekerjaan: 'bekerja' | 'wirausaha' | 'lanjut_studi' | 'belum_bekerja';
   namaInstansi?: string;
   rangePenghasilan?: 'kurang_2jt' | '2_5jt' | '5_10jt' | 'lebih_10jt';
-  kesesuaianBidang?: 'sangat_erat' | 'erat' | 'cukup_erat' | 'kurang_erat' | 'tidak_sama_sekali';
+  kesesuaianBidang?: 'sangat_sesuai' | 'sesuai' | 'cukup_sesuai' | 'kurang_sesuai' | 'tidak_sesuai' | 'sangat_erat' | 'erat' | 'cukup_erat' | 'kurang_erat' | 'tidak_sama_sekali';
   saranUntukKampus?: string;
 }
 
