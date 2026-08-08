@@ -105,8 +105,14 @@ const LAYANAN_ITEMS: MenuItem[] = [
   {
     icon: HeartHandshake,
     label: 'Konseling Karier',
-    description: 'Sesi konseling karir personal dengan konselor profesional CDC',
+    description: 'Sesi bimbingan karir personal dengan konselor profesional CDC',
     tab: 'konseling',
+  },
+  {
+    icon: Brain,
+    label: 'Tes Minat Bakat',
+    description: 'Kenali potensi dirimu dengan tes psikologi minat dan bakat terstandar',
+    tab: 'tes-minat',
   },
   {
     icon: Sparkles,
@@ -116,15 +122,33 @@ const LAYANAN_ITEMS: MenuItem[] = [
   },
   {
     icon: Presentation,
-    label: 'Workshop Pengembangan Karir',
+    label: 'Workshop & Seminar',
     description: 'Workshop industri dan seminar karir bersama praktisi profesional',
     tab: 'workshop',
   },
   {
     icon: CalendarDays,
-    label: 'Job Fair & Bursa Kerja',
+    label: 'Career Fair',
     description: 'Pameran karir tahunan UM Kendari dengan puluhan perusahaan rekruter',
     tab: 'career-fair',
+  },
+  {
+    icon: FileText,
+    label: 'CV Review',
+    description: 'Layanan review dan koreksi CV oleh tim ahli rekruter CDC',
+    tab: 'cv-review',
+  },
+  {
+    icon: MessageSquare,
+    label: 'Mock Interview',
+    description: 'Simulasi wawancara kerja untuk meningkatkan kepercayaan dirimu',
+    tab: 'mock-interview',
+  },
+  {
+    icon: Shuffle,
+    label: 'Job Matching',
+    description: 'Pencocokan profil mahasiswa & alumni dengan lowongan yang tepat',
+    tab: 'job-matching',
   },
 ];
 

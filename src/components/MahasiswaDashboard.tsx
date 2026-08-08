@@ -177,7 +177,7 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
               <div className="bg-[#10B981] text-white p-2 rounded-xl">
                 <Briefcase className="w-5 h-5" />
               </div>
-              <div className="font-bold text-lg tracking-tight">Career Portal UMK</div>
+              <div className="font-bold text-lg tracking-tight">Career Portal</div>
             </div>
             
             <nav className="hidden md:flex items-center gap-1">
@@ -187,7 +187,7 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
                   activeTab === 'search' ? 'bg-white/10 text-white' : 'text-blue-100 hover:bg-white/5 hover:text-white'
                 }`}
               >
-                Cari Lowongan
+                Search Jobs
               </button>
               <button
                 onClick={() => setActiveTab('profile')}
@@ -195,7 +195,7 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
                   activeTab === 'profile' ? 'bg-white/10 text-white' : 'text-blue-100 hover:bg-white/5 hover:text-white'
                 }`}
               >
-                Profil Saya
+                My Profile
               </button>
             </nav>
           </div>
@@ -203,13 +203,13 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
           <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
               <div className="font-bold text-sm text-white leading-tight">{user.name}</div>
-              <div className="text-blue-200 text-xs font-medium">Mahasiswa</div>
+              <div className="text-blue-200 text-xs font-medium">Student</div>
             </div>
             <button 
               onClick={onLogout}
               className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-lg text-xs font-semibold transition"
             >
-              <LogOut className="w-4 h-4" /> Keluar
+              <LogOut className="w-4 h-4" /> Sign Out
             </button>
           </div>
         </div>
@@ -220,18 +220,18 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
         <button
           onClick={() => setActiveTab('search')}
           className={`flex-1 py-2 rounded-lg font-semibold text-sm transition ${
-            activeTab === 'search' ? 'bg-[#10B981] text-white' : 'text-blue-200 hover:bg-white/5'
+            activeTab === 'search' ? 'bg-white/10 text-white' : 'text-blue-200 hover:bg-white/5'
           }`}
         >
-          Cari Lowongan
+          Search Jobs
         </button>
         <button
           onClick={() => setActiveTab('profile')}
           className={`flex-1 py-2 rounded-lg font-semibold text-sm transition ${
-            activeTab === 'profile' ? 'bg-[#10B981] text-white' : 'text-blue-200 hover:bg-white/5'
+            activeTab === 'profile' ? 'bg-white/10 text-white' : 'text-blue-200 hover:bg-white/5'
           }`}
         >
-          Profil Saya
+          My Profile
         </button>
       </div>
 

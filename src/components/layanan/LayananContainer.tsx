@@ -22,12 +22,13 @@ export interface LayananMenuOption {
 
 export const LAYANAN_MENU: LayananMenuOption[] = [
   { id: 'campus-hiring', label: 'Campus Hiring - Recruitment', shortLabel: 'Campus Hiring', icon: Rocket, badge: 'Recruitment', color: 'from-blue-700 to-sky-600' },
-  { id: 'konseling', label: 'Konseling Karir', shortLabel: 'Konseling', icon: MessageSquare, badge: 'Reservasi', color: 'from-emerald-500 to-teal-600' },
-
-  { id: 'workshop', label: 'Workshop Pengembangan Karir', shortLabel: 'Workshop', icon: Wrench, color: 'from-rose-500 to-pink-600' },
+  { id: 'konseling', label: 'Bimbingan Karir', shortLabel: 'Konseling', icon: MessageSquare, badge: 'Reservasi', color: 'from-emerald-500 to-teal-600' },
+  { id: 'tes-minat', label: 'Tes Minat (RIASEC)', shortLabel: 'Tes Minat', icon: Puzzle, badge: 'Kuis Mini', color: 'from-violet-600 to-purple-600' },
+  { id: 'workshop', label: 'Workshop Karir', shortLabel: 'Workshop', icon: Wrench, color: 'from-rose-500 to-pink-600' },
   { id: 'softskill', label: 'Softskill & Kewirausahaan', shortLabel: 'Softskill', icon: GraduationCap, badge: 'Sertifikat', color: 'from-cyan-500 to-blue-600' },
   { id: 'seminar', label: 'Seminar Sukses Karir', shortLabel: 'Seminar', icon: Mic, badge: 'E-Ticket', color: 'from-fuchsia-500 to-pink-600' },
-  { id: 'career-fair', label: 'Job Fair & Bursa Kerja', shortLabel: 'Job Fair', icon: Sparkles, badge: 'Annual Event', color: 'from-amber-400 to-yellow-600' },
+  { id: 'bursa-kerja', label: 'Bursa Kerja (Loker)', shortLabel: 'Bursa Kerja', icon: Briefcase, badge: 'Lamar Cepat', color: 'from-indigo-600 to-violet-700' },
+  { id: 'career-fair', label: 'UM Kendari Job Fair', shortLabel: 'Job Fair', icon: Sparkles, badge: 'Virtual Booth', color: 'from-amber-400 to-yellow-600' },
   { id: 'magang', label: 'Magang', shortLabel: 'Magang', icon: Briefcase, badge: 'Alur CDC', color: 'from-teal-600 to-emerald-700' },
 ];
 

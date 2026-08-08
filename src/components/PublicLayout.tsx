@@ -12,20 +12,22 @@ import {
   ExternalLink, Calendar,
 } from 'lucide-react';
 import { Lowongan, Berita, Pengumuman } from '../types';
-import { sortJobsByNewest, formatDateDisplay } from '../data';
 import { motion } from 'motion/react';
 import Header from './Header';
 import { Footer } from './Footer';
 import BimbinganKarir from './layanan/BimbinganKarir';
+import TesMinat from './layanan/TesMinat';
 import Workshop from './layanan/Workshop';
 import Softskill from './layanan/Softskill';
 import Seminar from './layanan/Seminar';
+import BursaKerja from './layanan/BursaKerja';
 import CareerFair from './layanan/CareerFair';
 import CampusHiring from './layanan/CampusHiring';
 import Magang from './layanan/Magang';
 import LayananContainer from './layanan/LayananContainer';
 import HeroSlider from './HeroSlider';
 import { JobSearchMasterDetail } from './JobSearchMasterDetail';
+
 
 /* ─── Types ─────────────────────────────────── */
 interface PublicLayoutProps {
@@ -109,8 +111,8 @@ export default function PublicLayout({
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'magang' | 'kerja'>('all');
 
-  /* Data helpers: Lowongan terbaru (newest created) selalu di atas */
-  const publishedLowongan = sortJobsByNewest(lowongan.filter(l => l.status === 'published'));
+  /* Data helpers */
+  const publishedLowongan = lowongan.filter(l => l.status === 'published');
   const publishedBerita = berita.filter(b => b.status === 'published');
   const publishedPengumuman = pengumuman.filter(p => p.status === 'published');
 
@@ -280,29 +282,27 @@ export default function PublicLayout({
                           className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group"
                         >
                           <div>
-                            {/* Company Logo Image Container (1:1 matching Job Info card layout) */}
-                            <div className="w-full h-44 relative overflow-hidden bg-slate-50 flex items-center justify-center p-4 border-b border-slate-100">
-                              {item.companyLogo ? (
-                                <img
-                                  src={item.companyLogo}
-                                  alt={item.namaInstansi}
-                                  className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
-                                  onError={(e) => {
-                                    (e.currentTarget as HTMLElement).style.display = 'none';
-                                  }}
-                                />
-                              ) : (
-                                <div className="flex flex-col items-center justify-center text-slate-300 space-y-1">
-                                  <Building2 className="w-10 h-10 text-slate-400" />
-                                  <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">{item.namaInstansi}</span>
-                                </div>
-                              )}
+                            {/* Full-bleed enlarged poster image container */}
+                            <div className="w-full aspect-[16/9] relative overflow-hidden bg-slate-100">
+                              <img
+                                src={
+                                  item.flyer ||
+                                  item.imageUrl ||
+                                  (item.flyers && item.flyers.length > 0 ? item.flyers[0] : null) ||
+                                  item.bannerImage ||
+                                  item.companyLogo ||
+                                  'https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=800&auto=format&fit=crop'
+                                }
+                                alt={item.judul}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              />
                               <div className="absolute top-3 left-3 flex items-center gap-2">
                                 <span
-                                  className={`px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs ${item.tipe === 'magang'
+                                  className={`px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs ${
+                                    item.tipe === 'magang'
                                       ? 'bg-purple-600 text-white'
                                       : 'bg-emerald-600 text-white'
-                                    }`}
+                                  }`}
                                 >
                                   {item.tipe === 'magang' ? 'Magang' : 'Kerja'}
                                 </span>
@@ -311,7 +311,7 @@ export default function PublicLayout({
 
                             {/* Card Content */}
                             <div className="p-5 space-y-2">
-                              {/* Instansi Subheading in Accent Orange */}
+                              {/* Category / Instansi Subheading in Accent Orange */}
                               <div className="text-xs font-bold text-orange-600 tracking-wide uppercase truncate">
                                 {item.namaInstansi}
                               </div>
@@ -321,12 +321,13 @@ export default function PublicLayout({
                                 {item.judul}
                               </h3>
 
-                              {/* Meta Footer: by Admin Website + Upload Date */}
-                              <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
-                                <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
-                                <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
+                              {/* Meta Footer: by Admin Website + Deadline Date */}
+                              <div className="flex items-center gap-2 text-xs text-slate-400 font-medium pt-2">
+                                <span>by Admin Website</span>
+                                <span>•</span>
+                                <span className="flex items-center gap-1">
                                   <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                                  {formatDateDisplay(item.createdAt || item.deadline)}
+                                  {item.deadline}
                                 </span>
                               </div>
                             </div>
@@ -518,7 +519,7 @@ export default function PublicLayout({
                             </h4>
                             <p className="text-slate-500 text-xs line-clamp-2 leading-relaxed">{item.excerpt}</p>
                             <div className="text-xs text-slate-400 font-medium pt-1">
-                              Admin CDC · {formatDateDisplay(item.createdAt)}
+                              Admin CDC · {new Date(item.createdAt).toLocaleDateString('id-ID')}
                             </div>
                           </div>
                         </motion.div>
@@ -654,6 +655,7 @@ export default function PublicLayout({
                     { label: 'Konseling Karier', tab: 'konseling' },
                     { label: 'CV Review', tab: 'cv-review' },
                     { label: 'Mock Interview', tab: 'mock-interview' },
+                    { label: 'Tes Minat Bakat', tab: 'tes-minat' },
                   ].map(s => (
                     <button
                       key={s.label}
@@ -678,7 +680,7 @@ export default function PublicLayout({
 
         {/* ─── PROFIL TAB ──────────────────────────────────────────── */}
         {currentTab === 'profil' && (
-          <div className="max-w-5xl mx-auto px-4 py-12 space-y-10" id="tab-profil">
+          <div className="max-w-4xl mx-auto px-4 py-12 space-y-10" id="tab-profil">
             <div className="text-center space-y-2">
               <h2 className="text-3xl font-extrabold text-[#1E3A8A]">Profil Career Development Center</h2>
               <div className="text-[#10B981] font-bold text-sm">Universitas Muhammadiyah Kendari</div>
@@ -686,32 +688,17 @@ export default function PublicLayout({
             <div className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm space-y-6 text-slate-600 text-sm leading-relaxed">
               <h3 className="text-lg font-bold text-slate-900 border-l-4 border-[#10B981] pl-3">Tentang CDC</h3>
               <p>Career Development Center (CDC) Universitas Muhammadiyah Kendari adalah unit kerja penjamin mutu yang didirikan untuk menjalin kerja sama profesional, mendampingi pengembangan karir mahasiswa sejak dini, serta menjejaki kualitas kerja para alumni.</p>
-              
-              <h3 className="text-lg font-bold text-slate-900 border-l-4 border-[#10B981] pl-3">Visi &amp; Misi</h3>
-              <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm mt-4 bg-slate-50 p-2 sm:p-4">
-                <img
-                  src="/visi-misi-cdc.svg"
-                  alt="Visi & Misi UPT. Pusat Pengembangan Kreativitas, Inovasi dan Konseling Mahasiswa Universitas Muhammadiyah Kendari"
-                  className="w-full h-auto object-contain rounded-xl"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ─── VISI & MISI TAB ──────────────────────────────────────────── */}
-        {currentTab === 'visi-misi' && (
-          <div className="max-w-5xl mx-auto px-4 py-12 space-y-8" id="tab-visi-misi">
-            <div className="text-center space-y-2">
-              <h2 className="text-3xl font-extrabold text-[#1E3A8A]">Visi &amp; Misi CDC</h2>
-              <div className="text-[#10B981] font-bold text-sm">Universitas Muhammadiyah Kendari</div>
-            </div>
-            <div className="bg-white rounded-3xl border border-slate-200/80 p-4 sm:p-6 shadow-lg overflow-hidden">
-              <img
-                src="/visi-misi-cdc.svg"
-                alt="Visi & Misi UPT. Pusat Pengembangan Kreativitas, Inovasi dan Konseling Mahasiswa Universitas Muhammadiyah Kendari"
-                className="w-full h-auto rounded-2xl object-contain shadow-sm"
-              />
+              <h3 className="text-lg font-bold text-slate-900 border-l-4 border-[#10B981] pl-3">Visi Utama</h3>
+              <p className="italic bg-slate-50 p-4 rounded-2xl text-slate-700 font-medium">
+                "Menjadi pusat bimbingan karir, integrasi magang, dan tracer studi alumni terpadu berbasis moral islami yang unggul dan diakui secara nasional pada tahun 2028."
+              </p>
+              <h3 className="text-lg font-bold text-slate-900 border-l-4 border-[#10B981] pl-3">Misi Unggulan</h3>
+              <ul className="list-disc pl-5 space-y-2">
+                <li>Menyelenggarakan pelatihan kesiapan kerja dan bimbingan konseling karir mahasiswa secara berkala.</li>
+                <li>Membangun kemitraan strategis dengan BUMN, lembaga swasta, kementerian, dan startup terpercaya daerah.</li>
+                <li>Menjalankan survei berkala Tracer Study alumni sebagai instrumen vital akreditasi program studi.</li>
+                <li>Memfasilitasi penempatan magang terstruktur yang diakui penuh secara akademis.</li>
+              </ul>
             </div>
           </div>
         )}
@@ -783,9 +770,6 @@ export default function PublicLayout({
                             src={item.companyLogo}
                             alt={item.namaInstansi}
                             className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
-                            onError={(e) => {
-                              (e.currentTarget as HTMLElement).style.display = 'none';
-                            }}
                           />
                         ) : (
                           <div className="flex flex-col items-center justify-center text-slate-300 space-y-1">
@@ -795,10 +779,11 @@ export default function PublicLayout({
                         )}
                         <div className="absolute top-3 left-3 flex items-center gap-2">
                           <span
-                            className={`px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs ${item.tipe === 'magang'
+                            className={`px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs ${
+                              item.tipe === 'magang'
                                 ? 'bg-purple-600 text-white'
                                 : 'bg-emerald-600 text-white'
-                              }`}
+                            }`}
                           >
                             {item.tipe === 'magang' ? 'Magang' : 'Kerja'}
                           </span>
@@ -817,12 +802,13 @@ export default function PublicLayout({
                           {item.judul}
                         </h3>
 
-                        {/* Meta Footer: by Admin Website + Upload Date */}
-                        <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
-                          <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
-                          <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
+                        {/* Meta Footer: by Admin Website + Deadline Date */}
+                        <div className="flex items-center gap-2 text-xs text-slate-400 font-medium pt-2">
+                          <span>by Admin Website</span>
+                          <span>•</span>
+                          <span className="flex items-center gap-1">
                             <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                            {formatDateDisplay(item.createdAt || item.deadline)}
+                            {item.deadline}
                           </span>
                         </div>
                       </div>
@@ -861,7 +847,7 @@ export default function PublicLayout({
                       <h4 className="font-bold text-slate-900 text-base leading-snug line-clamp-2 hover:text-[#10B981] transition-colors">{item.title}</h4>
                       <p className="text-slate-500 text-sm line-clamp-3 leading-relaxed">{item.excerpt}</p>
                     </div>
-                    <div className="text-xs text-slate-400 font-medium">Admin CDC · {formatDateDisplay(item.createdAt)}</div>
+                    <div className="text-xs text-slate-400 font-medium">Admin CDC · {new Date(item.createdAt).toLocaleDateString('id-ID')}</div>
                   </div>
                 </div>
               ))}
@@ -913,12 +899,14 @@ export default function PublicLayout({
         )}
 
         {/* ─── LAYANAN SUB-TABS ───────────────────────────────────── */}
-        {['konseling', 'workshop', 'softskill', 'seminar', 'career-fair', 'campus-hiring', 'magang'].includes(currentTab) && (
+        {['konseling', 'tes-minat', 'workshop', 'softskill', 'seminar', 'bursa-kerja', 'career-fair', 'campus-hiring', 'magang'].includes(currentTab) && (
           <LayananContainer currentTab={currentTab} setTab={setTab}>
             {currentTab === 'konseling' && <BimbinganKarir />}
+            {currentTab === 'tes-minat' && <TesMinat />}
             {currentTab === 'workshop' && <Workshop />}
             {currentTab === 'softskill' && <Softskill />}
             {currentTab === 'seminar' && <Seminar />}
+            {currentTab === 'bursa-kerja' && <BursaKerja />}
             {currentTab === 'career-fair' && <CareerFair />}
             {currentTab === 'campus-hiring' && <CampusHiring />}
             {currentTab === 'magang' && <Magang />}

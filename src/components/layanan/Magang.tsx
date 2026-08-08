@@ -1,6 +1,13 @@
 import React from 'react';
-import { CheckCircle, FileText, Users, Award } from 'lucide-react';
-import { PageHeader, Card, MetaList, Divider, InfoRow } from './ui';
+import { PageHeader, Section, Card, StepList, CtaBlock } from './ui';
+
+const STEPS = [
+  { title: 'Pilih Lowongan Magang Mitra', desc: 'Pilih lowongan magang dari daftar perusahaan mitra resmi CDC UM Kendari yang sesuai dengan program studi dan minat Anda.' },
+  { title: 'Lengkapi Form & Upload Berkas', desc: 'Isi form pengajuan magang dan unggah surat pengantar dekan, CV, transkrip nilai, dan dokumen pendukung lainnya.' },
+  { title: 'Verifikasi Tim CDC', desc: 'Tim CDC memverifikasi kelengkapan berkas dan kesesuaian kualifikasi dalam waktu 1x24 jam kerja.' },
+  { title: 'Pengumuman Hasil & Penempatan', desc: 'Hasil verifikasi dan penetapan lokasi magang diumumkan melalui portal, email, dan grup resmi mahasiswa.' },
+  { title: 'Pelaksanaan Magang & Akreditasi', desc: 'Mahasiswa menjalankan magang dengan pendampingan CDC, mengumpulkan laporan, dan mendapatkan sertifikat magang resmi kampus.' },
+];
 
 export default function Magang() {
   return (
@@ -10,51 +17,19 @@ export default function Magang() {
         title="Magang"
         description="Program magang terstruktur yang menghubungkan mahasiswa UM Kendari dengan instansi mitra. Proses pengajuan dilakukan secara digital, terverifikasi oleh tim CDC, dan diakui secara akademis oleh kampus."
         accent="teal"
-        icon={FileText}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-7 space-y-6">
-          <Card>
-            <MetaList
-              items={[
-                { label: 'Tujuan', text: 'Menghubungkan mahasiswa dengan instansi mitra untuk mendapatkan pengalaman kerja nyata yang diakui secara akademis.' },
-                { label: 'Pihak Yang Terlibat', text: 'Mahasiswa UM Kendari, dosen pembimbing akademik, dan instansi mitra magang yang bekerja sama dengan CDC.' },
-                { label: 'Waktu dan Tempat', text: 'Dilaksanakan sesuai kesepakatan dengan instansi mitra dan jadwal akademik mahasiswa.' },
-                { label: 'Alat', text: 'Formulir pengajuan digital, surat pengantar dekan, CV, transkrip nilai, dan dokumen pendukung magang.' },
-              ]}
-            />
+      <Section title="Alur Pengajuan Magang">
+        <Card>
+          <StepList steps={STEPS} />
+        </Card>
+      </Section>
 
-            <Divider />
-
-            <div className="space-y-3">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Mekanisme</h3>
-              <div className="space-y-3">
-                {[
-                  'Mahasiswa memilih lowongan magang dari daftar mitra resmi CDC.',
-                  'Melengkapi form dan mengunggah berkas pendukung.',
-                  'Tim CDC memverifikasi kelengkapan dan kesesuaian kualifikasi.',
-                  'Hasil verifikasi dan penempatan diumumkan melalui portal CDC.',
-                  'Mahasiswa menjalankan magang dengan pendampingan CDC dan mengumpulkan laporan akhir.',
-                ].map((step, idx) => (
-                  <InfoRow key={idx} label={`Langkah ${idx + 1}`}>
-                    {step}
-                  </InfoRow>
-                ))}
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        <div className="lg:col-span-5 space-y-6">
-          <Card className="bg-teal-50/60 border-teal-100">
-            <h3 className="font-bold text-slate-900 text-sm mb-2">Catatan</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Pastikan berkas Anda dilengkapi sebelum pengajuan. Tim CDC hanya memproses pengajuan yang memenuhi syarat administrasi dan jadwal.
-            </p>
-          </Card>
-        </div>
-      </div>
+      <Section title="Informasi Penting">
+        <CtaBlock>
+          Pastikan Anda membaca syarat dan ketentuan lowongan sebelum mengajukan magang. Tim CDC hanya memproses pengajuan yang dilengkapi berkas sesuai ketentuan dan dalam timeline yang masih terbuka.
+        </CtaBlock>
+      </Section>
     </div>
   );
 }

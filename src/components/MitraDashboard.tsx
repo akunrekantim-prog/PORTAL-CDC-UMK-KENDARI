@@ -47,10 +47,9 @@ import { JOB_SPECIALIZATIONS } from './JobSearchMasterDetail';
 interface MitraDashboardProps {
   user: UserType;
   onLogout: () => void;
-  onReloadData?: () => void;
 }
 
-export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDashboardProps) {
+export default function MitraDashboard({ user, onLogout }: MitraDashboardProps) {
   const [activeTab, setActiveTab] = useState<'ringkasan' | 'profil' | 'lowongan' | 'pelamar' | 'survei'>('ringkasan');
   
   // Data States
@@ -88,7 +87,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
     }
   };
   const [gaji, setGaji] = useState('Kompetitif');
-  const [kuota, setKuota] = useState<string>('3');
+  const [kuota, setKuota] = useState(3);
   const [deadline, setDeadline] = useState('');
 
   // Media Visual Upload States (Company Logo for Job Info card & Poster for Job Detail)
@@ -253,7 +252,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
     setSelectedKategori(['IT/Komputer & Teknologi Informasi']);
     setLokasi('Kendari (On-site)');
     setGaji('Kompetitif');
-    setKuota('3');
+    setKuota(3);
     setDeadline('');
     setCompanyLogoUrl('');
     setPosterUrl('');
@@ -277,7 +276,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
     }
     setLokasi(job.lokasi);
     setGaji(job.gaji || 'Kompetitif');
-    setKuota(job.kuota ? String(job.kuota) : '3');
+    setKuota(job.kuota || 3);
     setDeadline(job.deadline);
     setCompanyLogoUrl(job.companyLogo || '');
     setPosterUrl(job.flyer || job.imageUrl || job.bannerImage || (job.flyers && job.flyers[0]) || '');
@@ -308,8 +307,6 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
     const logoTarget = companyLogoUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop';
 
-    const existingJob = editingJobId ? myJobs.find(j => j.id === editingJobId) : null;
-
     const newJob: Lowongan = {
       id: editingJobId || `low_${Date.now()}`,
       mitraId: mitraData.id,
@@ -333,7 +330,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
       keahlian: parseLines(keahlian),
       benefit: parseLines(benefit),
       status: 'published',
-      createdAt: existingJob?.createdAt || new Date().toISOString()
+      createdAt: new Date().toISOString()
     };
 
     if (editingJobId) {
@@ -346,7 +343,6 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
     resetJobForm();
     loadMitraData();
-    if (onReloadData) onReloadData();
   };
 
   // Change job status draft/closed (FR-MTR-04)
@@ -357,7 +353,6 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
       target.status = currentStatus === 'published' ? 'closed' : 'published';
       updateInDB<Lowongan>('lowongan', target);
       loadMitraData();
-      if (onReloadData) onReloadData();
       triggerToast('success', `Status lowongan berhasil diubah menjadi ${target.status === 'published' ? 'AKTIF/PUBLISHED' : 'DITUTUP'}.`);
     }
   };
@@ -367,7 +362,6 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
     if (confirm('Apakah Anda yakin ingin menghapus lowongan ini dari server? Semua histori pelamar akan diarsipkan.')) {
       deleteInDB('lowongan', jobId);
       loadMitraData();
-      if (onReloadData) onReloadData();
       triggerToast('success', 'Lowongan berhasil dihapus dari database.');
     }
   };
@@ -890,18 +884,8 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                           <label className="text-xs font-bold text-slate-700">Rencana Kuota Penerimaan (Orang)</label>
                           <input 
                             type="number" 
-                            min="1"
-                            placeholder="Contoh: 3"
                             value={kuota}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              if (val === '') {
-                                setKuota('');
-                              } else {
-                                const parsed = parseInt(val, 10);
-                                setKuota(isNaN(parsed) ? '' : String(parsed));
-                              }
-                            }}
+                            onChange={(e) => setKuota(Number(e.target.value))}
                             className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
                           />
                         </div>

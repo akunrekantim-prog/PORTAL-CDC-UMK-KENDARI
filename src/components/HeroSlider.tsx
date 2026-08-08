@@ -19,12 +19,12 @@ export default function HeroSlider({ setTab }: HeroSliderProps) {
   const slides = [
     {
       id: 'slide-1',
-      imageUrl: '/poster-cdc-web-umk-1.svg',
+      imageUrl: '/Poster%20CDC%20WEB%20UMK.svg',
       alt: 'Poster CDC WEB UMK - Slide 1',
     },
     {
       id: 'slide-2',
-      imageUrl: '/poster-cdc-web-umk-2.svg',
+      imageUrl: '/Poster%20CDC%20WEB%20UMK.svg',
       alt: 'Poster CDC WEB UMK - Slide 2',
     },
     {
@@ -62,31 +62,26 @@ export default function HeroSlider({ setTab }: HeroSliderProps) {
     return () => clearInterval(timer);
   }, [currentSlide, isPaused]);
 
-  // Ultra-smooth slide variants with cubic-bezier easing and crossfade
+  // Framer Motion slide variants
   const slideVariants = {
     enter: (dir: number) => ({
       x: dir > 0 ? '100%' : '-100%',
       opacity: 0,
-      scale: 1.02,
     }),
     center: {
       x: 0,
       opacity: 1,
-      scale: 1,
       transition: {
-        x: { ease: [0.32, 0.72, 0, 1], duration: 0.7 },
-        opacity: { duration: 0.5, ease: 'easeInOut' },
-        scale: { duration: 0.7, ease: [0.32, 0.72, 0, 1] },
+        x: { type: 'spring', stiffness: 260, damping: 28 },
+        opacity: { duration: 0.3 },
       },
     },
     exit: (dir: number) => ({
       x: dir < 0 ? '100%' : '-100%',
       opacity: 0,
-      scale: 0.98,
       transition: {
-        x: { ease: [0.32, 0.72, 0, 1], duration: 0.7 },
-        opacity: { duration: 0.5, ease: 'easeInOut' },
-        scale: { duration: 0.7, ease: [0.32, 0.72, 0, 1] },
+        x: { type: 'spring', stiffness: 260, damping: 28 },
+        opacity: { duration: 0.3 },
       },
     }),
   };
@@ -102,7 +97,7 @@ export default function HeroSlider({ setTab }: HeroSliderProps) {
     >
       {/* 100% EDGE-TO-EDGE CAROUSEL CONTAINER */}
       <div className="carousel-inner w-full relative overflow-hidden">
-        <AnimatePresence initial={false} custom={direction} mode="popLayout">
+        <AnimatePresence initial={false} custom={direction} mode="wait">
           <motion.div
             key={current.id}
             custom={direction}

@@ -10,11 +10,10 @@ import {
   Users, 
   X,
   Info,
-  Bookmark,
-  Globe
+  Bookmark
 } from 'lucide-react';
 import { Lowongan } from '../types';
-import { getSavedJobIds, toggleSaveJob, sortJobsByNewest, formatDateDisplay } from '../data';
+import { getSavedJobIds, toggleSaveJob } from '../data';
 import { JobDetail } from './JobDetail';
 import { Footer } from './Footer';
 
@@ -64,19 +63,6 @@ export const INDONESIAN_PROVINCES: ProvinceLocation[] = [
   { province: 'SUMATERA SELATAN', cities: ['BANYUASIN', 'EMPAT LAWANG', 'LAHAT', 'LUBUKLINGGAU', 'MUARA ENIM', 'MUSI BANYUASIN', 'MUSI RAWAS', 'OGAN ILIR', 'OGAN KOMERING ILIR', 'OGAN KOMERING ULU', 'PAGAR ALAM', 'PALEMBANG', 'PENUKAL ABAB LEMATANG ILIR', 'PRABUMULIH'] },
   { province: 'SUMATERA UTARA', cities: ['ASAHAN', 'BATUBARA', 'BINJAI', 'DAIRI', 'DELI SERDANG', 'GUNUNGSITOLI', 'HUMBANG HASUNDUTAN', 'KARO', 'LABUHANBATU', 'LANGKAT', 'MANDAILING NATAL', 'MEDAN', 'NIAS', 'PADANG LAWAS', 'PADANGSIDIMPUAN', 'PAKPAK BHARAT', 'PEMATANGSIANTAR', 'SAMOSIR', 'SERDANG BEDAGAI', 'SIBOLGA', 'SIMALUNGUN', 'TANJUNGBALAI', 'TAPANULI SELATAN', 'TAPANULI TENGAH', 'TAPANULI UTARA', 'TEBING TINGGI', 'TOBA'] }
 ];
-
-export function isIndonesianLocation(locStr: string): boolean {
-  if (!locStr) return false;
-  const l = locStr.toLowerCase().trim();
-  return INDONESIAN_PROVINCES.some(p => {
-    const provName = p.province.toLowerCase();
-    if (l === provName || l.includes(provName)) return true;
-    return p.cities.some(c => {
-      const cityName = c.toLowerCase();
-      return l === cityName || l.includes(cityName);
-    });
-  });
-}
 
 export const JOB_SPECIALIZATIONS: string[] = [
   'Akuntansi/Keuangan',
@@ -157,8 +143,8 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
     setCurrentPage(1);
   }, [keyword, selectedLocations, selectedSpecializations]);
 
-  // Filter Published Jobs (Lowongan terbaru selalu di atas)
-  const publishedJobs = sortJobsByNewest(jobs.filter(j => j.status === 'published'));
+  // Filter Published Jobs
+  const publishedJobs = jobs.filter(j => j.status === 'published');
 
   // Filter Jobs Logic
   const filteredJobs = publishedJobs.filter(job => {
@@ -174,74 +160,27 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
       }
     }
 
-    // Checkbox 1: Location Filter (All 38 Indonesian Provinces & Cities + Luar Negeri / Lainnya)
+    // Checkbox 1: Location Filter (All 38 Indonesian Provinces & Cities)
     if (selectedLocations.length > 0) {
-      const matchLoc = selectedLocations.some(loc => {
-        const l = loc.toLowerCase().trim();
-        const jobLoc = job.lokasi.toLowerCase().trim();
-
-        // 1. Checkbox "LAINNYA (LUAR NEGERI)" or "LAINNYA"
-        if (l.includes('lainnya') || l.includes('luar negeri')) {
-          if (!isIndonesianLocation(jobLoc)) return true;
-        }
-
-        // 2. Direct name/substring match
-        if (jobLoc.includes(l) || l.includes(jobLoc)) return true;
-
-        // 3. Province hierarchy lookup: If 'loc' is a province, check if jobLoc matches any city in that province
-        const matchedProv = INDONESIAN_PROVINCES.find(
-          p => p.province.toLowerCase() === l
-        );
-        if (matchedProv) {
-          if (jobLoc.includes(matchedProv.province.toLowerCase())) return true;
-          if (matchedProv.cities.some(city => jobLoc.includes(city.toLowerCase()))) return true;
-        }
-
-        // 4. Reverse lookup: If jobLoc is a city/province, check against province hierarchy
-        const jobProv = INDONESIAN_PROVINCES.find(
-          p => p.province.toLowerCase() === jobLoc || p.cities.some(c => c.toLowerCase() === jobLoc)
-        );
-        if (jobProv) {
-          if (jobProv.province.toLowerCase().includes(l) || l.includes(jobProv.province.toLowerCase())) return true;
-        }
-
-        return false;
-      });
+      const matchLoc = selectedLocations.some(loc => 
+        job.lokasi.toLowerCase().includes(loc.toLowerCase())
+      );
       if (!matchLoc) return false;
     }
 
     // Checkbox 2: Specialization Filter
     if (selectedSpecializations.length > 0) {
       const matchSpec = selectedSpecializations.some(spec => {
-        const s = spec.toLowerCase().trim();
+        const s = spec.toLowerCase();
         const cat = (job.kategori || '').toLowerCase();
         const title = job.judul.toLowerCase();
         const desc = job.deskripsi.toLowerCase();
 
-        // 1. Direct substring match
         if (cat.includes(s) || title.includes(s) || desc.includes(s)) return true;
-
-        // 2. Check individual category items split by comma
-        const jobCatItems = cat.split(',').map(c => c.trim()).filter(Boolean);
-        if (jobCatItems.some(ci => ci.includes(s) || s.includes(ci))) return true;
-
-        // 3. Sub-word match for multi-word categories (e.g. "Sains & Bioteknologi")
-        const sWords = s.split(/[\s/&,]+/).filter(w => w.length > 2);
-        if (sWords.length > 0 && sWords.some(w => cat.includes(w) || title.includes(w))) return true;
-
-        // 4. Keyword domain aliases
-        if (s.includes('it') || s.includes('komputer') || s.includes('teknologi')) {
-          if (cat.includes('it') || cat.includes('ti') || cat.includes('komputer') || cat.includes('teknologi') || title.includes('developer') || title.includes('engineer') || title.includes('ui/ux') || title.includes('software')) return true;
-        }
-        if (s.includes('akuntansi') || s.includes('keuangan')) {
-          if (cat.includes('keuangan') || cat.includes('akuntansi') || title.includes('accountant') || title.includes('finance') || title.includes('akuntan')) return true;
-        }
-        if (s.includes('pemasaran') || s.includes('digital')) {
-          if (cat.includes('pemasaran') || cat.includes('marketing') || title.includes('marketing') || title.includes('exim') || title.includes('promosi')) return true;
-        }
-        if (s.includes('teknik') || s.includes('rekayasa') || s.includes('manufaktur')) {
-          if (cat.includes('teknik') || cat.includes('rekayasa') || cat.includes('manufaktur') || title.includes('engineer') || title.includes('project')) return true;
-        }
+        if (s.includes('it') && (cat.includes('ti') || title.includes('developer') || title.includes('engineer') || title.includes('ui/ux') || title.includes('qa') || title.includes('quality'))) return true;
+        if (s.includes('akuntansi') && (cat.includes('keuangan') || cat.includes('akuntansi') || title.includes('accountant') || title.includes('finance'))) return true;
+        if (s.includes('pemasaran') && (cat.includes('pemasaran') || cat.includes('marketing') || title.includes('marketing') || title.includes('exim'))) return true;
+        if (s.includes('teknik') && (cat.includes('teknik') || cat.includes('rekayasa') || title.includes('engineer') || title.includes('project'))) return true;
         return false;
       });
       if (!matchSpec) return false;
@@ -366,7 +305,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
                   <div className="p-2 border-b border-slate-100 bg-white">
                     <input
                       type="text"
-                      placeholder="Cari provinsi, kota, atau luar negeri..."
+                      placeholder="Cari provinsi / kota di Indonesia..."
                       value={locationSearch}
                       onChange={(e) => setLocationSearch(e.target.value)}
                       className="w-full bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
@@ -374,23 +313,6 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
                   </div>
 
                   <div className="max-h-72 overflow-y-auto p-2.5 space-y-3">
-                    {(!locationSearch || 'lainnya (luar negeri)'.includes(locationSearch.toLowerCase()) || 'luar negeri'.includes(locationSearch.toLowerCase()) || 'lainnya'.includes(locationSearch.toLowerCase())) && (
-                      <div className="pb-2.5 border-b border-slate-200 mb-2">
-                        <label className="flex items-center gap-2 font-bold text-slate-900 cursor-pointer hover:bg-slate-50 p-1.5 rounded transition">
-                          <input
-                            type="checkbox"
-                            checked={selectedLocations.includes('LAINNYA (LUAR NEGERI)')}
-                            onChange={() => toggleCheckboxOption(setSelectedLocations, 'LAINNYA (LUAR NEGERI)')}
-                            className="rounded text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
-                          />
-                          <span className="flex items-center gap-1.5 text-blue-700 font-extrabold">
-                            <Globe className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                            <span>LAINNYA (LUAR NEGERI)</span>
-                          </span>
-                        </label>
-                        <p className="text-[10px] text-slate-400 pl-7 font-normal">Lokasi pekerjaan luar negeri (Jepang, Jerman, Tokyo, dll.)</p>
-                      </div>
-                    )}
                     {INDONESIAN_PROVINCES.map((prov) => {
                       const filteredCities = prov.cities.filter(c => 
                         c.toLowerCase().includes(locationSearch.toLowerCase()) || 
@@ -553,9 +475,6 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
                           src={item.companyLogo}
                           alt={item.namaInstansi}
                           className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
-                          onError={(e) => {
-                            (e.currentTarget as HTMLElement).style.display = 'none';
-                          }}
                         />
                       ) : (
                         <div className="flex flex-col items-center justify-center text-slate-300 space-y-1">
@@ -605,12 +524,13 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
                         {item.judul}
                       </h3>
 
-                      {/* Meta Footer: by Admin Website + Upload Date */}
-                      <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
-                        <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
-                        <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
+                      {/* Meta Footer: by Admin Website + Deadline Date */}
+                      <div className="flex items-center gap-2 text-xs text-slate-400 font-medium pt-2">
+                        <span>by Admin Website</span>
+                        <span>•</span>
+                        <span className="flex items-center gap-1">
                           <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                          {formatDateDisplay(item.createdAt || item.deadline)}
+                          {new Date(item.deadline).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                         </span>
                       </div>
                     </div>
