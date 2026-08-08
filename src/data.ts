@@ -535,7 +535,7 @@ export const SEED_TRACER_STUDIES: TracerStudy[] = [
     namaInstansi: 'PT Go Digital Kendari',
     jabatan: 'Web Developer',
     bidangPekerjaan: 'Teknologi Informasi',
-    kesesuaianBidang: 'sangat_sesuai',
+    kesesuaianBidang: 'sangat_erat',
     rangePenghasilan: '5_10jt',
     saranUntukKampus: 'Mohon agar praktikum basis data dan pemrograman berorientasi objek lebih diperbanyak studi kasus riil industri.',
     submittedAt: '2026-03-10T10:00:00Z'
@@ -552,7 +552,7 @@ export const SEED_TRACER_STUDIES: TracerStudy[] = [
     namaInstansi: 'Kopi Sultan Kendari',
     jabatan: 'Owner',
     bidangPekerjaan: 'Kuliner & Kafe',
-    kesesuaianBidang: 'sesuai',
+    kesesuaianBidang: 'erat',
     rangePenghasilan: '5_10jt',
     saranUntukKampus: 'Mata kuliah kewirausahaan sebaiknya mengundang praktisi UMKM langsung agar memberikan gambaran tantangan yang nyata.',
     submittedAt: '2026-03-25T11:45:00Z'
@@ -569,7 +569,7 @@ export const SEED_TRACER_STUDIES: TracerStudy[] = [
     namaInstansi: 'Dinas Kominfo Sultra',
     jabatan: 'IT Support',
     bidangPekerjaan: 'Pemerintahan',
-    kesesuaianBidang: 'sesuai',
+    kesesuaianBidang: 'erat',
     rangePenghasilan: '2_5jt',
     saranUntukKampus: 'Akses teknologi dan jaringan komputer kampus perlu terus distabilkan.',
     submittedAt: '2026-04-01T08:20:00Z'
@@ -586,7 +586,7 @@ export const SEED_TRACER_STUDIES: TracerStudy[] = [
     namaInstansi: 'SMP Muhammadiyah Kendari',
     jabatan: 'Guru Honorer',
     bidangPekerjaan: 'Pendidikan',
-    kesesuaianBidang: 'sangat_sesuai',
+    kesesuaianBidang: 'sangat_erat',
     rangePenghasilan: 'kurang_2jt',
     saranUntukKampus: 'Fasilitas pembelajaran microteaching sangat membantu.',
     submittedAt: '2026-04-05T09:12:00Z'
