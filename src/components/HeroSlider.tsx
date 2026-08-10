@@ -29,8 +29,18 @@ export default function HeroSlider({ setTab }: HeroSliderProps) {
     },
     {
       id: 'slide-3',
-      imageUrl: '/Poster%20CDC%20WEB%20UMK.svg',
-      alt: 'Poster CDC WEB UMK - Slide 3',
+      imageUrl: '/PENGEMBANGAN%20KARIR.svg',
+      alt: 'Pengembangan Karir - Slide 3',
+    },
+    {
+      id: 'slide-4',
+      imageUrl: '/TENTANG%20TRACER.svg',
+      alt: 'Tentang Tracer - Slide 4',
+    },
+    {
+      id: 'slide-5',
+      imageUrl: '/poster-cdc-web-umk-2.svg',
+      alt: 'Poster CDC WEB UMK - Slide 5',
     },
   ];
 
@@ -147,11 +157,10 @@ export default function HeroSlider({ setTab }: HeroSliderProps) {
             <button
               key={s.id}
               onClick={() => goToSlide(idx)}
-              className={`h-2.5 rounded-full transition-all duration-300 ${
-                idx === currentSlide
-                  ? 'w-7 bg-emerald-400'
-                  : 'w-2.5 bg-white/40 hover:bg-white/70'
-              }`}
+              className={`h-2.5 rounded-full transition-all duration-300 ${idx === currentSlide
+                ? 'w-7 bg-emerald-400'
+                : 'w-2.5 bg-white/40 hover:bg-white/70'
+                }`}
               aria-label={`Go to slide ${idx + 1}`}
             />
           ))}

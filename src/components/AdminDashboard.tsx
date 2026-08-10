@@ -90,6 +90,7 @@ import {
 interface AdminDashboardProps {
   user: UserType;
   onLogout: () => void;
+  onReloadData?: () => void;
 }
 
 type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin';
@@ -836,16 +837,16 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                       return (
                         <button
                           key={menu.id}
-                            id={`adm-tab-${menu.id}`}
-                            onClick={() => setActiveTab(menu.id)}
-                            className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 ${active ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-md shadow-emerald-600/30' : 'text-slate-600 hover:text-slate-900 hover:bg-emerald-50'}`}
-                          >
-                            <span className={`transition-transform duration-200 ${active ? 'text-white scale-110' : 'text-slate-400 group-hover:text-emerald-600'}`}>{menu.icon}</span>
-                            <span className="text-[13px] font-semibold">{menu.label}</span>
-                            {active
-                              ? <span className="ml-auto w-2 h-2 rounded-full bg-white pulse-ring" />
-                              : <span className="ml-auto w-1.5 h-1.5 rounded-full bg-transparent group-hover:bg-emerald-300 transition" />}
-                          </button>
+                          id={`adm-tab-${menu.id}`}
+                          onClick={() => setActiveTab(menu.id)}
+                          className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 ${active ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-md shadow-emerald-600/30' : 'text-slate-600 hover:text-slate-900 hover:bg-emerald-50'}`}
+                        >
+                          <span className={`transition-transform duration-200 ${active ? 'text-white scale-110' : 'text-slate-400 group-hover:text-emerald-600'}`}>{menu.icon}</span>
+                          <span className="text-[13px] font-semibold">{menu.label}</span>
+                          {active
+                            ? <span className="ml-auto w-2 h-2 rounded-full bg-white pulse-ring" />
+                            : <span className="ml-auto w-1.5 h-1.5 rounded-full bg-transparent group-hover:bg-emerald-300 transition" />}
+                        </button>
                       );
                     })}
                   </div>

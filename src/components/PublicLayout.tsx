@@ -300,8 +300,8 @@ export default function PublicLayout({
                               <div className="absolute top-3 left-3 flex items-center gap-2">
                                 <span
                                   className={`px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs ${item.tipe === 'magang'
-                                      ? 'bg-purple-600 text-white'
-                                      : 'bg-emerald-600 text-white'
+                                    ? 'bg-purple-600 text-white'
+                                    : 'bg-emerald-600 text-white'
                                     }`}
                                 >
                                   {item.tipe === 'magang' ? 'Magang' : 'Kerja'}
@@ -686,7 +686,7 @@ export default function PublicLayout({
             <div className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm space-y-6 text-slate-600 text-sm leading-relaxed">
               <h3 className="text-lg font-bold text-slate-900 border-l-4 border-[#10B981] pl-3">Tentang CDC</h3>
               <p>Career Development Center (CDC) Universitas Muhammadiyah Kendari adalah unit kerja penjamin mutu yang didirikan untuk menjalin kerja sama profesional, mendampingi pengembangan karir mahasiswa sejak dini, serta menjejaki kualitas kerja para alumni.</p>
-              
+
               <h3 className="text-lg font-bold text-slate-900 border-l-4 border-[#10B981] pl-3">Visi &amp; Misi</h3>
               <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm mt-4 bg-slate-50 p-2 sm:p-4">
                 <img
@@ -796,8 +796,8 @@ export default function PublicLayout({
                         <div className="absolute top-3 left-3 flex items-center gap-2">
                           <span
                             className={`px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs ${item.tipe === 'magang'
-                                ? 'bg-purple-600 text-white'
-                                : 'bg-emerald-600 text-white'
+                              ? 'bg-purple-600 text-white'
+                              : 'bg-emerald-600 text-white'
                               }`}
                           >
                             {item.tipe === 'magang' ? 'Magang' : 'Kerja'}

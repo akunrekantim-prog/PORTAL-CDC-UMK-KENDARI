@@ -285,21 +285,6 @@ export default function App() {
           </div>
         )}
 
-        {/* VIEW 3: PUBLIC LANDING & PUBLIC PORTAL */}
-        {currentView === 'public' && !viewingLowonganId && !viewingBeritaSlug && (
-          <PublicLayout
-            currentTab={publicTab}
-            setTab={setPublicTab}
-            lowongan={allLowongan}
-            berita={allBerita}
-            pengumuman={allPengumuman}
-            onSelectLowongan={handleSelectLowongan}
-            onSelectBerita={handleSelectBerita}
-            onNavigateToLogin={handleNavigateToLogin}
-            onNavigateToRegister={handleNavigateToRegister}
-          />
-        )}
-
         {/* VIEW 4: LOGIN FORM ROUTE */}
         {currentView === 'login' && (
           <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 relative overflow-hidden" id="login-screen">

@@ -35,12 +35,36 @@ export interface Mahasiswa {
   angkatan: string; // e.g. "2022"
   semester: number;
   alamat?: string;
+  photoUrl?: string;
+  aboutMe?: string;
   // Extended Profile Fields
   graduationYear?: string;
   nationality?: string;
   workRights?: string;
   opportunityType?: string;
   preferredStartDate?: string;
+}
+
+export type JenisKonten = 'berita' | 'lowongan' | 'program' | 'workshop' | 'softskill';
+
+export interface KontenKarir {
+  id: string;
+  jenis: JenisKonten;
+  judul: string;
+  body: string;
+  penulis?: string;
+  namaInstansi?: string;
+  tipe?: 'magang' | 'kerja';
+  linkLamar?: string;
+  kategori?: string;
+  gaji?: string;
+  kuota?: number;
+  deadline?: string;
+  linkCta?: string;
+  thumbnail?: string;
+  status: 'draft' | 'published';
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export interface Alumni {

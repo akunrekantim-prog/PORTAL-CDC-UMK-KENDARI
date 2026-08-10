@@ -14,7 +14,8 @@ import {
   TracerStudy,
   Berita,
   Pengumuman,
-  SurveiLulusan
+  SurveiLulusan,
+  KontenKarir
 } from './types';
 
 // Mock Password: all seeded accounts use "password"
@@ -710,7 +711,8 @@ export type DBKey =
   | 'tracer_studies'
   | 'berita'
   | 'pengumuman'
-  | 'survei_lulusan';
+  | 'survei_lulusan'
+  | 'konten_karir';
 
 const DEFAULT_SEEDS = {
   users: SEED_USERS,
@@ -723,7 +725,8 @@ const DEFAULT_SEEDS = {
   tracer_studies: SEED_TRACER_STUDIES,
   berita: SEED_BERITA,
   pengumuman: SEED_PENGUMUMAN,
-  survei_lulusan: SEED_SURVEI_LULUSAN
+  survei_lulusan: SEED_SURVEI_LULUSAN,
+  konten_karir: [] as KontenKarir[]
 };
 
 // Initializer to make sure local storage has everything
@@ -817,7 +820,7 @@ export function registerUser(
   payload: RegisterAlumniPayload | RegisterMitraPayload
 ): User {
   const users = getFromDB<User>('users');
-  
+
   // Check if email already exists
   const exists = users.some(u => u.email.toLowerCase() === payload.email.toLowerCase());
   if (exists) {
@@ -829,14 +832,14 @@ export function registerUser(
 
   const newUser: User = {
     id: userId,
-    name: role === 'alumni' 
-      ? (payload as RegisterAlumniPayload).name 
+    name: role === 'alumni'
+      ? (payload as RegisterAlumniPayload).name
       : `${(payload as RegisterMitraPayload).kontakPerson} (${(payload as RegisterMitraPayload).namaInstansi})`,
     email: payload.email,
     phone: payload.phone || '',
     role: role,
     status: 'active', // Active by default so testing is smooth and immediate
-    photoUrl: role === 'alumni' 
+    photoUrl: role === 'alumni'
       ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop'
       : 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=200&auto=format&fit=crop',
     createdAt: now
@@ -882,13 +885,13 @@ export function registerUser(
 export function updateUserProfile(userId: string, profileData: Partial<Mahasiswa>) {
   const students = getFromDB<Mahasiswa>('mahasiswa');
   let student = students.find(s => s.userId === userId);
-  
+
   if (student) {
     const updatedStudent = { ...student, ...profileData };
     updateInDB<Mahasiswa>('mahasiswa', updatedStudent);
     return updatedStudent;
   }
-  
+
   // If no existing record, create one
   const newStudent: Mahasiswa = {
     id: `mhs_${Date.now()}`,
@@ -910,7 +913,7 @@ export function updateUserProfile(userId: string, profileData: Partial<Mahasiswa
 export function applyForJob(userId: string, job: Lowongan, extraData?: any) {
   const students = getFromDB<Mahasiswa>('mahasiswa');
   const student = students.find(s => s.userId === userId);
-  
+
   const users = getFromDB<User>('users');
   const currentUser = users.find(u => u.id === userId);
 
