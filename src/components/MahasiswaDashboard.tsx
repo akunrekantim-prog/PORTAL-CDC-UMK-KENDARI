@@ -18,13 +18,14 @@ import {
   Clock,
   Building2,
   ChevronDown,
-  ArrowRight,
   LogOut
 } from 'lucide-react';
 import { JobApplicationModal } from './JobApplicationModal';
 import { JobSearchMasterDetail } from './JobSearchMasterDetail';
 import { StudentProfileView } from './StudentProfileView';
+import { StudentApplicationsView } from './StudentApplicationsView';
 import { JobDetail } from './JobDetail';
+import { PengajuanMagang } from '../types';
 
 interface MahasiswaDashboardProps {
   user: UserType;
@@ -33,7 +34,7 @@ interface MahasiswaDashboardProps {
 }
 
 export default function MahasiswaDashboard({ user, onLogout, allLowongan }: MahasiswaDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'search' | 'profile'>('search');
+  const [activeTab, setActiveTab] = useState<'search' | 'applications' | 'profile'>('search');
   
   // Data States
   const [mahasiswaData, setMahasiswaData] = useState<Mahasiswa | null>(null);
@@ -101,13 +102,23 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
   const handleApplySubmit = (data: any) => {
     if (applyingJob) {
       applyForJob(user.id, applyingJob, data);
+      window.dispatchEvent(new Event('storage'));
       triggerToast(`Lamaran untuk ${applyingJob.judul} di ${applyingJob.namaInstansi} berhasil terkirim ke Mitra!`);
       setTimeout(() => {
         setApplyingJob(null);
-      }, 2000);
+        setActiveTab('applications');
+      }, 1500);
     }
   };
 
+  // Calculate my applications count & active interview alerts
+  const myApplications = getFromDB<PengajuanMagang>('pengajuan_magang').filter(a => 
+    a.userId === user.id || 
+    a.namaMahasiswa === user.name || 
+    (mahasiswaData && a.nim === mahasiswaData.nim) ||
+    a.mahasiswaId === `mhs_${user.id}`
+  );
+  const interviewAlertCount = myApplications.filter(a => (a.status || '').toLowerCase() === 'interview').length;
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -189,6 +200,25 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
               >
                 Cari Lowongan
               </button>
+
+              <button
+                onClick={() => setActiveTab('applications')}
+                className={`px-4 py-2 rounded-lg font-semibold text-sm transition flex items-center gap-2 ${
+                  activeTab === 'applications' ? 'bg-white/10 text-white' : 'text-blue-100 hover:bg-white/5 hover:text-white'
+                }`}
+              >
+                <span>Lamaran Saya</span>
+                {myApplications.length > 0 && (
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-black ${
+                    interviewAlertCount > 0 
+                      ? 'bg-purple-500 text-white' 
+                      : 'bg-emerald-500 text-white'
+                  }`}>
+                    {myApplications.length}
+                  </span>
+                )}
+              </button>
+
               <button
                 onClick={() => setActiveTab('profile')}
                 className={`px-4 py-2 rounded-lg font-semibold text-sm transition ${
@@ -219,15 +249,28 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
       <div className="md:hidden bg-[#1E3A8A] border-t border-blue-800 px-2 py-2 flex gap-2">
         <button
           onClick={() => setActiveTab('search')}
-          className={`flex-1 py-2 rounded-lg font-semibold text-sm transition ${
+          className={`flex-1 py-2 rounded-lg font-semibold text-xs transition ${
             activeTab === 'search' ? 'bg-[#10B981] text-white' : 'text-blue-200 hover:bg-white/5'
           }`}
         >
           Cari Lowongan
         </button>
         <button
+          onClick={() => setActiveTab('applications')}
+          className={`flex-1 py-2 rounded-lg font-semibold text-xs transition flex items-center justify-center gap-1 ${
+            activeTab === 'applications' ? 'bg-[#10B981] text-white' : 'text-blue-200 hover:bg-white/5'
+          }`}
+        >
+          <span>Lamaran Saya</span>
+          {myApplications.length > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-white/20 text-white">
+              {myApplications.length}
+            </span>
+          )}
+        </button>
+        <button
           onClick={() => setActiveTab('profile')}
-          className={`flex-1 py-2 rounded-lg font-semibold text-sm transition ${
+          className={`flex-1 py-2 rounded-lg font-semibold text-xs transition ${
             activeTab === 'profile' ? 'bg-[#10B981] text-white' : 'text-blue-200 hover:bg-white/5'
           }`}
         >
@@ -247,7 +290,7 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
           />
         ) : (
           <>
-            {/* VIEW A: SEARCH JOBS (CDAC UMSU / PROSPLE MASTER-DETAIL SPLIT VIEW) */}
+            {/* VIEW A: SEARCH JOBS */}
             {activeTab === 'search' && (
               <JobSearchMasterDetail
                 jobs={allLowongan}
@@ -256,7 +299,17 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
               />
             )}
 
-            {/* VIEW B: MY PROFILE (PROSPLE / CDAC UMSU STUDENT PROFILE & BOOKMARKS) */}
+            {/* VIEW B: MY APPLICATIONS (STATUS LAMARAN, JADWAL INTERVIEW & HISTORY) */}
+            {activeTab === 'applications' && (
+              <StudentApplicationsView
+                user={user}
+                mahasiswaData={mahasiswaData}
+                allLowongan={allLowongan}
+                onSelectJob={(job) => setSelectedJobForDetail(job)}
+              />
+            )}
+
+            {/* VIEW C: MY PROFILE */}
             {activeTab === 'profile' && (
               <StudentProfileView
                 user={user}
@@ -268,7 +321,6 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
           </>
         )}
       </main>
-
 
       {/* Apply Modal */}
       {applyingJob && (

@@ -513,6 +513,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
           onSubmit={(data) => {
             const current = JSON.parse(localStorage.getItem('user') || '{}');
             applyForJob(current.id || 'usr_mhs_demo', job, data);
+            window.dispatchEvent(new Event('storage'));
             triggerToast(`Lamaran untuk ${job.judul} di ${job.namaInstansi} berhasil terkirim ke Mitra!`);
             if (onApply) onApply();
           }}

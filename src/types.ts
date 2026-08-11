@@ -7,7 +7,7 @@ export type UserRole = 'user' | 'mitra' | 'admin' | 'viewer' | 'mahasiswa' | 'al
 export type UserStatus = 'pending' | 'active' | 'inactive' | 'rejected';
 export type TipeLowongan = 'magang' | 'kerja';
 export type StatusLowongan = 'draft' | 'published' | 'closed' | 'archived';
-export type StatusPengajuan = 'draft' | 'submitted' | 'under_review' | 'revision' | 'accepted' | 'rejected' | 'ongoing' | 'report_submitted' | 'completed';
+export type StatusPengajuan = 'draft' | 'submitted' | 'under_review' | 'revision' | 'accepted' | 'rejected' | 'ongoing' | 'report_submitted' | 'completed' | 'menunggu_review' | 'seleksi_administrasi' | 'interview' | 'diterima' | 'ditolak';
 export type StatusKerjasama = 'aktif' | 'nonaktif' | 'pending';
 export type TipeDokumen = 'surat_pengantar' | 'cv' | 'transkrip' | 'proposal' | 'laporan' | 'cover_berita' | 'avatar' | 'lainnya';
 
@@ -121,11 +121,20 @@ export interface Lowongan {
   createdAt: string;
 }
 
+export interface SelectionHistoryLog {
+  status: string;
+  label: string;
+  date: string;
+  note?: string;
+}
+
 export interface PengajuanMagang {
   id: string;
   mahasiswaId: string;
   userId: string;
   lowonganId?: string;
+  mitraId?: string;
+  namaInstansi?: string;
   namaMahasiswa: string;
   nim: string;
   programStudi: string;
@@ -141,6 +150,18 @@ export interface PengajuanMagang {
   verifiedBy?: string; // user.id
   verifiedAt?: string;
   createdAt: string;
+
+  // Multi-stage Interview & Selection Fields
+  interviewStatus?: 'pending' | 'scheduled' | 'completed';
+  interviewDate?: string;
+  interviewTime?: string;
+  interviewMethod?: 'online' | 'offline';
+  interviewLink?: string;
+  interviewLocation?: string;
+  interviewNote?: string;
+  interviewResultNotes?: string;
+  catatanInternal?: string[];
+  riwayatSeleksi?: SelectionHistoryLog[];
 }
 
 export interface UploadedDocument {

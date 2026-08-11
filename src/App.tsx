@@ -108,6 +108,7 @@ export default function App() {
 
     setCurrentUser(updatedMatched);
     setCurrentView('dashboard');
+    reloadDatabase();
     // Save to session tracking
     localStorage.setItem('cdc_session_id', matched.id);
   };
@@ -120,6 +121,7 @@ export default function App() {
     if (target) {
       setCurrentUser(target);
       setCurrentView('dashboard');
+      reloadDatabase();
       localStorage.setItem('cdc_session_id', target.id);
     }
   };
@@ -128,6 +130,7 @@ export default function App() {
     setCurrentUser(null);
     setCurrentView('public');
     setPublicTab('beranda');
+    reloadDatabase();
     localStorage.removeItem('cdc_session_id');
   };
 

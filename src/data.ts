@@ -494,15 +494,45 @@ export const SEED_PENGAJUAN_MAGANG: PengajuanMagang[] = [
     namaMahasiswa: 'Muhammad Fadly Alamsyah',
     nim: '202101001',
     programStudi: 'Teknik Informatika',
-    tujuanMagang: 'PT Go Digital Kendari',
+    tujuanMagang: 'Fullstack Web Developer Intern',
     lokasiMagang: 'Kendari',
     tanggalMulai: '2026-07-01',
     tanggalSelesai: '2026-10-31',
-    status: 'accepted',
-    catatanAdmin: 'Berkas lengkap dan sesuai kualifikasi mitra. Disetujui untuk memulai magang.',
+    status: 'interview',
+    interviewStatus: 'pending',
+    catatanAdmin: 'Berkas lengkap dan sesuai kualifikasi mitra.',
     verifiedBy: 'usr_admin',
     verifiedAt: '2026-05-20T10:00:00Z',
-    createdAt: '2026-05-18T14:00:00Z'
+    createdAt: '2026-08-10T14:00:00Z',
+    catatanInternal: [
+      'Memiliki portofolio React & Node.js yang sangat kuat.',
+      'Perlu diverifikasi pengalaman penggunaan TailwindCSS saat interview.'
+    ],
+    riwayatSeleksi: [
+      { status: 'menunggu_review', label: 'Menunggu Review', date: '2026-08-10', note: 'Lamaran diterima oleh sistem' },
+      { status: 'seleksi_administrasi', label: 'Seleksi Administrasi', date: '2026-08-11', note: 'Masuk tahap verifikasi berkas administrasi' },
+      { status: 'interview', label: 'Lolos ke Interview', date: '2026-08-11', note: 'Lolos seleksi administrasi, menunggu penjadwalan interview' }
+    ]
+  },
+  {
+    id: 'pj_002',
+    mahasiswaId: 'mhs2',
+    userId: 'usr_mhs2',
+    lowonganId: 'low1',
+    namaMahasiswa: 'Siti Rahmawati',
+    nim: '202302044',
+    programStudi: 'Sistem Informasi',
+    tujuanMagang: 'Fullstack Web Developer Intern',
+    lokasiMagang: 'Kendari',
+    tanggalMulai: '2026-08-01',
+    tanggalSelesai: '2026-11-30',
+    status: 'menunggu_review',
+    interviewStatus: 'pending',
+    createdAt: '2026-08-11T09:00:00Z',
+    catatanInternal: [],
+    riwayatSeleksi: [
+      { status: 'menunggu_review', label: 'Menunggu Review', date: '2026-08-11', note: 'Lamaran baru diterima oleh sistem' }
+    ]
   }
 ];
 
@@ -729,6 +759,8 @@ const DEFAULT_SEEDS = {
   konten_karir: [] as KontenKarir[]
 };
 
+let _dbInitialized = false;
+
 // Initializer to make sure local storage has everything
 export function initializeDB() {
   const CURRENT_SEED_VERSION = 'v3_posters_9_16';
@@ -738,6 +770,7 @@ export function initializeDB() {
       localStorage.setItem(storageKey, JSON.stringify(val));
     });
     localStorage.setItem('cdc_seed_version', CURRENT_SEED_VERSION);
+    _dbInitialized = true;
     return;
   }
 
@@ -747,11 +780,12 @@ export function initializeDB() {
       localStorage.setItem(storageKey, JSON.stringify(val));
     }
   });
+  _dbInitialized = true;
 }
 
-// Low-level fetch
+// Low-level fetch — ensures DB is initialized exactly once per page load
 export function getFromDB<T>(key: DBKey): T[] {
-  initializeDB();
+  if (!_dbInitialized) initializeDB();
   const storageKey = `cdc_umk_${key}`;
   const data = localStorage.getItem(storageKey);
   return data ? JSON.parse(data) : [];
@@ -763,10 +797,10 @@ export function saveToDB<T>(key: DBKey, data: T[]) {
   localStorage.setItem(storageKey, JSON.stringify(data));
 }
 
-// Helper to push new item
+// Helper to push new item at top
 export function insertToDB<T extends { id: string }>(key: DBKey, item: T): T {
   const current = getFromDB<T>(key);
-  current.push(item);
+  current.unshift(item);
   saveToDB(key, current);
   return item;
 }
@@ -922,19 +956,22 @@ export function applyForJob(userId: string, job: Lowongan, extraData?: any) {
   const applicantProdi = extraData?.applicantProdi || (student ? student.programStudi : 'Teknologi Informasi');
   const applicantNim = student?.nim || '202201001';
 
-  const pengajuanId = `pj_${Date.now()}`;
+  const pengajuanId = `pj_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
   const newPengajuan: PengajuanMagang = {
     id: pengajuanId,
     mahasiswaId: student ? student.id : `mhs_${userId}`,
     userId: userId,
     lowonganId: job.id,
+    mitraId: job.mitraId,
+    namaInstansi: job.namaInstansi,
     namaMahasiswa: applicantName,
     nim: applicantNim,
     programStudi: applicantProdi,
     tujuanMagang: job.judul,
     lokasiMagang: job.lokasi,
     catatan: extraData?.applicantNotes || '',
-    berkasUrl: extraData?.uploadedFileUrl || (extraData?.uploadedFileName ? `data:application/pdf;name=${encodeURIComponent(extraData.uploadedFileName)}` : undefined),
+    // Do NOT store base64 file content in localStorage (causes QuotaExceededError)
+    berkasUrl: undefined,
     berkasNama: extraData?.uploadedFileName || 'CV_Mahasiswa_Pelamar.pdf',
     tanggalMulai: new Date().toISOString().split('T')[0],
     tanggalSelesai: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],

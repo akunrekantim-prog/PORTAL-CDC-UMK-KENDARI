@@ -731,6 +731,7 @@ Tampilan AdminDashboard diremajakan agar tidak flat/bosan, tanpa ubah fungsional
 
 ---
 
+
 ## Tanggal: 11 Agustus 2026 (Sesi 2)
 **Dikerjakan oleh:** Fahrul  
 **Fokus Pekerjaan:** Pengaktifan Sub-menu & Integrasi Tes Potensi Minat Kerja (Klob Meter)
@@ -759,4 +760,69 @@ Tampilan AdminDashboard diremajakan agar tidak flat/bosan, tanpa ubah fungsional
 - [x] Integrasi link platform Klob Meter pada `TesMinat.tsx`
 - [x] Redesign UI Hero CTA & Card Informasi Klob Meter
 - [x] Update dokumentasi `progres.md`
+
+
+## Tanggal: 11 Agustus 2026 — Sesi 2 (Malam)
+**Developer:** Ikhsan
+**Fokus Pekerjaan:** Debug & Perbaikan Koneksi Data — Lamaran Mahasiswa → Dashboard Mitra
+
+---
+
+### 🚀 Ringkasan Perubahan
+
+#### 🐛 Bug Utama yang Diperbaiki
+**Lamaran yang dikirim mahasiswa tidak muncul di Mitra Dashboard → Pelamar & Seleksi.**
+
+#### 🔍 Proses Investigasi
+Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi mitra:
+
+1. **Telusuri `PengajuanMagang`** — Memeriksa interface di `src/types.ts`, fungsi `applyForJob()` di `src/data.ts`, dan handler submit di `MahasiswaDashboard.tsx`.
+2. **Verifikasi identitas lowongan** — Memastikan `job.id` dan `job.mitraId` tersimpan dengan benar ke `PengajuanMagang`.
+3. **Penambahan debug log sementara** — Melacak nilai aktual yang tersimpan dan yang dibaca oleh `loadMitraData()`.
+4. **Temuan akar masalah** — `QuotaExceededError` pada `localStorage.setItem()`.
+
+#### ✅ Akar Masalah Ditemukan
+**`localStorage` quota terlampaui (`QuotaExceededError`).**
+
+- Setiap lamaran menyimpan file CV/Portfolio mahasiswa sebagai **base64 Data URL** di field `berkasUrl`.
+- File PDF yang di-encode base64 bisa berukuran **1–4 MB per lamaran**.
+- Dengan beberapa lamaran tersimpan, total data melebihi batas localStorage **±5 MB per origin**.
+- Akibatnya: `saveToDB('pengajuan_magang', ...)` **gagal secara silent** → lamaran tidak pernah benar-benar tersimpan → tidak muncul di Mitra Dashboard.
+- Modal "Lamaran Berhasil Terkirim!" tetap tampil karena error tidak ditangkap di level UI.
+
+#### 🔧 Perbaikan yang Dilakukan
+
+**1. `src/data.ts` — `applyForJob()`**
+- Menghapus penyimpanan `berkasUrl` (konten base64 file) ke localStorage.
+- Hanya menyimpan `berkasNama` (nama file saja) — cukup untuk keperluan tampilan di Mitra Dashboard.
+- Ini mengurangi ukuran data per lamaran dari ~2MB menjadi <1KB.
+
+**2. `src/data.ts` — `initializeDB()` + `getFromDB()`**
+- Menambahkan flag `_dbInitialized` (module-level) sebagai guard agar `initializeDB()` hanya berjalan **sekali per page load**, bukan setiap kali `getFromDB()` dipanggil.
+- Mencegah potensi reset data yang tidak disengaja saat pembacaan data berlangsung.
+
+**3. `src/App.tsx`**
+- Memastikan `reloadDatabase()` dipanggil pada event auth (login, switch role, logout) agar state React sinkron dengan localStorage.
+
+### 📁 File Diubah
+- **[MODIFY]** `src/data.ts` — Hapus berkasUrl dari storage, tambah guard `_dbInitialized`
+- **[MODIFY]** `src/components/MitraDashboard.tsx` — Cleanup debug log, pastikan `loadMitraData()` berjalan pada mount
+- **[MODIFY]** `src/App.tsx` — Tambah `reloadDatabase()` pada event auth
+- **[MODIFY]** `progres.md`
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Identifikasi akar masalah: `QuotaExceededError` akibat base64 file di localStorage
+- [x] Hapus penyimpanan `berkasUrl` (base64) dari `applyForJob()` di `src/data.ts`
+- [x] Tambah guard `_dbInitialized` agar inisialisasi DB hanya terjadi sekali
+- [x] Pastikan sinkronisasi data setelah role switch di `src/App.tsx`
+- [x] Jalankan verifikasi linting (`npm run lint` → 0 error, lolos 100%)
+- [x] Debug log sementara ditambahkan dan kemudian dihapus kembali setelah diagnosa selesai
+
+### ✅ Status Verifikasi Runtime
+- Lolos typechecking TypeScript (`npm run lint` → 0 error).
+- Lamaran yang dikirim mahasiswa kini **tersimpan dengan benar** ke localStorage.
+- Lamaran muncul di **Mitra Dashboard → Pelamar & Seleksi** setelah switch role.
+- Ukuran data per lamaran turun drastis dari ~2 MB → <1 KB per entri.
+
+---
 

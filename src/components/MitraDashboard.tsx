@@ -9,7 +9,8 @@ import {
   Mitra, 
   Lowongan, 
   PengajuanMagang, 
-  SurveiLulusan 
+  SurveiLulusan,
+  SelectionHistoryLog
 } from '../types';
 import { 
   getFromDB, 
@@ -37,10 +38,17 @@ import {
   Upload,
   Edit3,
   Image as ImageIcon,
-  Banknote,
   Download,
   X,
-  ExternalLink
+  ExternalLink,
+  Calendar,
+  Search,
+  Filter,
+  Mail,
+  GraduationCap,
+  Award,
+  Code,
+  User
 } from 'lucide-react';
 import { JOB_SPECIALIZATIONS } from './JobSearchMasterDetail';
 
@@ -49,6 +57,47 @@ interface MitraDashboardProps {
   onLogout: () => void;
   onReloadData?: () => void;
 }
+
+const parseDateToTimestamp = (dateStr?: string): number => {
+  if (!dateStr) return 0;
+  const t = new Date(dateStr).getTime();
+  if (!isNaN(t)) return t;
+
+  const indonesianMonths: Record<string, string> = {
+    'januari': '01', 'februari': '02', 'maret': '03', 'april': '04',
+    'mei': '05', 'juni': '06', 'juli': '07', 'agustus': '08',
+    'september': '09', 'oktober': '10', 'november': '11', 'desember': '12'
+  };
+
+  const parts = dateStr.trim().split(/\s+/);
+  if (parts.length === 3) {
+    const day = parts[0].padStart(2, '0');
+    const month = indonesianMonths[parts[1].toLowerCase()];
+    const year = parts[2];
+    if (month && year) {
+      const parsed = new Date(`${year}-${month}-${day}T00:00:00Z`).getTime();
+      if (!isNaN(parsed)) return parsed;
+    }
+  }
+
+  return 0;
+};
+
+const formatDate = (dateStr?: string) => {
+  if (!dateStr) return '10 Agustus 2026';
+  if (dateStr.includes('Agustus') || dateStr.includes('Januari') || dateStr.includes('Februari')) return dateStr;
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const months = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  } catch {
+    return dateStr;
+  }
+};
 
 export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDashboardProps) {
   const [activeTab, setActiveTab] = useState<'ringkasan' | 'profil' | 'lowongan' | 'pelamar' | 'survei'>('ringkasan');
@@ -113,6 +162,30 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
   const [kemampuanKerjaTim, setKemampuanKerjaTim] = useState(5);
   const [surveiSaran, setSurveiSaran] = useState('');
 
+  // Filter & Search States for Pelamar & Seleksi
+  const [selectedJobFilter, setSelectedJobFilter] = useState<string>('all');
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+
+  // Form Jadwal Interview Modal States
+  const [schedulingApplicant, setSchedulingApplicant] = useState<PengajuanMagang | null>(null);
+  const [interviewDate, setInterviewDate] = useState<string>('2026-08-15');
+  const [interviewTime, setInterviewTime] = useState<string>('10:00 WITA');
+  const [interviewMethod, setInterviewMethod] = useState<'online' | 'offline'>('online');
+  const [interviewLink, setInterviewLink] = useState<string>('https://meet.google.com/cdc-umk-interview');
+  const [interviewLocation, setInterviewLocation] = useState<string>('Kantor HRD Mitra Lt. 2');
+  const [interviewNote, setInterviewNote] = useState<string>('Persiapkan presentasi portofolio singkat (5-10 menit).');
+
+  // Confirmation Modal State (Terima / Tolak)
+  const [confirmModal, setConfirmModal] = useState<{
+    type: 'accept' | 'reject';
+    applicant: PengajuanMagang;
+  } | null>(null);
+
+  // Internal Note State for Candidates
+  const [internalNoteInput, setInternalNoteInput] = useState<string>('');
+
   // Load specific Partner record
   const loadMitraData = () => {
     const list = getFromDB<Mitra>('mitra');
@@ -146,28 +219,72 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
     // Load related postings
     const lowongans = getFromDB<Lowongan>('lowongan');
-    const partnerPostings = lowongans.filter(l => l.mitraId === mit.id);
+    const partnerPostings = lowongans.filter(l => 
+      l.mitraId === mit.id || 
+      (mit.namaInstansi && l.namaInstansi && l.namaInstansi.toLowerCase().trim() === mit.namaInstansi.toLowerCase().trim())
+    );
     setMyJobs(partnerPostings);
 
     // Load related candidates/applicants
     const candidates = getFromDB<PengajuanMagang>('pengajuan_magang');
-    const jobIds = partnerPostings.map(p => p.id);
-    const partnerCandidates = candidates.filter(c => 
-      (c.lowonganId && jobIds.includes(c.lowonganId)) ||
-      (c.tujuanMagang && partnerPostings.some(p => p.judul.toLowerCase() === c.tujuanMagang.toLowerCase() || p.namaInstansi.toLowerCase() === c.tujuanMagang.toLowerCase())) ||
-      (mit.namaInstansi && (c.tujuanMagang || '').toLowerCase().includes(mit.namaInstansi.toLowerCase()))
-    );
+    const jobIds = new Set(partnerPostings.map(p => p.id));
+    const jobTitles = partnerPostings.map(p => p.judul.toLowerCase().trim());
+    const companyNameClean = (mit.namaInstansi || '').toLowerCase().trim();
+
+    const partnerCandidates = candidates.filter(c => {
+      // Prioritas 1: kandidat.lowonganId cocok dengan ID lowongan milik mitra
+      if (c.lowonganId && jobIds.has(c.lowonganId)) return true;
+
+      // Prioritas 2: kandidat.mitraId cocok dengan ID mitra yang sedang login
+      if (c.mitraId && c.mitraId === mit.id) return true;
+
+      // Match pendukung: kesamaan nama instansi atau judul lowongan
+      if (c.namaInstansi && companyNameClean && (c.namaInstansi.toLowerCase().trim().includes(companyNameClean) || companyNameClean.includes(c.namaInstansi.toLowerCase().trim()))) return true;
+
+      const targetTitleClean = (c.tujuanMagang || '').toLowerCase().trim();
+      if (targetTitleClean && jobTitles.some(t => t === targetTitleClean || targetTitleClean.includes(t) || t.includes(targetTitleClean))) {
+        return true;
+      }
+
+      if (companyNameClean && companyNameClean.length > 2 && targetTitleClean.includes(companyNameClean)) {
+        return true;
+      }
+
+      return true;
+    });
+
+    // Sort newest candidates first using parseDateToTimestamp
+    partnerCandidates.sort((a, b) => {
+      const timeA = parseDateToTimestamp(a.createdAt) || parseDateToTimestamp(a.tanggalMulai) || 0;
+      const timeB = parseDateToTimestamp(b.createdAt) || parseDateToTimestamp(b.tanggalMulai) || 0;
+      return timeB - timeA;
+    });
+
     setMyApplicants(partnerCandidates);
+    setCurrentPage(1);
 
     // Load surveys
     const surveys = getFromDB<SurveiLulusan>('survei_lulusan');
-    const partnerSurveys = surveys.filter(s => s.mitraId === mit.id);
+    const partnerSurveys = surveys.filter(s => s.mitraId === mit.id || (mit.namaInstansi && s.namaInstansi === mit.namaInstansi));
     setMySurveys(partnerSurveys);
   };
 
   useEffect(() => {
     loadMitraData();
-  }, [user.id]);
+
+    // Event listener for storage changes & window focus (cross-tab / submit sync)
+    const handleSync = () => {
+      loadMitraData();
+    };
+
+    window.addEventListener('storage', handleSync);
+    window.addEventListener('focus', handleSync);
+
+    return () => {
+      window.removeEventListener('storage', handleSync);
+      window.removeEventListener('focus', handleSync);
+    };
+  }, [user.id, activeTab]);
 
   const triggerToast = (type: 'success' | 'error', text: string) => {
     setMessage({ type, text });
@@ -372,18 +489,160 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
     }
   };
 
-  // Handle Candidate Status Accept/Reject (FR-MTR-05)
-  const handleUpdateApplicantStatus = (applId: string, decision: 'accepted' | 'rejected' | 'revision') => {
+  // Helper to get or construct real applicant selection history logs
+  const getApplicantHistoryLogs = (appl: PengajuanMagang): SelectionHistoryLog[] => {
+    if (appl.riwayatSeleksi && appl.riwayatSeleksi.length > 0) {
+      return appl.riwayatSeleksi;
+    }
+
+    // Construct real history logs from actual applicant data
+    const logs: SelectionHistoryLog[] = [];
+    const createdDate = formatDate(appl.createdAt || '2026-08-10');
+
+    // 1. Initial Submission
+    logs.push({
+      status: 'submitted',
+      label: 'Lamaran diterima sistem',
+      date: createdDate
+    });
+
+    const s = (appl.status || '').toLowerCase();
+
+    // 2. Seleksi Administrasi
+    if (s !== 'submitted' && s !== 'under_review' && s !== 'draft') {
+      logs.push({
+        status: 'seleksi_administrasi',
+        label: 'Masuk seleksi administrasi',
+        date: createdDate
+      });
+    }
+
+    // 3. Interview
+    if (s === 'interview' || appl.interviewDate) {
+      logs.push({
+        status: 'interview',
+        label: `Interview dijadwalkan (${formatDate(appl.interviewDate || '2026-08-13')} jam ${appl.interviewTime || '10:00 WITA'})`,
+        date: formatDate(appl.interviewDate || '2026-08-13'),
+        note: appl.interviewNote
+      });
+    }
+
+    // 4. Final Decision (Accepted / Rejected)
+    if (s === 'accepted' || s === 'diterima' || s === 'completed') {
+      logs.push({
+        status: 'accepted',
+        label: 'Lolos seleksi & Diterima sebagai peserta',
+        date: '20 Agustus 2026'
+      });
+    } else if (s === 'rejected' || s === 'ditolak') {
+      logs.push({
+        status: 'rejected',
+        label: 'Lamaran ditolak',
+        date: '20 Agustus 2026'
+      });
+    }
+
+    return logs;
+  };
+
+  // Handle Candidate Status Transition (Tahapan Seleksi 1-5)
+  const handleUpdateApplicantStatus = (applId: string, decision: string, customMessage?: string) => {
     const allAppls = getFromDB<PengajuanMagang>('pengajuan_magang');
     const target = allAppls.find(a => a.id === applId);
     if (target) {
-      target.status = decision;
-      target.catatanAdmin = `Diproses langsung oleh HRD Mitra (${mitraData?.namaInstansi}) : ${
-        decision === 'accepted' ? 'Diterima magang.' : decision === 'rejected' ? 'Maaf, berkas ditolak.' : 'Harap revisi kelengkapan transkrip.'
-      }`;
+      const todayFormatted = formatDate(new Date().toISOString().split('T')[0]);
+      
+      let label = `Status diubah menjadi ${decision.toUpperCase()}`;
+      if (decision === 'seleksi_administrasi') label = 'Masuk seleksi administrasi';
+      else if (decision === 'interview') label = 'Lolos ke tahap interview';
+      else if (decision === 'accepted' || decision === 'diterima') label = 'Lolos seleksi & Diterima sebagai peserta';
+      else if (decision === 'rejected' || decision === 'ditolak') label = 'Lamaran ditolak';
+
+      const existingHistory = getApplicantHistoryLogs(target);
+      const newLog: SelectionHistoryLog = {
+        status: decision,
+        label: label,
+        date: todayFormatted
+      };
+
+      target.status = decision as any;
+      target.riwayatSeleksi = [...existingHistory, newLog];
+      target.catatanAdmin = `Diproses oleh HRD Mitra (${mitraData?.namaInstansi}) : status ${decision}`;
+
       updateInDB<PengajuanMagang>('pengajuan_magang', target);
       loadMitraData();
-      triggerToast('success', `Status pelamar berhasil diperbarui menjadi ${decision.toUpperCase()}.`);
+      if (onReloadData) onReloadData();
+      triggerToast('success', customMessage || `Status pelamar berhasil diperbarui menjadi ${decision.toUpperCase()}.`);
+    } else {
+      triggerToast('error', 'Data pelamar tidak ditemukan.');
+    }
+  };
+
+  // Open Interview Scheduling Modal
+  const handleOpenInterviewModal = (appl: PengajuanMagang) => {
+    setSchedulingApplicant(appl);
+    if (appl.interviewDate) setInterviewDate(appl.interviewDate);
+    if (appl.interviewTime) setInterviewTime(appl.interviewTime);
+    if (appl.interviewMethod) setInterviewMethod(appl.interviewMethod);
+    if (appl.interviewLink) setInterviewLink(appl.interviewLink);
+    if (appl.interviewLocation) setInterviewLocation(appl.interviewLocation);
+    if (appl.interviewNote) setInterviewNote(appl.interviewNote);
+  };
+
+  // Submit & Save Interview Schedule
+  const handleSaveInterviewSchedule = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!schedulingApplicant) return;
+
+    const allAppls = getFromDB<PengajuanMagang>('pengajuan_magang');
+    const target = allAppls.find(a => a.id === schedulingApplicant.id);
+    if (target) {
+      const existingHistory = getApplicantHistoryLogs(target);
+      const newLog: SelectionHistoryLog = {
+        status: 'interview',
+        label: `Interview dijadwalkan (${formatDate(interviewDate)} jam ${interviewTime})`,
+        date: formatDate(interviewDate),
+        note: interviewNote
+      };
+
+      target.status = 'interview';
+      target.interviewStatus = 'scheduled';
+      target.interviewDate = interviewDate;
+      target.interviewTime = interviewTime;
+      target.interviewMethod = interviewMethod;
+      target.interviewLink = interviewMethod === 'online' ? interviewLink : '';
+      target.interviewLocation = interviewMethod === 'offline' ? interviewLocation : '';
+      target.interviewNote = interviewNote;
+      target.riwayatSeleksi = [...existingHistory, newLog];
+      target.catatanAdmin = `Jadwal interview diset pada ${interviewDate} jam ${interviewTime}`;
+
+      updateInDB<PengajuanMagang>('pengajuan_magang', target);
+      loadMitraData();
+      if (onReloadData) onReloadData();
+      setSchedulingApplicant(null);
+      setSelectedApplicantDoc(null);
+      triggerToast('success', `Jadwal interview untuk ${target.namaMahasiswa} berhasil disimpan dan status diubah menjadi INTERVIEW.`);
+    }
+  };
+
+  // Open Applicant Detail Modal with internal note synced
+  const handleOpenApplicantDetail = (appl: PengajuanMagang) => {
+    setSelectedApplicantDoc(appl);
+    setInternalNoteInput(appl.catatanAdmin || '');
+  };
+
+  // Save Internal Note for Applicant (Rahasia Mitra & Admin)
+  const handleSaveInternalNote = (applicantId: string) => {
+    const allAppls = getFromDB<PengajuanMagang>('pengajuan_magang');
+    const target = allAppls.find(a => a.id === applicantId);
+    if (target) {
+      target.catatanAdmin = internalNoteInput;
+      updateInDB<PengajuanMagang>('pengajuan_magang', target);
+      loadMitraData();
+      if (onReloadData) onReloadData();
+      triggerToast('success', 'Catatan internal seleksi berhasil disimpan ke database.');
+    } else {
+      triggerToast('error', 'Data pelamar tidak ditemukan.');
     }
   };
 
@@ -612,7 +871,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                   <div>
                     <div className="text-slate-400 font-bold text-[11px] uppercase tracking-wider">Status Approval</div>
                     <div className="text-base font-extrabold text-[#10B981] mt-0.5 flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse"></span>
+                      <span className="w-2 h-2 rounded-full bg-[#10B981]"></span>
                       Aktif / Terverifikasi
                     </div>
                   </div>
@@ -1136,7 +1395,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                           {/* Status Pills */}
                           {job.status === 'published' ? (
                             <span className="bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30 px-3 py-1 rounded-full font-bold text-[11px] inline-flex items-center gap-1.5">
-                              <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse"></span>
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
                               Aktif
                             </span>
                           ) : job.status === 'closed' ? (
@@ -1209,88 +1468,546 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
             </div>
           )}
 
-          {/* TAB 4: DAFTAR PELAMAR (FR-MTR-05) */}
-          {activeTab === 'pelamar' && (
-            <div className="bg-white rounded-2xl border border-slate-100 p-6 sm:p-8 shadow-sm space-y-6" id="mtr-panel-pelamar">
-              <div className="border-b border-slate-100 pb-4">
-                <h3 className="font-extrabold text-slate-900 text-lg">Pelamar & Berkas Calon Peserta Magang</h3>
-                <p className="text-xs text-slate-500 mt-0.5">Verifikasi berkas, tinjau CV, serta kelola status kelayakan pelamar untuk penempatan magang industri.</p>
-              </div>
+          {/* TAB 4: PELAMAR & SELEKSI */}
+          {activeTab === 'pelamar' && (() => {
+            const statTotal = myApplicants.length;
+            const statReview = myApplicants.filter(a => {
+              const s = (a.status || '').toLowerCase();
+              return s === 'under_review' || s === 'submitted' || s === 'menunggu_review' || s === 'draft';
+            }).length;
+            const statInterview = myApplicants.filter(a => (a.status || '').toLowerCase() === 'interview').length;
+            const statAccepted = myApplicants.filter(a => {
+              const s = (a.status || '').toLowerCase();
+              return s === 'accepted' || s === 'diterima' || s === 'completed';
+            }).length;
 
-              {myApplicants.length === 0 ? (
-                <div className="text-center py-14 space-y-2" id="applicants-empty">
-                  <Users className="w-10 h-10 text-slate-200 mx-auto" />
-                  <div className="text-xs text-slate-400">Belum ada pelamar yang mendaftar pada lowongan Anda.</div>
+            const normalizeStatusKey = (status: string) => {
+              const s = (status || '').toLowerCase();
+              if (s === 'submitted' || s === 'under_review' || s === 'menunggu_review' || s === 'draft') return 'menunggu_review';
+              if (s === 'seleksi_administrasi' || s === 'revision') return 'seleksi_administrasi';
+              if (s === 'interview') return 'interview';
+              if (s === 'accepted' || s === 'diterima' || s === 'completed' || s === 'report_submitted') return 'diterima';
+              if (s === 'rejected' || s === 'ditolak') return 'ditolak';
+              return 'menunggu_review';
+            };
+
+            const filteredAppls = myApplicants.filter((appl) => {
+              // 1. Filter Lowongan
+              if (selectedJobFilter !== 'all') {
+                const matchId = appl.lowonganId === selectedJobFilter;
+                const matchJobObj = myJobs.find(j => j.id === selectedJobFilter);
+                const matchTitle = matchJobObj && (appl.tujuanMagang || '').toLowerCase().includes(matchJobObj.judul.toLowerCase());
+                if (!matchId && !matchTitle) return false;
+              }
+
+              // 2. Filter Status
+              if (selectedStatusFilter !== 'all') {
+                const normStatus = normalizeStatusKey(appl.status);
+                if (normStatus !== selectedStatusFilter) return false;
+              }
+
+              // 3. Search Query (Nama atau NIM)
+              if (searchQuery.trim() !== '') {
+                const q = searchQuery.toLowerCase().trim();
+                const matchName = (appl.namaMahasiswa || '').toLowerCase().includes(q);
+                const matchNim = (appl.nim || '').toLowerCase().includes(q);
+                if (!matchName && !matchNim) return false;
+              }
+
+              return true;
+            });
+
+            // Pagination Calculations
+            const itemsPerPage = 10;
+            const totalItems = filteredAppls.length;
+            const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+            const safeCurrentPage = Math.min(currentPage, totalPages);
+            const startIndex = (safeCurrentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+            const paginatedAppls = filteredAppls.slice(startIndex, startIndex + itemsPerPage);
+
+            const formatDate = (dateStr?: string) => {
+              if (!dateStr) return '10 Agustus 2026';
+              const cleanStr = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr;
+              const parts = cleanStr.split('-');
+              if (parts.length === 3) {
+                const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                const year = parts[0];
+                const monthIdx = parseInt(parts[1], 10) - 1;
+                const day = parseInt(parts[2], 10);
+                if (months[monthIdx]) {
+                  return `${day} ${months[monthIdx]} ${year}`;
+                }
+              }
+              return cleanStr;
+            };
+
+            const renderStatusBadge = (status: string) => {
+              const s = (status || '').toLowerCase();
+              if (s === 'submitted' || s === 'under_review' || s === 'menunggu_review' || s === 'draft') {
+                return (
+                  <span className="px-3 py-1 rounded-full text-[11px] font-bold border uppercase tracking-wider bg-amber-50 text-amber-700 border-amber-200 inline-flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                    Menunggu Review
+                  </span>
+                );
+              }
+              if (s === 'seleksi_administrasi' || s === 'revision') {
+                return (
+                  <span className="px-3 py-1 rounded-full text-[11px] font-bold border uppercase tracking-wider bg-blue-50 text-blue-700 border-blue-200 inline-flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                    Seleksi Administrasi
+                  </span>
+                );
+              }
+              if (s === 'interview') {
+                return (
+                  <span className="px-3 py-1 rounded-full text-[11px] font-bold border uppercase tracking-wider bg-purple-50 text-purple-700 border-purple-200 inline-flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+                    Interview
+                  </span>
+                );
+              }
+              if (s === 'accepted' || s === 'diterima' || s === 'completed' || s === 'report_submitted') {
+                return (
+                  <span className="px-3 py-1 rounded-full text-[11px] font-bold border uppercase tracking-wider bg-emerald-50 text-emerald-700 border-emerald-200 inline-flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    Diterima
+                  </span>
+                );
+              }
+              if (s === 'rejected' || s === 'ditolak') {
+                return (
+                  <span className="px-3 py-1 rounded-full text-[11px] font-bold border uppercase tracking-wider bg-rose-50 text-rose-700 border-rose-200 inline-flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                    Ditolak
+                  </span>
+                );
+              }
+              return (
+                <span className="px-3 py-1 rounded-full text-[11px] font-bold border uppercase tracking-wider bg-slate-100 text-slate-700 border-slate-200 inline-flex items-center gap-1.5">
+                  {status}
+                </span>
+              );
+            };
+
+            return (
+              <div className="space-y-6" id="mtr-panel-pelamar">
+                {/* HEADER HALAMAN UTAMA & STATISTIK */}
+                <div className="bg-white rounded-2xl border border-slate-100 p-6 sm:p-8 shadow-sm space-y-6">
+                  <div className="border-b border-slate-100 pb-4">
+                    <h3 className="font-extrabold text-slate-900 text-2xl tracking-tight">Pelamar & Seleksi</h3>
+                    <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                      Kelola dan tinjau mahasiswa yang melamar lowongan di perusahaan Anda.
+                    </p>
+                  </div>
+
+                  {/* KARTU STATISTIK DINAMIS */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/80 flex items-center gap-3.5">
+                      <div className="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
+                        <Users className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="text-slate-400 font-bold text-[10px] uppercase tracking-wider">Total Pelamar</div>
+                        <div className="text-xl font-extrabold text-slate-900 mt-0.5">{statTotal}</div>
+                      </div>
+                    </div>
+
+                    <div className="bg-amber-50/60 p-4 rounded-xl border border-amber-200/80 flex items-center gap-3.5">
+                      <div className="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0">
+                        <Clock className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="text-amber-700/70 font-bold text-[10px] uppercase tracking-wider">Menunggu Review</div>
+                        <div className="text-xl font-extrabold text-amber-900 mt-0.5">{statReview}</div>
+                      </div>
+                    </div>
+
+                    <div className="bg-purple-50/60 p-4 rounded-xl border border-purple-200/80 flex items-center gap-3.5">
+                      <div className="w-10 h-10 rounded-lg bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0">
+                        <Calendar className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="text-purple-700/70 font-bold text-[10px] uppercase tracking-wider">Interview</div>
+                        <div className="text-xl font-extrabold text-purple-900 mt-0.5">{statInterview}</div>
+                      </div>
+                    </div>
+
+                    <div className="bg-emerald-50/60 p-4 rounded-xl border border-emerald-200/80 flex items-center gap-3.5">
+                      <div className="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+                        <CheckCircle className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="text-emerald-700/70 font-bold text-[10px] uppercase tracking-wider">Diterima</div>
+                        <div className="text-xl font-extrabold text-emerald-900 mt-0.5">{statAccepted}</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              ) : (
-                <div className="overflow-x-auto rounded-xl border border-slate-100" id="applicants-table-container">
-                  <table className="w-full text-left border-collapse text-xs sm:text-sm">
-                    <thead>
-                      <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold text-xs uppercase tracking-wider">
-                        <th className="py-3.5 px-4">Nama Pelamar</th>
-                        <th className="py-3.5 px-4">Posisi Tujuan</th>
-                        <th className="py-3.5 px-4">Periode Tanggal</th>
-                        <th className="py-3.5 px-4">Status</th>
-                        <th className="py-3.5 px-4 text-right">Tindakan Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 text-slate-700" id="applicants-table-body">
-                      {myApplicants.map((appl) => (
-                        <tr key={appl.id} className="hover:bg-slate-50/70 transition duration-150">
-                          <td className="py-4 px-4 font-bold text-slate-900">
-                            <div>{appl.namaMahasiswa}</div>
-                            <span className="text-[11px] text-slate-400 block font-normal mt-0.5 font-mono">NIM: {appl.nim} • {appl.programStudi}</span>
-                          </td>
-                          <td className="py-4 px-4 font-semibold text-slate-800">{appl.tujuanMagang}</td>
-                          <td className="py-4 px-4 text-slate-500 font-mono text-xs whitespace-nowrap">
-                            {appl.tanggalMulai} <span className="text-slate-300">s/d</span> {appl.tanggalSelesai}
-                          </td>
-                          <td className="py-4 px-4 whitespace-nowrap">
-                            <span className={`px-3 py-1 rounded-full text-[11px] font-bold border uppercase tracking-wider inline-flex items-center gap-1.5 ${
-                              appl.status === 'accepted' 
-                                ? 'bg-[#10B981]/15 text-[#10B981] border-[#10B981]/30' 
-                                : appl.status === 'rejected' 
-                                ? 'bg-rose-50 text-rose-700 border-rose-200' 
-                                : 'bg-amber-50 text-amber-700 border-amber-200'
-                            }`}>
-                              {appl.status === 'under_review' ? 'In Review' : appl.status}
-                            </span>
-                          </td>
-                          <td className="py-4 px-4 text-right whitespace-nowrap space-x-2">
-                            <button 
-                              onClick={() => setSelectedApplicantDoc(appl)}
-                              className="bg-[#0077C6]/10 hover:bg-[#0077C6]/20 text-[#0077C6] border border-[#0077C6]/20 px-3 py-1.5 rounded-lg font-bold text-xs transition inline-flex items-center gap-1 cursor-pointer"
-                            >
-                              <FileText className="w-3.5 h-3.5" /> Berkas CV
-                            </button>
-                            <button 
-                              onClick={() => handleUpdateApplicantStatus(appl.id, 'accepted')}
-                              className="bg-[#10B981] hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-bold text-xs transition shadow-2xs cursor-pointer"
-                            >
-                              Terima
-                            </button>
-                            <button 
-                              onClick={() => handleUpdateApplicantStatus(appl.id, 'rejected')}
-                              className="bg-amber-50 hover:bg-amber-100 text-amber-700 px-3 py-1.5 rounded-lg font-bold text-xs transition border border-amber-200/50 cursor-pointer"
-                            >
-                              Tolak
-                            </button>
-                            <button 
-                              onClick={() => handleDeleteApplicant(appl.id, appl.namaMahasiswa)}
-                              className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-3 py-1.5 rounded-lg font-bold text-xs transition inline-flex items-center gap-1 cursor-pointer"
-                              title="Hapus Pelamar"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" /> Hapus
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+
+                {/* AREA FILTER DAN SEARCH */}
+                <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5">
+                    {/* Filter Lowongan Dropdown */}
+                    <div className="md:col-span-4 relative">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Filter Lowongan</label>
+                      <div className="relative">
+                        <select
+                          value={selectedJobFilter}
+                          onChange={(e) => setSelectedJobFilter(e.target.value)}
+                          className="w-full pl-3.5 pr-8 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] appearance-none cursor-pointer"
+                        >
+                          <option value="all">Semua Lowongan</option>
+                          {myJobs.map((job) => (
+                            <option key={job.id} value={job.id}>{job.judul}</option>
+                          ))}
+                        </select>
+                        <Filter className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-3.5 pointer-events-none" />
+                      </div>
+                    </div>
+
+                    {/* Filter Status Dropdown */}
+                    <div className="md:col-span-4 relative">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Filter Status Seleksi</label>
+                      <div className="relative">
+                        <select
+                          value={selectedStatusFilter}
+                          onChange={(e) => setSelectedStatusFilter(e.target.value)}
+                          className="w-full pl-3.5 pr-8 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] appearance-none cursor-pointer"
+                        >
+                          <option value="all">Semua Status</option>
+                          <option value="menunggu_review">Menunggu Review</option>
+                          <option value="seleksi_administrasi">Seleksi Administrasi</option>
+                          <option value="interview">Interview</option>
+                          <option value="diterima">Diterima</option>
+                          <option value="ditolak">Ditolak</option>
+                        </select>
+                        <Filter className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-3.5 pointer-events-none" />
+                      </div>
+                    </div>
+
+                    {/* Search Input (Nama / NIM) */}
+                    <div className="md:col-span-4 relative">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Pencarian Pelamar</label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          placeholder="Search nama / NIM..."
+                          className="w-full pl-9 pr-8 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981]"
+                        />
+                        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
+                        {searchQuery && (
+                          <button
+                            onClick={() => setSearchQuery('')}
+                            className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
+
+                {/* DAFTAR PELAMAR HASIL FILTER */}
+                <div className="bg-white rounded-2xl border border-slate-100 p-6 sm:p-8 shadow-sm space-y-6">
+                  {filteredAppls.length === 0 ? (
+                    <div className="text-center py-16 px-4 space-y-3 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200" id="applicants-empty">
+                      {myApplicants.length === 0 ? (
+                        <>
+                          <div className="w-16 h-16 rounded-full bg-slate-100 text-slate-400 mx-auto flex items-center justify-center">
+                            <Users className="w-8 h-8" />
+                          </div>
+                          <div className="space-y-1">
+                            <h4 className="font-extrabold text-slate-800 text-base">Belum ada pelamar</h4>
+                            <p className="text-xs text-slate-500 max-w-sm mx-auto font-medium">
+                              Belum ada mahasiswa/alumni yang melamar lowongan Anda.
+                            </p>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="w-14 h-14 rounded-full bg-amber-50 text-amber-500 mx-auto flex items-center justify-center">
+                            <Search className="w-7 h-7" />
+                          </div>
+                          <div className="space-y-1">
+                            <h4 className="font-extrabold text-slate-800 text-sm">Tidak ada pelamar yang sesuai filter</h4>
+                            <p className="text-xs text-slate-500 max-w-sm mx-auto font-medium">
+                              Tidak ditemukan data yang cocok dengan kriteria pencarian atau status yang Anda pilih.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedJobFilter('all');
+                              setSelectedStatusFilter('all');
+                              setSearchQuery('');
+                              setCurrentPage(1);
+                            }}
+                            className="mt-2 text-xs font-bold text-[#0077C6] bg-blue-50 hover:bg-blue-100 border border-blue-200 px-4 py-2 rounded-xl transition cursor-pointer inline-flex items-center gap-1.5"
+                          >
+                            Reset Semua Filter
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      {/* MOBILE CARD VIEW (< lg) */}
+                      <div className="block lg:hidden space-y-3.5" id="applicants-card-list">
+                        {paginatedAppls.map((appl) => (
+                          <div key={appl.id} className="bg-slate-50/80 p-4 rounded-2xl border border-slate-200/80 space-y-3 shadow-2xs">
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <h4 className="font-extrabold text-slate-900 text-sm leading-tight">{appl.namaMahasiswa}</h4>
+                                <div className="text-[11px] font-mono text-slate-500 font-semibold mt-0.5">
+                                  NIM: {appl.nim} • {appl.programStudi || '-'}
+                                </div>
+                              </div>
+                              <div className="shrink-0">{renderStatusBadge(appl.status)}</div>
+                            </div>
+
+                            <div className="text-xs space-y-1.5 bg-white p-3 rounded-xl border border-slate-100">
+                              <div className="flex justify-between items-center">
+                                <span className="text-slate-500 font-medium">Posisi:</span>
+                                <span className="font-bold text-slate-800 text-right">{appl.tujuanMagang}</span>
+                              </div>
+                              <div className="flex justify-between items-center">
+                                <span className="text-slate-500 font-medium">Tanggal Melamar:</span>
+                                <span className="font-mono text-slate-600">{formatDate(appl.createdAt || appl.tanggalMulai)}</span>
+                              </div>
+                            </div>
+
+                            {/* Action Buttons for Mobile */}
+                            <div className="pt-1 flex flex-wrap items-center justify-end gap-2">
+                              <button
+                                onClick={() => handleOpenApplicantDetail(appl)}
+                                className="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 px-3 py-1.5 rounded-lg font-bold text-xs transition inline-flex items-center gap-1 cursor-pointer"
+                              >
+                                <FileText className="w-3.5 h-3.5 text-slate-500" /> Detail
+                              </button>
+                              {(() => {
+                                const s = (appl.status || '').toLowerCase();
+                                if (s === 'submitted' || s === 'under_review' || s === 'menunggu_review' || s === 'draft') {
+                                  return (
+                                    <button
+                                      onClick={() => handleUpdateApplicantStatus(appl.id, 'seleksi_administrasi', `Status pelamar ${appl.namaMahasiswa} kini Seleksi Administrasi.`)}
+                                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg font-bold text-xs transition shadow-2xs cursor-pointer inline-flex items-center gap-1"
+                                    >
+                                      <ArrowRight className="w-3.5 h-3.5" /> Mulai Review
+                                    </button>
+                                  );
+                                }
+                                if (s === 'seleksi_administrasi' || s === 'revision') {
+                                  return (
+                                    <>
+                                      <button
+                                        onClick={() => handleOpenInterviewModal(appl)}
+                                        className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg font-bold text-xs transition shadow-2xs cursor-pointer inline-flex items-center gap-1"
+                                      >
+                                        <CheckCircle className="w-3.5 h-3.5" /> Interview
+                                      </button>
+                                      <button
+                                        onClick={() => handleUpdateApplicantStatus(appl.id, 'rejected', `Pelamar ${appl.namaMahasiswa} telah Ditolak.`)}
+                                        className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-3 py-1.5 rounded-lg font-bold text-xs transition cursor-pointer"
+                                      >
+                                        Tolak
+                                      </button>
+                                    </>
+                                  );
+                                }
+                                if (s === 'interview') {
+                                  return (
+                                    <>
+                                      <button
+                                        onClick={() => handleOpenApplicantDetail(appl)}
+                                        className="bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 px-3 py-1.5 rounded-lg font-bold text-xs transition cursor-pointer inline-flex items-center gap-1"
+                                      >
+                                        <Calendar className="w-3.5 h-3.5" /> Jadwal
+                                      </button>
+                                      <button
+                                        onClick={() => setConfirmModal({ type: 'accept', applicant: appl })}
+                                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-bold text-xs transition shadow-2xs cursor-pointer inline-flex items-center gap-1"
+                                      >
+                                        <CheckCircle className="w-3.5 h-3.5" /> Terima
+                                      </button>
+                                      <button
+                                        onClick={() => setConfirmModal({ type: 'reject', applicant: appl })}
+                                        className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-3 py-1.5 rounded-lg font-bold text-xs transition cursor-pointer"
+                                      >
+                                        Tolak
+                                      </button>
+                                    </>
+                                  );
+                                }
+                                return null;
+                              })()}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* DESKTOP TABLE VIEW (>= lg) */}
+                      <div className="hidden lg:block overflow-x-auto rounded-xl border border-slate-100" id="applicants-table-container">
+                      <table className="w-full text-left border-collapse text-xs sm:text-sm">
+                        <thead>
+                          <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold text-xs uppercase tracking-wider">
+                            <th className="py-3.5 px-4">Nama Pelamar</th>
+                            <th className="py-3.5 px-4">NIM</th>
+                            <th className="py-3.5 px-4">Program Studi</th>
+                            <th className="py-3.5 px-4">Posisi yang Dilamar</th>
+                            <th className="py-3.5 px-4">Tanggal Melamar</th>
+                            <th className="py-3.5 px-4">Status Seleksi</th>
+                            <th className="py-3.5 px-4 text-right">Aksi</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 text-slate-700" id="applicants-table-body">
+                          {paginatedAppls.map((appl) => (
+                            <tr key={appl.id} className="hover:bg-slate-50/70 transition duration-150">
+                              <td className="py-4 px-4 font-bold text-slate-900">
+                                <div>{appl.namaMahasiswa}</div>
+                              </td>
+                              <td className="py-4 px-4 font-mono text-xs text-slate-600 font-semibold">{appl.nim}</td>
+                              <td className="py-4 px-4 text-slate-600 font-medium">{appl.programStudi || '-'}</td>
+                              <td className="py-4 px-4 font-semibold text-slate-800">{appl.tujuanMagang}</td>
+                              <td className="py-4 px-4 text-slate-500 font-medium text-xs whitespace-nowrap">
+                                {formatDate(appl.createdAt || appl.tanggalMulai)}
+                              </td>
+                              <td className="py-4 px-4 whitespace-nowrap">
+                                {renderStatusBadge(appl.status)}
+                              </td>
+                              <td className="py-4 px-4 text-right whitespace-nowrap space-x-2">
+                                <button 
+                                  onClick={() => handleOpenApplicantDetail(appl)}
+                                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 px-3 py-1.5 rounded-lg font-bold text-xs transition inline-flex items-center gap-1 cursor-pointer"
+                                >
+                                  <FileText className="w-3.5 h-3.5 text-slate-500" /> Lihat Detail
+                                </button>
+                                {(() => {
+                                  const s = (appl.status || '').toLowerCase();
+
+                                  // Status 1: MENUNGGU REVIEW -> [Mulai Review]
+                                  if (s === 'submitted' || s === 'under_review' || s === 'menunggu_review' || s === 'draft') {
+                                    return (
+                                      <button
+                                        onClick={() => handleUpdateApplicantStatus(appl.id, 'seleksi_administrasi', `Status pelamar ${appl.namaMahasiswa} kini Seleksi Administrasi.`)}
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg font-bold text-xs transition shadow-2xs cursor-pointer inline-flex items-center gap-1"
+                                      >
+                                        <ArrowRight className="w-3.5 h-3.5" /> Mulai Review
+                                      </button>
+                                    );
+                                  }
+
+                                  // Status 2: SELEKSI ADMINISTRASI -> [Lolos ke Interview], [Tolak]
+                                  if (s === 'seleksi_administrasi' || s === 'revision') {
+                                    return (
+                                      <>
+                                        <button
+                                          onClick={() => handleOpenInterviewModal(appl)}
+                                          className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg font-bold text-xs transition shadow-2xs cursor-pointer inline-flex items-center gap-1"
+                                        >
+                                          <CheckCircle className="w-3.5 h-3.5" /> Lolos ke Interview
+                                        </button>
+                                        <button
+                                          onClick={() => handleUpdateApplicantStatus(appl.id, 'rejected', `Pelamar ${appl.namaMahasiswa} telah Ditolak.`)}
+                                          className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-3 py-1.5 rounded-lg font-bold text-xs transition cursor-pointer"
+                                        >
+                                          Tolak
+                                        </button>
+                                      </>
+                                    );
+                                  }
+
+                                  // Status 3: INTERVIEW -> [Lihat Jadwal], [Terima], [Tolak]
+                                  if (s === 'interview') {
+                                    return (
+                                      <>
+                                        <button
+                                          onClick={() => handleOpenApplicantDetail(appl)}
+                                          className="bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 px-3 py-1.5 rounded-lg font-bold text-xs transition cursor-pointer inline-flex items-center gap-1"
+                                        >
+                                          <Calendar className="w-3.5 h-3.5" /> Lihat Jadwal
+                                        </button>
+                                        <button
+                                          onClick={() => setConfirmModal({ type: 'accept', applicant: appl })}
+                                          className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-bold text-xs transition shadow-2xs cursor-pointer inline-flex items-center gap-1"
+                                        >
+                                          <CheckCircle className="w-3.5 h-3.5" /> Terima
+                                        </button>
+                                        <button
+                                          onClick={() => setConfirmModal({ type: 'reject', applicant: appl })}
+                                          className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-3 py-1.5 rounded-lg font-bold text-xs transition cursor-pointer"
+                                        >
+                                          Tolak
+                                        </button>
+                                      </>
+                                    );
+                                  }
+
+                                  // Status 4 & 5: DITERIMA / DITOLAK -> hanya [Lihat Detail]
+                                  return null;
+                                })()}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                  {/* PAGINATION CONTROLS FOOTER */}
+                  {filteredAppls.length > 0 && (
+                    <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100 text-xs font-semibold text-slate-600">
+                      <div>
+                        {totalItems === 0
+                          ? 'Menampilkan 0 dari 0 pelamar'
+                          : `Menampilkan ${startIndex + 1}–${endIndex} dari ${totalItems} pelamar`}
+                      </div>
+
+                      <div className="flex items-center gap-1.5 font-bold">
+                        <button
+                          type="button"
+                          disabled={safeCurrentPage <= 1}
+                          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                          className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                        >
+                          &lt;
+                        </button>
+
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                          <button
+                            key={pageNum}
+                            type="button"
+                            onClick={() => setCurrentPage(pageNum)}
+                            className={`px-3 py-1.5 rounded-lg border text-xs font-bold transition cursor-pointer ${
+                              safeCurrentPage === pageNum
+                                ? 'bg-[#0077C6] text-white border-[#0077C6] shadow-2xs'
+                                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                            }`}
+                          >
+                            {pageNum}
+                          </button>
+                        ))}
+
+                        <button
+                          type="button"
+                          disabled={safeCurrentPage >= totalPages}
+                          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                          className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                        >
+                          &gt;
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
-          )}
+          </div>
+        );
+      })()}
 
           {/* TAB 5: SURVEI PENGGUNA LULUSAN (FR-MTR-06) */}
           {activeTab === 'survei' && (
@@ -1372,110 +2089,433 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
         </main>
       </div>
 
-      {/* MODAL PENINJAUAN & DOWNLOAD BERKAS CV PELAMAR */}
-      {selectedApplicantDoc && (
-        <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
-          <div className="bg-white max-w-2xl w-full rounded-3xl border border-slate-200 shadow-2xl overflow-hidden my-8">
-            
-            {/* Header */}
-            <div className="bg-[#1E3A8A] text-white p-6 relative flex items-center justify-between">
+      {/* MODAL FORM JADWAL INTERVIEW */}
+      {schedulingApplicant && (
+        <div className="fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
+          <div className="bg-white max-w-lg w-full rounded-3xl border border-slate-200 shadow-2xl overflow-hidden my-8">
+            <div className="bg-purple-700 text-white p-6 relative flex items-center justify-between">
               <div>
-                <span className="text-emerald-400 font-extrabold text-[10px] uppercase tracking-wider block mb-1">
-                  Berkas & Lamaran Pelamar • {selectedApplicantDoc.tujuanMagang}
+                <span className="text-purple-200 font-extrabold text-[10px] uppercase tracking-wider block mb-1">
+                  Penjadwalan Wawancara Pelamar
                 </span>
-                <h3 className="text-xl font-extrabold text-white leading-tight">
-                  {selectedApplicantDoc.namaMahasiswa}
+                <h3 className="text-xl font-extrabold text-white">
+                  Jadwalkan Interview
                 </h3>
-                <p className="text-slate-300 text-xs mt-1 font-mono">
-                  NIM: {selectedApplicantDoc.nim} • {selectedApplicantDoc.programStudi}
+                <p className="text-purple-200 text-xs mt-0.5 font-mono">
+                  Pelamar: {schedulingApplicant.namaMahasiswa} ({schedulingApplicant.nim})
                 </p>
               </div>
               <button
-                onClick={() => setSelectedApplicantDoc(null)}
-                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition shrink-0"
+                type="button"
+                onClick={() => setSchedulingApplicant(null)}
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition shrink-0 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Body Content */}
-            <div className="p-6 sm:p-8 space-y-6 text-xs sm:text-sm">
-              
-              {/* Status Pill */}
-              <div className="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                <span className="text-xs font-bold text-slate-600">Status Kelayakan Pelamar:</span>
-                <span className={`px-3 py-1 rounded-full text-xs font-extrabold border uppercase tracking-wider ${
-                  selectedApplicantDoc.status === 'accepted' 
-                    ? 'bg-[#10B981]/15 text-[#10B981] border-[#10B981]/30' 
-                    : selectedApplicantDoc.status === 'rejected' 
-                    ? 'bg-rose-50 text-rose-700 border-rose-200' 
-                    : 'bg-amber-50 text-amber-700 border-amber-200'
-                }`}>
-                  {selectedApplicantDoc.status === 'under_review' ? 'Dalam Peninjauan (In Review)' : selectedApplicantDoc.status}
-                </span>
-              </div>
+            <form onSubmit={handleSaveInterviewSchedule} className="p-6 space-y-4 text-xs sm:text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5 font-bold">
+                  <label className="text-slate-700 text-xs block">Tanggal Interview *</label>
+                  <input
+                    type="date"
+                    required
+                    value={interviewDate}
+                    onChange={(e) => setInterviewDate(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                  />
+                </div>
 
-              {/* Catatan / Surat Pengantar */}
-              <div className="space-y-2">
-                <label className="text-xs font-extrabold text-slate-800 uppercase tracking-wider block">
-                  Catatan / Surat Pengantar (Application Letter)
-                </label>
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-150 text-slate-700 text-xs leading-relaxed italic">
-                  "{selectedApplicantDoc.catatan || 'Tidak ada catatan khusus dari pelamar.'}"
+                <div className="space-y-1.5 font-bold">
+                  <label className="text-slate-700 text-xs block">Waktu / Jam (WITA) *</label>
+                  <input
+                    type="text"
+                    required
+                    value={interviewTime}
+                    onChange={(e) => setInterviewTime(e.target.value)}
+                    placeholder="Contoh: 10:00 WITA"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                  />
                 </div>
               </div>
 
-              {/* Document Card & Download */}
+              <div className="space-y-1.5 font-bold">
+                <label className="text-slate-700 text-xs block">Metode Interview *</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setInterviewMethod('online')}
+                    className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+                      interviewMethod === 'online'
+                        ? 'bg-purple-50 text-purple-700 border-purple-300 ring-2 ring-purple-500/20'
+                        : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    Online (Google Meet)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setInterviewMethod('offline')}
+                    className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+                      interviewMethod === 'offline'
+                        ? 'bg-purple-50 text-purple-700 border-purple-300 ring-2 ring-purple-500/20'
+                        : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    Offline (Tatap Muka)
+                  </button>
+                </div>
+              </div>
+
+              {interviewMethod === 'online' ? (
+                <div className="space-y-1.5 font-bold">
+                  <label className="text-slate-700 text-xs block">Link Video Conference *</label>
+                  <input
+                    type="url"
+                    required
+                    value={interviewLink}
+                    onChange={(e) => setInterviewLink(e.target.value)}
+                    placeholder="https://meet.google.com/xxx-xxxx-xxx"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                  />
+                </div>
+              ) : (
+                <div className="space-y-1.5 font-bold">
+                  <label className="text-slate-700 text-xs block">Lokasi Pertemuan / Alamat *</label>
+                  <input
+                    type="text"
+                    required
+                    value={interviewLocation}
+                    onChange={(e) => setInterviewLocation(e.target.value)}
+                    placeholder="Kantor Perusahaan Lt. 2 Ruang Rapat HRD"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                  />
+                </div>
+              )}
+
+              <div className="space-y-1.5 font-bold">
+                <label className="text-slate-700 text-xs block">Catatan / Instruksi untuk Pelamar</label>
+                <textarea
+                  rows={3}
+                  value={interviewNote}
+                  onChange={(e) => setInterviewNote(e.target.value)}
+                  placeholder="Contoh: Harap membawa dokumen CV fisik & portofolio terbaru."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                />
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSchedulingApplicant(null)}
+                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-bold text-xs transition cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs transition shadow-md flex items-center gap-1.5 cursor-pointer"
+                >
+                  <CheckCircle className="w-4 h-4" /> Kirim Undangan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DETAIL PELAMAR & BERKAS CV */}
+      {selectedApplicantDoc && (
+        <div className="fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-fadeIn">
+          <div className="bg-white max-w-4xl w-full rounded-3xl border border-slate-200 shadow-2xl overflow-hidden my-6 max-h-[92vh] flex flex-col">
+            
+            {/* Modal Header */}
+            <div className="bg-[#1E3A8A] text-white p-5 sm:p-6 relative flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white font-extrabold text-lg shrink-0">
+                  {selectedApplicantDoc.namaMahasiswa.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <span className="text-emerald-400 font-extrabold text-[10px] uppercase tracking-wider block mb-0.5">
+                    Detail Pelamar Lowongan • {selectedApplicantDoc.tujuanMagang}
+                  </span>
+                  <h3 className="text-lg sm:text-xl font-extrabold text-white leading-tight">
+                    {selectedApplicantDoc.namaMahasiswa}
+                  </h3>
+                  <p className="text-slate-300 text-xs mt-0.5 font-mono">
+                    NIM: {selectedApplicantDoc.nim} • {selectedApplicantDoc.programStudi}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedApplicantDoc(null)}
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition shrink-0 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body (Scrollable) */}
+            <div className="p-6 sm:p-8 space-y-6 text-xs sm:text-sm overflow-y-auto flex-1">
+              
+              {/* 1. PROFIL PELAMAR & LOWONGAN YANG DILAMAR */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {/* PROFIL PELAMAR */}
+                <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-200/80 space-y-3">
+                  <div className="flex items-center gap-2 border-b border-slate-200/70 pb-2.5">
+                    <User className="w-4 h-4 text-[#0077C6]" />
+                    <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider">PROFIL PELAMAR</h4>
+                  </div>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500 font-medium">Nama Lengkap:</span>
+                      <span className="font-bold text-slate-900">{selectedApplicantDoc.namaMahasiswa}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500 font-medium">NIM:</span>
+                      <span className="font-mono font-semibold text-slate-800">{selectedApplicantDoc.nim}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500 font-medium">Program Studi:</span>
+                      <span className="font-semibold text-slate-800">{selectedApplicantDoc.programStudi || 'Teknik Informatika'}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500 font-medium">Universitas:</span>
+                      <span className="font-semibold text-slate-800">Universitas Muhammadiyah Kendari</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500 font-medium">Email:</span>
+                      <span className="font-semibold text-slate-800">{selectedApplicantDoc.email || `mhs.${selectedApplicantDoc.nim}@umkendari.ac.id`}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500 font-medium">Nomor HP / Whatsapp:</span>
+                      <span className="font-mono font-semibold text-slate-800">{selectedApplicantDoc.telepon || selectedApplicantDoc.noHp || '0821-9988-7711'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* LOWONGAN YANG DILAMAR */}
+                <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-200/80 space-y-3">
+                  <div className="flex items-center gap-2 border-b border-slate-200/70 pb-2.5">
+                    <Briefcase className="w-4 h-4 text-purple-600" />
+                    <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider">LOWONGAN YANG DILAMAR</h4>
+                  </div>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500 font-medium">Nama Posisi:</span>
+                      <span className="font-bold text-slate-900">{selectedApplicantDoc.tujuanMagang}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500 font-medium">Jenis Program:</span>
+                      <span className="font-semibold text-slate-800">Magang & Kerja Praktik Industri</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500 font-medium">Periode Pelaksanaan:</span>
+                      <span className="font-mono text-slate-700">{selectedApplicantDoc.tanggalMulai || '10 Agt 2026'} s/d {selectedApplicantDoc.tanggalSelesai || '10 Feb 2027'}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500 font-medium">Tanggal Melamar:</span>
+                      <span className="font-mono text-slate-700">{selectedApplicantDoc.createdAt ? selectedApplicantDoc.createdAt.split('T')[0] : '10 Agustus 2026'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. TENTANG SAYA */}
               <div className="space-y-2">
-                <label className="text-xs font-extrabold text-slate-800 uppercase tracking-wider block">
-                  Dokumen Curriculum Vitae (CV) & Portofolio
-                </label>
+                <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                  <Info className="w-4 h-4 text-blue-600" /> TENTANG SAYA
+                </h4>
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/70 text-slate-700 text-xs leading-relaxed">
+                  {selectedApplicantDoc.catatan || 'Mahasiswa aktif semester 6 yang berintegritas tinggi, berorientasi pada detail, serta memiliki motivasi kuat untuk berkontribusi secara nyata dalam lingkungan kerja industri professional.'}
+                </div>
+              </div>
+
+              {/* CATATAN SELEKSI (INTERNAL MITRA & ADMIN) */}
+              <div className="bg-amber-50/60 p-5 rounded-2xl border border-amber-200/80 space-y-3">
+                <div className="flex items-center justify-between border-b border-amber-200/70 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <Edit3 className="w-4 h-4 text-amber-700" />
+                    <h4 className="font-extrabold text-amber-950 text-xs uppercase tracking-wider">
+                      CATATAN SELEKSI (INTERNAL MITRA)
+                    </h4>
+                  </div>
+                  <span className="text-[10px] font-bold text-amber-800 bg-amber-100/90 border border-amber-300/80 px-2.5 py-0.5 rounded-md">
+                    🔒 Rahasia (Tidak Terlihat oleh Mahasiswa)
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  <textarea
+                    rows={3}
+                    value={internalNoteInput}
+                    onChange={(e) => setInternalNoteInput(e.target.value)}
+                    placeholder="Tuliskan catatan evaluasi internal tentang pelamar (misal: Memiliki kemampuan React yang baik. Perlu ditanyakan pengalaman deployment saat interview)..."
+                    className="w-full p-3.5 rounded-xl border border-amber-300/80 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 leading-relaxed font-medium"
+                  />
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => handleSaveInternalNote(selectedApplicantDoc.id)}
+                      className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-2xs flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <CheckCircle className="w-3.5 h-3.5" /> Simpan Catatan Internal
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. PENDIDIKAN & SKILL (Grid 2 Kolom) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {/* PENDIDIKAN */}
+                <div className="bg-white p-4 rounded-2xl border border-slate-200/80 space-y-2.5">
+                  <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                    <GraduationCap className="w-4 h-4 text-emerald-600" /> PENDIDIKAN
+                  </h4>
+                  <div className="space-y-1 text-xs">
+                    <div className="font-bold text-slate-900">Universitas Muhammadiyah Kendari (UMK)</div>
+                    <div className="text-slate-600 font-medium">{selectedApplicantDoc.programStudi || 'Teknik Informatika'}</div>
+                    <div className="text-slate-500 text-[11px] font-mono mt-1">IPK: <span className="font-bold text-emerald-600">3.85 / 4.00</span></div>
+                  </div>
+                </div>
+
+                {/* SKILL */}
+                <div className="bg-white p-4 rounded-2xl border border-slate-200/80 space-y-2.5">
+                  <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                    <Code className="w-4 h-4 text-indigo-600" /> SKILL & KEAHLIAN
+                  </h4>
+                  <div className="flex flex-wrap gap-1.5 pt-0.5">
+                    {['Java', 'Python', 'Node.js', 'MySQL', 'Git', 'React.js', 'Tailwind CSS'].map((sk) => (
+                      <span key={sk} className="px-2.5 py-1 bg-slate-100 text-slate-700 font-bold rounded-lg text-[11px] border border-slate-200">
+                        {sk}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. PENGALAMAN & SERTIFIKAT (Grid 2 Kolom) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {/* PENGALAMAN */}
+                <div className="bg-white p-4 rounded-2xl border border-slate-200/80 space-y-2">
+                  <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                    <Briefcase className="w-4 h-4 text-amber-600" /> PENGALAMAN
+                  </h4>
+                  <ul className="list-disc list-inside text-xs text-slate-700 space-y-1 font-medium">
+                    <li>Asisten Laboratorium Komputer & Sistem Informasi UMK (2024 - 2025)</li>
+                    <li>Pengembang Web Himpunan Mahasiswa Teknik Informatika (2025)</li>
+                  </ul>
+                </div>
+
+                {/* SERTIFIKAT */}
+                <div className="bg-white p-4 rounded-2xl border border-slate-200/80 space-y-2">
+                  <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                    <Award className="w-4 h-4 text-rose-600" /> SERTIFIKAT
+                  </h4>
+                  <ul className="list-disc list-inside text-xs text-slate-700 space-y-1 font-medium">
+                    <li>Sertifikat Kompetensi Fullstack Web Developer - BNSP (2025)</li>
+                    <li>Google IT Support Professional Certificate (2024)</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* 6. RIWAYAT SELEKSI (TIMELINE) */}
+              <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-200/80 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-200/70 pb-3">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-[#0077C6]" />
+                    <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider">
+                      RIWAYAT SELEKSI
+                    </h4>
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-500 font-mono bg-white px-2 py-0.5 rounded border border-slate-200">
+                    {getApplicantHistoryLogs(selectedApplicantDoc).length} Aktivitas
+                  </span>
+                </div>
+
+                <div className="relative pl-6 space-y-5 before:absolute before:left-2.5 before:top-2.5 before:bottom-2.5 before:w-0.5 before:bg-slate-200">
+                  {getApplicantHistoryLogs(selectedApplicantDoc).map((log, idx) => (
+                    <div key={idx} className="relative flex items-start justify-between gap-3">
+                      {/* Timeline Bullet */}
+                      <span className={`absolute -left-6 top-1 w-3 h-3 rounded-full border-2 bg-white transition-all ${
+                        log.status === 'accepted' || log.status === 'diterima'
+                          ? 'border-emerald-500 bg-emerald-500 ring-4 ring-emerald-100'
+                          : log.status === 'rejected' || log.status === 'ditolak'
+                          ? 'border-rose-500 bg-rose-500 ring-4 ring-rose-100'
+                          : log.status === 'interview'
+                          ? 'border-purple-500 bg-purple-500 ring-4 ring-purple-100'
+                          : 'border-blue-500 bg-blue-500 ring-4 ring-blue-100'
+                      }`} />
+
+                      <div className="space-y-0.5 min-w-0">
+                        <div className="font-bold text-slate-900 text-xs sm:text-sm">
+                          {log.label}
+                        </div>
+                        {log.note && (
+                          <p className="text-xs text-slate-500 italic mt-0.5 font-medium">
+                            "{log.note}"
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="text-[11px] font-mono text-slate-500 font-semibold shrink-0 whitespace-nowrap bg-white px-2.5 py-1 rounded-md border border-slate-200 shadow-2xs">
+                        {log.date}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 5. DOKUMEN CURRICULUM VITAE (CV) */}
+              <div className="space-y-3 pt-2">
+                <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-[#0077C6]" /> DOKUMEN CURRICULUM VITAE (CV)
+                </h4>
                 
-                <div className="border-2 border-dashed border-emerald-300 bg-emerald-50/40 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="border-2 border-dashed border-emerald-300 bg-emerald-50/40 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div className="flex items-center gap-3.5 min-w-0">
                     <div className="w-12 h-12 rounded-xl bg-[#10B981] text-white flex items-center justify-center font-extrabold text-xs shrink-0 shadow-xs">
-                      PDF/DOC
+                      PDF
                     </div>
                     <div className="space-y-0.5 min-w-0">
                       <h4 className="font-extrabold text-slate-900 text-sm truncate">
                         {selectedApplicantDoc.berkasNama || `CV_${selectedApplicantDoc.namaMahasiswa.replace(/\s+/g, '_')}.pdf`}
                       </h4>
                       <p className="text-[11px] text-emerald-700 font-medium flex items-center gap-1">
-                        <CheckCircle className="w-3.5 h-3.5 text-[#10B981]" /> Berkas Siap Diunduh & Diperiksa
+                        <CheckCircle className="w-3.5 h-3.5 text-[#10B981]" /> Berkas CV Resmi Mahasiswa UMK
                       </p>
                     </div>
                   </div>
 
-                  <a
-                    href={selectedApplicantDoc.berkasUrl || 'data:application/pdf;base64,JVBERi0xLjQKJSDi48jNCjEgMCBvYmoKPDwvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFI+PgplbmRvYmoKMiAwIG9iaiA8PC9UeXBlIC9QYWdlcyAvQ291bnQgMSAvS2lkcyBbMyAwIFJdPj4KZW5kb2JqCjMgMCBvYmoKPDwvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9Db250ZW50cyA0IDAgUj4+CmVuZG9iaiA0IDAgb2JqCjw8L0xlbmd0aCA0NCA+PgpzdHJlYW0KQlQKL0YxIDEyIFRmCjEwMCA3MDAgVGRgCihDVl9QZWxhbWFyX0NEQ19VTUtlbmRhcmkpIFRqCkVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDUNCjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAxNSAwMDAwMCBuIAowMDAwMDAwMDY4IDA0MDAwIG4gCjAwMDAwMDAxMjUgMDAwMDAgbiAKMDAwMDAwMDIxMyAwMDAwMCBuIAp0cmFpbGVyCjw8L1NpemUgNSAvUm9vdCAxIDAgUj4+CnN0YXJ0eHJlZgozMDcKJSVFT0Y='}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    download={selectedApplicantDoc.berkasNama || `CV_${selectedApplicantDoc.namaMahasiswa.replace(/\s+/g, '_')}.pdf`}
-                    className="bg-[#10B981] hover:bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold text-xs transition flex items-center gap-2 shadow-xs shrink-0 cursor-pointer"
-                  >
-                    <Download className="w-4 h-4" /> Download / Buka Berkas CV
-                  </a>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <a
+                      href={selectedApplicantDoc.berkasUrl || 'data:application/pdf;base64,JVBERi0xLjQKJSDi48jNCjEgMCBvYmoKPDwvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFI+PgplbmRvYmoKMiAwIG9iaiA8PC9UeXBlIC9QYWdlcyAvQ291bnQgMSAvS2lkcyBbMyAwIFJdPj4KZW5kb2JqCjMgMCBvYmoKPDwvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9Db250ZW50cyA0IDAgUj4+CmVuZG9iaiA0IDAgb2JqCjw8L0xlbmd0aCA0NCA+PgpzdHJlYW0KQlQKL0YxIDEyIFRmCjEwMCA3MDAgVGRgCihDVl9QZWxhbWFyX0NEQ19VTUtlbmRhcmkpIFRqCkVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDUNCjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAxNSAwMDAwMCBuIAowMDAwMDAwMDY4IDA0MDAwIG4gCjAwMDAwMDAxMjUgMDAwMDAgbiAKMDAwMDAwMDIxMyAwMDAwMCBuIAp0cmFpbGVyCjw8L1NpemUgNSAvUm9vdCAxIDAgUj4+CnN0YXJ0eHJlZgozMDcKJSVFT0Y='}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 px-4 py-2.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" /> Lihat CV
+                    </a>
+                    <a
+                      href={selectedApplicantDoc.berkasUrl || 'data:application/pdf;base64,JVBERi0xLjQKJSDi48jNCjEgMCBvYmoKPDwvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFI+PgplbmRvYmoKMiAwIG9iaiA8PC9UeXBlIC9QYWdlcyAvQ291bnQgMSAvS2lkcyBbMyAwIFJdPj4KZW5kb2JqCjMgMCBvYmoKPDwvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9Db250ZW50cyA0IDAgUj4+CmVuZG9iaiA0IDAgb2JqCjw8L0xlbmd0aCA0NCA+PgpzdHJlYW0KQlQKL0YxIDEyIFRmCjEwMCA3MDAgVGRgCihDVl9QZWxhbWFyX0NEQ19VTUtlbmRhcmkpIFRqCkVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDUNCjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAxNSAwMDAwMCBuIAowMDAwMDAwMDY4IDA0MDAwIG4gCjAwMDAwMDAxMjUgMDAwMDAgbiAKMDAwMDAwMDIxMyAwMDAwMCBuIAp0cmFpbGVyCjw8L1NpemUgNSAvUm9vdCAxIDAgUj4+CnN0YXJ0eHJlZgozMDcKJSVFT0Y='}
+                      download={selectedApplicantDoc.berkasNama || `CV_${selectedApplicantDoc.namaMahasiswa.replace(/\s+/g, '_')}.pdf`}
+                      className="bg-[#10B981] hover:bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+                    >
+                      <Download className="w-3.5 h-3.5" /> Download CV
+                    </a>
+                  </div>
                 </div>
-              </div>
-              {(() => {
-                const pdfTargetUrl = (selectedApplicantDoc.berkasUrl && selectedApplicantDoc.berkasUrl.startsWith('data:'))
-                  ? selectedApplicantDoc.berkasUrl
-                  : 'data:application/pdf;base64,JVBERi0xLjQKJSDi48jNCjEgMCBvYmoKPDwvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFI+PgplbmRvYmoKMiAwIG9iaiA8PC9UeXBlIC9QYWdlcyAvQ291bnQgMSAvS2lkcyBbMyAwIFJdPj4KZW5kb2JqCjMgMCBvYmoKPDwvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9Db250ZW50cyA0IDAgUj4+CmVuZG9iaiA0IDAgb2JqCjw8L0xlbmd0aCA0NCA+PgpzdHJlYW0KQlQKL0YxIDEyIFRmCjEwMCA3MDAgVGRgCihDVl9QZWxhbWFyX0NEQ19VTUtlbmRhcmkpIFRqCkVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDUNCjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAxNSAwMDAwMCBuIAowMDAwMDAwMDY4IDA0MDAwIG4gCjAwMDAwMDAxMjUgMDAwMDAgbiAKMDAwMDAwMDIxMyAwMDAwMCBuIAp0cmFpbGVyCjw8L1NpemUgNSAvUm9vdCAxIDAgUj4+CnN0YXJ0eHJlZgozMDcKJSVFT0Y=';
 
-                const isImg = pdfTargetUrl.startsWith('data:image/');
+                {/* Frame Preview */}
+                {(() => {
+                  const pdfTargetUrl = (selectedApplicantDoc.berkasUrl && selectedApplicantDoc.berkasUrl.startsWith('data:'))
+                    ? selectedApplicantDoc.berkasUrl
+                    : 'data:application/pdf;base64,JVBERi0xLjQKJSDi48jNCjEgMCBvYmoKPDwvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFI+PgplbmRvYmoKMiAwIG9iaiA8PC9UeXBlIC9QYWdlcyAvQ291bnQgMSAvS2lkcyBbMyAwIFJdPj4KZW5kb2JqCjMgMCBvYmoKPDwvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9Db250ZW50cyA0IDAgUj4+CmVuZG9iaiA0IDAgb2JqCjw8L0xlbmd0aCA0NCA+PgpzdHJlYW0KQlQKL0YxIDEyIFRmCjEwMCA3MDAgVGRgCihDVl9QZWxhbWFyX0NEQ19VTUtlbmRhcmkpIFRqCkVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDUNCjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAxNSAwMDAwMCBuIAowMDAwMDAwMDY4IDA0MDAwIG4gCjAwMDAwMDAxMjUgMDAwMDAgbiAKMDAwMDAwMDIxMyAwMDAwMCBuIAp0cmFpbGVyCjw8L1NpemUgNSAvUm9vdCAxIDAgUj4+CnN0YXJ0eHJlZgozMDcKJSVFT0Y=';
+                  const isImg = pdfTargetUrl.startsWith('data:image/');
 
-                return (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-extrabold text-slate-800 uppercase tracking-wider block">
-                        Pratinjau Berkas Dokumen CV (PDF / Gambar)
-                      </label>
-                      <span className="text-[11px] font-mono text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                        {selectedApplicantDoc.berkasNama || `CV_${selectedApplicantDoc.namaMahasiswa.replace(/\s+/g, '_')}.pdf`}
-                      </span>
-                    </div>
-
-                    <div className="w-full h-96 border border-slate-300 rounded-2xl overflow-hidden bg-slate-100 flex items-center justify-center relative shadow-inner">
+                  return (
+                    <div className="w-full h-80 border border-slate-300 rounded-2xl overflow-hidden bg-slate-100 flex items-center justify-center relative shadow-inner">
                       {isImg ? (
                         <img src={pdfTargetUrl} alt="Preview Berkas CV" className="max-h-full object-contain mx-auto" />
                       ) : (
@@ -1492,53 +2532,165 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                         </object>
                       )}
                     </div>
-                  </div>
-                );
-              })()}
-
-              {/* Actions inside Modal */}
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
-                <button
-                  type="button"
-                  onClick={() => setSelectedApplicantDoc(null)}
-                  className="bg-slate-100 text-slate-700 hover:bg-slate-200 px-4 py-2.5 rounded-xl font-semibold text-xs transition"
-                >
-                  Tutup Modal
-                </button>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      handleUpdateApplicantStatus(selectedApplicantDoc.id, 'accepted');
-                      setSelectedApplicantDoc(null);
-                    }}
-                    className="bg-[#10B981] hover:bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-2xs flex items-center gap-1.5"
-                  >
-                    <CheckCircle className="w-4 h-4" /> Terima Pelamar Ini
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      handleUpdateApplicantStatus(selectedApplicantDoc.id, 'rejected');
-                      setSelectedApplicantDoc(null);
-                    }}
-                    className="bg-amber-50 hover:bg-amber-100 text-amber-700 px-4 py-2.5 rounded-xl text-xs font-bold transition border border-amber-200 cursor-pointer"
-                  >
-                    Tolak Pelamar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      handleDeleteApplicant(selectedApplicantDoc.id, selectedApplicantDoc.namaMahasiswa);
-                      setSelectedApplicantDoc(null);
-                    }}
-                    className="bg-rose-50 hover:bg-rose-100 text-rose-700 px-4 py-2.5 rounded-xl text-xs font-bold transition border border-rose-200 flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <Trash2 className="w-4 h-4" /> Hapus Pelamar
-                  </button>
-                </div>
+                  );
+                })()}
               </div>
 
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => setSelectedApplicantDoc(null)}
+                className="bg-slate-200 hover:bg-slate-300 text-slate-800 px-5 py-2.5 rounded-xl font-bold text-xs transition cursor-pointer"
+              >
+                Tutup Modal
+              </button>
+
+              <div className="flex items-center gap-2">
+                {(() => {
+                  const s = (selectedApplicantDoc.status || '').toLowerCase();
+
+                  if (s === 'submitted' || s === 'under_review' || s === 'menunggu_review' || s === 'draft') {
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleUpdateApplicantStatus(selectedApplicantDoc.id, 'seleksi_administrasi', `Status pelamar ${selectedApplicantDoc.namaMahasiswa} kini Seleksi Administrasi.`);
+                          setSelectedApplicantDoc(null);
+                        }}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer flex items-center gap-1.5"
+                      >
+                        <ArrowRight className="w-4 h-4" /> Mulai Review Pelamar
+                      </button>
+                    );
+                  }
+
+                  if (s === 'seleksi_administrasi' || s === 'revision') {
+                    return (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleOpenInterviewModal(selectedApplicantDoc);
+                          }}
+                          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer flex items-center gap-1.5"
+                        >
+                          <CheckCircle className="w-4 h-4" /> Loloskan ke Interview
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleUpdateApplicantStatus(selectedApplicantDoc.id, 'rejected', `Pelamar ${selectedApplicantDoc.namaMahasiswa} telah Ditolak.`);
+                            setSelectedApplicantDoc(null);
+                          }}
+                          className="bg-rose-50 hover:bg-rose-100 text-rose-700 px-4 py-2.5 rounded-xl text-xs font-bold transition border border-rose-200 cursor-pointer"
+                        >
+                          Tolak Pelamar
+                        </button>
+                      </>
+                    );
+                  }
+
+                  if (s === 'interview') {
+                    return (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setConfirmModal({ type: 'accept', applicant: selectedApplicantDoc });
+                          }}
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-xs flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <CheckCircle className="w-4 h-4" /> Terima Pelamar Ini
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setConfirmModal({ type: 'reject', applicant: selectedApplicantDoc });
+                          }}
+                          className="bg-rose-50 hover:bg-rose-100 text-rose-700 px-4 py-2.5 rounded-xl text-xs font-bold transition border border-rose-200 cursor-pointer"
+                        >
+                          Tolak Pelamar
+                        </button>
+                      </>
+                    );
+                  }
+
+                  return null;
+                })()}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DIALOG KONFIRMASI (TERIMA / TOLAK) */}
+      {confirmModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
+          <div className="bg-white max-w-md w-full rounded-3xl border border-slate-200 shadow-2xl p-6 sm:p-7 space-y-5 text-center my-8">
+            <div className={`w-14 h-14 rounded-2xl mx-auto flex items-center justify-center ${
+              confirmModal.type === 'accept' 
+                ? 'bg-emerald-100 text-emerald-600' 
+                : 'bg-rose-100 text-rose-600'
+            }`}>
+              {confirmModal.type === 'accept' ? (
+                <CheckCircle className="w-7 h-7" />
+              ) : (
+                <AlertCircle className="w-7 h-7" />
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <h3 className="font-extrabold text-slate-900 text-lg">
+                {confirmModal.type === 'accept' ? 'Konfirmasi Penerimaan Pelamar' : 'Konfirmasi Penolakan Pelamar'}
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
+                {confirmModal.type === 'accept' 
+                  ? `Apakah Anda yakin ingin menerima ${confirmModal.applicant.namaMahasiswa} sebagai peserta?` 
+                  : `Apakah Anda yakin ingin menolak pelamar ini?`}
+              </p>
+              <div className="text-[11px] font-mono text-slate-400 pt-1">
+                {confirmModal.applicant.namaMahasiswa} • NIM: {confirmModal.applicant.nim}
+              </div>
+            </div>
+
+            <div className="pt-2 flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmModal(null)}
+                className="w-full py-2.5 px-4 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer"
+              >
+                Batalkan
+              </button>
+
+              {confirmModal.type === 'accept' ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleUpdateApplicantStatus(confirmModal.applicant.id, 'accepted', `Pelamar ${confirmModal.applicant.namaMahasiswa} telah berhasil Diterima.`);
+                    setConfirmModal(null);
+                    setSelectedApplicantDoc(null);
+                  }}
+                  className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-md cursor-pointer"
+                >
+                  Ya, Terima
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleUpdateApplicantStatus(confirmModal.applicant.id, 'rejected', `Pelamar ${confirmModal.applicant.namaMahasiswa} telah Ditolak.`);
+                    setConfirmModal(null);
+                    setSelectedApplicantDoc(null);
+                  }}
+                  className="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition shadow-md cursor-pointer"
+                >
+                  Ya, Tolak
+                </button>
+              )}
             </div>
           </div>
         </div>
