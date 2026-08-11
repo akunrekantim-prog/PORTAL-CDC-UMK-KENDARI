@@ -9,43 +9,41 @@ interface PageHeaderProps {
   icon?: LucideIcon;
 }
 
-const ACCENT_GRADIENTS = {
-  emerald: 'from-emerald-500/10 to-teal-500/10 border-emerald-500/20',
-  blue: 'from-blue-500/10 to-cyan-500/10 border-blue-500/20',
-  amber: 'from-amber-500/10 to-orange-500/10 border-amber-500/20',
-  violet: 'from-violet-500/10 to-purple-500/10 border-violet-500/20',
-  rose: 'from-rose-500/10 to-pink-500/10 border-rose-500/20',
-  teal: 'from-teal-500/10 to-cyan-500/10 border-teal-500/20',
-  fuchsia: 'from-fuchsia-500/10 to-purple-500/10 border-fuchsia-500/20',
-  slate: 'from-slate-500/10 to-gray-500/10 border-slate-500/20',
-};
-
-const ACCENT_TEXT = {
-  emerald: 'text-emerald-700',
-  blue: 'text-blue-700',
-  amber: 'text-amber-700',
-  violet: 'text-violet-700',
-  rose: 'text-rose-700',
-  teal: 'text-teal-700',
-  fuchsia: 'text-fuchsia-700',
-  slate: 'text-slate-700',
+const ACCENT_STYLES: Record<string, { gradient: string; badgeBg: string; badgeText: string; descText: string }> = {
+  emerald: { gradient: 'from-emerald-600 to-teal-700', badgeBg: 'bg-white', badgeText: 'text-emerald-700', descText: 'text-emerald-100' },
+  blue: { gradient: 'from-[#1E3A8A] to-blue-700', badgeBg: 'bg-[#10B981]', badgeText: 'text-white', descText: 'text-blue-200' },
+  amber: { gradient: 'from-amber-500 to-orange-600', badgeBg: 'bg-white', badgeText: 'text-amber-700', descText: 'text-amber-100' },
+  violet: { gradient: 'from-violet-600 to-purple-700', badgeBg: 'bg-white', badgeText: 'text-violet-700', descText: 'text-violet-200' },
+  rose: { gradient: 'from-rose-500 to-pink-600', badgeBg: 'bg-white', badgeText: 'text-rose-700', descText: 'text-rose-100' },
+  teal: { gradient: 'from-teal-600 to-emerald-700', badgeBg: 'bg-white', badgeText: 'text-teal-700', descText: 'text-teal-100' },
+  fuchsia: { gradient: 'from-fuchsia-500 to-purple-600', badgeBg: 'bg-white', badgeText: 'text-fuchsia-700', descText: 'text-fuchsia-100' },
+  slate: { gradient: 'from-slate-700 to-gray-800', badgeBg: 'bg-white', badgeText: 'text-slate-700', descText: 'text-slate-300' },
 };
 
 export function PageHeader({ badge, title, description, accent = 'emerald', icon: Icon }: PageHeaderProps) {
+  const style = ACCENT_STYLES[accent] || ACCENT_STYLES.emerald;
+
   return (
-    <div className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${ACCENT_GRADIENTS[accent]} border backdrop-blur-sm p-8 md:p-10`}>
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.4),transparent_50%)]" />
-      <div className="relative space-y-4">
+    <div
+      className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${style.gradient} text-white shadow-lg`}
+      style={{ minHeight: 200 }}
+    >
+      {Icon && (
+        <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none">
+          <Icon className="w-40 h-40 translate-x-10 translate-y-10" />
+        </div>
+      )}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(255,255,255,0.12),transparent_60%)] pointer-events-none" />
+
+      <div className="relative z-10 p-6 md:p-8 flex flex-col justify-end h-full space-y-3" style={{ minHeight: 200 }}>
         {badge && (
-          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-white/80 ${ACCENT_TEXT[accent]} border border-current/10`}>
-            {Icon && <Icon className="w-3.5 h-3.5" />}
+          <span className={`inline-flex items-center gap-1.5 ${style.badgeBg} ${style.badgeText} text-[10px] font-extrabold px-2.5 py-0.5 rounded-sm uppercase tracking-wider w-fit`}>
+            {Icon && <Icon className="w-3 h-3" />}
             {badge}
           </span>
         )}
-        <div>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-[#0F172A] tracking-tight leading-tight">{title}</h1>
-          <p className="mt-3 text-slate-600 text-sm md:text-base leading-relaxed max-w-3xl">{description}</p>
-        </div>
+        <h1 className="font-extrabold text-xl md:text-2xl leading-tight">{title}</h1>
+        <p className={`${style.descText} text-sm leading-relaxed max-w-2xl`}>{description}</p>
       </div>
     </div>
   );

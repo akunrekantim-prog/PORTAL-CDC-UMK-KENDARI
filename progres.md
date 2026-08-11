@@ -681,5 +681,50 @@ Tampilan AdminDashboard diremajakan agar tidak flat/bosan, tanpa ubah fungsional
 ### ✅ Status Verifikasi Runtime
 - Lolos typechecking TypeScript (`npm run lint` → 0 error).
 - Server pengembangan berjalan lancar dan navigasi menu desktop maupun mobile berfungsi normal mengarah ke tautan eksternal portal Tracer Study resmi.
-=======
->>>>>>> parent of e9a7e01 (Update fitur portal CDC UMK)
+
+---
+
+## Tanggal: 11 Agustus 2026
+**Fokus Pekerjaan:** Penyamaan Ukuran & Penyiapan Placeholder Pamphlet Sub-menu Layanan (Admin Upload Input)
+
+### 🚀 Ringkasan Perubahan
+
+1. **Pembersihan & Resolusi Git Merge Conflict:**
+   - Menyelesaikan *git merge conflict markers* pada file `progres.md`.
+
+2. **Penyesuaian Dimensi Container Sub-menu Layanan:**
+   - Menyamakan lebar container seluruh sub-menu layanan dari `max-w-5xl` menjadi `max-w-7xl` agar presisi dan sejajar dengan container utama `LayananContainer.tsx` dan `Beranda`.
+
+3. **Pembersihan Konten Teoretis / Mockup Teks Statis:**
+   - Menghapus seluruh teks statis mockup (Deskripsi, Tujuan, Pihak Terlibat, Waktu/Tempat, Alat, dan Mekanisme) serta banner internal dari 7 file komponen sub-menu Layanan:
+     - `src/components/layanan/BimbinganKarir.tsx` (Konseling Karir)
+     - `src/components/layanan/Workshop.tsx` (Workshop Pengembangan Karir)
+     - `src/components/layanan/Softskill.tsx` (Pelatihan Softskill & Kewirausahaan)
+     - `src/components/layanan/Seminar.tsx` (Seminar Sukses Berkarir)
+     - `src/components/layanan/CareerFair.tsx` (Job Fair & Bursa Kerja)
+     - `src/components/layanan/CampusHiring.tsx` (Campus Hiring - Recruitment)
+     - `src/components/layanan/Magang.tsx` (Magang)
+
+4. **Penyiapan Tampilan Placeholder Banner Kosong Admin:**
+   - Mengubah tampilan setiap sub-menu Layanan menjadi area placeholder banner kosong dengan *dashed border* yang disiapkan khusus untuk tempat pengunggahan pamphlet oleh Admin CDC.
+
+5. **Verifikasi Kompilasi & Typecheck:**
+   - Menjalankan `npm run lint` dan `npm run build`.
+   - Hasil akhir: ✅ `npm run lint` passed (0 error) & ✅ `npm run build` passed (0 error).
+
+### 📁 File Diubah
+- **[MODIFY]** `src/components/layanan/BimbinganKarir.tsx`
+- **[MODIFY]** `src/components/layanan/Workshop.tsx`
+- **[MODIFY]** `src/components/layanan/Softskill.tsx`
+- **[MODIFY]** `src/components/layanan/Seminar.tsx`
+- **[MODIFY]** `src/components/layanan/CareerFair.tsx`
+- **[MODIFY]** `src/components/layanan/CampusHiring.tsx`
+- **[MODIFY]** `src/components/layanan/Magang.tsx`
+- **[MODIFY]** `progres.md`
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Resolusi conflict markers pada `progres.md`
+- [x] Penyesuaian container width `max-w-7xl` pada seluruh sub-menu layanan
+- [x] Pembersihan teks mockup statis dari 7 komponen sub-menu layanan
+- [x] Penyiapan placeholder banner kosong (admin upload input)
+- [x] Verifikasi build & lint passed 100%
