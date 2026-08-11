@@ -17,6 +17,7 @@ import { motion } from 'motion/react';
 import Header from './Header';
 import { Footer } from './Footer';
 import BimbinganKarir from './layanan/BimbinganKarir';
+import TesMinat from './layanan/TesMinat';
 import Workshop from './layanan/Workshop';
 import Softskill from './layanan/Softskill';
 import Seminar from './layanan/Seminar';
@@ -185,7 +186,6 @@ export default function PublicLayout({
                     UM Kendari <span className="text-[#10B981]">CAREER FAIR</span>
                   </h2>
                   <p className="text-slate-500 text-sm font-medium">
-                    Powered by <span className="font-extrabold text-[#1E3A8A]">prosple</span> &amp; CDC UM Kendari
                   </p>
                 </div>
 
@@ -201,7 +201,7 @@ export default function PublicLayout({
                       type="text"
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
-                      placeholder="Mesin Pencari Lowongan Kerja Terkini..."
+                      placeholder="Mesin Pencari..."
                       className="w-full pl-14 pr-4 py-4 rounded-2xl bg-transparent text-base
                                  font-medium focus:outline-none text-slate-800 placeholder:text-slate-400"
                     />
@@ -221,21 +221,9 @@ export default function PublicLayout({
                     <button
                       key={f}
                       onClick={() => setFilterType(f)}
-                      className={`px-5 py-2 rounded-full text-sm font-bold border transition-all ${filterType === f
-                        ? f === 'all'
-                          ? 'bg-[#1E3A8A] text-white border-[#1E3A8A] shadow-md'
-                          : f === 'kerja'
-                            ? 'bg-[#10B981] text-white border-[#10B981] shadow-md'
-                            : 'bg-violet-600 text-white border-violet-600 shadow-md'
-                        : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
-                        }`}
                     >
-                      {f === 'all' ? 'Semua Lowongan' : f === 'kerja' ? 'Kerja' : 'Magang'}
                     </button>
                   ))}
-                  <span className="text-xs text-slate-400 font-medium ml-2">
-                    {filteredLowongan.length} lowongan tersedia
-                  </span>
                 </div>
               </div>
             </section>
@@ -913,9 +901,10 @@ export default function PublicLayout({
         )}
 
         {/* ─── LAYANAN SUB-TABS ───────────────────────────────────── */}
-        {['konseling', 'workshop', 'softskill', 'seminar', 'career-fair', 'campus-hiring', 'magang'].includes(currentTab) && (
+        {['konseling', 'tes-minat', 'workshop', 'softskill', 'seminar', 'career-fair', 'campus-hiring', 'magang'].includes(currentTab) && (
           <LayananContainer currentTab={currentTab} setTab={setTab}>
             {currentTab === 'konseling' && <BimbinganKarir />}
+            {currentTab === 'tes-minat' && <TesMinat />}
             {currentTab === 'workshop' && <Workshop />}
             {currentTab === 'softskill' && <Softskill />}
             {currentTab === 'seminar' && <Seminar />}

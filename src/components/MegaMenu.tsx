@@ -36,6 +36,7 @@ interface MenuItem {
   label: string;
   description: string;
   tab?: string;
+  href?: string;
 }
 
 interface MegaMenuSection {
@@ -107,6 +108,12 @@ const LAYANAN_ITEMS: MenuItem[] = [
     label: 'Konseling Karier',
     description: 'Sesi konseling karir personal dengan konselor profesional CDC',
     tab: 'konseling',
+  },
+  {
+    icon: Brain,
+    label: 'Tes Potensi Minat Kerja',
+    description: 'Tes potensi dan minat kerja online secara komprehensif via Klob Meter',
+    href: 'https://www.klob.id/klob-journey/klob-meter',
   },
   {
     icon: Sparkles,
@@ -219,11 +226,15 @@ export default function MegaMenu({
     }
   };
 
-  const handleMegaItemClick = (tab?: string) => {
+  const handleMegaItemClick = (tab?: string, href?: string) => {
     setOpenMenu(null);
     setIsMobileOpen(false);
     setMobileExpanded(null);
-    if (tab) setTab(tab);
+    if (href) {
+      window.open(href, '_blank', 'noopener,noreferrer');
+    } else if (tab) {
+      setTab(tab);
+    }
   };
 
   /* ── MEGA DROP PANEL ── */
@@ -261,7 +272,7 @@ export default function MegaMenu({
             return (
               <button
                 key={item.label}
-                onClick={() => handleMegaItemClick(item.tab)}
+                onClick={() => handleMegaItemClick(item.tab, item.href)}
                 className="group flex items-start gap-3 px-3 py-3 rounded-xl
                            text-left transition-all duration-150
                            hover:bg-emerald-900/50 focus-visible:outline-none
@@ -333,7 +344,7 @@ export default function MegaMenu({
               return (
                 <button
                   key={item.label}
-                  onClick={() => handleMegaItemClick(item.tab)}
+                  onClick={() => handleMegaItemClick(item.tab, item.href)}
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg
                              text-left hover:bg-emerald-900/50 transition-colors"
                 >

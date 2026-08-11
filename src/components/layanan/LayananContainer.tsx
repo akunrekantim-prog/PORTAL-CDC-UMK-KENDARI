@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   MessageSquare, Puzzle, Wrench, GraduationCap,
-  Mic, Briefcase, Sparkles, Rocket, ChevronRight, Home
+  Mic, Briefcase, Sparkles, Rocket, ChevronRight, Home, Brain
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -23,7 +23,7 @@ export interface LayananMenuOption {
 export const LAYANAN_MENU: LayananMenuOption[] = [
   { id: 'campus-hiring', label: 'Campus Hiring - Recruitment', shortLabel: 'Campus Hiring', icon: Rocket, badge: 'Recruitment', color: 'from-blue-700 to-sky-600' },
   { id: 'konseling', label: 'Konseling Karir', shortLabel: 'Konseling', icon: MessageSquare, badge: 'Reservasi', color: 'from-emerald-500 to-teal-600' },
-
+  { id: 'tes-minat', label: 'Tes Potensi Minat Kerja', shortLabel: 'Tes Minat', icon: Brain, badge: 'Klob Meter', color: 'from-blue-600 to-indigo-600' },
   { id: 'workshop', label: 'Workshop Pengembangan Karir', shortLabel: 'Workshop', icon: Wrench, color: 'from-rose-500 to-pink-600' },
   { id: 'softskill', label: 'Softskill & Kewirausahaan', shortLabel: 'Softskill', icon: GraduationCap, badge: 'Sertifikat', color: 'from-cyan-500 to-blue-600' },
   { id: 'seminar', label: 'Seminar Sukses Karir', shortLabel: 'Seminar', icon: Mic, badge: 'E-Ticket', color: 'from-fuchsia-500 to-pink-600' },

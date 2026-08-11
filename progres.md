@@ -728,3 +728,35 @@ Tampilan AdminDashboard diremajakan agar tidak flat/bosan, tanpa ubah fungsional
 - [x] Pembersihan teks mockup statis dari 7 komponen sub-menu layanan
 - [x] Penyiapan placeholder banner kosong (admin upload input)
 - [x] Verifikasi build & lint passed 100%
+
+---
+
+## Tanggal: 11 Agustus 2026 (Sesi 2)
+**Dikerjakan oleh:** Fahrul  
+**Fokus Pekerjaan:** Pengaktifan Sub-menu & Integrasi Tes Potensi Minat Kerja (Klob Meter)
+
+### 🚀 Ringkasan Perubahan
+1. **Integrasi Tes Potensi Minat Kerja (`TesMinat.tsx`):**
+   - Menambahkan CTA Card interaktif **"Powered by Klob Meter"** dengan desain gradient eksklusif.
+   - Menautkan tombol *"Akses Tes Klob Meter"* langsung ke platform resmi Klob Meter (`https://www.klob.id/klob-journey/klob-meter`).
+   - Menyusun ulang informasi Tujuan, Pihak Terlibat, Waktu & Tempat, Alat & Modul, serta Mekanisme pelaksanaan tes minat.
+   - Menambahkan kartu keunggulan *"Mengapa Mengikuti Klob Meter?"* untuk mengedukasi pengguna.
+
+2. **Pengaktifan Kembali Sub-Menu Navigasi:**
+   - Memasukkan kembali item **Tes Potensi Minat Kerja** ke dalam menu navigasi Layanan.
+   - Mengatur integrasi tautan & tab sub-menu di `Header.tsx`, `MegaMenu.tsx`, `PublicLayout.tsx`, dan `LayananContainer.tsx`.
+
+### 📁 File Diubah
+- **[MODIFY]** `src/components/layanan/TesMinat.tsx`
+- **[MODIFY]** `src/components/Header.tsx`
+- **[MODIFY]** `src/components/MegaMenu.tsx`
+- **[MODIFY]** `src/components/PublicLayout.tsx`
+- **[MODIFY]** `src/components/layanan/LayananContainer.tsx`
+- **[MODIFY]** `progres.md`
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Pengaktifan sub-menu Tes Potensi Minat Kerja di navigasi utama CDC
+- [x] Integrasi link platform Klob Meter pada `TesMinat.tsx`
+- [x] Redesign UI Hero CTA & Card Informasi Klob Meter
+- [x] Update dokumentasi `progres.md`
+
