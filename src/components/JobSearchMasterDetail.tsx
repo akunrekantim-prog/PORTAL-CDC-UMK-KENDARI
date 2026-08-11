@@ -11,8 +11,10 @@ import {
   X,
   Info,
   Bookmark,
-  Globe
+  Globe,
+  ShieldCheck
 } from 'lucide-react';
+
 import { Lowongan } from '../types';
 import { getSavedJobIds, toggleSaveJob, sortJobsByNewest, formatDateDisplay } from '../data';
 import { JobDetail } from './JobDetail';
@@ -573,6 +575,11 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
                         >
                           {item.tipe === 'magang' ? 'Magang' : 'Kerja'}
                         </span>
+                        {item.jenisPekerjaan && (
+                          <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-slate-700 text-white">
+                            {item.jenisPekerjaan === 'full-time' ? 'Full-Time' : 'Part-Time'}
+                          </span>
+                        )}
                       </div>
 
                       <button
@@ -605,9 +612,15 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
                         {item.judul}
                       </h3>
 
-                      {/* Meta Footer: by Admin Website + Upload Date */}
+                      {/* Meta Footer: source + Upload Date */}
                       <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
-                        <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
+                        {item.sumber === 'admin' ? (
+                          <span className="whitespace-nowrap font-bold text-emerald-600 flex items-center gap-1">
+                            <ShieldCheck className="w-3.5 h-3.5" /> By Admin CDC
+                          </span>
+                        ) : (
+                          <span className="whitespace-nowrap font-medium text-slate-400">by {item.namaInstansi}</span>
+                        )}
                         <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
                           <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                           {formatDateDisplay(item.createdAt || item.deadline)}

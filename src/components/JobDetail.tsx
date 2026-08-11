@@ -15,6 +15,8 @@ import {
   Check,
   Share2,
   Link2,
+  ShieldCheck,
+  ExternalLink,
   Mail,
   Search,
   X,
@@ -197,24 +199,42 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                         <Clock className="w-4 h-4 text-slate-400 shrink-0" />
                         <span>Diposting: <strong className="font-mono text-slate-700">{job.createdAt ? job.createdAt.split('T')[0] : '2026-08-04'}</strong></span>
                       </div>
+
+                      {job.sumber === 'admin' && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-600 text-white">
+                          <ShieldCheck className="w-3.5 h-3.5" /> By Admin CDC
+                        </span>
+                      )}
                     </div>
                   </div>
 
-                  {/* Lamar Sekarang Button */}
-                  <button
-                    onClick={() => {
-                      if (!isLoggedIn && onNavigateToRegister) {
-                        onNavigateToRegister('alumni');
-                      } else {
-                        setIsApplyModalOpen(true);
-                      }
-                    }}
-
-                    className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold text-sm px-6 py-2.5 rounded-xl shadow-xs transition shrink-0 self-start active:scale-95"
-                    id="btn-lamar-sekarang-top"
-                  >
-                    Lamar Sekarang
-                  </button>
+                  {/* Lamar Sekarang / CTA Admin Button */}
+                  {job.sumber === 'admin' && job.ctaEnabled && job.linkEksternal ? (
+                    <a
+                      href={job.linkEksternal}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-6 py-2.5 rounded-xl shadow-xs transition shrink-0 self-start active:scale-95 inline-flex items-center gap-2"
+                      id="btn-cta-admin"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      {job.ctaLabel && job.ctaLabel.trim() ? job.ctaLabel : 'Daftar Sekarang'}
+                    </a>
+                  ) : job.sumber === 'admin' && !job.ctaEnabled ? null : (
+                    <button
+                      onClick={() => {
+                        if (!isLoggedIn && onNavigateToRegister) {
+                          onNavigateToRegister('alumni');
+                        } else {
+                          setIsApplyModalOpen(true);
+                        }
+                      }}
+                      className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold text-sm px-6 py-2.5 rounded-xl shadow-xs transition shrink-0 self-start active:scale-95"
+                      id="btn-lamar-sekarang-top"
+                    >
+                      Lamar Sekarang
+                    </button>
+                  )}
                 </div>
 
                 <div className="border-t border-slate-100 pt-4" />
@@ -304,7 +324,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                       <span>Jenis Pekerjaan</span>
                     </div>
                     <span className="font-extrabold text-slate-800 text-right min-w-0">
-                      {job.tipe === 'magang' ? 'Magang' : 'Full Time'}
+                      {job.jenisPekerjaan ? (job.jenisPekerjaan === 'full-time' ? 'Full-Time' : 'Part-Time') : (job.tipe === 'magang' ? 'Magang' : 'Full-Time')}
                     </span>
                   </div>
 
@@ -372,20 +392,33 @@ export const JobDetail: React.FC<JobDetailProps> = ({
 
                 {/* Action Buttons Stack */}
                 <div className="space-y-2.5 pt-2">
-                  <button
-                    onClick={() => {
-                      if (!isLoggedIn && onNavigateToRegister) {
-                        onNavigateToRegister('alumni');
-                      } else {
-                        setIsApplyModalOpen(true);
-                      }
-                    }}
+                  {job.sumber === 'admin' && job.ctaEnabled && job.linkEksternal ? (
+                    <a
+                      href={job.linkEksternal}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-xs transition text-sm text-center active:scale-95 inline-flex items-center justify-center gap-2"
+                      id="btn-cta-admin-side"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      {job.ctaLabel && job.ctaLabel.trim() ? job.ctaLabel : 'Daftar Sekarang'}
+                    </a>
+                  ) : job.sumber === 'admin' && !job.ctaEnabled ? null : (
+                    <button
+                      onClick={() => {
+                        if (!isLoggedIn && onNavigateToRegister) {
+                          onNavigateToRegister('alumni');
+                        } else {
+                          setIsApplyModalOpen(true);
+                        }
+                      }}
 
-                    className="w-full bg-[#0077C6] hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-xs transition text-sm text-center active:scale-95"
-                    id="btn-lamar-pekerjaan-ini"
-                  >
-                    Lamar Pekerjaan Ini
-                  </button>
+                      className="w-full bg-[#0077C6] hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-xs transition text-sm text-center active:scale-95"
+                      id="btn-lamar-pekerjaan-ini"
+                    >
+                      Lamar Pekerjaan Ini
+                    </button>
+                  )}
 
                   <button
                     onClick={handleToggleSave}
@@ -408,8 +441,8 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                       </>
                     )}
                   </button>
-                </div>
 
+                </div>
                 {/* Social Share Section */}
                 <div className="pt-3 border-t border-slate-100 text-center space-y-2">
                   <span className="text-xs text-slate-500 font-medium block">Bagikan lowongan ini</span>

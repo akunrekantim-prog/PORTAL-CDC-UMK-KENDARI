@@ -9,8 +9,9 @@ import {
   FileText, Mail, Phone, Clock, ArrowRight, Globe, Megaphone,
   Info, GraduationCap, ChevronRight, Facebook, Instagram, Youtube,
   Users, Building, Shield, Award, Star, TrendingUp, Zap, Target,
-  ExternalLink, Calendar,
+  ExternalLink, Calendar, ShieldCheck,
 } from 'lucide-react';
+
 import { Lowongan, Berita, Pengumuman } from '../types';
 import { sortJobsByNewest, formatDateDisplay } from '../data';
 import { motion } from 'motion/react';
@@ -294,6 +295,11 @@ export default function PublicLayout({
                                 >
                                   {item.tipe === 'magang' ? 'Magang' : 'Kerja'}
                                 </span>
+                                {item.jenisPekerjaan && (
+                                  <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-slate-700 text-white">
+                                    {item.jenisPekerjaan === 'full-time' ? 'Full-Time' : 'Part-Time'}
+                                  </span>
+                                )}
                               </div>
                             </div>
 
@@ -309,9 +315,15 @@ export default function PublicLayout({
                                 {item.judul}
                               </h3>
 
-                              {/* Meta Footer: by Admin Website + Upload Date */}
+                              {/* Meta Footer: source + Upload Date */}
                               <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
-                                <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
+                                {item.sumber === 'admin' ? (
+                                  <span className="whitespace-nowrap font-bold text-emerald-600 flex items-center gap-1">
+                                    <ShieldCheck className="w-3.5 h-3.5" /> By Admin CDC
+                                  </span>
+                                ) : (
+                                  <span className="whitespace-nowrap font-medium text-slate-400">by {item.namaInstansi}</span>
+                                )}
                                 <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
                                   <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                                   {formatDateDisplay(item.createdAt || item.deadline)}
@@ -790,6 +802,11 @@ export default function PublicLayout({
                           >
                             {item.tipe === 'magang' ? 'Magang' : 'Kerja'}
                           </span>
+                          {item.jenisPekerjaan && (
+                            <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-slate-700 text-white">
+                              {item.jenisPekerjaan === 'full-time' ? 'Full-Time' : 'Part-Time'}
+                            </span>
+                          )}
                         </div>
                       </div>
 
@@ -805,9 +822,15 @@ export default function PublicLayout({
                           {item.judul}
                         </h3>
 
-                        {/* Meta Footer: by Admin Website + Upload Date */}
+                        {/* Meta Footer: source + Upload Date */}
                         <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
-                          <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
+                          {item.sumber === 'admin' ? (
+                            <span className="whitespace-nowrap font-bold text-emerald-600 flex items-center gap-1">
+                              <ShieldCheck className="w-3.5 h-3.5" /> By Admin CDC
+                            </span>
+                          ) : (
+                            <span className="whitespace-nowrap font-medium text-slate-400">by {item.namaInstansi}</span>
+                          )}
                           <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
                             <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                             {formatDateDisplay(item.createdAt || item.deadline)}
