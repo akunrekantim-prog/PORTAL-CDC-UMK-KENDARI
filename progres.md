@@ -874,3 +874,45 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 
 ---
 
+## Tanggal: 12 Agustus 2026 (Sesi 2)
+**Developer:** ARYA APRIAWAN  
+**Fokus Pekerjaan:** Redesign Card Layout, Fitur Pencarian & Filter Tanggal pada 3 Sub-menu Layanan (Workshop, Softskill, Seminar)
+
+---
+
+### 🚀 Ringkasan Perubahan
+
+#### 1. Implementasi UI Card Layout Reusable (`EventCardLayout.tsx`)
+- Merancang komponen modular `EventCardLayout` yang bersih, tanpa AI slop (tanpa gradient berlebihan, border & shadow tajam/lembut, tipografi rapi).
+- **Control Bar**: Dilengkapi dengan **Main Search Bar**, **Dropdown Status** (*Pendaftaran Dibuka*, *Segera Hadir*, *Selesai*), dan **Filter Rentang Tanggal** (*Mulai s/d Akhir*) beserta tombol *Reset Filter*.
+- **Kartu Kegiatan**: Menampilkan gambar 16:9, organizer, judul, deskripsi singkat, tanggal (format Indonesia), waktu, lokasi, pemateri, kuota peserta, serta badge status beranimasi halus.
+- **Modal Detail Interactive**: Pengguna dapat mengeklik *"Detail Kegiatan"* untuk membuka dialog modal interaktif lengkap dengan deskripsi detail, lokasi, pemateri, dan tombol CTA *"Daftar Sekarang"* ke link eksternal.
+
+#### 2. Update Sub-menu Layanan
+- **`Workshop.tsx`**: Menggunakan `EventCardLayout` untuk *Workshop Pengembangan Karir*.
+- **`Softskill.tsx`**: Menggunakan `EventCardLayout` untuk *Pelatihan Softskill & Kewirausahaan*.
+- **`Seminar.tsx`**: Menggunakan `EventCardLayout` untuk *Seminar Sukses Berkarir*.
+
+#### 3. Integrasi Data Dummy & Type Definition
+- Menambahkan tipe `EventLayananItem` pada `src/types.ts` & update `JenisKonten` untuk `seminar`.
+- Menambahkan data dummy event realistis `SEED_EVENT_LAYANAN` di `src/data.ts` (kegiatan UI/UX, CV ATS, React, Public Speaking, Kewirausahaan Sultra, Seminar Gen-AI, BUMN, dll.).
+- Meng-update `AdminDashboard.tsx` agar sinkron dengan tipe `JenisKonten` baru.
+
+### 📁 File Diubah & Ditambahkan
+- **[NEW]** `src/components/layanan/ui/EventCardLayout.tsx`
+- **[MODIFY]** `src/types.ts`
+- **[MODIFY]** `src/data.ts`
+- **[MODIFY]** `src/components/AdminDashboard.tsx`
+- **[MODIFY]** `src/components/layanan/Workshop.tsx`
+- **[MODIFY]** `src/components/layanan/Softskill.tsx`
+- **[MODIFY]** `src/components/layanan/Seminar.tsx`
+- **[MODIFY]** `progres.md`
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Pembuatan data seed event kegiatan `SEED_EVENT_LAYANAN` di `src/data.ts`
+- [x] Pembuatan komponen `EventCardLayout.tsx` (Card grid, search, filter tanggal & status, detail modal)
+- [x] Integrasi `EventCardLayout` ke `Workshop.tsx`, `Softskill.tsx`, dan `Seminar.tsx`
+- [x] Verifikasi `npm run lint` & `npm run build` passed (0 error)
+
+---
+

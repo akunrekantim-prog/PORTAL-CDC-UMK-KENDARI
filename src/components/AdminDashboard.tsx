@@ -105,7 +105,8 @@ const JENIS_LABEL: Record<JenisKonten, string> = {
   lowongan: 'Lowongan (Magang/Kerja)',
   program: 'Program & Pengumuman',
   workshop: 'Workshop & Pelatihan Karir',
-  softskill: 'Pelatihan Softskill & Kewirausahaan'
+  softskill: 'Pelatihan Softskill & Kewirausahaan',
+  seminar: 'Seminar Sukses Berkarir'
 };
 
 const JENIS_ICON: Record<JenisKonten, React.ReactNode> = {
@@ -113,7 +114,8 @@ const JENIS_ICON: Record<JenisKonten, React.ReactNode> = {
   lowongan: <Briefcase className="w-4 h-4" />,
   program: <Megaphone className="w-4 h-4" />,
   workshop: <GraduationCap className="w-4 h-4" />,
-  softskill: <Sparkles className="w-4 h-4" />
+  softskill: <Sparkles className="w-4 h-4" />,
+  seminar: <GraduationCap className="w-4 h-4" />
 };
 
 // Rasio thumbnail wajib per jenis
@@ -122,7 +124,8 @@ const THUMB_REQUIRED: Record<JenisKonten, boolean> = {
   lowongan: true,  // 9:16
   program: false,  // tanpa thumbnail
   workshop: true,  // 16:9
-  softskill: true  // 16:9
+  softskill: true, // 16:9
+  seminar: true    // 16:9
 };
 
 const formatTanggal = (iso?: string) =>

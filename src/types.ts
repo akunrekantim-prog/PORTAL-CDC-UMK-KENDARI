@@ -67,7 +67,24 @@ export interface Mahasiswa {
   }>;
 }
 
-export type JenisKonten = 'berita' | 'lowongan' | 'program' | 'workshop' | 'softskill';
+export type JenisKonten = 'berita' | 'lowongan' | 'program' | 'workshop' | 'softskill' | 'seminar';
+
+export interface EventLayananItem {
+  id: string;
+  category: 'workshop' | 'softskill' | 'seminar';
+  title: string;
+  organizer: string;
+  date: string; // YYYY-MM-DD
+  time?: string;
+  location: string;
+  image: string;
+  description: string;
+  speaker?: string;
+  quota?: number;
+  registeredCount?: number;
+  registrationLink?: string;
+  status: 'buka' | 'segera' | 'selesai';
+}
 
 export interface KontenKarir {
   id: string;

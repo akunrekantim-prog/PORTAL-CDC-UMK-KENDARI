@@ -1,11 +1,16 @@
 import React from 'react';
+import EventCardLayout from './ui/EventCardLayout';
+import { SEED_EVENT_LAYANAN } from '../../data';
 
 export default function Workshop() {
   return (
-    <div className="max-w-7xl mx-auto px-4 py-10 space-y-8" id="layanan-workshop">
-      <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center text-slate-400">
-        <p className="text-sm font-medium">Pamphlet/Konten Workshop Pengembangan Karir akan diunggah oleh Admin CDC.</p>
-      </div>
+    <div id="layanan-workshop">
+      <EventCardLayout
+        category="workshop"
+        pageTitle="Workshop Pengembangan Karir"
+        subtitle="Pelajari keterampilan teknis dan praktis langsung dari praktisi industri untuk meningkatkan daya saing karir Anda."
+        events={SEED_EVENT_LAYANAN}
+      />
     </div>
   );
 }

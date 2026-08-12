@@ -15,7 +15,8 @@ import {
   Berita,
   Pengumuman,
   SurveiLulusan,
-  KontenKarir
+  KontenKarir,
+  EventLayananItem
 } from './types';
 
 // Mock Password: all seeded accounts use "password"
@@ -757,6 +758,174 @@ export const SEED_PENGUMUMAN: Pengumuman[] = [
     status: 'published',
     publishedAt: '2026-05-12T09:00:00Z',
     createdAt: '2026-05-12T09:00:00Z'
+  }
+];
+
+export const SEED_EVENT_LAYANAN: EventLayananItem[] = [
+  // Workshop
+  {
+    id: 'evt_ws_001',
+    category: 'workshop',
+    title: 'Workshop UI/UX Design & Prototyping Figma',
+    organizer: 'CDC UM Kendari & Digital Creative Studio',
+    date: '2026-08-25',
+    time: '09:00 - 15:00 WITA',
+    location: 'Lab Komputer Gd. Rektorat Lt. 3 UMK',
+    image: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=800&auto=format&fit=crop',
+    description: 'Pelatihan praktis pembuatan wireframe, Design System, hingga Interactive Prototype aplikasi berbasis industri dengan alat Figma.',
+    speaker: 'Ahmad Fauzi, S.Kom. (Senior Product Designer)',
+    quota: 50,
+    registeredCount: 38,
+    registrationLink: 'https://bit.ly/workshop-uiux-umk',
+    status: 'buka'
+  },
+  {
+    id: 'evt_ws_002',
+    category: 'workshop',
+    title: 'Workshop Pembuatan CV ATS Friendly & Portfolio Digital',
+    organizer: 'CDC UM Kendari',
+    date: '2026-09-02',
+    time: '13:30 - 16:30 WITA',
+    location: 'Aula Utama Universitas Muhammadiyah Kendari',
+    image: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=800&auto=format&fit=crop',
+    description: 'Panduan menyusun Curriculum Vitae berstandar parser Applicant Tracking System (ATS) dan membuat portfolio karir yang dilirik recruiter.',
+    speaker: 'Nurlia, S.Psi., M.Psi. (Talent Acquisition Specialist)',
+    quota: 100,
+    registeredCount: 84,
+    registrationLink: 'https://bit.ly/cv-ats-umk',
+    status: 'buka'
+  },
+  {
+    id: 'evt_ws_003',
+    category: 'workshop',
+    title: 'Workshop Modern Web Development React & Tailwind CSS',
+    organizer: 'CDC UMK & Himpunan Mahasiswa Informatika',
+    date: '2026-09-18',
+    time: '08:30 - 16:00 WITA',
+    location: 'Auditorium KH. Ahmad Dahlan UMK',
+    image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=800&auto=format&fit=crop',
+    description: 'Trik cepat membangun aplikasi web responsif dan siap deploy menggunakan ekosistem React.js, Vite, dan Tailwind CSS.',
+    speaker: 'Rahmat Hidayat, M.T. (Software Engineer Lead)',
+    quota: 60,
+    registeredCount: 15,
+    registrationLink: 'https://bit.ly/webdev-react-umk',
+    status: 'segera'
+  },
+  {
+    id: 'evt_ws_004',
+    category: 'workshop',
+    title: 'Workshop Strategi Lolos Hackathon & Program Digital Talent',
+    organizer: 'CDC UM Kendari',
+    date: '2026-07-15',
+    time: '09:00 - 12:00 WITA',
+    location: 'Zoom Meeting Online',
+    image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=800&auto=format&fit=crop',
+    description: 'Berbagi pengalaman dan metodologi ideasi produk inovatif untuk memenangkan berbagai ajang kompetisi teknologi nasional.',
+    speaker: 'Rizal Triputra, S.T. (Tech Entrepreneur)',
+    quota: 200,
+    registeredCount: 200,
+    registrationLink: '#',
+    status: 'selesai'
+  },
+
+  // Softskill
+  {
+    id: 'evt_ss_001',
+    category: 'softskill',
+    title: 'Pelatihan Public Speaking & Pitching Presentasi Karir',
+    organizer: 'CDC UM Kendari',
+    date: '2026-08-28',
+    time: '09:00 - 15:00 WITA',
+    location: 'Gedung Ketenagakerjaan & Karir UMK',
+    image: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=800&auto=format&fit=crop',
+    description: 'Mengatasi rasa gugup saat berbicara di depan umum, teknik penyampaian ide bisnis 3 menit, serta bahasa tubuh yang efektif.',
+    speaker: 'Dra. Endang Lestari, M.Si. (Professional Communication Trainer)',
+    quota: 80,
+    registeredCount: 65,
+    registrationLink: 'https://bit.ly/public-speaking-umk',
+    status: 'buka'
+  },
+  {
+    id: 'evt_ss_002',
+    category: 'softskill',
+    title: 'Pelatihan Kewirausahaan: Ideasi Bisnis Lokal Sultra',
+    organizer: 'CDC UMK x LPPM UMK',
+    date: '2026-09-10',
+    time: '08:30 - 15:30 WITA',
+    location: 'Hall Sains & Technopark UMK',
+    image: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=800&auto=format&fit=crop',
+    description: 'Menganalisis potensi komoditas daerah Sulawesi Tenggara menjadi unit usaha rintisan (startup) yang siap berkompetisi nasional.',
+    speaker: 'Ir. H. Sudirman, M.M. (Pengusaha & Facilitator UMKM)',
+    quota: 120,
+    registeredCount: 40,
+    registrationLink: 'https://bit.ly/wirausaha-lokal-umk',
+    status: 'buka'
+  },
+  {
+    id: 'evt_ss_003',
+    category: 'softskill',
+    title: 'Pelatihan Critical Thinking & Problem Solving di Tempat Kerja',
+    organizer: 'CDC UM Kendari',
+    date: '2026-10-05',
+    time: '09:00 - 14:00 WITA',
+    location: 'Ruang Seminar Perpustakaan UMK',
+    image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=800&auto=format&fit=crop',
+    description: 'Pendekatan analisis akar masalah (root cause analysis) dan kerangka berpikir logis saat menyelesaikan konflik profesional.',
+    speaker: 'Dr. Hj. Wa Ode Sitti, M.Pd.',
+    quota: 75,
+    registeredCount: 10,
+    registrationLink: 'https://bit.ly/critical-thinking-umk',
+    status: 'segera'
+  },
+
+  // Seminar
+  {
+    id: 'evt_sm_001',
+    category: 'seminar',
+    title: 'Seminar Nasional: Navigasi Karir Era Gen-AI & Automasi',
+    organizer: 'CDC UM Kendari',
+    date: '2026-08-30',
+    time: '08:00 - 12:30 WITA',
+    location: 'Auditorium Utama Universitas Muhammadiyah Kendari',
+    image: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=800&auto=format&fit=crop',
+    description: 'Membahas pergeseran pasar kerja nasional, skill kunci beradaptasi dengan teknologi Kecerdasan Buatan, dan ekspektasi industri modern.',
+    speaker: 'Prof. Dr. Supriyadi, M.Sc. (Chief HR Officer & Practical Researcher)',
+    quota: 300,
+    registeredCount: 245,
+    registrationLink: 'https://bit.ly/semnas-genai-umk',
+    status: 'buka'
+  },
+  {
+    id: 'evt_sm_002',
+    category: 'seminar',
+    title: 'Seminar Karir BUMN & Management Trainee Program 2026',
+    organizer: 'CDC UMK x Mitra BUMN',
+    date: '2026-09-15',
+    time: '09:00 - 13:00 WITA',
+    location: 'Ballroom Syariah Kendari & Hybrid Zoom',
+    image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=800&auto=format&fit=crop',
+    description: 'Tips dan strategi sukses menghadapi tahapan seleksi TKD, AKHLAK, dan Wawancara Direksi dalam Rekrutmen Bersama BUMN.',
+    speaker: 'Tim HR Business Partner Perbankan & Energi BUMN',
+    quota: 500,
+    registeredCount: 310,
+    registrationLink: 'https://bit.ly/seminar-bumn-umk',
+    status: 'buka'
+  },
+  {
+    id: 'evt_sm_003',
+    category: 'seminar',
+    title: 'Seminar Beasiswa Luar Negeri & Persiapan IELTS/TOEFL',
+    organizer: 'CDC UM Kendari & International Office UMK',
+    date: '2026-10-12',
+    time: '08:30 - 12:00 WITA',
+    location: 'Gedung Rektorat Lantai 4 UMK',
+    image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=800&auto=format&fit=crop',
+    description: 'Membuka peluang studi lanjut S2/S3 dengan beasiswa LPDP, AAS, dan Chevening serta kiat menembus skor kemahiran bahasa Inggris.',
+    speaker: 'Awardee LPDP & Alumni University of Melbourne',
+    quota: 250,
+    registeredCount: 20,
+    registrationLink: 'https://bit.ly/seminar-beasiswa-umk',
+    status: 'segera'
   }
 ];
 
