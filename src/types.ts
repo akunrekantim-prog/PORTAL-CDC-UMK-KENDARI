@@ -43,6 +43,28 @@ export interface Mahasiswa {
   workRights?: string;
   opportunityType?: string;
   preferredStartDate?: string;
+  ipk?: string;
+  skills?: string[];
+  experiences?: Array<{
+    id: string;
+    position: string;
+    company: string;
+    period: string;
+    description?: string;
+  }>;
+  certificates?: Array<{
+    id: string;
+    name: string;
+    issuer?: string;
+    year: string;
+  }>;
+  qualifications?: Array<{
+    id: string;
+    institution: string;
+    level: string;
+    year: string;
+    ipk?: string;
+  }>;
 }
 
 export type JenisKonten = 'berita' | 'lowongan' | 'program' | 'workshop' | 'softskill';
@@ -65,6 +87,8 @@ export interface KontenKarir {
   status: 'draft' | 'published';
   createdAt: string;
   updatedAt?: string;
+  createdBy?: string; // user.id — 'usr_admin' untuk konten buatan admin
+  createdByName?: string; // nama pembuat, untuk tracking
 }
 
 export interface Alumni {
@@ -107,6 +131,11 @@ export interface Lowongan {
   imageUrl?: string; // poster / flyer image URL
   flyer?: string; // alias for poster image
   flyers?: string[]; // Array of poster/flyer image URLs
+  sumber?: 'admin' | 'mitra'; // penanda asal input: admin CDC atau mitra
+  linkEksternal?: string; // URL eksternal opsional (dibungkus button di public)
+  jenisPekerjaan?: 'full-time' | 'part-time'; // jenis pekerjaan: full-time / part-time
+  ctaEnabled?: boolean; // khusus admin: tampilkan tombol CTA utama di detail?
+  ctaLabel?: string; // khusus admin: teks tombol CTA (default 'Daftar Sekarang')
   lokasi: string;
   deskripsi: string;
   kualifikasi: string[]; // parsed from JSON array
@@ -162,6 +191,30 @@ export interface PengajuanMagang {
   interviewResultNotes?: string;
   catatanInternal?: string[];
   riwayatSeleksi?: SelectionHistoryLog[];
+
+  // Profile Snapshot Fields
+  ipk?: string;
+  skills?: string[];
+  experiences?: Array<{
+    id: string;
+    position: string;
+    company: string;
+    period: string;
+    description?: string;
+  }>;
+  certificates?: Array<{
+    id: string;
+    name: string;
+    issuer?: string;
+    year: string;
+  }>;
+  qualifications?: Array<{
+    id: string;
+    institution: string;
+    level: string;
+    year: string;
+    ipk?: string;
+  }>;
 }
 
 export interface UploadedDocument {

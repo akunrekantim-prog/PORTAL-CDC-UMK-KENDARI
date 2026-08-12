@@ -63,7 +63,9 @@ export const StudentApplicationsView: React.FC<StudentApplicationsViewProps> = (
     a.userId === user.id || 
     a.namaMahasiswa === user.name || 
     (mahasiswaData && a.nim === mahasiswaData.nim) ||
-    a.mahasiswaId === `mhs_${user.id}`
+    a.mahasiswaId === `mhs_${user.id}` ||
+    a.mahasiswaId === mahasiswaData?.id ||
+    (user.role === 'mahasiswa' && (a.userId === 'usr_mhs_demo' || a.userId === '2'))
   );
 
   // Calculate statistics

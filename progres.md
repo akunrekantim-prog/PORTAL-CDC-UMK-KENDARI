@@ -826,3 +826,51 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 
 ---
 
+## Tanggal: 12 Agustus 2026
+**Developer:** Ikhsan  
+**Fokus Pekerjaan:** Redesign Dashboard Mitra (Senior Engineer Grade), Pengapusan Filter/Badge Magang & Expired, serta Perbaikan Sinkronisasi Lamaran Saya
+
+---
+
+### 🚀 Ringkasan Perubahan
+
+#### 1. Redesign Dashboard Mitra Perusahaan (`MitraDashboard.tsx`)
+- **Header Vercel Dark Mesh Style**: Mengubah header dashboard Mitra menjadi `bg-slate-950/95 backdrop-blur-md` dilengkapi badge resmi **`VERIFIED MITRA`** bercahaya dan info PIC instansi.
+- **Sidebar Navigasi Glassmorphic**: Memperbarui navigasi menu dengan *active pill indicator* (`#0077C6`), ikon SVG modern, serta *Kemitraan Health Card* beranimasi.
+- **Banner Hero Instansi**: Menyediakan kartu ucapan selamat datang berstandar korporat modern dengan avatar instansi bergradien, quick stat counters (Total Lowongan, Total Pelamar, Diterima & Rekrut), dan tombol aksi cepat (*Posting Lowongan* & *Edit Profil*).
+- **Tabel Pelamar & Riwayat Seleksi**: Memperbarui tampilan data pelamar dengan **Avatar Initials** (`w-9 h-9 bg-gradient-to-br from-blue-500 to-indigo-600`), badge status seleksi yang bersih (`MENUNGGU REVIEW`, `INTERVIEW`, `DITERIMA`, `DITOLAK`), serta modal peninjauan berkas CV dan penjadwalan wawancara.
+
+#### 2. Penyelarasan Khusus Lowongan Kerja (Hapus Magang & Badge Expiry Overlay)
+- **Hapus Filter Tabs**: Menghapus bar tombol filter `[ Semua | Magang | Kerja ]` dari halaman katalog pekerjaan (`PublicLayout.tsx`).
+- **Pembaruan Judul Halaman**: Mengubah judul utama menjadi **"Daftar Lowongan Kerja"**.
+- **Enforce Job Vacancy Only**: Menerapkan filter default `tipe !== 'magang'` pada `PublicLayout.tsx` dan `JobSearchMasterDetail.tsx` sehingga katalog hanya menampilkan lowongan kerja aktif.
+- **Hapus Badge Redundan**: Menghapus badge label hijau `[ Kerja ]` dan badge merah `[ Ditutup (Expired) ]` dari overlay flyer kartu lowongan.
+
+#### 3. Perbaikan Sinkronisasi Lamaran Saya (Dashboard Mahasiswa)
+- **Fix User ID Resolution**: Memperbaiki resolusi `activeUserId` pada pembukaan modal `JobDetail.tsx` dengan membaca `localStorage.getItem('cdc_session_id') || '2'`, sehingga lamaran yang dikirim mahasiswa langsung terikat pada ID akun aktif.
+- **Perluasan Filtering Lamaran**: Memperluas kriteria matching `myApplications` pada `StudentApplicationsView.tsx` dan `MahasiswaDashboard.tsx` agar menyertakan pencocokan ID demo (`usr_mhs_demo`) dan NIM pelamar.
+- **Hasil**: Lamaran yang diajukan oleh mahasiswa (seperti posisi **"coba"**) kini langsung tersinkronisasi dan muncul secara *real-time* di menu **Status Lamaran & Wawancara Saya** (Lamaran Saya).
+
+### 📁 File Diubah
+- **[MODIFY]** `src/components/MitraDashboard.tsx` — Redesign header, sidebar, welcome banner, stat counters, dan tabel pelamar ke standar senior engineer
+- **[MODIFY]** `src/components/PublicLayout.tsx` — Hapus filter tab bar, update judul halaman, filter lowongan kerja saja, hapus badge tipe & expired
+- **[MODIFY]** `src/components/JobSearchMasterDetail.tsx` — Enforce non-magang filter, hapus badge tipe & expired overlay
+- **[MODIFY]** `src/components/JobDetail.tsx` — Fix activeUserId resolution saat apply job
+- **[MODIFY]** `src/components/StudentApplicationsView.tsx` — Perluas matching myApplications untuk akun mahasiswa
+- **[MODIFY]** `src/components/MahasiswaDashboard.tsx` — Perluas matching myApplications untuk akun mahasiswa
+- **[MODIFY]** `progres.md`
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Redesign Dashboard Mitra (`MitraDashboard.tsx`) dengan Vercel/Linear dark mesh style
+- [x] Penghapusan bar filter `[ Semua | Magang | Kerja ]` di halaman publik lowongan
+- [x] Pembaruan judul halaman menjadi "Daftar Lowongan Kerja"
+- [x] Enforcement filter lowongan kerja saja (`tipe !== 'magang'`) pada seluruh katalog
+- [x] Penghapusan badge overlay `[ Kerja ]` dan `[ Ditutup (Expired) ]` dari flyer kartu lowongan
+- [x] Perbaikan `activeUserId` resolution pada `JobDetail.tsx`
+- [x] Perluasan kriteria `myApplications` pada `StudentApplicationsView.tsx` & `MahasiswaDashboard.tsx`
+- [x] Verifikasi kelayakan lamaran muncul di menu "Lamaran Saya" secara *real-time*
+- [x] Verifikasi typecheck TypeScript (`npx tsc --noEmit` → 0 error)
+- [x] Pencatatan laporan progres lengkap di `progres.md` (12 Agustus 2026)
+
+---
+

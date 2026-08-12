@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { X, UploadCloud, CheckCircle2 } from 'lucide-react';
+import { X, UploadCloud, CheckCircle2, Info, Clock } from 'lucide-react';
 import { Lowongan } from '../types';
+import { isJobDeadlinePassed } from '../data';
 
 interface JobApplicationModalProps {
   job: Lowongan;
@@ -33,8 +34,15 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
 
   if (!isOpen) return null;
 
+  const isDeadlinePassed = isJobDeadlinePassed(job.deadline);
+
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isDeadlinePassed) {
+      setFileError('Pendaftaran untuk lowongan ini telah ditutup karena melewati batas waktu.');
+      return;
+    }
 
     if (!uploadedFileName && !uploadedFileUrl) {
       setFileError('Berkas CV / Portofolio wajib diunggah sebelum mengirim lamaran.');
@@ -88,7 +96,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
         <div className="bg-[#1B365D] text-white p-6 relative">
           <button
             onClick={handleClose}
-            className="absolute top-5 right-5 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition"
+            className="absolute top-5 right-5 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -101,7 +109,23 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
         </div>
 
         {/* Modal Content / Form */}
-        {submitSuccess ? (
+        {isDeadlinePassed ? (
+          <div className="p-8 text-center space-y-4">
+            <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto">
+              <Clock className="w-8 h-8" />
+            </div>
+            <h4 className="font-extrabold text-slate-900 text-lg">Pendaftaran Telah Ditutup</h4>
+            <p className="text-slate-600 text-xs sm:text-sm leading-relaxed max-w-sm mx-auto">
+              Maaf, pengajuan lamaran untuk lowongan <strong>{job.judul}</strong> di <strong>{job.namaInstansi}</strong> tidak dapat diproses karena telah melewati batas waktu pendaftaran (deadline).
+            </p>
+            <button
+              onClick={handleClose}
+              className="bg-slate-800 hover:bg-slate-900 text-white font-bold px-6 py-2.5 rounded-xl text-xs uppercase tracking-wider transition cursor-pointer"
+            >
+              Tutup Form
+            </button>
+          </div>
+        ) : submitSuccess ? (
           <div className="p-8 text-center space-y-4">
             <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
               <CheckCircle2 className="w-8 h-8" />
@@ -119,6 +143,13 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
           </div>
         ) : (
           <form onSubmit={handleFormSubmit} className="p-6 space-y-4">
+            {/* Info Banner */}
+            <div className="bg-blue-50 border border-blue-200/80 rounded-2xl p-3.5 flex items-start gap-2.5 text-xs text-blue-900 font-medium">
+              <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+              <div className="leading-relaxed">
+                <strong>Informasi Pengiriman Data:</strong> Data <em>Pendidikan, Pengalaman, Skill, dan Sertifikat</em> Anda di menu <strong>Profil Saya</strong> akan dilampirkan secara otomatis ke Mitra Industri.
+              </div>
+            </div>
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-700">Nama Lengkap Pelamar</label>
               <input

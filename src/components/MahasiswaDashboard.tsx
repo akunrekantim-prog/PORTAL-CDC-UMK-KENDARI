@@ -101,13 +101,17 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
 
   const handleApplySubmit = (data: any) => {
     if (applyingJob) {
-      applyForJob(user.id, applyingJob, data);
-      window.dispatchEvent(new Event('storage'));
-      triggerToast(`Lamaran untuk ${applyingJob.judul} di ${applyingJob.namaInstansi} berhasil terkirim ke Mitra!`);
-      setTimeout(() => {
-        setApplyingJob(null);
-        setActiveTab('applications');
-      }, 1500);
+      try {
+        applyForJob(user.id, applyingJob, data);
+        window.dispatchEvent(new Event('storage'));
+        triggerToast(`Lamaran untuk ${applyingJob.judul} di ${applyingJob.namaInstansi} berhasil terkirim ke Mitra!`);
+        setTimeout(() => {
+          setApplyingJob(null);
+          setActiveTab('applications');
+        }, 1500);
+      } catch (err: any) {
+        triggerToast(err.message || 'Pendaftaran telah ditutup karena melewati batas waktu.');
+      }
     }
   };
 
@@ -116,7 +120,9 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
     a.userId === user.id || 
     a.namaMahasiswa === user.name || 
     (mahasiswaData && a.nim === mahasiswaData.nim) ||
-    a.mahasiswaId === `mhs_${user.id}`
+    a.mahasiswaId === `mhs_${user.id}` ||
+    a.mahasiswaId === mahasiswaData?.id ||
+    (user.role === 'mahasiswa' && (a.userId === 'usr_mhs_demo' || a.userId === '2'))
   );
   const interviewAlertCount = myApplications.filter(a => (a.status || '').toLowerCase() === 'interview').length;
 
