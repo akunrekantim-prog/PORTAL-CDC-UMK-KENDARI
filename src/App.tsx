@@ -177,7 +177,7 @@ export default function App() {
         <div className="flex flex-wrap gap-2" id="switcher-buttons">
           {[
             { id: 'admin', label: 'Admin CDC', color: 'bg-indigo-650 hover:bg-slate-800 hover:text-white border-slate-700 font-bold' },
-            { id: 'mahasiswa', label: 'Mahasiswa', color: 'bg-emerald-650 hover:bg-slate-800 border-slate-700 font-bold' },
+            { id: 'mahasiswa', label: 'USER', color: 'bg-emerald-650 hover:bg-slate-800 border-slate-700 font-bold' },
             { id: 'mitra', label: 'Mitra', color: 'bg-teal-650 hover:bg-slate-800 border-slate-700 font-bold' }
           ].map((item) => (
             <button

@@ -674,6 +674,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
           defaultName={activeStudent?.nama || "Muhammad Fadly Alamsyah"}
           defaultEmail={activeStudent?.email || "mhs@umkendari.ac.id"}
           defaultProdi={activeStudent?.programStudi || "Teknik Informatika"}
+          defaultNim={activeStudent?.nim || "202101001"}
         />
       )}
 

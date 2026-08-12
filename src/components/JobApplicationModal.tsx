@@ -11,6 +11,7 @@ interface JobApplicationModalProps {
   defaultName?: string;
   defaultEmail?: string;
   defaultProdi?: string;
+  defaultNim?: string;
 }
 
 export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
@@ -20,11 +21,13 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
   onSubmit,
   defaultName = '',
   defaultEmail = '',
-  defaultProdi = ''
+  defaultProdi = '',
+  defaultNim = ''
 }) => {
   const [applicantName, setApplicantName] = useState<string>(defaultName);
   const [applicantEmail, setApplicantEmail] = useState<string>(defaultEmail);
   const [applicantProdi, setApplicantProdi] = useState<string>(defaultProdi);
+  const [applicantNim, setApplicantNim] = useState<string>(defaultNim);
   const [applicantNotes, setApplicantNotes] = useState<string>('');
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
   const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
@@ -56,7 +59,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
     setTimeout(() => {
       setIsSubmitting(false);
       setSubmitSuccess(true);
-      onSubmit({ applicantName, applicantEmail, applicantProdi, applicantNotes, uploadedFileName, uploadedFileUrl });
+      onSubmit({ applicantName, applicantEmail, applicantProdi, applicantNim, applicantNotes, uploadedFileName, uploadedFileUrl });
     }, 1000);
   };
 
@@ -163,7 +166,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Email Kampus / Kontak</label>
+                <label className="text-xs font-bold text-slate-700">Email / Kontak</label>
                 <input
                   type="email"
                   required
@@ -174,7 +177,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Program Studi</label>
+                <label className="text-xs font-bold text-slate-700">Pendidikan / Prodi</label>
                 <input
                   type="text"
                   required

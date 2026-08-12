@@ -1773,8 +1773,8 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                             <div className="flex items-start justify-between gap-3">
                               <div>
                                 <h4 className="font-extrabold text-slate-900 text-sm leading-tight">{appl.namaMahasiswa}</h4>
-                                <div className="text-[11px] font-mono text-slate-500 font-semibold mt-0.5">
-                                  NIM: {appl.nim} • {appl.programStudi || '-'}
+                                <div className="text-[11px] font-medium text-slate-500 mt-0.5">
+                                  {appl.programStudi || '-'}
                                 </div>
                               </div>
                               <div className="shrink-0">{renderStatusBadge(appl.status)}</div>
@@ -1865,9 +1865,8 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                       <table className="w-full text-left border-collapse text-xs sm:text-sm">
                         <thead>
                           <tr className="bg-slate-100/70 border-b border-slate-200 text-slate-600 font-extrabold text-xs uppercase tracking-wider">
-                            <th className="py-4 px-4">Nama Pelamar</th>
-                            <th className="py-4 px-4">NIM</th>
-                            <th className="py-4 px-4">Program Studi</th>
+                            <th className="py-4 px-4">Kandidat</th>
+                            <th className="py-4 px-4">Pendidikan</th>
                             <th className="py-4 px-4">Posisi yang Dilamar</th>
                             <th className="py-4 px-4">Tanggal Melamar</th>
                             <th className="py-4 px-4">Status Seleksi</th>
@@ -1887,7 +1886,6 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                                   </div>
                                 </div>
                               </td>
-                              <td className="py-4 px-4 font-mono text-xs text-slate-600 font-semibold">{appl.nim}</td>
                               <td className="py-4 px-4 text-slate-600 font-medium">{appl.programStudi || '-'}</td>
                               <td className="py-4 px-4 font-semibold text-slate-800">{appl.tujuanMagang}</td>
                               <td className="py-4 px-4 text-slate-500 font-medium text-xs whitespace-nowrap">
@@ -2255,13 +2253,17 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 </div>
                 <div>
                   <span className="text-emerald-400 font-extrabold text-[10px] uppercase tracking-wider block mb-0.5">
-                    Detail Pelamar Lowongan • {selectedApplicantDoc.tujuanMagang}
+                    DETAIL KANDIDAT • {selectedApplicantDoc.tujuanMagang}
                   </span>
                   <h3 className="text-lg sm:text-xl font-extrabold text-white leading-tight">
                     {selectedApplicantDoc.namaMahasiswa}
                   </h3>
-                  <p className="text-slate-300 text-xs mt-0.5 font-mono">
-                    NIM: {selectedApplicantDoc.nim} • {selectedApplicantDoc.programStudi}
+                  <p className="text-slate-300 text-xs mt-0.5 font-medium">
+                    {(() => {
+                      const studentRecord = getFromDB<Mahasiswa>('mahasiswa').find(s => s.nim === selectedApplicantDoc.nim || s.userId === selectedApplicantDoc.userId || s.id === selectedApplicantDoc.mahasiswaId);
+                      const roleLabel = studentRecord?.userStatusType || (selectedApplicantDoc.nim ? 'Mahasiswa' : 'Job Seeker');
+                      return `${roleLabel} · ${selectedApplicantDoc.programStudi || 'Sistem dan Teknologi Informasi'}`;
+                    })()}
                   </p>
                 </div>
               </div>
@@ -2278,23 +2280,32 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
               
               {/* 1. PROFIL PELAMAR & LOWONGAN YANG DILAMAR */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {/* PROFIL PELAMAR */}
+                {/* PROFIL KANDIDAT */}
                 <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-200/80 space-y-3">
                   <div className="flex items-center gap-2 border-b border-slate-200/70 pb-2.5">
                     <User className="w-4 h-4 text-[#0077C6]" />
-                    <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider">PROFIL PELAMAR</h4>
+                    <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider">PROFIL KANDIDAT</h4>
                   </div>
                   <div className="space-y-2 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="text-slate-500 font-medium">Nama Lengkap:</span>
                       <span className="font-bold text-slate-900">{selectedApplicantDoc.namaMahasiswa}</span>
                     </div>
+                    {(() => {
+                      const studentRecord = getFromDB<Mahasiswa>('mahasiswa').find(s => (selectedApplicantDoc.nim && s.nim === selectedApplicantDoc.nim) || s.userId === selectedApplicantDoc.userId || s.id === selectedApplicantDoc.mahasiswaId);
+                      const roleLabel = studentRecord?.userStatusType || (selectedApplicantDoc.nim ? 'Mahasiswa' : 'Job Seeker');
+                      if (roleLabel === 'Mahasiswa' && selectedApplicantDoc.nim) {
+                        return (
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-500 font-medium">NIM (Data Akademik):</span>
+                            <span className="font-mono font-semibold text-slate-800">{selectedApplicantDoc.nim}</span>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
                     <div className="flex items-center justify-between">
-                      <span className="text-slate-500 font-medium">NIM:</span>
-                      <span className="font-mono font-semibold text-slate-800">{selectedApplicantDoc.nim}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-500 font-medium">Program Studi:</span>
+                      <span className="text-slate-500 font-medium">Pendidikan:</span>
                       <span className="font-semibold text-slate-800">{selectedApplicantDoc.programStudi || 'Teknik Informatika'}</span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -2303,7 +2314,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-slate-500 font-medium">Email:</span>
-                      <span className="font-semibold text-slate-800">{selectedApplicantDoc.email || `mhs.${selectedApplicantDoc.nim}@umkendari.ac.id`}</span>
+                      <span className="font-semibold text-slate-800">{selectedApplicantDoc.email || (selectedApplicantDoc.nim ? `mhs.${selectedApplicantDoc.nim}@umkendari.ac.id` : 'pelamar@umkendari.ac.id')}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-slate-500 font-medium">Nomor HP / Whatsapp:</span>
@@ -2339,27 +2350,27 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 </div>
               </div>
 
-              {/* 2. TENTANG SAYA */}
+              {/* 2. TENTANG KANDIDAT */}
               <div className="space-y-2">
                 <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
-                  <Info className="w-4 h-4 text-blue-600" /> TENTANG SAYA
+                  <Info className="w-4 h-4 text-blue-600" /> TENTANG KANDIDAT
                 </h4>
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/70 text-slate-700 text-xs leading-relaxed">
                   {selectedApplicantDoc.catatan || 'Mahasiswa aktif semester 6 yang berintegritas tinggi, berorientasi pada detail, serta memiliki motivasi kuat untuk berkontribusi secara nyata dalam lingkungan kerja industri professional.'}
                 </div>
               </div>
 
-              {/* CATATAN SELEKSI (INTERNAL MITRA & ADMIN) */}
+              {/* CATATAN INTERNAL KANDIDAT */}
               <div className="bg-amber-50/60 p-5 rounded-2xl border border-amber-200/80 space-y-3">
                 <div className="flex items-center justify-between border-b border-amber-200/70 pb-2.5">
                   <div className="flex items-center gap-2">
                     <Edit3 className="w-4 h-4 text-amber-700" />
                     <h4 className="font-extrabold text-amber-950 text-xs uppercase tracking-wider">
-                      CATATAN SELEKSI (INTERNAL MITRA)
+                      CATATAN INTERNAL KANDIDAT
                     </h4>
                   </div>
                   <span className="text-[10px] font-bold text-amber-800 bg-amber-100/90 border border-amber-300/80 px-2.5 py-0.5 rounded-md">
-                    🔒 Rahasia (Tidak Terlihat oleh Mahasiswa)
+                    🔒 Rahasia (Tidak Terlihat oleh Kandidat)
                   </span>
                 </div>
 
@@ -2368,7 +2379,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                     rows={3}
                     value={internalNoteInput}
                     onChange={(e) => setInternalNoteInput(e.target.value)}
-                    placeholder="Tuliskan catatan evaluasi internal tentang pelamar (misal: Memiliki kemampuan React yang baik. Perlu ditanyakan pengalaman deployment saat interview)..."
+                    placeholder="Tuliskan catatan evaluasi internal tentang kandidat (misal: Memiliki kemampuan React yang baik. Perlu ditanyakan pengalaman deployment saat interview)..."
                     className="w-full p-3.5 rounded-xl border border-amber-300/80 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 leading-relaxed font-medium"
                   />
                   <div className="flex justify-end">
@@ -2377,7 +2388,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                       onClick={() => handleSaveInternalNote(selectedApplicantDoc.id)}
                       className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-2xs flex items-center gap-1.5 cursor-pointer"
                     >
-                      <CheckCircle className="w-3.5 h-3.5" /> Simpan Catatan Internal
+                      <CheckCircle className="w-3.5 h-3.5" /> Simpan Catatan Internal Kandidat
                     </button>
                   </div>
                 </div>
@@ -2594,7 +2605,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                         {selectedApplicantDoc.berkasNama || `CV_${selectedApplicantDoc.namaMahasiswa.replace(/\s+/g, '_')}.pdf`}
                       </h4>
                       <p className="text-[11px] text-emerald-700 font-medium flex items-center gap-1">
-                        <CheckCircle className="w-3.5 h-3.5 text-[#10B981]" /> Berkas CV Resmi Mahasiswa UMK
+                        <CheckCircle className="w-3.5 h-3.5 text-[#10B981]" /> CV Kandidat
                       </p>
                     </div>
                   </div>
@@ -2673,7 +2684,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                         }}
                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer flex items-center gap-1.5"
                       >
-                        <ArrowRight className="w-4 h-4" /> Mulai Review Pelamar
+                        <ArrowRight className="w-4 h-4" /> Mulai Review Kandidat
                       </button>
                     );
                   }

@@ -874,14 +874,21 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 
 ---
 
+<<<<<<< HEAD
 ## Tanggal: 12 Agustus 2026 (Sesi 2)
 **Developer:** ARYA APRIAWAN  
 **Fokus Pekerjaan:** Redesign Card Layout, Fitur Pencarian & Filter Tanggal pada 3 Sub-menu Layanan (Workshop, Softskill, Seminar)
+=======
+## Tanggal: 12 Agustus 2026 — Sesi 3
+**Developer:** Ikhsan  
+**Fokus Pekerjaan:** Pembaruan Terminologi Kandidat, Penyesuaian Tabel Pelamar & Seleksi, Integration Role Job Seeker, dan Logika Dinamis Input NIM
+>>>>>>> 037b71d (Pembaruan Terminologi Kandidat, Penyesuaian Tabel Pelamar & Seleksi)
 
 ---
 
 ### 🚀 Ringkasan Perubahan
 
+<<<<<<< HEAD
 #### 1. Implementasi UI Card Layout Reusable (`EventCardLayout.tsx`)
 - Merancang komponen modular `EventCardLayout` yang bersih, tanpa AI slop (tanpa gradient berlebihan, border & shadow tajam/lembut, tipografi rapi).
 - **Control Bar**: Dilengkapi dengan **Main Search Bar**, **Dropdown Status** (*Pendaftaran Dibuka*, *Segera Hadir*, *Selesai*), dan **Filter Rentang Tanggal** (*Mulai s/d Akhir*) beserta tombol *Reset Filter*.
@@ -915,4 +922,70 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 - [x] Verifikasi `npm run lint` & `npm run build` passed (0 error)
 
 ---
+=======
+#### 1. Pembaruan Terminologi & UI Dashboard User
+- **Fast-Role Switcher Bar**: Mengubah label tombol role switcher di top bar dari `MAHASISWA` menjadi `USER`.
+- **Label Email**: Mengubah label `EMAIL KAMPUS` menjadi `EMAIL` pada sekilas Data Pribadi dan form edit profil.
+- **Sub-deskripsi Identitas**: Mengubah teks `Informasi identitas resmi mahasiswa pelamar` menjadi `Informasi identitas resmi pelamar`.
+- **Header Kanan Atas**: Menghapus label subteks `"Mahasiswa"` di bawah nama pengguna pada header kanan atas dashboard user.
+
+#### 2. Penyesuaian Kolom Tabel Pelamar & Seleksi Mitra (`MitraDashboard.tsx`)
+- **Penghapusan Kolom NIM**: Menghapus kolom **NIM** dari tabel pelamar desktop dan kartu pelamar versi mobile.
+- **Pembaruan Header Kolom Tabel**: Mengubah nama kolom menjadi:
+  1. `KANDIDAT`
+  2. `PENDIDIKAN`
+  3. `POSISI YANG DILAMAR`
+  4. `TANGGAL MELAMAR`
+  5. `STATUS SELEKSI`
+  6. `AKSI`
+
+#### 3. Penyelarasan Terminologi Modal Detail Kandidat (`MitraDashboard.tsx`)
+- **Header Modal**: Mengubah judul modal dari `Detail Pelamar Lowongan` menjadi `DETAIL KANDIDAT`.
+- **Sub-header Modal**: Mengubah format dari `NIM: xxx • Prodi` menjadi `{Role/Status} · {Pendidikan}` (misal: `Mahasiswa · Teknik Informatika`, `Alumni · ...`, `Job Seeker · ...`). NIM dihapus sepenuhnya dari header modal.
+- **Kartu Profil**: Mengubah `PROFIL PELAMAR` menjadi `PROFIL KANDIDAT`.
+- **Label Fields**: Mengubah `NIM` menjadi `NIM (Data Akademik)` dan `Program Studi` menjadi `Pendidikan`.
+- **Tentang**: Mengubah section `TENTANG SAYA` menjadi `TENTANG KANDIDAT`.
+- **Catatan Internal**: Mengubah `CATATAN SELEKSI (INTERNAL MITRA)` menjadi `CATATAN INTERNAL KANDIDAT`.
+- **Badge Kerahasiaan**: Mengubah `🔒 Rahasia (Tidak Terlihat oleh Mahasiswa)` menjadi `🔒 Rahasia (Tidak Terlihat oleh Kandidat)`.
+- **Informasi CV**: Mengubah `Berkas CV Resmi Mahasiswa UMK` menjadi `CV Kandidat`.
+- **Tombol Aksi**: Mengubah `Mulai Review Pelamar` menjadi `Mulai Review Kandidat`.
+
+#### 4. Penambahan Role Status "Job Seeker" & Logika Dinamis NIM
+- **Tipe & Interface**: Menambahkan `'job_seeker'` pada `UserRole` dan `userStatusType` di `src/types.ts`.
+- **Menu Profil User**: Menambahkan pilihan **Job Seeker** pada dropdown status keanggotaan profil user (`StudentProfileView.tsx`).
+- **Form Lamaran**: Menghapus input NIM dari modal form lamaran (`JobApplicationModal.tsx`) sehingga form kembali ke 2 kolom (Email & Pendidikan/Prodi).
+- **Logika Dinamis NIM pada Profil**:
+  - **Jika Status = Mahasiswa**: Menampilkan kotak data NIM pada *Data Pribadi* dan input NIM pada modal *Edit Data*.
+  - **Jika Status = Alumni / Job Seeker**: Menyeleksi dan mengosongkan NIM serta menyembunyikan kotak dan input NIM dari profil.
+- **Logika Pengiriman & Tampilan Mitra**:
+  - `applyForJob` di `src/data.ts` otomatis mengeset NIM menjadi kosong jika pelamar bukan berstatus Mahasiswa.
+  - Baris `NIM (Data Akademik)` di modal Mitra hanya muncul jika kandidat berstatus **Mahasiswa**.
+
+### 📁 File Diubah
+- **[MODIFY]** `src/types.ts` — Tambah role 'job_seeker' dan field userStatusType
+- **[MODIFY]** `src/data.ts` — Update applyForJob untuk conditional NIM berdasarkan status Mahasiswa
+- **[MODIFY]** `src/App.tsx` — Update Fast-Role Tester label dari Mahasiswa ke USER
+- **[MODIFY]** `src/components/MahasiswaDashboard.tsx` — Hapus subteks "Mahasiswa" di bawah nama user header, update defaultNim
+- **[MODIFY]** `src/components/MitraDashboard.tsx` — Restrukturisasi kolom tabel pelamar & seleksi, update terminologi Kandidat, hapus NIM dari header modal, render NIM kondisional
+- **[MODIFY]** `src/components/StudentProfileView.tsx` — Tambah role Job Seeker, buat tampilan & edit NIM kondisional (hanya untuk Mahasiswa)
+- **[MODIFY]** `src/components/JobApplicationModal.tsx` — Hapus input NIM dari form lamaran kerja
+- **[MODIFY]** `src/components/JobDetail.tsx` — Pass defaultNim prop ke JobApplicationModal
+- **[MODIFY]** `progres.md`
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Pembaruan label Fast-Role Tester dari MAHASISWA ke USER
+- [x] Pembaruan label Email & sub-deskripsi identitas di profil user
+- [x] Menghapus kata "Mahasiswa" di bawah nama user pada header kanan atas
+- [x] Restrukturisasi header kolom tabel Pelamar & Seleksi (KANDIDAT, PENDIDIKAN, POSISI, TANGGAL, STATUS, AKSI)
+- [x] Penghapusan kolom NIM dari tabel & kartu pelamar Mitra
+- [x] Penyelarasan seluruh terminologi pelamar menjadi Kandidat pada modal Mitra
+- [x] Penghapusan NIM dari header modal detail kandidat Mitra
+- [x] Integrasi role baru **Job Seeker** pada profil user & types
+- [x] Penghapusan input NIM dari form pengajuan lamaran kerja
+- [x] Penerapan logika kondisional NIM (hanya tampil jika status = Mahasiswa)
+- [x] Pembersihan NIM otomatis saat status diubah dari Mahasiswa ke Alumni/Job Seeker
+- [x] Verifikasi typecheck TypeScript (`npx tsc --noEmit` → 0 error)
+- [x] Pencatatan laporan progres lengkap di `progres.md` (12 Agustus 2026 — Sesi 3)
+
+>>>>>>> 037b71d (Pembaruan Terminologi Kandidat, Penyesuaian Tabel Pelamar & Seleksi)
 

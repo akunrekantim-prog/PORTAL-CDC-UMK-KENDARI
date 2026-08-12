@@ -95,6 +95,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
     return names.slice(1).join(' ') || '';
   });
   const [email, setEmail] = useState(mahasiswaData?.email || user.email);
+  const [nim, setNim] = useState(mahasiswaData?.nim || '202101001');
   const [mobile, setMobile] = useState(mahasiswaData?.phone || '085241009988');
   const [nationality, setNationality] = useState(mahasiswaData?.nationality || 'Indonesian');
   const [countryOfResidence, setCountryOfResidence] = useState('Indonesia');
@@ -103,8 +104,8 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
     mahasiswaData?.aboutMe || 'Mahasiswa berdedikasi tinggi dari Universitas Muhammadiyah Kendari yang aktif mengasah keahlian di bidang Teknologi Informasi, Pengembangan Web, dan Manajemen Karir Profesional.'
   );
 
-  const [userStatusType, setUserStatusType] = useState<'Mahasiswa' | 'Alumni'>(
-    user.role === 'alumni' ? 'Alumni' : 'Mahasiswa'
+  const [userStatusType, setUserStatusType] = useState<'Mahasiswa' | 'Alumni' | 'Job Seeker'>(
+    mahasiswaData?.userStatusType || (user.role === 'alumni' ? 'Alumni' : user.role === 'job_seeker' ? 'Job Seeker' : 'Mahasiswa')
   );
 
   // Career preferences
@@ -224,6 +225,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
     e.preventDefault();
     const updatedProfile: Partial<Mahasiswa> = {
       nama: `${firstName} ${lastName}`.trim(),
+      nim,
       email,
       phone: mobile,
       nationality,
@@ -436,7 +438,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                 type="button"
                 onClick={() => setEditingSection('headerInfo')}
                 className="bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 text-[11px] font-bold px-3 py-1 rounded-full border border-emerald-500/30 backdrop-blur-md uppercase tracking-wider flex items-center gap-1.5 transition group cursor-pointer"
-                title="Klik untuk ubah status (Mahasiswa / Alumni)"
+                title="Klik untuk ubah status (Mahasiswa / Alumni / Job Seeker)"
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                 <span>{userStatusType}</span>
@@ -617,7 +619,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                   </div>
                   <div>
                     <h3 className="text-base font-extrabold text-slate-900">Data Pribadi</h3>
-                    <p className="text-[11px] text-slate-500 font-medium">Informasi identitas resmi mahasiswa pelamar</p>
+                    <p className="text-[11px] text-slate-500 font-medium">Informasi identitas resmi pelamar</p>
                   </div>
                 </div>
                 <button 
@@ -634,8 +636,15 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                   <div className="font-bold text-slate-900 text-sm truncate">{`${firstName} ${lastName}`.trim() || 'Belum Diisi'}</div>
                 </div>
 
+                {userStatusType === 'Mahasiswa' && (
+                  <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
+                    <div className="font-extrabold text-slate-400 uppercase tracking-wider text-[10px]">NIM (NOMOR INDUK MAHASISWA)</div>
+                    <div className="font-bold text-slate-900 text-sm font-mono">{nim || 'Belum Diisi'}</div>
+                  </div>
+                )}
+
                 <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
-                  <div className="font-extrabold text-slate-400 uppercase tracking-wider text-[10px]">EMAIL KAMPUS</div>
+                  <div className="font-extrabold text-slate-400 uppercase tracking-wider text-[10px]">EMAIL</div>
                   <div className="font-bold text-slate-900 text-sm truncate">{email || user.email}</div>
                 </div>
 
@@ -1067,7 +1076,13 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
 
             <form onSubmit={(e) => {
               e.preventDefault();
-              saveProfileData({ nama: `${firstName} ${lastName}`.trim() });
+              const updatedNim = userStatusType === 'Mahasiswa' ? nim : '';
+              saveProfileData({ 
+                nama: `${firstName} ${lastName}`.trim(),
+                userStatusType: userStatusType,
+                nim: updatedNim
+              });
+              if (userStatusType !== 'Mahasiswa') setNim('');
               setEditingSection(null);
               triggerToast('Info utama profil berhasil diperbarui!');
             }} className="space-y-4 text-xs">
@@ -1075,11 +1090,12 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                 <label className="font-bold text-slate-700 block mb-1">Status Keanggotaan</label>
                 <select 
                   value={userStatusType} 
-                  onChange={e => setUserStatusType(e.target.value as 'Mahasiswa' | 'Alumni')}
+                  onChange={e => setUserStatusType(e.target.value as 'Mahasiswa' | 'Alumni' | 'Job Seeker')}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white font-bold"
                 >
                   <option value="Mahasiswa">Mahasiswa</option>
                   <option value="Alumni">Alumni</option>
+                  <option value="Job Seeker">Job Seeker</option>
                 </select>
               </div>
 
@@ -1177,9 +1193,17 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                 </div>
               </div>
 
-              <div>
-                <label className="font-bold text-slate-700 block mb-1">Email Kampus / Kontak</label>
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" />
+              <div className={userStatusType === 'Mahasiswa' ? "grid grid-cols-1 sm:grid-cols-2 gap-3" : "block"}>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Email / Kontak</label>
+                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" />
+                </div>
+                {userStatusType === 'Mahasiswa' && (
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">NIM (Nomor Induk Mahasiswa)</label>
+                    <input type="text" value={nim} onChange={e => setNim(e.target.value)} placeholder="Contoh: 202101001" className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 font-mono" />
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

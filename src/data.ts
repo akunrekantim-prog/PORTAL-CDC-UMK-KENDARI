@@ -1174,7 +1174,8 @@ export function applyForJob(userId: string, job: Lowongan, extraData?: any) {
   const applicantName = extraData?.applicantName || (student ? student.nama : (currentUser?.name || 'Mahasiswa Pelamar'));
   const applicantEmail = extraData?.applicantEmail || (student ? student.email : (currentUser?.email || ''));
   const applicantProdi = extraData?.applicantProdi || (student ? student.programStudi : 'Teknologi Informasi');
-  const applicantNim = student?.nim || '202201001';
+  const isMahasiswaRole = student?.userStatusType === 'Mahasiswa' || (!student?.userStatusType && currentUser?.role === 'mahasiswa');
+  const applicantNim = extraData?.applicantNim ?? (isMahasiswaRole ? (student?.nim || '') : '');
 
   const pengajuanId = `pj_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
   const newPengajuan: PengajuanMagang = {

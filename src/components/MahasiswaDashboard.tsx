@@ -239,7 +239,6 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
           <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
               <div className="font-bold text-sm text-white leading-tight">{user.name}</div>
-              <div className="text-blue-200 text-xs font-medium">Mahasiswa</div>
             </div>
             <button 
               onClick={onLogout}
@@ -338,6 +337,7 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
           defaultName={`${firstName} ${lastName}`.trim()}
           defaultEmail={email}
           defaultProdi={major}
+          defaultNim={mahasiswaData?.nim || '202101001'}
         />
       )}
     </div>
