@@ -333,59 +333,141 @@ export default function PublicLayout({
                                  before:rounded-full before:bg-[#10B981]">
                     PROGRAM & PENGUMUMAN
                   </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
                     {/* Job Preparation card */}
-                    <motion.div
-                      whileHover={{ y: -3 }}
-                      className="bg-gradient-to-br from-[#1E3A8A] to-blue-700
-                                 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden cursor-pointer"
+                    <div
+                      onClick={() => (onNavigateToRegister ? onNavigateToRegister('alumni') : onNavigateToLogin())}
+                      className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group"
                     >
-                      <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none">
-                        <Target className="w-40 h-40 translate-x-10 translate-y-10" />
-                      </div>
-                      <div className="relative z-10 space-y-3">
-                        <span className="bg-[#10B981] text-white text-[10px] font-extrabold
-                                          px-2 py-0.5 rounded-sm uppercase tracking-wider inline-block">
-                          Program Unggulan
-                        </span>
-                        <h4 className="font-extrabold text-xl leading-tight">JOB PREPARATION 2026</h4>
-                        <p className="text-blue-200 text-sm leading-relaxed">
-                          Persiapkan dirimu menghadapi dunia kerja dengan program intensif bersama praktisi HR terbaik.
-                        </p>
-                        <button
-                          onClick={() => (onNavigateToRegister ? onNavigateToRegister('alumni') : onNavigateToLogin())}
-                          className="mt-2 inline-flex items-center gap-1.5 bg-white text-[#1E3A8A]
-                                     text-xs font-extrabold px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors"
-                        >
-                          Daftar Sekarang <ArrowRight className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </motion.div>
+                      <div>
+                        {/* Company / Program Image Header Container (Matching Info Job Terkini) */}
+                        <div className="w-full h-44 relative overflow-hidden bg-slate-50 flex items-center justify-center p-4 border-b border-slate-100">
+                          <img
+                            src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=800&auto=format&fit=crop"
+                            alt="Job Preparation 2026"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          <div className="absolute top-3 left-3 flex items-center gap-2">
+                            <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-emerald-600 text-white">
+                              Program Unggulan
+                            </span>
+                          </div>
+                        </div>
 
-                    {/* Congratulations card */}
-                    <motion.div
-                      whileHover={{ y: -3 }}
-                      className="bg-gradient-to-br from-amber-500 to-orange-600
-                                 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden cursor-pointer"
-                    >
-                      <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none">
-                        <Award className="w-40 h-40 translate-x-10 translate-y-10" />
-                      </div>
-                      <div className="relative z-10 space-y-3">
-                        <span className="bg-white text-amber-700 text-[10px] font-extrabold
-                                          px-2 py-0.5 rounded-sm uppercase tracking-wider inline-block">
-                          Pengumuman
-                        </span>
-                        <h4 className="font-extrabold text-xl leading-tight">Selamat &amp; Sukses</h4>
-                        <p className="text-amber-100 text-sm leading-relaxed">
-                          Pimpinan Universitas Muhammadiyah Kendari Periode 2026–2030. Semoga amanah &amp; membawa kemajuan.
-                        </p>
-                        <div className="flex items-center gap-2 text-xs font-bold text-white/80 mt-2">
-                          <Calendar className="w-3.5 h-3.5" /> 2026 · Kendari, Sultra
+                        {/* Card Content */}
+                        <div className="p-5 space-y-2">
+                          <div className="text-xs font-bold text-orange-600 tracking-wide uppercase truncate">
+                            CDC UM KENDARI
+                          </div>
+
+                          <h3 className="font-extrabold text-slate-900 text-lg leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2">
+                            JOB PREPARATION 2026
+                          </h3>
+
+                          <p className="text-slate-500 text-xs leading-relaxed line-clamp-2">
+                            Persiapkan dirimu menghadapi dunia kerja dengan program intensif bersama praktisi HR terbaik.
+                          </p>
+
+                          <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
+                            <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
+                            <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
+                              <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              2026
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </motion.div>
+                    </div>
+
+                    {/* Congratulations card */}
+                    <div
+                      className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group"
+                    >
+                      <div>
+                        {/* Company / Program Image Header Container (Matching Info Job Terkini) */}
+                        <div className="w-full h-44 relative overflow-hidden bg-slate-50 flex items-center justify-center p-4 border-b border-slate-100">
+                          <img
+                            src="https://images.unsplash.com/photo-1531545514256-b1400bc00f31?q=80&w=800&auto=format&fit=crop"
+                            alt="Selamat & Sukses"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          <div className="absolute top-3 left-3 flex items-center gap-2">
+                            <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-amber-600 text-white">
+                              Pengumuman
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Card Content */}
+                        <div className="p-5 space-y-2">
+                          <div className="text-xs font-bold text-orange-600 tracking-wide uppercase truncate">
+                            UNIVERSITAS MUHAMMADIYAH KENDARI
+                          </div>
+
+                          <h3 className="font-extrabold text-slate-900 text-lg leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2">
+                            Selamat &amp; Sukses Pimpinan UMK
+                          </h3>
+
+                          <p className="text-slate-500 text-xs leading-relaxed line-clamp-2">
+                            Pimpinan Universitas Muhammadiyah Kendari Periode 2026–2030. Semoga amanah &amp; membawa kemajuan.
+                          </p>
+
+                          <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
+                            <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
+                            <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
+                              <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              2026
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Dynamic Published Pengumuman Cards (If available) */}
+                    {publishedPengumuman.map(item => (
+                      <div
+                        key={item.id}
+                        className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group"
+                      >
+                        <div>
+                          <div className="w-full h-44 relative overflow-hidden bg-slate-50 flex items-center justify-center p-4 border-b border-slate-100">
+                            <div className="flex flex-col items-center justify-center text-slate-400 space-y-1">
+                              <Megaphone className="w-10 h-10 text-[#10B981]" />
+                              <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">PENGUMUMAN</span>
+                            </div>
+                            <div className="absolute top-3 left-3 flex items-center gap-2">
+                              <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-blue-600 text-white">
+                                {item.category ? item.category.toUpperCase() : 'PENGUMUMAN'}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="p-5 space-y-2">
+                            <div className="text-xs font-bold text-orange-600 tracking-wide uppercase truncate">
+                              CDC UM KENDARI
+                            </div>
+
+                            <h3 className="font-extrabold text-slate-900 text-lg leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2">
+                              {item.title}
+                            </h3>
+
+                            <p className="text-slate-500 text-xs leading-relaxed line-clamp-2">
+                              {item.content}
+                            </p>
+
+                            <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
+                              <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
+                              <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
+                                <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                {formatDateDisplay(item.createdAt)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
                   </div>
                 </section>
 
