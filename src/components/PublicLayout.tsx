@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 
 import { Lowongan, Berita, Pengumuman } from '../types';
-import { sortJobsByNewest, formatDateDisplay } from '../data';
+import { sortJobsByNewest, formatDateDisplay, isJobDeadlinePassed } from '../data';
 import { motion } from 'motion/react';
 import Header from './Header';
 import { Footer } from './Footer';
@@ -111,19 +111,18 @@ export default function PublicLayout({
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'magang' | 'kerja'>('all');
 
-  /* Data helpers: Lowongan terbaru (newest created) selalu di atas */
-  const publishedLowongan = sortJobsByNewest(lowongan.filter(l => l.status === 'published'));
+  /* Data helpers: Lowongan kerja terbaru (newest created) selalu di atas */
+  const publishedLowongan = sortJobsByNewest(lowongan.filter(l => l.status === 'published' && l.tipe !== 'magang'));
   const publishedBerita = berita.filter(b => b.status === 'published');
   const publishedPengumuman = pengumuman.filter(p => p.status === 'published');
 
   const filteredLowongan = publishedLowongan.filter(item => {
     const q = searchQuery.toLowerCase();
-    const matchQ =
+    return (
       item.judul.toLowerCase().includes(q) ||
       item.namaInstansi.toLowerCase().includes(q) ||
-      item.lokasi.toLowerCase().includes(q);
-    const matchT = filterType === 'all' ? true : item.tipe === filterType;
-    return matchQ && matchT;
+      item.lokasi.toLowerCase().includes(q)
+    );
   });
 
   return (
@@ -215,17 +214,6 @@ export default function PublicLayout({
                     </button>
                   </div>
                 </div>
-
-                {/* Filter pills */}
-                <div className="flex flex-wrap items-center justify-center gap-3">
-                  {(['all', 'kerja', 'magang'] as const).map(f => (
-                    <button
-                      key={f}
-                      onClick={() => setFilterType(f)}
-                    >
-                    </button>
-                  ))}
-                </div>
               </div>
             </section>
 
@@ -287,14 +275,6 @@ export default function PublicLayout({
                                 </div>
                               )}
                               <div className="absolute top-3 left-3 flex items-center gap-2">
-                                <span
-                                  className={`px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs ${item.tipe === 'magang'
-                                    ? 'bg-purple-600 text-white'
-                                    : 'bg-emerald-600 text-white'
-                                    }`}
-                                >
-                                  {item.tipe === 'magang' ? 'Magang' : 'Kerja'}
-                                </span>
                                 {item.jenisPekerjaan && (
                                   <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-slate-700 text-white">
                                     {item.jenisPekerjaan === 'full-time' ? 'Full-Time' : 'Part-Time'}
@@ -722,14 +702,14 @@ export default function PublicLayout({
             {/* Title & Subtitle */}
             <div className="space-y-1">
               <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1B365D] tracking-tight">
-                Daftar Lowongan Kerja &amp; Magang
+                Daftar Lowongan Kerja
               </h2>
               <p className="text-slate-500 font-medium text-sm sm:text-base">
                 Cari peluang karir terbaik hasil jalinan kerja sama Universitas.
               </p>
             </div>
 
-            {/* Controls Bar: Search Input (Left) & Filter Tabs (Right) */}
+            {/* Controls Bar: Search Input */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="relative flex-1 max-w-xl">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -740,22 +720,6 @@ export default function PublicLayout({
                   placeholder="Cari kata kunci, instansi, atau lokasi..."
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1B365D]/20 focus:border-[#1B365D] shadow-2xs"
                 />
-              </div>
-
-              {/* Filter Tabs: Semua | Magang | Kerja */}
-              <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-slate-200 shrink-0 shadow-2xs">
-                {(['all', 'magang', 'kerja'] as const).map(f => (
-                  <button
-                    key={f}
-                    onClick={() => setFilterType(f)}
-                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === f
-                      ? 'bg-[#1B365D] text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                      }`}
-                  >
-                    {f === 'all' ? 'Semua' : f === 'magang' ? 'Magang' : 'Kerja'}
-                  </button>
-                ))}
               </div>
             </div>
 
@@ -794,14 +758,6 @@ export default function PublicLayout({
                           </div>
                         )}
                         <div className="absolute top-3 left-3 flex items-center gap-2">
-                          <span
-                            className={`px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs ${item.tipe === 'magang'
-                              ? 'bg-purple-600 text-white'
-                              : 'bg-emerald-600 text-white'
-                              }`}
-                          >
-                            {item.tipe === 'magang' ? 'Magang' : 'Kerja'}
-                          </span>
                           {item.jenisPekerjaan && (
                             <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-slate-700 text-white">
                               {item.jenisPekerjaan === 'full-time' ? 'Full-Time' : 'Part-Time'}

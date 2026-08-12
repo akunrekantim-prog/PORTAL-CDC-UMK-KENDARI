@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 import { Lowongan } from '../types';
-import { getSavedJobIds, toggleSaveJob, sortJobsByNewest, formatDateDisplay } from '../data';
+import { getSavedJobIds, toggleSaveJob, sortJobsByNewest, formatDateDisplay, isJobDeadlinePassed } from '../data';
 import { JobDetail } from './JobDetail';
 import { Footer } from './Footer';
 
@@ -159,8 +159,8 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
     setCurrentPage(1);
   }, [keyword, selectedLocations, selectedSpecializations]);
 
-  // Filter Published Jobs (Lowongan terbaru selalu di atas)
-  const publishedJobs = sortJobsByNewest(jobs.filter(j => j.status === 'published'));
+  // Filter Published Jobs (Lowongan kerja terbaru selalu di atas)
+  const publishedJobs = sortJobsByNewest(jobs.filter(j => j.status === 'published' && j.tipe !== 'magang'));
 
   // Filter Jobs Logic
   const filteredJobs = publishedJobs.filter(job => {
@@ -566,15 +566,6 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
                         </div>
                       )}
                       <div className="absolute top-3 left-3 flex items-center gap-2">
-                        <span
-                          className={`px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs ${
-                            item.tipe === 'magang'
-                              ? 'bg-purple-600 text-white'
-                              : 'bg-emerald-600 text-white'
-                          }`}
-                        >
-                          {item.tipe === 'magang' ? 'Magang' : 'Kerja'}
-                        </span>
                         {item.jenisPekerjaan && (
                           <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-slate-700 text-white">
                             {item.jenisPekerjaan === 'full-time' ? 'Full-Time' : 'Part-Time'}

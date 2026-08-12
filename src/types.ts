@@ -43,6 +43,28 @@ export interface Mahasiswa {
   workRights?: string;
   opportunityType?: string;
   preferredStartDate?: string;
+  ipk?: string;
+  skills?: string[];
+  experiences?: Array<{
+    id: string;
+    position: string;
+    company: string;
+    period: string;
+    description?: string;
+  }>;
+  certificates?: Array<{
+    id: string;
+    name: string;
+    issuer?: string;
+    year: string;
+  }>;
+  qualifications?: Array<{
+    id: string;
+    institution: string;
+    level: string;
+    year: string;
+    ipk?: string;
+  }>;
 }
 
 export type JenisKonten = 'berita' | 'lowongan' | 'program' | 'workshop' | 'softskill';
@@ -169,6 +191,30 @@ export interface PengajuanMagang {
   interviewResultNotes?: string;
   catatanInternal?: string[];
   riwayatSeleksi?: SelectionHistoryLog[];
+
+  // Profile Snapshot Fields
+  ipk?: string;
+  skills?: string[];
+  experiences?: Array<{
+    id: string;
+    position: string;
+    company: string;
+    period: string;
+    description?: string;
+  }>;
+  certificates?: Array<{
+    id: string;
+    name: string;
+    issuer?: string;
+    year: string;
+  }>;
+  qualifications?: Array<{
+    id: string;
+    institution: string;
+    level: string;
+    year: string;
+    ipk?: string;
+  }>;
 }
 
 export interface UploadedDocument {

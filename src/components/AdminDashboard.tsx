@@ -1007,7 +1007,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                   <button
                     key={s.label}
                     onClick={s.goto}
-                    className={`anim-fade-up ${s.stagger} text-left hover-lift bg-white p-5 rounded-xl border border-slate-200 shadow-sm cursor-pointer transition hover:border-blue-300 hover:shadow-md`}
+                    className={`anim-fade-up ${(s as any).stagger || ''} text-left hover-lift bg-white p-5 rounded-xl border border-slate-200 shadow-sm cursor-pointer transition hover:border-blue-300 hover:shadow-md`}
                   >
                     <div className="flex items-center gap-2.5">
                       <div className={`w-8 h-8 rounded-lg ${s.bg} ${s.ring} ring-1 flex items-center justify-center`}>

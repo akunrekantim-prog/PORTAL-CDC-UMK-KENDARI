@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   User as UserType, 
   Mitra, 
+  Mahasiswa,
   Lowongan, 
   PengajuanMagang, 
   SurveiLulusan,
@@ -699,30 +700,32 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
         </div>
       )}
 
-      {/* HEADER BANNER */}
-      <header className="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-40 shadow-sm" id="mtr-header">
+      {/* HEADER BANNER (Senior Programmer Vercel Grade) */}
+      <header className="bg-slate-950/95 backdrop-blur-md border-b border-slate-800/80 text-white sticky top-0 z-40 shadow-md" id="mtr-header">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-[#1E3A8A] text-white p-2 rounded-xl border border-blue-800/50">
-              <Building2 className="w-5 h-5" />
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-xl flex items-center justify-center font-bold shadow-xs border border-blue-400/30">
+              <Building2 className="w-5 h-5 text-white" />
             </div>
             <div>
               <div className="font-extrabold text-sm tracking-tight text-white flex items-center gap-2">
-                <span>PORTAL MITRA INDUSTRI & CDC</span>
-                <span className="bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/30 text-[10px] px-2 py-0.5 rounded-full font-bold">VERIFIED</span>
+                <span>PORTAL MITRA INDUSTRI &amp; CDC</span>
+                <span className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] px-2.5 py-0.5 rounded-full font-extrabold uppercase tracking-wider">
+                  VERIFIED MITRA
+                </span>
               </div>
-              <div className="text-slate-400 text-[11px]">CDC Universitas Muhammadiyah Kendari</div>
+              <div className="text-slate-400 text-[11px] font-medium">Universitas Muhammadiyah Kendari</div>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="text-right hidden sm:block">
-              <div className="font-bold text-xs text-white leading-none">{namaInstansi || user.name}</div>
-              <div className="text-[#10B981] text-[11px] font-medium leading-tight mt-0.5">PIC: {kontakPerson || user.name}</div>
+            <div className="text-right hidden sm:block bg-slate-900/80 px-3.5 py-1 rounded-xl border border-slate-800">
+              <div className="font-bold text-xs text-slate-100 leading-none">{namaInstansi || user.name}</div>
+              <div className="text-emerald-400 text-[11px] font-semibold leading-tight mt-0.5">PIC: {kontakPerson || user.name}</div>
             </div>
             <button 
               onClick={onLogout}
-              className="bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white px-3.5 py-2 rounded-xl text-xs font-semibold border border-slate-700 transition"
+              className="bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-4 py-2 rounded-xl text-xs font-bold border border-slate-700/80 transition active:scale-95 cursor-pointer"
               id="mtr-btn-logout"
             >
               Sign Out
@@ -736,17 +739,17 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
         
         {/* SIDEBAR NAVIGATION CONTROLS */}
         <aside className="lg:col-span-3 space-y-6" id="mtr-sidebar">
-          <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm space-y-6">
+          <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-xs space-y-6">
             <div className="flex items-center gap-3.5 pb-5 border-b border-slate-100">
-              <div className="w-12 h-12 bg-[#1E3A8A]/10 text-[#1E3A8A] rounded-2xl flex items-center justify-center font-extrabold text-lg shrink-0 border border-[#1E3A8A]/20">
-                {namaInstansi ? namaInstansi.charAt(0) : 'M'}
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl flex items-center justify-center font-extrabold text-lg shrink-0 shadow-xs border border-blue-400/30">
+                {namaInstansi ? namaInstansi.charAt(0).toUpperCase() : 'M'}
               </div>
               <div className="truncate min-w-0">
                 <div className="font-extrabold text-slate-900 text-sm truncate">{namaInstansi || 'Instansi Mitra'}</div>
                 <div className="text-slate-400 text-xs truncate font-medium">{user.email}</div>
-                <div className="inline-flex items-center gap-1 text-[#10B981] text-[10px] font-bold mt-1">
-                  <CheckCircle className="w-3 h-3 fill-[#10B981] text-white shrink-0" />
-                  <span>Mitra Resmi</span>
+                <div className="inline-flex items-center gap-1 text-emerald-600 text-[10px] font-extrabold uppercase tracking-wider mt-1 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
+                  <CheckCircle className="w-3 h-3 text-emerald-600 shrink-0" />
+                  <span>Mitra Terverifikasi</span>
                 </div>
               </div>
             </div>
@@ -769,10 +772,10 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                       setActiveTab(menu.id as any);
                       setShowAddJob(false);
                     }}
-                    className={`flex items-center gap-3.5 px-4 py-3 rounded-xl text-left text-xs sm:text-sm transition-all ${
+                    className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                       isActive
-                        ? 'bg-[#1E3A8A] text-white font-bold shadow-md shadow-blue-900/10'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-semibold'
+                        ? 'bg-[#0077C6] text-white shadow-md shadow-blue-500/20'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
                     }`}
                   >
                     <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
@@ -783,19 +786,19 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
             </nav>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm space-y-3" id="mtr-side-status">
-            <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#10B981]"></span>
+          <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-xs space-y-3" id="mtr-side-status">
+            <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
               Status Kemitraan
             </h4>
-            <div className="space-y-2 text-xs pt-1 border-t border-slate-100">
+            <div className="space-y-2 text-xs pt-2 border-t border-slate-100">
               <div className="flex justify-between items-center py-1">
                 <span className="text-slate-500 font-medium">Kerja Sama:</span>
-                <span className="font-bold text-[#10B981] bg-[#10B981]/10 px-2 py-0.5 rounded-md border border-[#10B981]/20 text-[11px]">VERIFIED / AKTIF</span>
+                <span className="font-extrabold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 text-[10px]">VERIFIED / AKTIF</span>
               </div>
               <div className="flex justify-between items-center py-1">
                 <span className="text-slate-500 font-medium">Lowongan Aktif:</span>
-                <span className="font-extrabold text-slate-800 bg-slate-100 px-2.5 py-0.5 rounded-md text-[11px]">{myJobs.filter(j => j.status === 'published').length} Posisi</span>
+                <span className="font-extrabold text-slate-900 bg-slate-100 px-2.5 py-0.5 rounded-full text-[11px] font-mono">{myJobs.filter(j => j.status === 'published').length} Posisi</span>
               </div>
             </div>
           </div>
@@ -804,24 +807,24 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
         {/* CORE CONTENT DISPLAY BOARD */}
         <main className="lg:col-span-9 space-y-8" id="mtr-dashboard-main">
           
-          {/* POLISHED VERIFIED PARTNER HEADER BANNER CARD (VISIBLE IN RINGKASAN & LOWONGAN) */}
+          {/* POLISHED VERIFIED PARTNER HEADER BANNER CARD */}
           {(activeTab === 'ringkasan' || activeTab === 'lowongan') && (
-            <div className="bg-white rounded-2xl border border-slate-100 p-6 sm:p-8 shadow-sm space-y-6" id="mtr-welcome-banner">
+            <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6" id="mtr-welcome-banner">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-100">
                 <div className="flex items-start gap-4 sm:gap-5">
-                  <div className="w-16 h-16 sm:w-18 sm:h-18 bg-[#1E3A8A]/10 text-[#1E3A8A] rounded-2xl flex items-center justify-center font-extrabold text-2xl sm:text-3xl shrink-0 border border-[#1E3A8A]/20 shadow-xs">
-                    {namaInstansi ? namaInstansi.charAt(0) : 'M'}
+                  <div className="w-16 h-16 sm:w-18 sm:h-18 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl flex items-center justify-center font-extrabold text-2xl sm:text-3xl shrink-0 shadow-md border border-blue-400/30">
+                    {namaInstansi ? namaInstansi.charAt(0).toUpperCase() : 'M'}
                   </div>
                   <div className="space-y-1.5 min-w-0">
-                    <div className="inline-flex items-center gap-1.5 bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30 px-3 py-1 rounded-full font-bold text-xs">
-                      <CheckCircle className="w-3.5 h-3.5 fill-[#10B981] text-white shrink-0" />
+                    <div className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1 rounded-full font-extrabold text-[11px] uppercase tracking-wider">
+                      <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                       <span>MITRA RESMI CDC UM KENDARI</span>
                     </div>
                     <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight truncate">{namaInstansi || 'Instansi Mitra Kampus'}</h2>
                     <div className="flex flex-wrap items-center gap-y-1.5 gap-x-5 text-xs font-medium text-slate-500 pt-0.5">
-                      <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-slate-400 shrink-0" /> PIC: <strong className="text-slate-700">{kontakPerson || user.name}</strong></span>
-                      <span className="flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5 text-slate-400 shrink-0" /> Sektor: <strong className="text-slate-700">{bidangIndustri}</strong></span>
-                      <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" /> Kontak: <strong className="text-slate-700">{phone || user.phone || '-'}</strong></span>
+                      <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-slate-400 shrink-0" /> PIC: <strong className="text-slate-800">{kontakPerson || user.name}</strong></span>
+                      <span className="flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5 text-slate-400 shrink-0" /> Sektor: <strong className="text-slate-800">{bidangIndustri}</strong></span>
+                      <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" /> Kontak: <strong className="text-slate-800">{phone || user.phone || '-'}</strong></span>
                     </div>
                   </div>
                 </div>
@@ -829,13 +832,13 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 <div className="flex items-center gap-3 shrink-0 self-start md:self-center">
                   <button 
                     onClick={() => setActiveTab('profil')} 
-                    className="bg-slate-100 text-slate-700 hover:bg-slate-200 px-4 py-2.5 rounded-xl text-xs font-semibold transition flex items-center gap-2"
+                    className="bg-slate-100 text-slate-700 hover:bg-slate-200 px-4 py-2.5 rounded-2xl text-xs font-bold transition flex items-center gap-2 cursor-pointer"
                   >
                     <FileText className="w-4 h-4 text-slate-500" /> Edit Profil
                   </button>
                   <button 
                     onClick={() => { setActiveTab('lowongan'); setShowAddJob(true); }} 
-                    className="bg-[#10B981] hover:bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-2"
+                    className="bg-[#0077C6] hover:bg-blue-700 text-white px-5 py-2.5 rounded-2xl text-xs font-extrabold transition shadow-xs flex items-center gap-2 cursor-pointer active:scale-95"
                   >
                     <Plus className="w-4 h-4" /> Posting Lowongan
                   </button>
@@ -844,35 +847,37 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
               {/* QUICK STAT COUNTERS WITH CLEAN ICON CARDS */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-150 flex items-center gap-4 hover:border-slate-300 transition group">
-                  <div className="w-12 h-12 bg-[#1E3A8A]/10 text-[#1E3A8A] rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+                <div className="bg-blue-50/50 p-5 rounded-2xl border border-blue-100/80 flex items-center gap-4 hover:border-blue-200 transition group">
+                  <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-105 transition shadow-xs font-bold">
                     <Briefcase className="w-6 h-6" />
                   </div>
                   <div>
-                    <div className="text-slate-400 font-bold text-[11px] uppercase tracking-wider">Lowongan Aktif</div>
-                    <div className="text-2xl font-extrabold text-slate-900 mt-0.5">{myJobs.filter(j => j.status === 'published').length} <span className="text-xs font-semibold text-slate-500">Posisi</span></div>
+                    <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Lowongan</div>
+                    <div className="text-2xl font-extrabold text-slate-900 font-mono mt-0.5">{myJobs.length} Posisi</div>
                   </div>
                 </div>
 
-                <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-150 flex items-center gap-4 hover:border-slate-300 transition group">
-                  <div className="w-12 h-12 bg-blue-500/10 text-blue-600 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+                <div className="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100/80 flex items-center gap-4 hover:border-emerald-200 transition group">
+                  <div className="w-12 h-12 bg-emerald-600 text-white rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-105 transition shadow-xs font-bold">
                     <Users className="w-6 h-6" />
                   </div>
                   <div>
-                    <div className="text-slate-400 font-bold text-[11px] uppercase tracking-wider">Total Pelamar</div>
-                    <div className="text-2xl font-extrabold text-slate-900 mt-0.5">{myApplicants.length} <span className="text-xs font-semibold text-slate-500">Mahasiswa</span></div>
+                    <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Pelamar Masuk</div>
+                    <div className="text-2xl font-extrabold text-slate-900 font-mono mt-0.5">{myApplicants.length} Pelamar</div>
                   </div>
                 </div>
 
-                <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-150 flex items-center gap-4 hover:border-slate-300 transition group">
-                  <div className="w-12 h-12 bg-[#10B981]/10 text-[#10B981] rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+                <div className="bg-purple-50/50 p-5 rounded-2xl border border-purple-100/80 flex items-center gap-4 hover:border-purple-200 transition group">
+                  <div className="w-12 h-12 bg-purple-600 text-white rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-105 transition shadow-xs font-bold">
                     <CheckCircle className="w-6 h-6" />
                   </div>
                   <div>
-                    <div className="text-slate-400 font-bold text-[11px] uppercase tracking-wider">Status Approval</div>
-                    <div className="text-base font-extrabold text-[#10B981] mt-0.5 flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-[#10B981]"></span>
-                      Aktif / Terverifikasi
+                    <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Diterima &amp; Rekrut</div>
+                    <div className="text-2xl font-extrabold text-slate-900 font-mono mt-0.5">
+                      {myApplicants.filter(a => {
+                        const s = (a.status || '').toLowerCase();
+                        return s === 'accepted' || s === 'diterima' || s === 'completed';
+                      }).length} Orang
                     </div>
                   </div>
                 </div>
@@ -884,47 +889,52 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
           {activeTab === 'ringkasan' && (
             <div id="mtr-panel-ringkasan" className="space-y-6">
               {/* LATEST APPLICANTS PREVIEW (FR-MTR-05) */}
-              <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm space-y-4" id="latest-applicants-sec">
-                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-5" id="latest-applicants-sec">
+                <div className="flex items-center justify-between pb-4 border-b border-slate-100">
                   <div>
-                    <h4 className="font-extrabold text-slate-900 text-base">Pelamar Magang Terbaru</h4>
-                    <p className="text-xs text-slate-400">Daftar mahasiswa yang baru saja melamar ke lowongan instansi Anda</p>
+                    <h4 className="font-extrabold text-slate-900 text-lg tracking-tight">Pelamar Kerja Terbaru</h4>
+                    <p className="text-xs text-slate-500 font-medium mt-0.5">Daftar mahasiswa &amp; alumni yang baru saja melamar ke lowongan kerja instansi Anda</p>
                   </div>
-                  <button onClick={() => setActiveTab('pelamar')} className="text-[#1E3A8A] hover:underline text-xs font-bold flex items-center gap-1">
+                  <button onClick={() => setActiveTab('pelamar')} className="text-[#0077C6] hover:text-blue-800 text-xs font-extrabold flex items-center gap-1 cursor-pointer">
                     Semua Pelamar <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
 
                 {myApplicants.length === 0 ? (
-                  <div className="py-12 text-center text-xs text-slate-400 space-y-2">
-                    <Users className="w-10 h-10 text-slate-200 mx-auto" />
-                    <p>Belum ada mahasiswa yang melamar pada postingan lowongan Anda.</p>
+                  <div className="py-14 text-center text-xs text-slate-400 space-y-2 bg-slate-50/60 rounded-2xl border border-dashed border-slate-200">
+                    <Users className="w-10 h-10 text-slate-300 mx-auto" />
+                    <p className="font-semibold text-slate-600">Belum ada mahasiswa yang melamar pada postingan lowongan Anda.</p>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-3.5">
                     {myApplicants.slice(0, 3).map((appl) => (
-                      <div key={appl.id} className="bg-slate-50/80 hover:bg-slate-50 p-5 rounded-2xl border border-slate-150 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition">
-                        <div className="space-y-1">
-                          <h5 className="font-extrabold text-slate-900 text-sm">{appl.namaMahasiswa}</h5>
-                          <div className="text-xs text-slate-600 flex items-center gap-2 font-medium">
-                            <span className="bg-white px-2 py-0.5 rounded border border-slate-200 font-mono text-[11px]">NIM: {appl.nim}</span>
-                            <span>• {appl.programStudi}</span>
+                      <div key={appl.id} className="bg-slate-50/80 hover:bg-slate-100/70 p-5 rounded-2xl border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition shadow-2xs">
+                        <div className="flex items-start gap-3.5">
+                          <div className="w-11 h-11 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-2xl flex items-center justify-center font-extrabold text-sm shrink-0 shadow-xs">
+                            {appl.namaMahasiswa ? appl.namaMahasiswa.charAt(0).toUpperCase() : 'M'}
                           </div>
-                          <div className="text-[11px] text-slate-500 pt-0.5">Posisi: <strong className="text-slate-800">{appl.tujuanMagang}</strong></div>
+                          <div className="space-y-1">
+                            <h5 className="font-extrabold text-slate-900 text-sm leading-snug">{appl.namaMahasiswa}</h5>
+                            <div className="text-xs text-slate-600 flex flex-wrap items-center gap-2 font-medium">
+                              <span className="bg-white px-2 py-0.5 rounded-md border border-slate-200 font-mono text-[11px] font-bold text-slate-700">NIM: {appl.nim}</span>
+                              <span>• {appl.programStudi}</span>
+                            </div>
+                            <div className="text-xs text-slate-500 pt-0.5">Posisi: <strong className="text-slate-800 font-bold">{appl.tujuanMagang}</strong></div>
+                          </div>
                         </div>
                         
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
                           <button 
                             onClick={() => setSelectedApplicantDoc(appl)}
-                            className="bg-white hover:bg-slate-100 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-semibold border border-slate-200 transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                            className="bg-white hover:bg-slate-50 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold border border-slate-200 transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
                           >
-                            <FileText className="w-3.5 h-3.5 text-[#10B981]" /> Lihat & Download Berkas
+                            <FileText className="w-3.5 h-3.5 text-emerald-600" /> Lihat Berkas
                           </button>
                           <button 
                             onClick={() => setActiveTab('pelamar')}
-                            className="bg-[#10B981] hover:bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm"
+                            className="bg-[#0077C6] hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-extrabold transition shadow-xs cursor-pointer active:scale-95"
                           >
-                            Tinjau & Verifikasi
+                            Tinjau Pelamar
                           </button>
                         </div>
                       </div>
@@ -937,7 +947,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
           {/* TAB 2: PROFIL INSTANSI (FR-MTR-02) */}
           {activeTab === 'profil' && (
-            <div className="bg-white rounded-2xl border border-slate-100 p-6 sm:p-8 shadow-sm space-y-6" id="mtr-panel-profil">
+            <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6" id="mtr-panel-profil">
               <div className="border-b border-slate-100 pb-4">
                 <h3 className="font-extrabold text-slate-900 text-lg">Kelola Identitas Profil Instansi</h3>
                 <p className="text-xs text-slate-500 mt-0.5">Informasi ini akan ditampilkan pada lembar detail lowongan di halaman publik CDC.</p>
@@ -1851,24 +1861,31 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                       </div>
 
                       {/* DESKTOP TABLE VIEW (>= lg) */}
-                      <div className="hidden lg:block overflow-x-auto rounded-xl border border-slate-100" id="applicants-table-container">
+                      <div className="hidden lg:block overflow-x-auto rounded-2xl border border-slate-200/90 shadow-2xs" id="applicants-table-container">
                       <table className="w-full text-left border-collapse text-xs sm:text-sm">
                         <thead>
-                          <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold text-xs uppercase tracking-wider">
-                            <th className="py-3.5 px-4">Nama Pelamar</th>
-                            <th className="py-3.5 px-4">NIM</th>
-                            <th className="py-3.5 px-4">Program Studi</th>
-                            <th className="py-3.5 px-4">Posisi yang Dilamar</th>
-                            <th className="py-3.5 px-4">Tanggal Melamar</th>
-                            <th className="py-3.5 px-4">Status Seleksi</th>
-                            <th className="py-3.5 px-4 text-right">Aksi</th>
+                          <tr className="bg-slate-100/70 border-b border-slate-200 text-slate-600 font-extrabold text-xs uppercase tracking-wider">
+                            <th className="py-4 px-4">Nama Pelamar</th>
+                            <th className="py-4 px-4">NIM</th>
+                            <th className="py-4 px-4">Program Studi</th>
+                            <th className="py-4 px-4">Posisi yang Dilamar</th>
+                            <th className="py-4 px-4">Tanggal Melamar</th>
+                            <th className="py-4 px-4">Status Seleksi</th>
+                            <th className="py-4 px-4 text-right">Aksi</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 text-slate-700" id="applicants-table-body">
                           {paginatedAppls.map((appl) => (
-                            <tr key={appl.id} className="hover:bg-slate-50/70 transition duration-150">
+                            <tr key={appl.id} className="hover:bg-slate-50/80 transition duration-150">
                               <td className="py-4 px-4 font-bold text-slate-900">
-                                <div>{appl.namaMahasiswa}</div>
+                                <div className="flex items-center gap-3">
+                                  <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-extrabold flex items-center justify-center text-xs shrink-0 shadow-2xs">
+                                    {appl.namaMahasiswa ? appl.namaMahasiswa.charAt(0).toUpperCase() : 'M'}
+                                  </div>
+                                  <div>
+                                    <div className="font-extrabold text-slate-900">{appl.namaMahasiswa}</div>
+                                  </div>
+                                </div>
                               </td>
                               <td className="py-4 px-4 font-mono text-xs text-slate-600 font-semibold">{appl.nim}</td>
                               <td className="py-4 px-4 text-slate-600 font-medium">{appl.programStudi || '-'}</td>
@@ -2364,61 +2381,155 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                     </button>
                   </div>
                 </div>
-              </div>
+                         {/* 3. PENDIDIKAN, SKILL, PENGALAMAN & SERTIFIKAT (Dinamis dari Profil Pelamar / Snapshot Lamaran) */}
+              {(() => {
+                const students = getFromDB<Mahasiswa>('mahasiswa');
+                const applicantProfile = students.find(
+                  s => s.userId === selectedApplicantDoc.userId || s.id === selectedApplicantDoc.mahasiswaId || s.nama.toLowerCase() === selectedApplicantDoc.namaMahasiswa.toLowerCase()
+                );
 
-              {/* 3. PENDIDIKAN & SKILL (Grid 2 Kolom) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {/* PENDIDIKAN */}
-                <div className="bg-white p-4 rounded-2xl border border-slate-200/80 space-y-2.5">
-                  <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
-                    <GraduationCap className="w-4 h-4 text-emerald-600" /> PENDIDIKAN
-                  </h4>
-                  <div className="space-y-1 text-xs">
-                    <div className="font-bold text-slate-900">Universitas Muhammadiyah Kendari (UMK)</div>
-                    <div className="text-slate-600 font-medium">{selectedApplicantDoc.programStudi || 'Teknik Informatika'}</div>
-                    <div className="text-slate-500 text-[11px] font-mono mt-1">IPK: <span className="font-bold text-emerald-600">3.85 / 4.00</span></div>
+                // Education / Qualifications
+                const qualifications = selectedApplicantDoc.qualifications || applicantProfile?.qualifications || [
+                  {
+                    id: '1',
+                    institution: 'Universitas Muhammadiyah Kendari (UMK)',
+                    level: `Sarjana (S1) - ${selectedApplicantDoc.programStudi || 'Teknik Informatika'}`,
+                    year: '2026'
+                  }
+                ];
+                const ipkDisplay = selectedApplicantDoc.ipk || applicantProfile?.ipk || '3.85 / 4.00';
+
+                // Skills
+                const skillsList = selectedApplicantDoc.skills || applicantProfile?.skills || [
+                  'JavaScript', 'React.js', 'UI/UX Design', 'Node.js', 'Python', 'Git & GitHub', 'HTML/CSS', 'Tailwind CSS'
+                ];
+
+                // Experiences
+                const experiencesList = selectedApplicantDoc.experiences || applicantProfile?.experiences || [
+                  {
+                    id: '1',
+                    position: 'Fullstack Web Developer Intern',
+                    company: 'PT Go Digital Kendari',
+                    period: '2026 - Sekarang',
+                    description: 'Mengembangkan dan memelihara aplikasi portal akademik kampus dan integrasi RESTful API backend.'
+                  },
+                  {
+                    id: '2',
+                    position: 'Anggota Divisi IT & Komunikasi',
+                    company: 'Himpunan Mahasiswa Teknik Informatika UMK',
+                    period: '2024 - 2025',
+                    description: 'Mengelola situs web kegiatan mahasiswa dan publikasi digital kampus.'
+                  }
+                ];
+
+                // Certificates
+                const certificatesList = selectedApplicantDoc.certificates || applicantProfile?.certificates || [
+                  {
+                    id: 'cert_1',
+                    name: 'Sertifikat Kompetensi Fullstack Web Developer - BNSP',
+                    issuer: 'BNSP',
+                    year: '2025'
+                  },
+                  {
+                    id: 'cert_2',
+                    name: 'Google IT Support Professional Certificate',
+                    issuer: 'Google / Coursera',
+                    year: '2024'
+                  }
+                ];
+
+                return (
+                  <div className="space-y-5">
+                    {/* Grid Pendidikan & Skill */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      {/* PENDIDIKAN */}
+                      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 space-y-2.5">
+                        <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                          <GraduationCap className="w-4 h-4 text-emerald-600" /> PENDIDIKAN
+                        </h4>
+                        <div className="space-y-1.5 text-xs">
+                          {qualifications.map((q, idx) => (
+                            <div key={q.id || idx} className="border-b border-slate-100 last:border-0 pb-1.5 last:pb-0">
+                              <div className="font-bold text-slate-900">{q.institution}</div>
+                              <div className="text-slate-600 font-medium">{q.level} ({q.year})</div>
+                              {q.ipk && (
+                                <div className="text-emerald-700 font-mono font-bold text-[11px] mt-0.5">
+                                  IPK: {q.ipk}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                          {!qualifications.some(q => q.ipk) && (
+                            <div className="text-slate-500 text-[11px] font-mono pt-1">
+                              IPK: <span className="font-bold text-emerald-600">{ipkDisplay}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* SKILL */}
+                      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 space-y-2.5">
+                        <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                          <Code className="w-4 h-4 text-indigo-600" /> SKILL & KEAHLIAN
+                        </h4>
+                        <div className="flex flex-wrap gap-1.5 pt-0.5">
+                          {skillsList.map((sk, idx) => (
+                            <span key={idx} className="px-2.5 py-1 bg-slate-100 text-slate-700 font-bold rounded-lg text-[11px] border border-slate-200">
+                              {sk}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Grid Pengalaman & Sertifikat */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      {/* PENGALAMAN */}
+                      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 space-y-2">
+                        <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                          <Briefcase className="w-4 h-4 text-amber-600" /> PENGALAMAN
+                        </h4>
+                        {experiencesList.length === 0 ? (
+                          <p className="text-xs text-slate-500 italic">Belum ada pengalaman yang tercantum.</p>
+                        ) : (
+                          <ul className="space-y-2 text-xs text-slate-700 font-medium">
+                            {experiencesList.map((exp, idx) => (
+                              <li key={exp.id || idx} className="bg-slate-50 p-2.5 rounded-xl border border-slate-200/60">
+                                <div className="font-extrabold text-slate-900">{exp.position}</div>
+                                <div className="text-emerald-700 font-semibold text-[11px]">{exp.company} ({exp.period})</div>
+                                {exp.description && exp.description !== '-' && (
+                                  <div className="text-slate-500 text-[11px] mt-1 leading-snug">{exp.description}</div>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+
+                      {/* SERTIFIKAT */}
+                      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 space-y-2">
+                        <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                          <Award className="w-4 h-4 text-rose-600" /> SERTIFIKAT
+                        </h4>
+                        {certificatesList.length === 0 ? (
+                          <p className="text-xs text-slate-500 italic">Belum ada sertifikat yang tercantum.</p>
+                        ) : (
+                          <ul className="space-y-2 text-xs text-slate-700 font-medium">
+                            {certificatesList.map((cert, idx) => (
+                              <li key={cert.id || idx} className="bg-slate-50 p-2.5 rounded-xl border border-slate-200/60">
+                                <div className="font-extrabold text-slate-900">{cert.name}</div>
+                                <div className="text-rose-700 font-semibold text-[11px]">
+                                  {cert.issuer ? `${cert.issuer} • ` : ''}{cert.year}
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-
-                {/* SKILL */}
-                <div className="bg-white p-4 rounded-2xl border border-slate-200/80 space-y-2.5">
-                  <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
-                    <Code className="w-4 h-4 text-indigo-600" /> SKILL & KEAHLIAN
-                  </h4>
-                  <div className="flex flex-wrap gap-1.5 pt-0.5">
-                    {['Java', 'Python', 'Node.js', 'MySQL', 'Git', 'React.js', 'Tailwind CSS'].map((sk) => (
-                      <span key={sk} className="px-2.5 py-1 bg-slate-100 text-slate-700 font-bold rounded-lg text-[11px] border border-slate-200">
-                        {sk}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* 4. PENGALAMAN & SERTIFIKAT (Grid 2 Kolom) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {/* PENGALAMAN */}
-                <div className="bg-white p-4 rounded-2xl border border-slate-200/80 space-y-2">
-                  <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
-                    <Briefcase className="w-4 h-4 text-amber-600" /> PENGALAMAN
-                  </h4>
-                  <ul className="list-disc list-inside text-xs text-slate-700 space-y-1 font-medium">
-                    <li>Asisten Laboratorium Komputer & Sistem Informasi UMK (2024 - 2025)</li>
-                    <li>Pengembang Web Himpunan Mahasiswa Teknik Informatika (2025)</li>
-                  </ul>
-                </div>
-
-                {/* SERTIFIKAT */}
-                <div className="bg-white p-4 rounded-2xl border border-slate-200/80 space-y-2">
-                  <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
-                    <Award className="w-4 h-4 text-rose-600" /> SERTIFIKAT
-                  </h4>
-                  <ul className="list-disc list-inside text-xs text-slate-700 space-y-1 font-medium">
-                    <li>Sertifikat Kompetensi Fullstack Web Developer - BNSP (2025)</li>
-                    <li>Google IT Support Professional Certificate (2024)</li>
-                  </ul>
-                </div>
-              </div>
+                );
+              })()}       </div>
 
               {/* 6. RIWAYAT SELEKSI (TIMELINE) */}
               <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-200/80 space-y-4">

@@ -114,7 +114,54 @@ export const SEED_MAHASISWA: Mahasiswa[] = [
     fakultas: 'Fakultas Teknik',
     angkatan: '2021',
     semester: 10,
-    alamat: 'Jl. K.H. Ahmad Dahlan No. 10, Kota Kendari, Sulawesi Tenggara'
+    alamat: 'Jl. K.H. Ahmad Dahlan No. 10, Kota Kendari, Sulawesi Tenggara',
+    ipk: '3.85 / 4.00',
+    skills: ['JavaScript', 'React.js', 'UI/UX Design', 'Node.js', 'Python', 'Git & GitHub', 'HTML/CSS', 'Tailwind CSS'],
+    experiences: [
+      {
+        id: '1',
+        position: 'Fullstack Web Developer Intern',
+        company: 'PT Go Digital Kendari',
+        period: '2026 - Sekarang',
+        description: 'Mengembangkan dan memelihara aplikasi portal akademik kampus dan integrasi RESTful API backend.'
+      },
+      {
+        id: '2',
+        position: 'Anggota Divisi IT & Komunikasi',
+        company: 'Himpunan Mahasiswa Teknik Informatika UMK',
+        period: '2024 - 2025',
+        description: 'Mengelola situs web kegiatan mahasiswa dan publikasi digital kampus.'
+      }
+    ],
+    certificates: [
+      {
+        id: 'cert_1',
+        name: 'Sertifikat Kompetensi Fullstack Web Developer - BNSP',
+        issuer: 'BNSP',
+        year: '2025'
+      },
+      {
+        id: 'cert_2',
+        name: 'Google IT Support Professional Certificate',
+        issuer: 'Google / Coursera',
+        year: '2024'
+      }
+    ],
+    qualifications: [
+      {
+        id: '1',
+        institution: 'UNIVERSITAS MUHAMMADIYAH KENDARI',
+        level: 'Sarjana (S1) - Teknik Informatika / Computer Science',
+        year: '2026',
+        ipk: '3.85 / 4.00'
+      },
+      {
+        id: '2',
+        institution: 'SMA Negeri 1 Kendari',
+        level: 'SMA - Jurusan IPA (Natural Sciences)',
+        year: '2022'
+      }
+    ]
   },
   {
     id: 'mhs2',
@@ -945,6 +992,10 @@ export function updateUserProfile(userId: string, profileData: Partial<Mahasiswa
 }
 
 export function applyForJob(userId: string, job: Lowongan, extraData?: any) {
+  if (isJobDeadlinePassed(job.deadline)) {
+    throw new Error('Pendaftaran untuk lowongan ini telah ditutup karena telah melewati batas waktu (deadline).');
+  }
+
   const students = getFromDB<Mahasiswa>('mahasiswa');
   const student = students.find(s => s.userId === userId);
 
@@ -976,7 +1027,47 @@ export function applyForJob(userId: string, job: Lowongan, extraData?: any) {
     tanggalMulai: new Date().toISOString().split('T')[0],
     tanggalSelesai: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     status: 'under_review',
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    ipk: student?.ipk || '3.85 / 4.00',
+    skills: student?.skills || ['JavaScript', 'React.js', 'UI/UX Design', 'Node.js', 'Python', 'Git & GitHub', 'HTML/CSS', 'Tailwind CSS'],
+    experiences: student?.experiences || [
+      {
+        id: '1',
+        position: 'Fullstack Web Developer Intern',
+        company: 'PT Go Digital Kendari',
+        period: '2026 - Sekarang',
+        description: 'Mengembangkan dan memelihara aplikasi portal akademik kampus dan integrasi RESTful API backend.'
+      },
+      {
+        id: '2',
+        position: 'Anggota Divisi IT & Komunikasi',
+        company: 'Himpunan Mahasiswa Teknik Informatika UMK',
+        period: '2024 - 2025',
+        description: 'Mengelola situs web kegiatan mahasiswa dan publikasi digital kampus.'
+      }
+    ],
+    certificates: student?.certificates || [
+      {
+        id: 'cert_1',
+        name: 'Sertifikat Kompetensi Fullstack Web Developer - BNSP',
+        issuer: 'BNSP',
+        year: '2025'
+      },
+      {
+        id: 'cert_2',
+        name: 'Google IT Support Professional Certificate',
+        issuer: 'Google / Coursera',
+        year: '2024'
+      }
+    ],
+    qualifications: student?.qualifications || [
+      {
+        id: '1',
+        institution: 'UNIVERSITAS MUHAMMADIYAH KENDARI',
+        level: 'Sarjana (S1) - Teknik Informatika / Computer Science',
+        year: '2026'
+      }
+    ]
   };
 
   insertToDB<PengajuanMagang>('pengajuan_magang', newPengajuan);
@@ -1026,5 +1117,57 @@ export function formatDateDisplay(dateStr?: string): string {
     }
   }
   return dateStr;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   DEADLINE CHECKER HELPER
+───────────────────────────────────────────────────────────────── */
+export function isJobDeadlinePassed(deadlineStr?: string): boolean {
+  if (!deadlineStr || !deadlineStr.trim()) return false;
+  const str = deadlineStr.trim().toLowerCase();
+
+  if (str.includes('tutup') || str.includes('expired') || str.includes('selesai')) {
+    return true;
+  }
+
+  // YYYY-MM-DD pattern
+  if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
+    const cleanDate = str.split('T')[0];
+    const [year, month, day] = cleanDate.split('-').map(n => parseInt(n, 10));
+    if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+      // Set deadline date to end of that day (23:59:59.999)
+      const deadlineDate = new Date(year, month - 1, day, 23, 59, 59, 999);
+      return new Date() > deadlineDate;
+    }
+  }
+
+  // Indonesian text date format e.g. "15 Juli 2026" or "10 Agustus 2026"
+  const indoMonths: Record<string, number> = {
+    jan: 0, januari: 0,
+    feb: 1, februari: 1,
+    mar: 2, maret: 2,
+    apr: 3, april: 3,
+    mei: 4,
+    jun: 5, juni: 5,
+    jul: 6, juli: 6,
+    agu: 7, agustus: 7,
+    sep: 8, september: 8,
+    okt: 9, oktober: 9,
+    nov: 10, november: 10,
+    des: 11, desember: 11
+  };
+
+  const matchIndo = str.match(/^(\d{1,2})\s+([a-z]+)\s+(\d{4})/);
+  if (matchIndo) {
+    const day = parseInt(matchIndo[1], 10);
+    const monthKey = matchIndo[2];
+    const year = parseInt(matchIndo[3], 10);
+    if (indoMonths[monthKey] !== undefined && !isNaN(day) && !isNaN(year)) {
+      const deadlineDate = new Date(year, indoMonths[monthKey], day, 23, 59, 59, 999);
+      return new Date() > deadlineDate;
+    }
+  }
+
+  return false;
 }
 

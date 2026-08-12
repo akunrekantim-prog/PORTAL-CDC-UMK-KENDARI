@@ -34,7 +34,8 @@ import {
   Languages,
   Sparkles,
   Trash2,
-  Calendar
+  Calendar,
+  Settings
 } from 'lucide-react';
 import { Footer } from './Footer';
 
@@ -123,16 +124,15 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
   const [gender, setGender] = useState('Male');
   const [sendOpportunities, setSendOpportunities] = useState('Yes');
   const [cvName, setCvName] = useState('CV_Muhammad_Fadly.pdf');
-  const [ethnicity, setEthnicity] = useState('Bugis / Tolaki');
-  const [religion, setReligion] = useState('Islam');
 
   // Qualification State (Pendidikan)
-  const [qualifications, setQualifications] = useState([
+  const [qualifications, setQualifications] = useState(() => mahasiswaData?.qualifications || [
     {
       id: '1',
       institution: 'UNIVERSITAS MUHAMMADIYAH KENDARI',
       level: 'Sarjana (S1) - Teknik Informatika / Computer Science',
-      year: '2026'
+      year: '2026',
+      ipk: '3.85 / 4.00'
     },
     {
       id: '2',
@@ -144,15 +144,16 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
   const [newInst, setNewInst] = useState('');
   const [newLevel, setNewLevel] = useState('');
   const [newYear, setNewYear] = useState('');
+  const [newIpk, setNewIpk] = useState('');
 
   // Skills State
-  const [skills, setSkills] = useState<string[]>([
-    'JavaScript', 'React.js', 'UI/UX Design', 'Node.js', 'Python', 'Git & GitHub', 'HTML/CSS', 'Problem Solving'
+  const [skills, setSkills] = useState<string[]>(() => mahasiswaData?.skills || [
+    'JavaScript', 'React.js', 'UI/UX Design', 'Node.js', 'Python', 'Git & GitHub', 'HTML/CSS', 'Tailwind CSS'
   ]);
   const [newSkillInput, setNewSkillInput] = useState('');
 
   // Experiences State
-  const [experiences, setExperiences] = useState([
+  const [experiences, setExperiences] = useState(() => mahasiswaData?.experiences || [
     {
       id: '1',
       position: 'Fullstack Web Developer Intern',
@@ -173,6 +174,25 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
   const [newExpPeriod, setNewExpPeriod] = useState('');
   const [newExpDesc, setNewExpDesc] = useState('');
 
+  // Certificates State
+  const [certificates, setCertificates] = useState(() => mahasiswaData?.certificates || [
+    {
+      id: 'cert_1',
+      name: 'Sertifikat Kompetensi Fullstack Web Developer - BNSP',
+      issuer: 'BNSP',
+      year: '2025'
+    },
+    {
+      id: 'cert_2',
+      name: 'Google IT Support Professional Certificate',
+      issuer: 'Google / Coursera',
+      year: '2024'
+    }
+  ]);
+  const [newCertName, setNewCertName] = useState('');
+  const [newCertIssuer, setNewCertIssuer] = useState('');
+  const [newCertYear, setNewCertYear] = useState('');
+
   // Languages State
   const [languagesList, setLanguagesList] = useState([
     { id: '1', name: 'Bahasa Indonesia', level: 'Fasih / Native' },
@@ -189,6 +209,17 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
     setTimeout(() => setToastMsg(null), 3000);
   };
 
+  const saveProfileData = (partial: Partial<Mahasiswa>) => {
+    updateUserProfile(user.id, {
+      ...partial,
+      qualifications: partial.qualifications || qualifications,
+      skills: partial.skills || skills,
+      experiences: partial.experiences || experiences,
+      certificates: partial.certificates || certificates
+    });
+    if (onProfileUpdated) onProfileUpdated();
+  };
+
   const handleSaveProfileSection = (e: React.FormEvent) => {
     e.preventDefault();
     const updatedProfile: Partial<Mahasiswa> = {
@@ -197,29 +228,35 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
       phone: mobile,
       nationality,
       opportunityType,
-      preferredStartDate: opportunityStartDate
+      preferredStartDate: opportunityStartDate,
+      qualifications,
+      skills,
+      experiences,
+      certificates,
+      ipk: '3.85 / 4.00'
     };
     
-    updateUserProfile(user.id, updatedProfile);
+    saveProfileData(updatedProfile);
     setEditingSection(null);
     triggerToast('Profil berhasil diperbarui!');
-    if (onProfileUpdated) onProfileUpdated();
   };
 
   // Add Skill Handler
   const handleAddSkill = (e: React.FormEvent) => {
     e.preventDefault();
     if (newSkillInput.trim()) {
-      if (!skills.includes(newSkillInput.trim())) {
-        setSkills([...skills, newSkillInput.trim()]);
-      }
+      const nextSkills = skills.includes(newSkillInput.trim()) ? skills : [...skills, newSkillInput.trim()];
+      setSkills(nextSkills);
       setNewSkillInput('');
+      saveProfileData({ skills: nextSkills });
       triggerToast('Skill baru berhasil ditambahkan!');
     }
   };
 
   const handleRemoveSkill = (skillToRemove: string) => {
-    setSkills(skills.filter(s => s !== skillToRemove));
+    const nextSkills = skills.filter(s => s !== skillToRemove);
+    setSkills(nextSkills);
+    saveProfileData({ skills: nextSkills });
     triggerToast('Skill berhasil dihapus');
   };
 
@@ -227,7 +264,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
   const handleAddExperience = (e: React.FormEvent) => {
     e.preventDefault();
     if (newExpPos && newExpComp) {
-      setExperiences([
+      const nextExp = [
         ...experiences,
         {
           id: Date.now().toString(),
@@ -236,14 +273,53 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
           period: newExpPeriod || '2026',
           description: newExpDesc || '-'
         }
-      ]);
+      ];
+      setExperiences(nextExp);
       setNewExpPos('');
       setNewExpComp('');
       setNewExpPeriod('');
       setNewExpDesc('');
       setEditingSection(null);
+      saveProfileData({ experiences: nextExp });
       triggerToast('Pengalaman berhasil ditambahkan!');
     }
+  };
+
+  const handleRemoveExperience = (expId: string) => {
+    const nextExp = experiences.filter(e => e.id !== expId);
+    setExperiences(nextExp);
+    saveProfileData({ experiences: nextExp });
+    triggerToast('Pengalaman berhasil dihapus');
+  };
+
+  // Add Certificate Handler
+  const handleAddCertificate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newCertName) {
+      const nextCerts = [
+        ...certificates,
+        {
+          id: Date.now().toString(),
+          name: newCertName,
+          issuer: newCertIssuer || 'Lembaga Sertifikasi',
+          year: newCertYear || '2026'
+        }
+      ];
+      setCertificates(nextCerts);
+      setNewCertName('');
+      setNewCertIssuer('');
+      setNewCertYear('');
+      setEditingSection(null);
+      saveProfileData({ certificates: nextCerts });
+      triggerToast('Sertifikat berhasil ditambahkan!');
+    }
+  };
+
+  const handleRemoveCertificate = (certId: string) => {
+    const nextCerts = certificates.filter(c => c.id !== certId);
+    setCertificates(nextCerts);
+    saveProfileData({ certificates: nextCerts });
+    triggerToast('Sertifikat berhasil dihapus');
   };
 
   // Add Language Handler
@@ -268,19 +344,23 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
   const handleAddQualification = (e: React.FormEvent) => {
     e.preventDefault();
     if (newInst && newLevel) {
-      setQualifications([
+      const nextQual = [
         ...qualifications,
         {
           id: Date.now().toString(),
           institution: newInst,
           level: newLevel,
-          year: newYear || new Date().getFullYear().toString()
+          year: newYear || '2026',
+          ...(newIpk.trim() ? { ipk: newIpk.trim() } : {})
         }
-      ]);
+      ];
+      setQualifications(nextQual);
       setNewInst('');
       setNewLevel('');
       setNewYear('');
+      setNewIpk('');
       setEditingSection(null);
+      saveProfileData({ qualifications: nextQual });
       triggerToast('Pendidikan berhasil ditambahkan!');
     }
   };
@@ -305,9 +385,13 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
         </div>
       )}
 
-      {/* 1. HEADER CARD / BANNER HERO SECTION */}
-      <div className="bg-gradient-to-r from-[#0B1340] via-[#1E3A8A] to-slate-900 text-white pt-10 pb-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden shadow-lg">
-        <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center md:items-start gap-6 relative z-10">
+      {/* 1. HEADER HERO SECTION (EXPERT PROGRAMMER GRADE UI) */}
+      <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white pt-10 pb-14 px-4 sm:px-6 lg:px-8 relative overflow-hidden shadow-xl border-b border-slate-800">
+        {/* Ambient Decorative Lighting Effects */}
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center md:items-start gap-7 relative z-10">
           
           {/* Hidden File Input for Local Image Upload */}
           <input 
@@ -318,53 +402,55 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
             className="hidden" 
           />
 
-          {/* Foto Profil */}
+          {/* Foto Profil with Ambient Ring Glow */}
           <div className="relative group shrink-0">
             <div 
               onClick={() => fileInputRef.current?.click()}
-              className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 border-white/20 shadow-2xl overflow-hidden bg-slate-800 flex items-center justify-center cursor-pointer relative"
+              className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl border-2 border-white/20 ring-4 ring-emerald-500/20 shadow-2xl overflow-hidden bg-slate-800 flex items-center justify-center cursor-pointer relative transition-transform duration-300 group-hover:scale-[1.02]"
               title="Klik untuk ubah foto profil dari berkas lokal"
             >
               {avatarUrl ? (
-                <img src={avatarUrl} alt={firstName} className="w-full h-full object-cover group-hover:opacity-90 transition" />
+                <img src={avatarUrl} alt={firstName} className="w-full h-full object-cover group-hover:opacity-90 transition duration-300" />
               ) : (
-                <UserIcon className="w-16 h-16 text-slate-400" />
+                <UserIcon className="w-14 h-14 text-slate-400" />
               )}
-              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                <Camera className="w-8 h-8 text-white" />
+              <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-xs opacity-0 group-hover:opacity-100 transition duration-300 flex flex-col items-center justify-center text-white">
+                <Camera className="w-7 h-7 mb-1 text-emerald-400" />
+                <span className="text-[10px] font-bold uppercase tracking-wider">Ubah Foto</span>
               </div>
             </div>
             <button 
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="absolute bottom-1 right-1 bg-[#10B981] hover:bg-emerald-600 text-white p-2.5 rounded-full shadow-md transition transform group-hover:scale-110"
+              className="absolute -bottom-1 -right-1 bg-[#10B981] hover:bg-emerald-600 text-white p-2.5 rounded-2xl shadow-lg border-2 border-slate-900 transition transform group-hover:scale-110 cursor-pointer"
               title="Ubah Foto Profil dari Berkas Lokal"
             >
-              <Camera className="w-4 h-4" />
+              <Camera className="w-3.5 h-3.5" />
             </button>
           </div>
 
           {/* Profile Info Summary */}
-          <div className="space-y-2 text-center md:text-left flex-1">
+          <div className="space-y-3 text-center md:text-left flex-1 min-w-0">
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
               <button
                 type="button"
                 onClick={() => setEditingSection('headerInfo')}
-                className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-xs font-extrabold px-3.5 py-1 rounded-full border border-emerald-400/30 backdrop-blur-xs uppercase tracking-wider flex items-center gap-1.5 transition group cursor-pointer"
+                className="bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 text-[11px] font-bold px-3 py-1 rounded-full border border-emerald-500/30 backdrop-blur-md uppercase tracking-wider flex items-center gap-1.5 transition group cursor-pointer"
                 title="Klik untuk ubah status (Mahasiswa / Alumni)"
               >
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                 <span>{userStatusType}</span>
-                <Pencil className="w-3 h-3 opacity-70 group-hover:opacity-100" />
+                <Pencil className="w-3 h-3 opacity-60 group-hover:opacity-100" />
               </button>
 
-              <span className="bg-white/10 text-slate-200 text-xs font-semibold px-3.5 py-1 rounded-full border border-white/10">
-                Terverifikasi CDC UMK
+              <span className="bg-white/10 text-slate-200 text-[11px] font-semibold px-3 py-1 rounded-full border border-white/10 flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" /> Terverifikasi CDC UMK
               </span>
 
               <button
                 type="button"
                 onClick={() => setEditingSection('headerInfo')}
-                className="text-xs text-emerald-400 hover:text-emerald-300 hover:underline flex items-center gap-1 font-semibold ml-auto"
+                className="text-xs text-emerald-400 hover:text-emerald-300 hover:underline flex items-center gap-1 font-semibold md:ml-auto cursor-pointer"
                 title="Edit Info Utama (Status, Nama & Universitas)"
               >
                 <Pencil className="w-3.5 h-3.5" /> Edit Info Profil
@@ -373,7 +459,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
 
             <h1 
               onClick={() => setEditingSection('headerInfo')}
-              className="text-2xl sm:text-4xl font-black text-white tracking-tight cursor-pointer hover:text-emerald-300 transition group flex items-center gap-2"
+              className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight cursor-pointer hover:text-emerald-300 transition group flex items-center justify-center md:justify-start gap-2"
               title="Klik untuk edit nama"
             >
               <span>{`${firstName} ${lastName}`.trim() || user.name}</span>
@@ -381,26 +467,28 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
 
             <div 
               onClick={() => setEditingSection('headerInfo')}
-              className="flex items-center justify-center md:justify-start gap-2 text-blue-200 text-sm font-semibold cursor-pointer hover:text-white transition group w-fit"
+              className="flex items-center justify-center md:justify-start gap-2 text-slate-300 text-xs sm:text-sm font-medium cursor-pointer hover:text-white transition group w-fit mx-auto md:mx-0"
               title="Klik untuk ubah nama Universitas"
             >
-              <GraduationCap className="w-4.5 h-4.5 text-emerald-400 shrink-0" />
-              <span className="underline underline-offset-4 decoration-emerald-500/40 group-hover:decoration-emerald-400">{university}</span>
+              <GraduationCap className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span className="underline underline-offset-4 decoration-slate-600 group-hover:decoration-emerald-400">{university}</span>
               <Pencil className="w-3 h-3 opacity-0 group-hover:opacity-100 transition text-emerald-400" />
             </div>
 
-            {/* Tentang Saya */}
-            <div className="pt-3 border-t border-white/10 mt-3 space-y-1">
+            {/* Tentang Saya (Bio Card) */}
+            <div className="pt-3 border-t border-slate-800/80 mt-3 space-y-1.5 bg-slate-900/50 p-3.5 rounded-2xl border border-slate-800/60">
               <div className="flex items-center justify-between text-xs font-bold text-slate-300">
-                <span className="uppercase tracking-wider text-[11px] text-emerald-400 font-extrabold">TENTANG SAYA</span>
+                <span className="uppercase tracking-wider text-[10px] text-emerald-400 font-extrabold flex items-center gap-1.5">
+                  <UserIcon className="w-3 h-3 text-emerald-400" /> TENTANG SAYA
+                </span>
                 <button 
                   onClick={() => setEditingSection('aboutMe')} 
-                  className="text-emerald-400 hover:text-emerald-300 hover:underline flex items-center gap-1 font-semibold text-xs"
+                  className="text-emerald-400 hover:text-emerald-300 hover:underline flex items-center gap-1 font-semibold text-xs cursor-pointer"
                 >
                   Edit Bio <Pencil className="w-3 h-3" />
                 </button>
               </div>
-              <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-sans max-w-2xl whitespace-pre-line">
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-sans max-w-2xl whitespace-pre-line font-normal">
                 {aboutMe}
               </p>
             </div>
@@ -409,40 +497,57 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
         </div>
       </div>
 
-      {/* 2. SECONDARY SUB-NAVIGATION TABS */}
-      <div className="bg-white border-b border-slate-200 sticky top-16 z-30 shadow-2xs">
-        <div className="max-w-4xl mx-auto px-4 flex items-center justify-center gap-6 sm:gap-10 text-sm font-bold">
+      {/* 2. STICKY SUB-NAVIGATION TABS (LINEAR/VERCEL DESIGN) */}
+      <div className="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-16 z-30 shadow-2xs">
+        <div className="max-w-4xl mx-auto px-4 flex items-center justify-center gap-4 sm:gap-8 text-xs sm:text-sm font-bold">
           <button
             onClick={() => setSubTab('profile')}
-            className={`py-4 transition-all relative ${
+            className={`py-3.5 px-3 transition-all flex items-center gap-2 relative ${
               subTab === 'profile'
-                ? 'text-[#DD4B25] border-b-2 border-[#DD4B25]'
+                ? 'text-[#0077C6] font-extrabold border-b-2 border-[#0077C6]'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Profil Saya
+            <UserIcon className="w-4 h-4" />
+            <span>Profil Saya</span>
           </button>
 
           <button
             onClick={() => setSubTab('bookmarks')}
-            className={`py-4 transition-all relative ${
+            className={`py-3.5 px-3 transition-all flex items-center gap-2 relative ${
               subTab === 'bookmarks'
-                ? 'text-[#DD4B25] border-b-2 border-[#DD4B25]'
+                ? 'text-[#0077C6] font-extrabold border-b-2 border-[#0077C6]'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Lowongan Tersimpan
+            <Bookmark className="w-4 h-4" />
+            <span>Lowongan Tersimpan</span>
+            {(() => {
+              try {
+                const saved = localStorage.getItem('cdc_saved_job_ids');
+                const count = saved ? JSON.parse(saved).length : 0;
+                if (count > 0) {
+                  return (
+                    <span className="bg-blue-100 text-[#0077C6] text-[10px] font-extrabold px-2 py-0.5 rounded-full ml-0.5">
+                      {count}
+                    </span>
+                  );
+                }
+              } catch {}
+              return null;
+            })()}
           </button>
 
           <button
             onClick={() => setSubTab('account')}
-            className={`py-4 transition-all relative ${
+            className={`py-3.5 px-3 transition-all flex items-center gap-2 relative ${
               subTab === 'account'
-                ? 'text-[#DD4B25] border-b-2 border-[#DD4B25]'
+                ? 'text-[#0077C6] font-extrabold border-b-2 border-[#0077C6]'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Akun Saya
+            <Settings className="w-4 h-4" />
+            <span>Akun Saya</span>
           </button>
         </div>
       </div>
@@ -450,83 +555,108 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
       {/* 3. MAIN PROFILE CONTENT & STRUCTURE */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         
-        {/* SUB-TAB A: PROFIL SAYA (STRUCTURED IN ORDER REQUESTED BY USER) */}
+        {/* SUB-TAB A: PROFIL SAYA */}
         {subTab === 'profile' && (
           <div className="space-y-6 animate-fadeIn">
             
-            {/* KELENGKAPAN PROFIL PROGRESS BAR */}
-            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-2xs space-y-3">
+            {/* KELENGKAPAN PROFIL PROGRESS CARD (MODERN DESIGN) */}
+            <div className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-xs space-y-4 hover:border-slate-300 transition-all">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">KELENGKAPAN PROFIL MAHASISWA</span>
-                <span className="text-xs font-extrabold text-emerald-600">{completionPercent}% Selesai</span>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">SKOR KELENGKAPAN PROFIL</h4>
+                    <p className="text-[11px] text-slate-500 font-medium">Profil lengkap meningkatkan peluang dilirik oleh Mitra Industri UMK</p>
+                  </div>
+                </div>
+                <span className="bg-emerald-50 text-emerald-700 font-extrabold px-3 py-1 rounded-full text-xs border border-emerald-200 shadow-2xs">
+                  {completionPercent}% Selesai
+                </span>
               </div>
-              <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+
+              <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-200/60">
                 <div 
-                  className="bg-[#10B981] h-2.5 rounded-full transition-all duration-700 ease-out"
+                  className="bg-gradient-to-r from-emerald-500 to-blue-600 h-full rounded-full transition-all duration-700 ease-out"
                   style={{ width: `${completionPercent}%` }}
                 ></div>
               </div>
-              <p className="text-xs text-slate-500 font-medium">
-                Profil yang lengkap akan memperbesar peluang diterima saat melamar lowongan kerja dan magang.
-              </p>
+
+              {/* Checklist Badges */}
+              <div className="flex flex-wrap gap-2 pt-1 border-t border-slate-100">
+                <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/60 flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Foto Profil
+                </span>
+                <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/60 flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Data Pribadi
+                </span>
+                <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/60 flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Pendidikan ({qualifications.length})
+                </span>
+                <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/60 flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Skill ({skills.length})
+                </span>
+                <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/60 flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Pengalaman ({experiences.length})
+                </span>
+                <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/60 flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Sertifikat ({certificates.length})
+                </span>
+              </div>
             </div>
 
             {/* ══════════════════════════════════════════
                 SEKSI 1: DATA PRIBADI
             ══════════════════════════════════════════ */}
-            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-2xs space-y-5">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                  <UserIcon className="w-5 h-5 text-[#1E3A8A]" />
-                  Data Pribadi
-                </h3>
+            <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-6 hover:border-slate-300 transition-all">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                    <UserIcon className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-extrabold text-slate-900">Data Pribadi</h3>
+                    <p className="text-[11px] text-slate-500 font-medium">Informasi identitas resmi mahasiswa pelamar</p>
+                  </div>
+                </div>
                 <button 
                   onClick={() => setEditingSection('personal')}
-                  className="text-[#DD4B25] hover:underline text-xs font-bold flex items-center gap-1"
+                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                 >
-                  Edit <Pencil className="w-3.5 h-3.5" />
+                  <Pencil className="w-3.5 h-3.5 text-slate-500" /> Edit Data
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                <div>
-                  <div className="font-bold text-slate-400 uppercase tracking-wider text-[10px] mb-0.5">NAMA LENGKAP</div>
-                  <div className="font-bold text-slate-800 text-sm">{`${firstName} ${lastName}`.trim() || 'Belum Diisi'}</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+                <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
+                  <div className="font-extrabold text-slate-400 uppercase tracking-wider text-[10px]">NAMA LENGKAP</div>
+                  <div className="font-bold text-slate-900 text-sm truncate">{`${firstName} ${lastName}`.trim() || 'Belum Diisi'}</div>
                 </div>
 
-                <div>
-                  <div className="font-bold text-slate-400 uppercase tracking-wider text-[10px] mb-0.5">EMAIL</div>
-                  <div className="font-bold text-slate-800 text-sm">{email || user.email}</div>
+                <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
+                  <div className="font-extrabold text-slate-400 uppercase tracking-wider text-[10px]">EMAIL KAMPUS</div>
+                  <div className="font-bold text-slate-900 text-sm truncate">{email || user.email}</div>
                 </div>
 
-                <div>
-                  <div className="font-bold text-slate-400 uppercase tracking-wider text-[10px] mb-0.5">NO. TELEPON / WHATSAPP</div>
-                  <div className="font-bold text-slate-800 text-sm">{mobile || 'Belum Diisi'}</div>
+                <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
+                  <div className="font-extrabold text-slate-400 uppercase tracking-wider text-[10px]">NO. TELEPON / WHATSAPP</div>
+                  <div className="font-bold text-slate-900 text-sm">{mobile || 'Belum Diisi'}</div>
                 </div>
 
-                <div>
-                  <div className="font-bold text-slate-400 uppercase tracking-wider text-[10px] mb-0.5">JENIS KELAMIN</div>
-                  <div className="font-bold text-slate-800 text-sm">{gender === 'Male' ? 'Laki-Laki' : gender === 'Female' ? 'Perempuan' : gender}</div>
+                <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
+                  <div className="font-extrabold text-slate-400 uppercase tracking-wider text-[10px]">JENIS KELAMIN</div>
+                  <div className="font-bold text-slate-900 text-sm">{gender === 'Male' ? 'Laki-Laki' : gender === 'Female' ? 'Perempuan' : gender}</div>
                 </div>
 
-                <div>
-                  <div className="font-bold text-slate-400 uppercase tracking-wider text-[10px] mb-0.5">KEWARGANEGARAAN</div>
-                  <div className="font-bold text-slate-800 text-sm">{nationality || 'Indonesian'}</div>
+                <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
+                  <div className="font-extrabold text-slate-400 uppercase tracking-wider text-[10px]">KEWARGANEGARAAN</div>
+                  <div className="font-bold text-slate-900 text-sm">{nationality || 'Indonesian'}</div>
                 </div>
 
-                <div>
-                  <div className="font-bold text-slate-400 uppercase tracking-wider text-[10px] mb-0.5">AGAMA</div>
-                  <div className="font-bold text-slate-800 text-sm">{religion}</div>
-                </div>
-
-                <div>
-                  <div className="font-bold text-slate-400 uppercase tracking-wider text-[10px] mb-0.5">SUKU / ETNIS</div>
-                  <div className="font-bold text-slate-800 text-sm">{ethnicity}</div>
-                </div>
-
-                <div>
-                  <div className="font-bold text-slate-400 uppercase tracking-wider text-[10px] mb-0.5">HAK KERJA</div>
-                  <div className="font-bold text-slate-800 text-sm">{workRights}</div>
+                <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
+                  <div className="font-extrabold text-slate-400 uppercase tracking-wider text-[10px]">HAK KERJA</div>
+                  <div className="font-bold text-slate-900 text-sm">{workRights}</div>
                 </div>
               </div>
             </div>
@@ -534,73 +664,97 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
             {/* ══════════════════════════════════════════
                 SEKSI 2: PENDIDIKAN
             ══════════════════════════════════════════ */}
-            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-2xs space-y-5">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                  <GraduationCap className="w-5 h-5 text-[#1E3A8A]" />
-                  Pendidikan
-                </h3>
+            <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-6 hover:border-slate-300 transition-all">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                    <GraduationCap className="w-5 h-5 text-emerald-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-extrabold text-slate-900">Pendidikan</h3>
+                    <p className="text-[11px] text-slate-500 font-medium">Riwayat studi perguruan tinggi dan sekolah</p>
+                  </div>
+                </div>
                 <button
                   onClick={() => setEditingSection('education')}
-                  className="text-[#DD4B25] hover:underline text-xs font-bold flex items-center gap-1"
+                  className="bg-[#0077C6]/10 hover:bg-[#0077C6]/20 text-[#0077C6] px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" /> Tambah Pendidikan
                 </button>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-3.5">
                 {qualifications.map(q => (
-                  <div key={q.id} className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 relative space-y-1">
-                    <div className="flex items-center justify-between">
-                      <div className="text-[11px] font-bold text-blue-700 uppercase tracking-wider flex items-center gap-1.5">
-                        <Building2 className="w-3.5 h-3.5 text-blue-600" />
-                        {q.institution}
+                  <div key={q.id} className="bg-slate-50/80 border border-slate-200/70 hover:border-emerald-300 rounded-2xl p-4.5 transition-all space-y-2 relative group">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                        <div className="text-[11px] font-bold text-blue-700 uppercase tracking-wider flex items-center gap-1.5">
+                          <Building2 className="w-3.5 h-3.5 text-blue-600" />
+                          {q.institution}
+                        </div>
+                        <h4 className="font-extrabold text-slate-900 text-sm sm:text-base">{q.level}</h4>
                       </div>
-                      <button 
-                        onClick={() => setQualifications(qualifications.filter(item => item.id !== q.id))} 
-                        className="text-xs font-bold text-rose-600 hover:underline flex items-center gap-1"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" /> Hapus
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-bold text-slate-600 bg-white px-3 py-1 rounded-full border border-slate-200">
+                          Tahun Lulus: {q.year}
+                        </span>
+                        <button 
+                          onClick={() => setQualifications(qualifications.filter(item => item.id !== q.id))} 
+                          className="text-slate-400 hover:text-rose-600 p-1 transition opacity-70 group-hover:opacity-100"
+                          title="Hapus Pendidikan"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
-                    <div className="font-extrabold text-slate-900 text-sm sm:text-base">{q.level}</div>
-                    <div className="text-xs text-slate-500 font-medium">Tahun Lulus: {q.year}</div>
+                    {q.ipk && (
+                      <div className="pt-1 flex items-center gap-2">
+                        <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full">
+                          IPK: {q.ipk}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
             </div>
 
             {/* ══════════════════════════════════════════
-                SEKSI 3: SKILL (KEAHLIAN)
+                SEKSI 3: SKILL & KEAHLIAN
             ══════════════════════════════════════════ */}
-            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-2xs space-y-5">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                  <Code className="w-5 h-5 text-[#1E3A8A]" />
-                  Skill &amp; Keahlian
-                </h3>
+            <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-6 hover:border-slate-300 transition-all">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                    <Code className="w-5 h-5 text-indigo-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-extrabold text-slate-900">Skill &amp; Keahlian</h3>
+                    <p className="text-[11px] text-slate-500 font-medium">Keahlian teknis dan kompetensi utama Anda</p>
+                  </div>
+                </div>
                 <button
                   onClick={() => setEditingSection('skills')}
-                  className="text-[#DD4B25] hover:underline text-xs font-bold flex items-center gap-1"
+                  className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" /> Kelola Skill
                 </button>
               </div>
 
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2.5">
                 {skills.map(sk => (
                   <span 
                     key={sk} 
-                    className="bg-blue-50 text-blue-800 border border-blue-200 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs"
+                    className="bg-slate-50 hover:bg-blue-50/60 text-slate-800 border border-slate-200/90 hover:border-blue-300 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-2xs transition hover:scale-105"
                   >
-                    <Sparkles className="w-3 h-3 text-blue-600" />
+                    <Sparkles className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                     <span>{sk}</span>
                     <button 
                       onClick={() => handleRemoveSkill(sk)} 
-                      className="text-blue-400 hover:text-rose-600 transition ml-0.5"
+                      className="text-slate-400 hover:text-rose-600 transition ml-0.5 cursor-pointer"
                       title="Hapus Skill"
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   </span>
                 ))}
@@ -610,15 +764,20 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
             {/* ══════════════════════════════════════════
                 SEKSI 4: PENGALAMAN
             ══════════════════════════════════════════ */}
-            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-2xs space-y-5">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                  <Briefcase className="w-5 h-5 text-[#1E3A8A]" />
-                  Pengalaman
-                </h3>
+            <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-6 hover:border-slate-300 transition-all">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                    <Briefcase className="w-5 h-5 text-amber-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-extrabold text-slate-900">Pengalaman Kerja &amp; Organisasi</h3>
+                    <p className="text-[11px] text-slate-500 font-medium">Riwayat pekerjaan, magang, dan kegiatan organisasi</p>
+                  </div>
+                </div>
                 <button
                   onClick={() => setEditingSection('experience')}
-                  className="text-[#DD4B25] hover:underline text-xs font-bold flex items-center gap-1"
+                  className="bg-amber-50 hover:bg-amber-100 text-amber-800 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" /> Tambah Pengalaman
                 </button>
@@ -626,22 +785,22 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
 
               <div className="space-y-4">
                 {experiences.map(exp => (
-                  <div key={exp.id} className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 space-y-2">
+                  <div key={exp.id} className="bg-slate-50/80 border border-slate-200/70 hover:border-amber-300 rounded-2xl p-4.5 space-y-2 relative transition-all border-l-4 border-l-amber-500">
                     <div className="flex items-start justify-between">
                       <div>
                         <h4 className="font-extrabold text-slate-900 text-sm sm:text-base">{exp.position}</h4>
-                        <div className="text-xs font-bold text-emerald-700 flex items-center gap-1 mt-0.5">
+                        <div className="text-xs font-bold text-amber-700 flex items-center gap-1.5 mt-0.5">
                           <Building2 className="w-3.5 h-3.5" /> {exp.company}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-semibold text-slate-500 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
+                        <span className="text-[11px] font-bold text-slate-600 bg-white px-3 py-1 rounded-full border border-slate-200">
                           {exp.period}
                         </span>
                         <button 
-                          onClick={() => setExperiences(experiences.filter(e => e.id !== exp.id))}
-                          className="text-slate-400 hover:text-rose-600 transition"
-                          title="Hapus"
+                          onClick={() => handleRemoveExperience(exp.id)}
+                          className="text-slate-400 hover:text-rose-600 transition p-1"
+                          title="Hapus Pengalaman"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -656,32 +815,85 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
             </div>
 
             {/* ══════════════════════════════════════════
-                SEKSI 5: BAHASA
+                SEKSI 5: SERTIFIKAT & LISENSI
             ══════════════════════════════════════════ */}
-            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-2xs space-y-5">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                  <Languages className="w-5 h-5 text-[#1E3A8A]" />
-                  Bahasa
-                </h3>
+            <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-6 hover:border-slate-300 transition-all">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
+                    <Award className="w-5 h-5 text-rose-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-extrabold text-slate-900">Sertifikat &amp; Lisensi</h3>
+                    <p className="text-[11px] text-slate-500 font-medium">Sertifikat kompetensi, keahlian profesi, dan lisensi resmi</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setEditingSection('certificate')}
+                  className="bg-rose-50 hover:bg-rose-100 text-rose-700 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Tambah Sertifikat
+                </button>
+              </div>
+
+              <div className="space-y-3.5">
+                {certificates.length === 0 ? (
+                  <p className="text-xs text-slate-500 italic">Belum ada sertifikat yang ditambahkan.</p>
+                ) : (
+                  certificates.map(cert => (
+                    <div key={cert.id} className="bg-slate-50/80 border border-slate-200/70 hover:border-rose-300 rounded-2xl p-4.5 flex items-center justify-between transition-all">
+                      <div className="space-y-1">
+                        <h4 className="font-extrabold text-slate-900 text-sm sm:text-base">{cert.name}</h4>
+                        <div className="text-xs font-semibold text-rose-700 flex items-center gap-1.5">
+                          <Award className="w-3.5 h-3.5 text-rose-600" /> Penerbit: {cert.issuer || 'Lembaga Sertifikasi'}
+                        </div>
+                        <div className="text-xs text-slate-500 font-medium">Tahun Perolehan: {cert.year}</div>
+                      </div>
+                      <button
+                        onClick={() => handleRemoveCertificate(cert.id)}
+                        className="text-slate-400 hover:text-rose-600 transition p-1"
+                        title="Hapus Sertifikat"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* ══════════════════════════════════════════
+                SEKSI 6: BAHASA
+            ══════════════════════════════════════════ */}
+            <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-6 hover:border-slate-300 transition-all">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center font-bold">
+                    <Languages className="w-5 h-5 text-teal-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-extrabold text-slate-900">Bahasa</h3>
+                    <p className="text-[11px] text-slate-500 font-medium">Kemampuan dan penguasaan bahasa komunikasi</p>
+                  </div>
+                </div>
                 <button
                   onClick={() => setEditingSection('languages')}
-                  className="text-[#DD4B25] hover:underline text-xs font-bold flex items-center gap-1"
+                  className="bg-teal-50 hover:bg-teal-100 text-teal-700 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" /> Tambah Bahasa
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 {languagesList.map(lang => (
-                  <div key={lang.id} className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between">
+                  <div key={lang.id} className="bg-slate-50/80 border border-slate-200/70 rounded-2xl p-4 flex items-center justify-between">
                     <div>
                       <div className="font-extrabold text-slate-900 text-xs sm:text-sm">{lang.name}</div>
-                      <div className="text-[11px] text-slate-500 font-medium">{lang.level}</div>
+                      <div className="text-[11px] text-teal-700 font-bold mt-0.5">{lang.level}</div>
                     </div>
                     <button 
                       onClick={() => setLanguagesList(languagesList.filter(l => l.id !== lang.id))}
-                      className="text-slate-400 hover:text-rose-600 transition"
+                      className="text-slate-400 hover:text-rose-600 transition p-1"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -691,41 +903,46 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
             </div>
 
             {/* ══════════════════════════════════════════
-                SEKSI 6: PREFERENSI KARIR
+                SEKSI 7: PREFERENSI KARIR
             ══════════════════════════════════════════ */}
-            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-2xs space-y-5">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                  <Briefcase className="w-5 h-5 text-[#1E3A8A]" />
-                  Preferensi Karir
-                </h3>
+            <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-6 hover:border-slate-300 transition-all">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-[#0077C6]/10 text-[#0077C6] flex items-center justify-center font-bold">
+                    <Briefcase className="w-5 h-5 text-[#0077C6]" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-extrabold text-slate-900">Preferensi Karir</h3>
+                    <p className="text-[11px] text-slate-500 font-medium">Kriteria pekerjaan dan penempatan yang dicari</p>
+                  </div>
+                </div>
                 <button 
                   onClick={() => setEditingSection('career')}
-                  className="text-[#DD4B25] hover:underline text-xs font-bold flex items-center gap-1"
+                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                 >
-                  Edit <Pencil className="w-3.5 h-3.5" />
+                  <Pencil className="w-3.5 h-3.5 text-slate-500" /> Edit
                 </button>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                <div>
-                  <div className="font-bold text-slate-400 uppercase tracking-wider text-[10px] mb-1">JENIS KESEMPATAN</div>
-                  <div className="font-bold text-slate-800 text-sm">{opportunityType}</div>
+                <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1">
+                  <div className="font-extrabold text-slate-400 uppercase tracking-wider text-[10px]">JENIS KESEMPATAN</div>
+                  <div className="font-bold text-slate-900 text-sm">{opportunityType}</div>
                 </div>
 
-                <div>
-                  <div className="font-bold text-slate-400 uppercase tracking-wider text-[10px] mb-0.5">TANGGAL SIAP KERJA</div>
-                  <div className="font-bold text-slate-800 text-sm">{opportunityStartDate}</div>
+                <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1">
+                  <div className="font-extrabold text-slate-400 uppercase tracking-wider text-[10px]">TANGGAL SIAP KERJA</div>
+                  <div className="font-bold text-slate-900 text-sm">{opportunityStartDate}</div>
                 </div>
 
-                <div>
-                  <div className="font-bold text-slate-400 uppercase tracking-wider text-[10px] mb-0.5">INDUSTRI YANG DIMINATI</div>
-                  <div className="font-bold text-slate-800 text-sm">{industries}</div>
+                <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1">
+                  <div className="font-extrabold text-slate-400 uppercase tracking-wider text-[10px]">INDUSTRI YANG DIMINATI</div>
+                  <div className="font-bold text-slate-900 text-sm">{industries}</div>
                 </div>
 
-                <div>
-                  <div className="font-bold text-slate-400 uppercase tracking-wider text-[10px] mb-0.5">LOKASI KERJA IMPIAN</div>
-                  <div className="font-bold text-slate-800 text-sm">{locations}</div>
+                <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1">
+                  <div className="font-extrabold text-slate-400 uppercase tracking-wider text-[10px]">LOKASI KERJA IMPIAN</div>
+                  <div className="font-bold text-slate-900 text-sm">{locations}</div>
                 </div>
               </div>
             </div>
@@ -745,10 +962,12 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
           const savedJobs = allJobs.filter((j: any) => savedJobIds.includes(j.id));
 
           return (
-            <div className="w-full space-y-4 animate-fadeIn max-w-5xl mx-auto">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                <h3 className="font-extrabold text-slate-900 text-lg">Lowongan Pekerjaan Tersimpan ({savedJobs.length})</h3>
-                <span className="text-xs text-slate-500 font-medium">Klik pada lowongan untuk melihat detail &amp; melamar</span>
+            <div className="w-full space-y-5 animate-fadeIn max-w-4xl mx-auto">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                <div>
+                  <h3 className="font-extrabold text-slate-900 text-lg">Lowongan Pekerjaan Tersimpan ({savedJobs.length})</h3>
+                  <p className="text-xs text-slate-500 font-medium">Klik pada lowongan untuk melihat detail &amp; pengajuan lamaran</p>
+                </div>
               </div>
 
               {savedJobs.length > 0 ? (
@@ -757,7 +976,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     <div 
                       key={job.id} 
                       onClick={() => onSelectJob && onSelectJob(job)}
-                      className="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md transition-all flex justify-between items-start cursor-pointer group hover:border-[#0077C6]/40"
+                      className="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md transition-all flex justify-between items-start cursor-pointer group hover:border-[#0077C6]/50"
                     >
                       <div className="space-y-2.5 min-w-0 pr-3">
                         <span className="text-xs font-bold text-[#0077C6] uppercase tracking-wide block truncate">{job.namaInstansi}</span>
@@ -781,7 +1000,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                             toggleSaveJob(job.id);
                             setSavedRefreshKey(k => k + 1);
                           }}
-                          className="bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-600 p-1.5 rounded-lg border border-slate-200 transition text-xs font-semibold"
+                          className="bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-600 p-1.5 rounded-lg border border-slate-200 transition text-xs font-semibold cursor-pointer"
                           title="Hapus dari Simpanan"
                         >
                           <X className="w-4 h-4" />
@@ -791,13 +1010,13 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                   ))}
                 </div>
               ) : (
-                <div className="bg-white p-12 rounded-2xl border border-slate-200 shadow-2xs text-center space-y-4 min-h-[340px] flex flex-col items-center justify-center">
-                  <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center text-slate-400">
-                    <Bookmark className="w-10 h-10 text-slate-400" />
+                <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-2xs space-y-4">
+                  <div className="w-16 h-16 bg-blue-50 text-[#0077C6] rounded-full flex items-center justify-center mx-auto">
+                    <Bookmark className="w-8 h-8" />
                   </div>
-                  <h3 className="text-xl font-extrabold text-slate-900">Belum Ada Lowongan Tersimpan</h3>
-                  <p className="text-slate-500 text-xs sm:text-sm max-w-md mx-auto font-medium">
-                    Saat Anda menekan ikon simpan atau bookmark pada lowongan pekerjaan, lowongan tersebut akan muncul di bagian ini.
+                  <h4 className="font-extrabold text-slate-900 text-lg">Belum Ada Lowongan Tersimpan</h4>
+                  <p className="text-slate-500 text-xs sm:text-sm max-w-md mx-auto leading-relaxed">
+                    Saat Anda menekan ikon bookmark pada lowongan pekerjaan di menu pencarian, lowongan tersebut akan tersimpan di sini.
                   </p>
                 </div>
               )}
@@ -805,18 +1024,27 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
           );
         })()}
 
-        {/* SUB-TAB D: MY ACCOUNT */}
+        {/* SUB-TAB C: MY ACCOUNT */}
         {subTab === 'account' && (
-          <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-2xs max-w-2xl mx-auto space-y-6 animate-fadeIn">
-            <h3 className="text-lg font-extrabold text-slate-900 border-b border-slate-100 pb-3">Pengaturan Akun</h3>
-            <div className="space-y-4 text-xs">
-              <div>
-                <label className="font-bold text-slate-700 block mb-1">Alamat Email</label>
-                <input type="email" value={user.email} disabled className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 font-medium" />
+          <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-2xs max-w-xl mx-auto space-y-6 animate-fadeIn">
+            <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+              <div className="w-10 h-10 rounded-2xl bg-[#0077C6]/10 text-[#0077C6] flex items-center justify-center font-bold">
+                <Settings className="w-5 h-5" />
               </div>
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Peran Akun</label>
-                <input type="text" value="Mahasiswa / Alumni" disabled className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 font-bold" />
+                <h3 className="text-lg font-extrabold text-slate-900">Pengaturan Akun</h3>
+                <p className="text-xs text-slate-500 font-medium">Informasi kredensial dan keamanan akun pengguna</p>
+              </div>
+            </div>
+
+            <div className="space-y-4 text-xs">
+              <div>
+                <label className="font-bold text-slate-700 block mb-1.5">Alamat Email Terdaftar</label>
+                <input type="email" value={user.email} disabled className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 font-semibold" />
+              </div>
+              <div>
+                <label className="font-bold text-slate-700 block mb-1.5">Peran Akun Pengguna</label>
+                <input type="text" value="Mahasiswa / Alumni UMK (Terverifikasi)" disabled className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-emerald-700 font-bold" />
               </div>
             </div>
           </div>
@@ -824,21 +1052,22 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
 
       </div>
 
-      {/* 4. MODALS DISPATCHER */}
+      {/* 4. MODALS DISPATCHER (POLISHED EXPERT STYLING) */}
 
       {/* MODAL EDIT INFO UTAMA (STATUS, NAMA, UNIVERSITAS) */}
       {editingSection === 'headerInfo' && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white max-w-md w-full rounded-3xl border border-slate-200 shadow-2xl p-6 space-y-5 animate-fadeIn">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-base font-extrabold text-slate-900">Edit Info Utama Profil</h3>
-              <button onClick={() => setEditingSection(null)} className="text-slate-400 hover:text-slate-700">
+              <button onClick={() => setEditingSection(null)} className="text-slate-400 hover:text-slate-700 p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={(e) => {
               e.preventDefault();
+              saveProfileData({ nama: `${firstName} ${lastName}`.trim() });
               setEditingSection(null);
               triggerToast('Info utama profil berhasil diperbarui!');
             }} className="space-y-4 text-xs">
@@ -847,7 +1076,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                 <select 
                   value={userStatusType} 
                   onChange={e => setUserStatusType(e.target.value as 'Mahasiswa' | 'Alumni')}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none bg-white font-bold"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white font-bold"
                 >
                   <option value="Mahasiswa">Mahasiswa</option>
                   <option value="Alumni">Alumni</option>
@@ -862,7 +1091,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     value={firstName} 
                     onChange={e => setFirstName(e.target.value)} 
                     required 
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none" 
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" 
                   />
                 </div>
                 <div>
@@ -871,7 +1100,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     type="text" 
                     value={lastName} 
                     onChange={e => setLastName(e.target.value)} 
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none" 
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" 
                   />
                 </div>
               </div>
@@ -884,13 +1113,13 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                   onChange={e => setUniversity(e.target.value)} 
                   required 
                   placeholder="Contoh: Universitas Muhammadiyah Kendari"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none" 
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" 
                 />
               </div>
 
-              <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
-                <button type="button" onClick={() => setEditingSection(null)} className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold">Batal</button>
-                <button type="submit" className="bg-[#10B981] text-white font-bold px-6 py-2 rounded-xl">Simpan Perubahan</button>
+              <div className="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
+                <button type="button" onClick={() => setEditingSection(null)} className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50">Batal</button>
+                <button type="submit" className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-xs transition">Simpan Perubahan</button>
               </div>
             </form>
           </div>
@@ -899,11 +1128,11 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
       
       {/* MODAL TENTANG SAYA (BIO) */}
       {editingSection === 'aboutMe' && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white max-w-md w-full rounded-3xl border border-slate-200 shadow-2xl p-6 space-y-5 animate-fadeIn">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-base font-extrabold text-slate-900">Edit Tentang Saya (Bio)</h3>
-              <button onClick={() => setEditingSection(null)} className="text-slate-400 hover:text-slate-700">
+              <button onClick={() => setEditingSection(null)} className="text-slate-400 hover:text-slate-700 p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -913,12 +1142,12 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                 rows={5}
                 value={aboutMe}
                 onChange={e => setAboutMe(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20"
                 placeholder="Tuliskan deskripsi singkat mengenai latar belakang, passion, dan tujuan karir Anda..."
               />
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <button onClick={() => setEditingSection(null)} className="px-4 py-2 text-xs font-bold text-slate-600 rounded-xl border border-slate-200">Batal</button>
-                <button onClick={() => { setEditingSection(null); triggerToast('Bio berhasil diperbarui!'); }} className="px-5 py-2 text-xs font-bold text-white bg-[#10B981] rounded-xl">Simpan Bio</button>
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button onClick={() => setEditingSection(null)} className="px-4 py-2 text-xs font-bold text-slate-600 rounded-xl border border-slate-200 hover:bg-slate-50">Batal</button>
+                <button onClick={() => { saveProfileData({ aboutMe }); setEditingSection(null); triggerToast('Bio berhasil diperbarui!'); }} className="px-5 py-2 text-xs font-bold text-white bg-[#0077C6] hover:bg-blue-700 rounded-xl shadow-xs transition">Simpan Bio</button>
               </div>
             </div>
           </div>
@@ -927,11 +1156,11 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
 
       {/* MODAL DATA PRIBADI */}
       {editingSection === 'personal' && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white max-w-lg w-full rounded-3xl border border-slate-200 shadow-2xl p-6 space-y-5 animate-fadeIn max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-base font-extrabold text-slate-900">Edit Data Pribadi</h3>
-              <button onClick={() => setEditingSection(null)} className="text-slate-400 hover:text-slate-700">
+              <button onClick={() => setEditingSection(null)} className="text-slate-400 hover:text-slate-700 p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -940,27 +1169,27 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="font-bold text-slate-700 block mb-1">Nama Depan *</label>
-                  <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)} required className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20" />
+                  <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)} required className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" />
                 </div>
                 <div>
                   <label className="font-bold text-slate-700 block mb-1">Nama Belakang</label>
-                  <input type="text" value={lastName} onChange={e => setLastName(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20" />
+                  <input type="text" value={lastName} onChange={e => setLastName(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" />
                 </div>
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Email</label>
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20" />
+                <label className="font-bold text-slate-700 block mb-1">Email Kampus / Kontak</label>
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="font-bold text-slate-700 block mb-1">No. Telepon / WhatsApp</label>
-                  <input type="text" value={mobile} onChange={e => setMobile(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20" />
+                  <input type="text" value={mobile} onChange={e => setMobile(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" />
                 </div>
                 <div>
                   <label className="font-bold text-slate-700 block mb-1">Jenis Kelamin</label>
-                  <select value={gender} onChange={e => setGender(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20 bg-white">
+                  <select value={gender} onChange={e => setGender(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white">
                     <option value="Male">Laki-Laki</option>
                     <option value="Female">Perempuan</option>
                   </select>
@@ -970,28 +1199,17 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="font-bold text-slate-700 block mb-1">Kewarganegaraan</label>
-                  <input type="text" value={nationality} onChange={e => setNationality(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20" />
-                </div>
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">Agama</label>
-                  <input type="text" value={religion} onChange={e => setReligion(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20" />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">Suku / Etnis</label>
-                  <input type="text" value={ethnicity} onChange={e => setEthnicity(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20" />
+                  <input type="text" value={nationality} onChange={e => setNationality(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" />
                 </div>
                 <div>
                   <label className="font-bold text-slate-700 block mb-1">Hak Kerja</label>
-                  <input type="text" value={workRights} onChange={e => setWorkRights(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20" />
+                  <input type="text" value={workRights} onChange={e => setWorkRights(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" />
                 </div>
               </div>
 
               <div className="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
                 <button type="button" onClick={() => setEditingSection(null)} className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold">Batal</button>
-                <button type="submit" className="bg-[#10B981] text-white font-bold px-6 py-2 rounded-xl">Simpan Changes</button>
+                <button type="submit" className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2 rounded-xl shadow-xs transition">Simpan Perubahan</button>
               </div>
             </form>
           </div>
@@ -1000,30 +1218,42 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
 
       {/* MODAL PENDIDIKAN */}
       {editingSection === 'education' && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white max-w-md w-full rounded-3xl border border-slate-200 shadow-2xl p-6 space-y-5 animate-fadeIn">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-base font-extrabold text-slate-900">Tambah Pendidikan</h3>
-              <button onClick={() => setEditingSection(null)} className="text-slate-400 hover:text-slate-700">
+              <button onClick={() => setEditingSection(null)} className="text-slate-400 hover:text-slate-700 p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleAddQualification} className="space-y-4 text-xs">
               <div>
                 <label className="font-bold text-slate-700 block mb-1">Nama Institusi / Universitas / Sekolah</label>
-                <input type="text" required placeholder="Contoh: Universitas Muhammadiyah Kendari" value={newInst} onChange={e => setNewInst(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none" />
+                <input type="text" required placeholder="Contoh: Universitas Muhammadiyah Kendari" value={newInst} onChange={e => setNewInst(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" />
               </div>
               <div>
                 <label className="font-bold text-slate-700 block mb-1">Jenjang &amp; Program Studi / Jurusan</label>
-                <input type="text" required placeholder="Contoh: S1 - Teknik Informatika" value={newLevel} onChange={e => setNewLevel(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none" />
+                <input type="text" required placeholder="Contoh: S1 - Teknik Informatika" value={newLevel} onChange={e => setNewLevel(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" />
               </div>
               <div>
                 <label className="font-bold text-slate-700 block mb-1">Tahun Lulus</label>
-                <input type="text" placeholder="Contoh: 2026" value={newYear} onChange={e => setNewYear(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none" />
+                <input type="text" placeholder="Contoh: 2026" value={newYear} onChange={e => setNewYear(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" />
               </div>
-              <div className="pt-2 flex items-center justify-end gap-2">
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">
+                  IPK / Nilai Akhir <span className="text-slate-400 font-normal">(Opsional - Khusus Perguruan Tinggi)</span>
+                </label>
+                <input 
+                  type="text" 
+                  placeholder="Contoh: 3.85 / 4.00 atau 3.85 (Kosongkan jika SD - SMA)" 
+                  value={newIpk} 
+                  onChange={e => setNewIpk(e.target.value)} 
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" 
+                />
+              </div>
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
                 <button type="button" onClick={() => setEditingSection(null)} className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold">Batal</button>
-                <button type="submit" className="bg-[#10B981] text-white font-bold px-6 py-2 rounded-xl">Tambah</button>
+                <button type="submit" className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2 rounded-xl shadow-xs transition">Tambah</button>
               </div>
             </form>
           </div>
@@ -1032,11 +1262,11 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
 
       {/* MODAL KELOLA SKILL */}
       {editingSection === 'skills' && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white max-w-md w-full rounded-3xl border border-slate-200 shadow-2xl p-6 space-y-5 animate-fadeIn">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-base font-extrabold text-slate-900">Kelola Skill &amp; Keahlian</h3>
-              <button onClick={() => setEditingSection(null)} className="text-slate-400 hover:text-slate-700">
+              <button onClick={() => setEditingSection(null)} className="text-slate-400 hover:text-slate-700 p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -1047,9 +1277,9 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                 placeholder="Ketik skill baru (misal: React, Python)..." 
                 value={newSkillInput}
                 onChange={e => setNewSkillInput(e.target.value)}
-                className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none"
+                className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20"
               />
-              <button type="submit" className="bg-[#10B981] text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1">
+              <button type="submit" className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1 transition shadow-xs">
                 <Plus className="w-4 h-4" /> Tambah
               </button>
             </form>
@@ -1060,7 +1290,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                 {skills.map(sk => (
                   <span key={sk} className="bg-blue-50 text-blue-800 border border-blue-200 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2">
                     <span>{sk}</span>
-                    <button onClick={() => handleRemoveSkill(sk)} className="text-blue-400 hover:text-rose-600 transition">
+                    <button onClick={() => handleRemoveSkill(sk)} className="text-blue-400 hover:text-rose-600 transition cursor-pointer">
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </span>
@@ -1068,8 +1298,8 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
               </div>
             </div>
 
-            <div className="pt-2 flex justify-end">
-              <button onClick={() => setEditingSection(null)} className="bg-slate-900 text-white font-bold px-6 py-2 rounded-xl text-xs">Selesai</button>
+            <div className="pt-2 flex justify-end border-t border-slate-100">
+              <button onClick={() => setEditingSection(null)} className="bg-slate-900 text-white font-bold px-6 py-2 rounded-xl text-xs cursor-pointer">Selesai</button>
             </div>
           </div>
         </div>
@@ -1077,34 +1307,66 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
 
       {/* MODAL PENGALAMAN */}
       {editingSection === 'experience' && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white max-w-md w-full rounded-3xl border border-slate-200 shadow-2xl p-6 space-y-5 animate-fadeIn">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-base font-extrabold text-slate-900">Tambah Pengalaman Kerja / Organisasi</h3>
-              <button onClick={() => setEditingSection(null)} className="text-slate-400 hover:text-slate-700">
+              <button onClick={() => setEditingSection(null)} className="text-slate-400 hover:text-slate-700 p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleAddExperience} className="space-y-4 text-xs">
               <div>
                 <label className="font-bold text-slate-700 block mb-1">Posisi / Jabatan *</label>
-                <input type="text" required placeholder="Contoh: Web Developer Intern" value={newExpPos} onChange={e => setNewExpPos(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none" />
+                <input type="text" required placeholder="Contoh: Web Developer Intern" value={newExpPos} onChange={e => setNewExpPos(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" />
               </div>
               <div>
                 <label className="font-bold text-slate-700 block mb-1">Perusahaan / Organisasi *</label>
-                <input type="text" required placeholder="Contoh: PT Go Digital Kendari" value={newExpComp} onChange={e => setNewExpComp(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none" />
+                <input type="text" required placeholder="Contoh: PT Go Digital Kendari" value={newExpComp} onChange={e => setNewExpComp(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" />
               </div>
               <div>
                 <label className="font-bold text-slate-700 block mb-1">Periode</label>
-                <input type="text" placeholder="Contoh: Jan 2026 - Sekarang" value={newExpPeriod} onChange={e => setNewExpPeriod(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none" />
+                <input type="text" placeholder="Contoh: Jan 2026 - Sekarang" value={newExpPeriod} onChange={e => setNewExpPeriod(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" />
               </div>
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Deskripsi Singkat</label>
-                <textarea rows={3} placeholder="Jelaskan peranan dan pencapaian Anda..." value={newExpDesc} onChange={e => setNewExpDesc(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none" />
+                <label className="font-bold text-slate-700 block mb-1">Deskripsi Tugas / Pencapaian</label>
+                <textarea rows={3} placeholder="Tuliskan gambaran singkat tanggung jawab Anda..." value={newExpDesc} onChange={e => setNewExpDesc(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" />
               </div>
-              <div className="pt-2 flex items-center justify-end gap-2">
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
                 <button type="button" onClick={() => setEditingSection(null)} className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold">Batal</button>
-                <button type="submit" className="bg-[#10B981] text-white font-bold px-6 py-2 rounded-xl">Tambah</button>
+                <button type="submit" className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2 rounded-xl shadow-xs transition">Tambah</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL SERTIFIKAT */}
+      {editingSection === 'certificate' && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white max-w-md w-full rounded-3xl border border-slate-200 shadow-2xl p-6 space-y-5 animate-fadeIn">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-base font-extrabold text-slate-900">Tambah Sertifikat &amp; Lisensi</h3>
+              <button onClick={() => setEditingSection(null)} className="text-slate-400 hover:text-slate-700 p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleAddCertificate} className="space-y-4 text-xs">
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">Nama Sertifikat / Pelatihan *</label>
+                <input type="text" required placeholder="Contoh: Sertifikat Kompetensi Fullstack Web Developer - BNSP" value={newCertName} onChange={e => setNewCertName(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" />
+              </div>
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">Penerbit / Lembaga Sertifikasi</label>
+                <input type="text" placeholder="Contoh: BNSP / Google / Dicoding" value={newCertIssuer} onChange={e => setNewCertIssuer(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" />
+              </div>
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">Tahun Perolehan</label>
+                <input type="text" placeholder="Contoh: 2025" value={newCertYear} onChange={e => setNewCertYear(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" />
+              </div>
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
+                <button type="button" onClick={() => setEditingSection(null)} className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold">Batal</button>
+                <button type="submit" className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2 rounded-xl shadow-xs transition">Tambah Sertifikat</button>
               </div>
             </form>
           </div>
@@ -1113,31 +1375,31 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
 
       {/* MODAL BAHASA */}
       {editingSection === 'languages' && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white max-w-md w-full rounded-3xl border border-slate-200 shadow-2xl p-6 space-y-5 animate-fadeIn">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-extrabold text-slate-900">Tambah Bahasa</h3>
-              <button onClick={() => setEditingSection(null)} className="text-slate-400 hover:text-slate-700">
+              <h3 className="text-base font-extrabold text-slate-900">Tambah Kemampuan Bahasa</h3>
+              <button onClick={() => setEditingSection(null)} className="text-slate-400 hover:text-slate-700 p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleAddLanguage} className="space-y-4 text-xs">
               <div>
                 <label className="font-bold text-slate-700 block mb-1">Nama Bahasa *</label>
-                <input type="text" required placeholder="Contoh: Bahasa Jepang / Bahasa Mandarin" value={newLangName} onChange={e => setNewLangName(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none" />
+                <input type="text" required placeholder="Contoh: Bahasa Jepang / Bahasa Mandarin" value={newLangName} onChange={e => setNewLangName(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" />
               </div>
               <div>
                 <label className="font-bold text-slate-700 block mb-1">Tingkat Kemampuan</label>
-                <select value={newLangLevel} onChange={e => setNewLangLevel(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none bg-white">
+                <select value={newLangLevel} onChange={e => setNewLangLevel(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white">
                   <option value="Fasih / Native">Fasih / Native</option>
                   <option value="Tingkat Lanjut / Advanced">Tingkat Lanjut / Advanced</option>
                   <option value="Menengah / Intermediate">Menengah / Intermediate</option>
                   <option value="Dasar / Elementary">Dasar / Elementary</option>
                 </select>
               </div>
-              <div className="pt-2 flex items-center justify-end gap-2">
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
                 <button type="button" onClick={() => setEditingSection(null)} className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold">Batal</button>
-                <button type="submit" className="bg-[#10B981] text-white font-bold px-6 py-2 rounded-xl">Tambah</button>
+                <button type="submit" className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2 rounded-xl shadow-xs transition">Tambah</button>
               </div>
             </form>
           </div>
@@ -1146,30 +1408,29 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
 
       {/* MODAL PREFERENSI KARIR */}
       {editingSection === 'career' && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white max-w-md w-full rounded-3xl border border-slate-200 shadow-2xl p-6 space-y-5 animate-fadeIn">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-base font-extrabold text-slate-900">Edit Preferensi Karir</h3>
-              <button onClick={() => setEditingSection(null)} className="text-slate-400 hover:text-slate-700">
+              <button onClick={() => setEditingSection(null)} className="text-slate-400 hover:text-slate-700 p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleSaveProfileSection} className="space-y-4 text-xs">
               <div>
                 <label className="font-bold text-slate-700 block mb-1">Jenis Kesempatan</label>
-                <input type="text" value={opportunityType} onChange={e => setOpportunityType(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none" />
+                <input type="text" value={opportunityType} onChange={e => setOpportunityType(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" />
               </div>
               <div>
                 <label className="font-bold text-slate-700 block mb-1">Tanggal Siap Kerja</label>
-                <input type="text" value={opportunityStartDate} onChange={e => setOpportunityStartDate(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none" />
+                <input type="text" value={opportunityStartDate} onChange={e => setOpportunityStartDate(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" />
               </div>
               <div>
                 <label className="font-bold text-slate-700 block mb-1">Industri Yang Diminati</label>
-                <input type="text" value={industries} onChange={e => setIndustries(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none" />
+                <input type="text" value={industries} onChange={e => setIndustries(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" />
               </div>
               <div>
                 <label className="font-bold text-slate-700 block mb-1">Lokasi Kerja Impian</label>
-                <input type="text" value={locations} onChange={e => setLocations(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none" />
               </div>
               <div className="pt-2 flex items-center justify-end gap-2">
                 <button type="button" onClick={() => setEditingSection(null)} className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold">Batal</button>
