@@ -874,21 +874,14 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 
 ---
 
-<<<<<<< HEAD
 ## Tanggal: 12 Agustus 2026 (Sesi 2)
 **Developer:** ARYA APRIAWAN  
 **Fokus Pekerjaan:** Redesign Card Layout, Fitur Pencarian & Filter Tanggal pada 3 Sub-menu Layanan (Workshop, Softskill, Seminar)
-=======
-## Tanggal: 12 Agustus 2026 — Sesi 3
-**Developer:** Ikhsan  
-**Fokus Pekerjaan:** Pembaruan Terminologi Kandidat, Penyesuaian Tabel Pelamar & Seleksi, Integration Role Job Seeker, dan Logika Dinamis Input NIM
->>>>>>> 037b71d (Pembaruan Terminologi Kandidat, Penyesuaian Tabel Pelamar & Seleksi)
 
 ---
 
 ### 🚀 Ringkasan Perubahan
 
-<<<<<<< HEAD
 #### 1. Implementasi UI Card Layout Reusable (`EventCardLayout.tsx`)
 - Merancang komponen modular `EventCardLayout` yang bersih, tanpa AI slop (tanpa gradient berlebihan, border & shadow tajam/lembut, tipografi rapi).
 - **Control Bar**: Dilengkapi dengan **Main Search Bar**, **Dropdown Status** (*Pendaftaran Dibuka*, *Segera Hadir*, *Selesai*), dan **Filter Rentang Tanggal** (*Mulai s/d Akhir*) beserta tombol *Reset Filter*.
@@ -922,7 +915,15 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 - [x] Verifikasi `npm run lint` & `npm run build` passed (0 error)
 
 ---
-=======
+
+## Tanggal: 12 Agustus 2026 — Sesi 3
+**Developer:** Ikhsan  
+**Fokus Pekerjaan:** Pembaruan Terminologi Kandidat, Penyesuaian Tabel Pelamar & Seleksi, Integration Role Job Seeker, dan Logika Dinamis Input NIM
+
+---
+
+### 🚀 Ringkasan Perubahan
+
 #### 1. Pembaruan Terminologi & UI Dashboard User
 - **Fast-Role Switcher Bar**: Mengubah label tombol role switcher di top bar dari `MAHASISWA` menjadi `USER`.
 - **Label Email**: Mengubah label `EMAIL KAMPUS` menjadi `EMAIL` pada sekilas Data Pribadi dan form edit profil.
@@ -987,5 +988,41 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 - [x] Verifikasi typecheck TypeScript (`npx tsc --noEmit` → 0 error)
 - [x] Pencatatan laporan progres lengkap di `progres.md` (12 Agustus 2026 — Sesi 3)
 
->>>>>>> 037b71d (Pembaruan Terminologi Kandidat, Penyesuaian Tabel Pelamar & Seleksi)
+---
+
+## Tanggal: 12 Agustus 2026 — Sesi 4
+**Developer:** Fachrul Alam Sanuddin  
+**Fokus Pekerjaan:** Penambahan Menu Navigasi "PRESTASI" Multi-Level Dropdown pada Header & Integration Halaman Publik Prestasi Mahasiswa
+
+---
+
+### 🚀 Ringkasan Perubahan
+
+#### 1. Penambahan Menu "PRESTASI" Multi-Level Dropdown (`Header.tsx`)
+- Menambahkan menu utama **PRESTASI** tepat di sebelah kanan menu **SIMBELMAWA** dan sebelum menu **Register**.
+- Merancang struktur sub-menu bertingkat (2-level nested dropdown):
+  - **Internasional**: `Akademik` (`tab: 'prestasi-internasional-akademik'`), `Non-Akademik` (`tab: 'prestasi-internasional-non-akademik'`)
+  - **Nasional**: `Akademik` (`tab: 'prestasi-nasional-akademik'`), `Non-Akademik` (`tab: 'prestasi-nasional-non-akademik'`)
+  - **Wilayah**: `Akademik` (`tab: 'prestasi-wilayah-akademik'`), `Non-Akademik` (`tab: 'prestasi-wilayah-non-akademik'`)
+- Responsif penuh untuk tampilan **Desktop** (2-column side-by-side flyout dropdown) dan **Mobile** (accordion drawer menu dengan penanda `└`).
+
+#### 2. Implementasi Tampilan Halaman Publik Prestasi Mahasiswa (`PublicLayout.tsx`)
+- Menambahkan handler tampilan publik untuk seluruh tab yang berawalan `prestasi-`.
+- Menampilkan **Hero Banner** eksklusif dengan badge tingkat prestasi (*Internasional / Nasional / Wilayah*), indikator bidang (*Akademik / Non-Akademik*), serta pills navigasi cepat antar-kategori.
+- Menampilkan grid **Kartu Capaian Prestasi Unggulan** mahasiswa UM Kendari lengkap dengan badge juara, tahun event, deskripsi, dan status verifikasi CDC.
+- Menyediakan tombol CTA **"Laporkan Prestasi Mahasiswa"** yang terhubung ke alur pendaftaran/login user.
+
+### 📁 File Diubah
+- **[MODIFY]** `src/components/Header.tsx` — Penambahan item menu PRESTASI dengan nested sub-menus Internasional, Nasional, & Wilayah
+- **[MODIFY]** `src/components/PublicLayout.tsx` — Implementasi rendering halaman publik Prestasi Mahasiswa
+- **[MODIFY]** `progres.md` — Pencatatan laporan progres terbaru
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Penambahan menu "PRESTASI" tepat di sebelah "SIMBELMAWA" pada `NAV_ITEMS` Header
+- [x] Pembuatan sub-menu bertingkat (Internasional, Nasional, Wilayah -> Akademik, Non-Akademik)
+- [x] Implementasi 2-column side flyout dropdown pada Desktop & Accordion pada Mobile
+- [x] Pembuatan layout halaman publik Prestasi Mahasiswa di `PublicLayout.tsx`
+- [x] Verifikasi typecheck TypeScript (`npx tsc --noEmit` -> 0 error)
+- [x] Pencatatan laporan progres di `progres.md` atas nama **Fachrul Alam Sanuddin**
+
 

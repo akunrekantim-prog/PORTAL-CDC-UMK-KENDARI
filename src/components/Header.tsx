@@ -107,6 +107,33 @@ const NAV_ITEMS: NavItem[] = [
     ],
   },
   {
+    id: 'prestasi',
+    label: 'PRESTASI',
+    children: [
+      {
+        label: 'Internasional',
+        children: [
+          { label: 'Akademik', tab: 'prestasi-internasional-akademik' },
+          { label: 'Non-Akademik', tab: 'prestasi-internasional-non-akademik' },
+        ],
+      },
+      {
+        label: 'Nasional',
+        children: [
+          { label: 'Akademik', tab: 'prestasi-nasional-akademik' },
+          { label: 'Non-Akademik', tab: 'prestasi-nasional-non-akademik' },
+        ],
+      },
+      {
+        label: 'Wilayah',
+        children: [
+          { label: 'Akademik', tab: 'prestasi-wilayah-akademik' },
+          { label: 'Non-Akademik', tab: 'prestasi-wilayah-non-akademik' },
+        ],
+      },
+    ],
+  },
+  {
     id: 'register',
     label: 'Register',
     isAction: true,

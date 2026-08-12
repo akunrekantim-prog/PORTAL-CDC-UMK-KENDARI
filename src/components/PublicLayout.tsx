@@ -975,6 +975,157 @@ export default function PublicLayout({
           </LayananContainer>
         )}
 
+        {/* ─── PRESTASI TAB PAGE ─────────────────────────────────── */}
+        {currentTab.startsWith('prestasi') && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10" id="tab-prestasi">
+            {/* Header Banner */}
+            <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 rounded-3xl p-8 sm:p-12 text-white shadow-xl relative overflow-hidden">
+              <div className="absolute right-0 top-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="relative z-10 space-y-4 max-w-3xl">
+                <div className="inline-flex items-center gap-2 bg-amber-400/20 border border-amber-300/30 text-amber-300 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                  <Award className="w-4 h-4 text-amber-400" />
+                  {currentTab.includes('internasional')
+                    ? 'Tingkat Internasional'
+                    : currentTab.includes('nasional')
+                    ? 'Tingkat Nasional'
+                    : 'Tingkat Wilayah'}
+                  {' • '}
+                  {currentTab.includes('non-akademik') ? 'Non-Akademik' : 'Akademik'}
+                </div>
+
+                <h1 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight">
+                  Prestasi Mahasiswa {currentTab.includes('internasional') ? 'Internasional' : currentTab.includes('nasional') ? 'Nasional' : 'Wilayah'}
+                </h1>
+
+                <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+                  Pusat Rekapitulasi & Dokumentasi Capaian Mahasiswa Universitas Muhammadiyah Kendari di Bidang {currentTab.includes('non-akademik') ? 'Non-Akademik' : 'Akademik'}.
+                </p>
+
+                {/* Sub-menu navigation pills inside page */}
+                <div className="pt-4 flex flex-wrap gap-2">
+                  {[
+                    { label: 'Internasional (Akademik)', tab: 'prestasi-internasional-akademik' },
+                    { label: 'Internasional (Non-Akademik)', tab: 'prestasi-internasional-non-akademik' },
+                    { label: 'Nasional (Akademik)', tab: 'prestasi-nasional-akademik' },
+                    { label: 'Nasional (Non-Akademik)', tab: 'prestasi-nasional-non-akademik' },
+                    { label: 'Wilayah (Akademik)', tab: 'prestasi-wilayah-akademik' },
+                    { label: 'Wilayah (Non-Akademik)', tab: 'prestasi-wilayah-non-akademik' },
+                  ].map((p) => (
+                    <button
+                      key={p.tab}
+                      onClick={() => setTab(p.tab)}
+                      className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
+                        currentTab === p.tab
+                          ? 'bg-amber-400 text-slate-950 font-bold shadow-md'
+                          : 'bg-white/10 hover:bg-white/20 text-slate-200 border border-white/10'
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Content Section */}
+            <div className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-10 shadow-sm space-y-8">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-6">
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+                    <Star className="w-5 h-5 text-amber-500 fill-amber-400" />
+                    Daftar Capaian Prestasi Unggulan
+                  </h2>
+                  <p className="text-slate-500 text-xs sm:text-sm mt-1">
+                    Menampilkan data mahasiswa berprestasi UM Kendari
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => (onNavigateToRegister ? onNavigateToRegister('alumni') : onNavigateToLogin())}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 shadow-md transition shrink-0"
+                >
+                  <Award className="w-4 h-4" /> Laporkan Prestasi Mahasiswa
+                </button>
+              </div>
+
+              {/* Sample achievement cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="bg-slate-50 rounded-2xl border border-slate-200/90 p-5 space-y-4 hover:shadow-md transition">
+                  <div className="flex items-center justify-between">
+                    <span className="px-2.5 py-1 bg-amber-100 text-amber-800 rounded-lg text-xs font-extrabold flex items-center gap-1">
+                      <Award className="w-3.5 h-3.5 text-amber-600" /> Juara 1 / Gold Medal
+                    </span>
+                    <span className="text-xs text-slate-400 font-semibold">2026</span>
+                  </div>
+
+                  <h3 className="font-bold text-slate-900 text-base leading-snug">
+                    {currentTab.includes('non-akademik')
+                      ? 'Kompetisi Olahraga & Seni Mahasiswa'
+                      : 'Kompetisi Karya Tulis Ilmiah & Inovasi Teknologi'}
+                  </h3>
+
+                  <p className="text-slate-600 text-xs leading-relaxed">
+                    Delegasi Mahasiswa Universitas Muhammadiyah Kendari berhasil meraih penghargaan tertinggi pada ajang {currentTab.includes('internasional') ? 'Internasional' : currentTab.includes('nasional') ? 'Nasional' : 'Wilayah'}.
+                  </p>
+
+                  <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs text-slate-500 font-medium">
+                    <span>Tim Mahasiswa UMK</span>
+                    <span className="text-emerald-600 font-bold">Terverifikasi CDC</span>
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 rounded-2xl border border-slate-200/90 p-5 space-y-4 hover:shadow-md transition">
+                  <div className="flex items-center justify-between">
+                    <span className="px-2.5 py-1 bg-slate-200 text-slate-800 rounded-lg text-xs font-extrabold flex items-center gap-1">
+                      <Award className="w-3.5 h-3.5 text-slate-600" /> Runner Up / Silver Medal
+                    </span>
+                    <span className="text-xs text-slate-400 font-semibold">2025</span>
+                  </div>
+
+                  <h3 className="font-bold text-slate-900 text-base leading-snug">
+                    {currentTab.includes('non-akademik')
+                      ? 'Festival Kebudayaan & Kewirausahaan'
+                      : 'Olimpiade Sains & Pemrograman Komputer'}
+                  </h3>
+
+                  <p className="text-slate-600 text-xs leading-relaxed">
+                    Capaian gemilang mahasiswa UMK memperkuat posisi kampus sebagai pusat keunggulan di tingkat {currentTab.includes('internasional') ? 'Internasional' : currentTab.includes('nasional') ? 'Nasional' : 'Wilayah'}.
+                  </p>
+
+                  <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs text-slate-500 font-medium">
+                    <span>Perwakilan Fakultas</span>
+                    <span className="text-emerald-600 font-bold">Terverifikasi CDC</span>
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 rounded-2xl border border-slate-200/90 p-5 space-y-4 hover:shadow-md transition">
+                  <div className="flex items-center justify-between">
+                    <span className="px-2.5 py-1 bg-amber-50 text-amber-900 border border-amber-200 rounded-lg text-xs font-extrabold flex items-center gap-1">
+                      <Award className="w-3.5 h-3.5 text-amber-700" /> Juara 3 / Bronze Medal
+                    </span>
+                    <span className="text-xs text-slate-400 font-semibold">2025</span>
+                  </div>
+
+                  <h3 className="font-bold text-slate-900 text-base leading-snug">
+                    {currentTab.includes('non-akademik')
+                      ? 'Kejuaraan Debat & Public Speaking'
+                      : 'Simposum Riset Mahasiswa & Poster Ilmiah'}
+                  </h3>
+
+                  <p className="text-slate-600 text-xs leading-relaxed">
+                    Apresiasi tinggi atas dedikasi dan kerja keras civitas akademika dalam mengharumkan nama Universitas Muhammadiyah Kendari.
+                  </p>
+
+                  <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs text-slate-500 font-medium">
+                    <span>Mahasiswa Prestasi</span>
+                    <span className="text-emerald-600 font-bold">Terverifikasi CDC</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
       </main>
 
 
