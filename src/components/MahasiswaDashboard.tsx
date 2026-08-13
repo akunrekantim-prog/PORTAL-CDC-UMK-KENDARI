@@ -105,10 +105,6 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
         applyForJob(user.id, applyingJob, data);
         window.dispatchEvent(new Event('storage'));
         triggerToast(`Lamaran untuk ${applyingJob.judul} di ${applyingJob.namaInstansi} berhasil terkirim ke Mitra!`);
-        setTimeout(() => {
-          setApplyingJob(null);
-          setActiveTab('applications');
-        }, 1500);
       } catch (err: any) {
         triggerToast(err.message || 'Pendaftaran telah ditutup karena melewati batas waktu.');
       }
@@ -214,15 +210,6 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
                 }`}
               >
                 <span>Lamaran Saya</span>
-                {myApplications.length > 0 && (
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-black ${
-                    interviewAlertCount > 0 
-                      ? 'bg-purple-500 text-white' 
-                      : 'bg-emerald-500 text-white'
-                  }`}>
-                    {myApplications.length}
-                  </span>
-                )}
               </button>
 
               <button
@@ -267,11 +254,6 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
           }`}
         >
           <span>Lamaran Saya</span>
-          {myApplications.length > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-white/20 text-white">
-              {myApplications.length}
-            </span>
-          )}
         </button>
         <button
           onClick={() => setActiveTab('profile')}
@@ -333,6 +315,10 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
           isOpen={!!applyingJob}
           job={applyingJob}
           onClose={() => setApplyingJob(null)}
+          onViewApplications={() => {
+            setApplyingJob(null);
+            setActiveTab('applications');
+          }}
           onSubmit={handleApplySubmit}
           defaultName={`${firstName} ${lastName}`.trim()}
           defaultEmail={email}

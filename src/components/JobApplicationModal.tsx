@@ -8,6 +8,7 @@ interface JobApplicationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: any) => void;
+  onViewApplications?: () => void;
   defaultName?: string;
   defaultEmail?: string;
   defaultProdi?: string;
@@ -19,6 +20,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
+  onViewApplications,
   defaultName = '',
   defaultEmail = '',
   defaultProdi = '',
@@ -48,31 +50,60 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
     }
 
     if (!uploadedFileName && !uploadedFileUrl) {
-      setFileError('Berkas CV / Portofolio wajib diunggah sebelum mengirim lamaran.');
+      setFileError('Berkas CV / Portofolio (PDF) wajib diunggah sebelum mengirim lamaran.');
       return;
     }
 
     setFileError(null);
     setIsSubmitting(true);
 
-    // Simulate API call
+    // Process submission
     setTimeout(() => {
       setIsSubmitting(false);
       setSubmitSuccess(true);
-      onSubmit({ applicantName, applicantEmail, applicantProdi, applicantNim, applicantNotes, uploadedFileName, uploadedFileUrl });
-    }, 1000);
+      onSubmit({ 
+        applicantName, 
+        applicantEmail, 
+        applicantProdi, 
+        applicantNim, 
+        applicantNotes, 
+        uploadedFileName, 
+        uploadedFileUrl 
+      });
+    }, 600);
   };
+
+  const MAX_FILE_SIZE_BYTES = 1 * 1024 * 1024; // 1 MB
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+
+      if (!isPdf) {
+        setFileError('Format berkas tidak valid. Berkas CV wajib berformat PDF (.pdf).');
+        setUploadedFileName(null);
+        setUploadedFileUrl(null);
+        e.target.value = '';
+        return;
+      }
+      
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+        setFileError(`Ukuran berkas (${sizeMb} MB) melebihi batas maksimal 1 MB. Silakan unggah berkas CV PDF yang lebih kecil.`);
+        setUploadedFileName(null);
+        setUploadedFileUrl(null);
+        e.target.value = '';
+        return;
+      }
+
       setUploadedFileName(file.name);
       setFileError(null);
       const reader = new FileReader();
       reader.onload = (event) => {
         if (event.target?.result) {
           let res = event.target.result as string;
-          if (file.name.toLowerCase().endsWith('.pdf') && !res.startsWith('data:application/pdf')) {
+          if (!res.startsWith('data:application/pdf')) {
             res = res.replace(/^data:[^;]*;/, 'data:application/pdf;');
           }
           setUploadedFileUrl(res);
@@ -105,10 +136,12 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
           </button>
           
           <span className="text-emerald-400 font-extrabold text-[10px] uppercase tracking-wider block mb-1">
-            Portal Karir CDC UM Kendari
+            {submitSuccess ? '✓ Bukti Pengajuan Lamaran' : 'Portal Karir CDC UM Kendari'}
           </span>
-          <h3 className="text-xl font-extrabold text-white leading-tight">Form Pengajuan Lamaran</h3>
-          <p className="text-slate-300 text-xs mt-1 truncate">{job.judul} • {job.namaInstansi}</p>
+          <h3 className="text-xl font-extrabold text-white leading-tight">
+            {submitSuccess ? 'Lamaran Berhasil Terkirim' : 'Form Pengajuan Lamaran'}
+          </h3>
+          <p className="text-slate-300 text-xs mt-1 font-medium truncate">{job.judul} • {job.namaInstansi}</p>
         </div>
 
         {/* Modal Content / Form */}
@@ -129,20 +162,77 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
             </button>
           </div>
         ) : submitSuccess ? (
-          <div className="p-8 text-center space-y-4">
-            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
-              <CheckCircle2 className="w-8 h-8" />
+          <div className="p-7 space-y-5 animate-fadeIn" id="submit-success-notice">
+            <div className="text-center space-y-3">
+              <div className="w-14 h-14 bg-emerald-50 text-emerald-600 border border-emerald-200/80 rounded-2xl flex items-center justify-center mx-auto shadow-2xs">
+                <CheckCircle2 className="w-8 h-8 text-emerald-600" />
+              </div>
+
+              <div className="space-y-1">
+                <h4 className="font-extrabold text-slate-900 text-lg sm:text-xl">Berkas Lamaran Resmi Diterima!</h4>
+                <p className="text-slate-600 text-xs leading-relaxed max-w-sm mx-auto font-medium">
+                  Data kualifikasi &amp; berkas lamaran Anda telah berhasil didaftarkan di sistem CDC UM Kendari dan diteruskan ke tim HRD <strong>{job.namaInstansi}</strong>.
+                </p>
+              </div>
             </div>
-            <h4 className="font-extrabold text-slate-900 text-lg">Lamaran Berhasil Terkirim!</h4>
-            <p className="text-slate-600 text-xs sm:text-sm leading-relaxed max-w-sm mx-auto">
-              Berkas lamaran Anda telah berhasil disimpan dan diteruskan ke tim HRD <strong>{job.namaInstansi}</strong>. Status lamaran dapat dipantau berkala melalui dashboard akun Anda.
-            </p>
-            <button
-              onClick={handleClose}
-              className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs uppercase tracking-wider transition"
-            >
-              Tutup Form
-            </button>
+
+            {/* Clean Digital Receipt Card */}
+            <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-5 text-xs space-y-3 max-w-md mx-auto shadow-2xs">
+              <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
+                <span className="text-slate-500 font-medium">Posisi Lowongan:</span>
+                <span className="font-extrabold text-slate-900 truncate max-w-[220px] text-right">{job.judul}</span>
+              </div>
+              <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
+                <span className="text-slate-500 font-medium">Mitra Industri:</span>
+                <span className="font-bold text-[#0077C6] truncate max-w-[220px] text-right">{job.namaInstansi}</span>
+              </div>
+              <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
+                <span className="text-slate-500 font-medium">Nama Pelamar:</span>
+                <span className="font-bold text-slate-900 truncate max-w-[220px] text-right">{applicantName}</span>
+              </div>
+              <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
+                <span className="text-slate-500 font-medium">Waktu Pengajuan:</span>
+                <span className="font-semibold text-slate-700">{new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })} WITA</span>
+              </div>
+              <div className="flex items-center justify-between pt-0.5">
+                <span className="text-slate-500 font-medium">Status Berkas:</span>
+                <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-extrabold px-3 py-1 rounded-full text-[11px]">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Menunggu Review HRD
+                </span>
+              </div>
+            </div>
+
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+              {onViewApplications ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleClose();
+                      onViewApplications();
+                    }}
+                    className="w-full sm:w-auto bg-[#0077C6] hover:bg-blue-700 text-white font-extrabold px-6 py-3 rounded-xl text-xs transition shadow-sm flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                  >
+                    Cek Status Lamaran Saya →
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-5 py-3 rounded-xl text-xs transition cursor-pointer"
+                  >
+                    Tutup
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="w-full sm:w-auto bg-[#0077C6] hover:bg-blue-700 text-white font-extrabold px-6 py-3 rounded-xl text-xs transition shadow-sm cursor-pointer active:scale-95"
+                >
+                  Selesai &amp; Tutup
+                </button>
+              )}
+            </div>
           </div>
         ) : (
           <form onSubmit={handleFormSubmit} className="p-6 space-y-4">
@@ -197,16 +287,15 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
               }`}>
                 <input
                   type="file"
-                  required
-                  accept=".pdf,.doc,.docx,image/*"
+                  accept=".pdf,application/pdf"
                   onChange={handleFileChange}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 />
                 <UploadCloud className={`w-8 h-8 mx-auto mb-1.5 ${fileError ? 'text-rose-400' : 'text-slate-400'}`} />
                 <span className={`text-xs font-bold block ${fileError ? 'text-rose-600' : 'text-[#0077C6]'}`}>
-                  {uploadedFileName ? uploadedFileName : 'Klik atau seret berkas CV ke sini'}
+                  {uploadedFileName ? uploadedFileName : 'Klik atau seret berkas CV (PDF) ke sini'}
                 </span>
-                <span className="text-[10px] text-slate-400 mt-0.5 block">Format PDF / DOC (Maks. 5MB)</span>
+                <span className="text-[10px] text-slate-400 mt-0.5 block">Khusus Berkas PDF (.pdf) • Maksimal 1 MB</span>
               </div>
               {fileError && (
                 <p className="text-[11px] font-bold text-rose-600 mt-1 flex items-center gap-1">
@@ -216,13 +305,14 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-700">Catatan / Surat Pengantar / Application Letter (Wajib)</label>
+              <label className="text-xs font-bold text-slate-700">
+                Catatan / Surat Pengantar / Application Letter <span className="text-slate-400 font-semibold">(Opsional)</span>
+              </label>
               <textarea
                 rows={3}
-                required
                 value={applicantNotes}
                 onChange={(e) => setApplicantNotes(e.target.value)}
-                placeholder="Tuliskan Application Letter atau Surat Pengantar Anda di sini..."
+                placeholder="Tuliskan Application Letter atau Surat Pengantar Anda di sini (opsional)..."
                 className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20"
               />
             </div>
@@ -231,14 +321,14 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
               <button
                 type="button"
                 onClick={handleClose}
-                className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition"
+                className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition cursor-pointer"
               >
                 Batal
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs transition uppercase tracking-wider shadow-xs disabled:opacity-50"
+                className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs transition uppercase tracking-wider shadow-xs disabled:opacity-50 cursor-pointer"
               >
                 {isSubmitting ? 'Mengirim Data...' : 'Kirim Lamaran'}
               </button>

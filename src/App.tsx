@@ -146,9 +146,10 @@ export default function App() {
   };
 
   // Development Direct-Switch tool (very powerful for multi-role testing in AI Studio iframe!)
-  const handleFastRoleSwitch = (role: 'admin' | 'user' | 'mitra' | 'viewer') => {
+  const handleFastRoleSwitch = (role: 'admin' | 'user' | 'mitra' | 'viewer' | 'mahasiswa') => {
     const users = getFromDB<UserType>('users');
-    let target = users.find(u => (u.role === role || (role === 'user' && (u.role === 'mahasiswa' || u.role === 'alumni' || u.role === 'user'))) && u.status === 'active');
+    const searchRole = role === 'mahasiswa' ? 'user' : role;
+    let target = users.find(u => (u.role === searchRole || (searchRole === 'user' && (u.role === 'mahasiswa' || u.role === 'alumni' || u.role === 'user'))) && u.status === 'active');
 
     if (target) {
       setCurrentUser(target);
@@ -217,7 +218,7 @@ export default function App() {
         <div className="flex flex-wrap gap-2" id="switcher-buttons">
           {[
             { id: 'admin', label: 'Admin CDC', color: 'bg-indigo-650 hover:bg-slate-800 hover:text-white border-slate-700 font-bold' },
-            { id: 'mahasiswa', label: 'USER', color: 'bg-emerald-650 hover:bg-slate-800 border-slate-700 font-bold' },
+            { id: 'user', label: 'USER', color: 'bg-emerald-650 hover:bg-slate-800 border-slate-700 font-bold' },
             { id: 'mitra', label: 'Mitra', color: 'bg-teal-650 hover:bg-slate-800 border-slate-700 font-bold' }
           ].map((item) => (
             <button

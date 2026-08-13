@@ -100,6 +100,93 @@ const formatDate = (dateStr?: string) => {
   }
 };
 
+const getJobTitle = (jobIdOrTitle?: string, fallbackInstansi?: string): string => {
+  if (!jobIdOrTitle) return 'Program Magang Industri';
+  const allLowongan = getFromDB<Lowongan>('lowongan');
+  const found = allLowongan.find(j => j.id === jobIdOrTitle || j.judul.toLowerCase() === jobIdOrTitle.toLowerCase());
+  if (found) return found.judul;
+  if (/^\d+$/.test(jobIdOrTitle) || jobIdOrTitle.length <= 2) {
+    if (fallbackInstansi) {
+      const companyJob = allLowongan.find(j => j.namaInstansi.toLowerCase() === fallbackInstansi.toLowerCase());
+      if (companyJob) return companyJob.judul;
+    }
+    return allLowongan[0]?.judul || 'Pengembang Aplikasi Web / Software Engineer';
+  }
+  return jobIdOrTitle;
+};
+
+function PdfViewerPreview({ berkasUrl, fileName }: { berkasUrl?: string; fileName?: string }) {
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!berkasUrl) {
+      setBlobUrl(null);
+      return;
+    }
+    try {
+      if (berkasUrl.startsWith('data:')) {
+        const arr = berkasUrl.split(',');
+        const mimeMatch = arr[0].match(/:(.*?);/);
+        const mime = mimeMatch ? mimeMatch[1] : 'application/pdf';
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while (n--) {
+          u8arr[n] = bstr.charCodeAt(n);
+        }
+        const blob = new Blob([u8arr], { type: mime });
+        const url = URL.createObjectURL(blob);
+        setBlobUrl(url);
+        return () => {
+          URL.revokeObjectURL(url);
+        };
+      } else {
+        setBlobUrl(berkasUrl);
+      }
+    } catch (err) {
+      console.error("Failed to create blob URL for PDF preview:", err);
+      setBlobUrl(berkasUrl || null);
+    }
+  }, [berkasUrl]);
+
+  if (!berkasUrl && !blobUrl) {
+    return (
+      <div className="w-full h-80 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50 flex flex-col items-center justify-center p-6 text-center space-y-3 shadow-inner">
+        <div className="w-14 h-14 rounded-2xl bg-[#0077C6]/10 text-[#0077C6] flex items-center justify-center">
+          <FileText className="w-7 h-7" />
+        </div>
+        <div className="space-y-1 max-w-sm">
+          <h5 className="font-extrabold text-slate-800 text-sm">{fileName || 'CV_Pelamar.pdf'}</h5>
+          <p className="text-xs text-slate-500 font-medium leading-relaxed">
+            Berkas ini merupakan data simulasi bawaan. Silakan coba unggah berkas CV PDF asli saat mengajukan lamaran untuk melihat pratinjau dokumen langsung secara otomatis.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const effectiveUrl = blobUrl || berkasUrl || '#';
+  const isImg = berkasUrl?.startsWith('data:image/');
+
+  if (isImg) {
+    return (
+      <div className="w-full h-96 border border-slate-200 rounded-2xl bg-slate-100 flex items-center justify-center p-2 shadow-inner">
+        <img src={effectiveUrl} alt={fileName || "Berkas CV"} className="max-h-full object-contain mx-auto rounded-lg" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full h-96 border border-slate-300 rounded-2xl overflow-hidden bg-slate-100 relative shadow-inner">
+      <iframe
+        src={effectiveUrl}
+        className="w-full h-full border-0 bg-white"
+        title={fileName || "Dokumen CV PDF"}
+      />
+    </div>
+  );
+}
+
 export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDashboardProps) {
   const [activeTab, setActiveTab] = useState<'ringkasan' | 'profil' | 'lowongan' | 'pelamar' | 'survei'>('ringkasan');
   
@@ -741,8 +828,12 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
         <aside className="lg:col-span-3 space-y-6" id="mtr-sidebar">
           <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-xs space-y-6">
             <div className="flex items-center gap-3.5 pb-5 border-b border-slate-100">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl flex items-center justify-center font-extrabold text-lg shrink-0 shadow-xs border border-blue-400/30">
-                {namaInstansi ? namaInstansi.charAt(0).toUpperCase() : 'M'}
+              <div className="w-12 h-12 bg-[#1B365D] text-white rounded-2xl flex items-center justify-center font-black text-lg shrink-0 shadow-xs border border-slate-700/30 overflow-hidden">
+                {companyLogoUrl ? (
+                  <img src={companyLogoUrl} alt={namaInstansi} className="w-full h-full object-contain p-1.5 bg-white" />
+                ) : (
+                  <span>{namaInstansi ? namaInstansi.charAt(0).toUpperCase() : 'M'}</span>
+                )}
               </div>
               <div className="truncate min-w-0">
                 <div className="font-extrabold text-slate-900 text-sm truncate">{namaInstansi || 'Instansi Mitra'}</div>
@@ -812,17 +903,21 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
             <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6" id="mtr-welcome-banner">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-100">
                 <div className="flex items-start gap-4 sm:gap-5">
-                  <div className="w-16 h-16 sm:w-18 sm:h-18 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl flex items-center justify-center font-extrabold text-2xl sm:text-3xl shrink-0 shadow-md border border-blue-400/30">
-                    {namaInstansi ? namaInstansi.charAt(0).toUpperCase() : 'M'}
+                  <div className="w-16 h-16 sm:w-18 sm:h-18 bg-[#1B365D] text-white rounded-2xl flex items-center justify-center font-black text-2xl sm:text-3xl shrink-0 shadow-md border border-slate-700/40 overflow-hidden">
+                    {companyLogoUrl ? (
+                      <img src={companyLogoUrl} alt={namaInstansi} className="w-full h-full object-contain p-2 bg-white" />
+                    ) : (
+                      <span>{namaInstansi ? namaInstansi.charAt(0).toUpperCase() : 'M'}</span>
+                    )}
                   </div>
                   <div className="space-y-1.5 min-w-0">
-                    <div className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1 rounded-full font-extrabold text-[11px] uppercase tracking-wider">
+                    <div className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-3 py-1 rounded-full font-extrabold text-[11px] uppercase tracking-wider shadow-2xs">
                       <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                       <span>MITRA RESMI CDC UM KENDARI</span>
                     </div>
                     <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight truncate">{namaInstansi || 'Instansi Mitra Kampus'}</h2>
                     <div className="flex flex-wrap items-center gap-y-1.5 gap-x-5 text-xs font-medium text-slate-500 pt-0.5">
-                      <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-slate-400 shrink-0" /> PIC: <strong className="text-slate-800">{kontakPerson || user.name}</strong></span>
+                      <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5 text-slate-400 shrink-0" /> PIC: <strong className="text-slate-800">{kontakPerson || user.name}</strong></span>
                       <span className="flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5 text-slate-400 shrink-0" /> Sektor: <strong className="text-slate-800">{bidangIndustri}</strong></span>
                       <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" /> Kontak: <strong className="text-slate-800">{phone || user.phone || '-'}</strong></span>
                     </div>
@@ -832,53 +927,66 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 <div className="flex items-center gap-3 shrink-0 self-start md:self-center">
                   <button 
                     onClick={() => setActiveTab('profil')} 
-                    className="bg-slate-100 text-slate-700 hover:bg-slate-200 px-4 py-2.5 rounded-2xl text-xs font-bold transition flex items-center gap-2 cursor-pointer"
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-2 cursor-pointer shadow-2xs"
                   >
                     <FileText className="w-4 h-4 text-slate-500" /> Edit Profil
                   </button>
                   <button 
                     onClick={() => { setActiveTab('lowongan'); setShowAddJob(true); }} 
-                    className="bg-[#0077C6] hover:bg-blue-700 text-white px-5 py-2.5 rounded-2xl text-xs font-extrabold transition shadow-xs flex items-center gap-2 cursor-pointer active:scale-95"
+                    className="bg-gradient-to-r from-[#0077C6] to-[#005FA3] hover:from-blue-700 hover:to-blue-800 text-white font-extrabold px-5 py-2.5 rounded-xl text-xs transition shadow-sm flex items-center gap-2 cursor-pointer active:scale-95"
                   >
                     <Plus className="w-4 h-4" /> Posting Lowongan
                   </button>
                 </div>
               </div>
 
-              {/* QUICK STAT COUNTERS WITH CLEAN ICON CARDS */}
+              {/* QUICK STAT COUNTERS WITH WOW EXPERT KPI CARDS */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                <div className="bg-blue-50/50 p-5 rounded-2xl border border-blue-100/80 flex items-center gap-4 hover:border-blue-200 transition group">
-                  <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-105 transition shadow-xs font-bold">
+                <div className="bg-slate-50/90 p-5 rounded-2xl border border-slate-200/80 flex items-center justify-between transition group hover:bg-white hover:shadow-md">
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider block">TOTAL LOWONGAN</span>
+                    <div className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                      {myJobs.length} <span className="text-sm font-semibold text-slate-500">Posisi</span>
+                    </div>
+                    <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md inline-block">
+                      Aktif di CDC
+                    </span>
+                  </div>
+                  <div className="w-12 h-12 bg-blue-50 text-[#0077C6] border border-blue-100 rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 transition shadow-2xs">
                     <Briefcase className="w-6 h-6" />
                   </div>
-                  <div>
-                    <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Lowongan</div>
-                    <div className="text-2xl font-extrabold text-slate-900 font-mono mt-0.5">{myJobs.length} Posisi</div>
-                  </div>
                 </div>
 
-                <div className="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100/80 flex items-center gap-4 hover:border-emerald-200 transition group">
-                  <div className="w-12 h-12 bg-emerald-600 text-white rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-105 transition shadow-xs font-bold">
+                <div className="bg-slate-50/90 p-5 rounded-2xl border border-slate-200/80 flex items-center justify-between transition group hover:bg-white hover:shadow-md">
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider block">PELAMAR MASUK</span>
+                    <div className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                      {myApplicants.length} <span className="text-sm font-semibold text-slate-500">Pelamar</span>
+                    </div>
+                    <span className="text-[11px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md inline-block">
+                      Perlu Evaluasi
+                    </span>
+                  </div>
+                  <div className="w-12 h-12 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 transition shadow-2xs">
                     <Users className="w-6 h-6" />
                   </div>
-                  <div>
-                    <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Pelamar Masuk</div>
-                    <div className="text-2xl font-extrabold text-slate-900 font-mono mt-0.5">{myApplicants.length} Pelamar</div>
-                  </div>
                 </div>
 
-                <div className="bg-purple-50/50 p-5 rounded-2xl border border-purple-100/80 flex items-center gap-4 hover:border-purple-200 transition group">
-                  <div className="w-12 h-12 bg-purple-600 text-white rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-105 transition shadow-xs font-bold">
-                    <CheckCircle className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Diterima &amp; Rekrut</div>
-                    <div className="text-2xl font-extrabold text-slate-900 font-mono mt-0.5">
+                <div className="bg-slate-50/90 p-5 rounded-2xl border border-slate-200/80 flex items-center justify-between transition group hover:bg-white hover:shadow-md">
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider block">LOLOS &amp; REKRUT</span>
+                    <div className="text-2xl font-extrabold text-slate-900 tracking-tight">
                       {myApplicants.filter(a => {
                         const s = (a.status || '').toLowerCase();
                         return s === 'accepted' || s === 'diterima' || s === 'completed';
-                      }).length} Orang
+                      }).length} <span className="text-sm font-semibold text-slate-500">Orang</span>
                     </div>
+                    <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md inline-block">
+                      Diterima Kerja
+                    </span>
+                  </div>
+                  <div className="w-12 h-12 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 transition shadow-2xs">
+                    <CheckCircle className="w-6 h-6" />
                   </div>
                 </div>
               </div>
@@ -907,38 +1015,64 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                   </div>
                 ) : (
                   <div className="space-y-3.5">
-                    {myApplicants.slice(0, 3).map((appl) => (
-                      <div key={appl.id} className="bg-slate-50/80 hover:bg-slate-100/70 p-5 rounded-2xl border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition shadow-2xs">
-                        <div className="flex items-start gap-3.5">
-                          <div className="w-11 h-11 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-2xl flex items-center justify-center font-extrabold text-sm shrink-0 shadow-xs">
-                            {appl.namaMahasiswa ? appl.namaMahasiswa.charAt(0).toUpperCase() : 'M'}
-                          </div>
-                          <div className="space-y-1">
-                            <h5 className="font-extrabold text-slate-900 text-sm leading-snug">{appl.namaMahasiswa}</h5>
-                            <div className="text-xs text-slate-600 flex flex-wrap items-center gap-2 font-medium">
-                              <span className="bg-white px-2 py-0.5 rounded-md border border-slate-200 font-mono text-[11px] font-bold text-slate-700">NIM: {appl.nim}</span>
-                              <span>• {appl.programStudi}</span>
+                    {myApplicants.slice(0, 3).map((appl) => {
+                      const studentRecord = getFromDB<Mahasiswa>('mahasiswa').find(
+                        s => s.userId === appl.userId || s.id === appl.mahasiswaId || (appl.nim && s.nim === appl.nim)
+                      );
+                      const isMahasiswa = studentRecord?.userStatusType === 'Mahasiswa';
+                      const roleBadgeText = studentRecord?.userStatusType || (appl.nim ? 'Mahasiswa' : 'Job Seeker / Alumni');
+                      const jobTitleText = getJobTitle(appl.tujuanMagang, namaInstansi);
+
+                      return (
+                        <div key={appl.id} className="bg-slate-50/80 hover:bg-slate-100/80 p-5 rounded-2xl border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition shadow-2xs">
+                          <div className="flex items-start gap-3.5">
+                            <div className="w-11 h-11 shrink-0">
+                              {studentRecord?.photoUrl ? (
+                                <img src={studentRecord.photoUrl} alt={appl.namaMahasiswa} className="w-11 h-11 object-cover rounded-2xl border border-slate-200 shadow-2xs" />
+                              ) : (
+                                <div className="w-11 h-11 bg-[#1B365D] text-white rounded-2xl flex items-center justify-center font-black text-sm shadow-2xs border border-slate-700/50">
+                                  {appl.namaMahasiswa ? appl.namaMahasiswa.charAt(0).toUpperCase() : 'M'}
+                                </div>
+                              )}
                             </div>
-                            <div className="text-xs text-slate-500 pt-0.5">Posisi: <strong className="text-slate-800 font-bold">{appl.tujuanMagang}</strong></div>
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <h5 className="font-extrabold text-slate-900 text-sm leading-snug">{appl.namaMahasiswa}</h5>
+                                <span className="bg-blue-50 text-[#0077C6] border border-blue-200/60 text-[10px] font-bold px-2 py-0.5 rounded-md">
+                                  {roleBadgeText}
+                                </span>
+                              </div>
+                              <div className="text-xs text-slate-600 flex flex-wrap items-center gap-2 font-medium">
+                                {isMahasiswa && appl.nim && (
+                                  <span className="bg-white px-2 py-0.5 rounded-md border border-slate-200 font-mono text-[11px] font-bold text-slate-700">NIM: {appl.nim}</span>
+                                )}
+                                <span>{appl.programStudi || 'Teknik Informatika'}</span>
+                              </div>
+                              <div className="text-xs text-slate-500 pt-0.5">
+                                Posisi Dilamar: <strong className="text-slate-800 font-bold">{jobTitleText}</strong>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+                            <button 
+                              onClick={() => setSelectedApplicantDoc(appl)}
+                              className="bg-white hover:bg-slate-50 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold border border-slate-200 transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                            >
+                              <FileText className="w-3.5 h-3.5 text-emerald-600" /> Lihat Berkas
+                            </button>
+                            <button 
+                              onClick={() => {
+                                setSelectedApplicantDoc(appl);
+                              }}
+                              className="bg-[#0077C6] hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-extrabold transition shadow-xs cursor-pointer active:scale-95 flex items-center gap-1"
+                            >
+                              Tinjau Pelamar <ArrowRight className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                         </div>
-                        
-                        <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
-                          <button 
-                            onClick={() => setSelectedApplicantDoc(appl)}
-                            className="bg-white hover:bg-slate-50 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold border border-slate-200 transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
-                          >
-                            <FileText className="w-3.5 h-3.5 text-emerald-600" /> Lihat Berkas
-                          </button>
-                          <button 
-                            onClick={() => setActiveTab('pelamar')}
-                            className="bg-[#0077C6] hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-extrabold transition shadow-xs cursor-pointer active:scale-95"
-                          >
-                            Tinjau Pelamar
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -1047,7 +1181,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 </div>
                 <button 
                   onClick={() => setShowAddJob(!showAddJob)}
-                  className="bg-[#10B981] hover:bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm shrink-0"
+                  className="bg-[#0077C6] hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-2 shadow-xs shrink-0 cursor-pointer active:scale-95"
                 >
                   <Plus className="w-4 h-4" />
                   {showAddJob ? "Sembunyikan Form" : "Posting Lowongan Baru"}
@@ -1373,7 +1507,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                       </button>
                       <button 
                         type="submit"
-                        className="bg-[#10B981] hover:bg-emerald-600 text-white px-6 py-2.5 rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-2"
+                        className="bg-[#0077C6] hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-2 cursor-pointer active:scale-95"
                       >
                         <CheckCircle className="w-4 h-4" /> {editingJobId ? "Simpan Perubahan Lowongan" : "Posting Lowongan ke Publik"}
                       </button>
@@ -1390,49 +1524,52 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6" id="mitra-job-list">
-                  {myJobs.map((job) => (
-                    <div key={job.id} className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm hover:shadow-md transition flex flex-col justify-between group" id={`job-box-${job.id}`}>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className={`px-3 py-1 rounded-full font-bold text-[10px] uppercase tracking-wider border ${
-                            job.tipe === 'magang' 
-                              ? 'bg-blue-50 text-blue-700 border-blue-200' 
-                              : 'bg-purple-50 text-purple-700 border-purple-200'
-                          }`}>
-                            {job.tipe === 'magang' ? 'Program Magang' : 'Lowongan Kerja'}
-                          </span>
+                  {myJobs.map((job) => {
+                    const displayTitle = getJobTitle(job.judul, namaInstansi);
 
-                          {/* Status Pills */}
-                          {job.status === 'published' ? (
-                            <span className="bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30 px-3 py-1 rounded-full font-bold text-[11px] inline-flex items-center gap-1.5">
-                              <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
-                              Aktif
+                    return (
+                      <div key={job.id} className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm hover:shadow-md transition flex flex-col justify-between group" id={`job-box-${job.id}`}>
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className={`px-3 py-1 rounded-full font-bold text-[10px] uppercase tracking-wider border ${
+                              job.tipe === 'magang' 
+                                ? 'bg-blue-50 text-blue-700 border-blue-200' 
+                                : 'bg-purple-50 text-purple-700 border-purple-200'
+                            }`}>
+                              {job.tipe === 'magang' ? 'Program Magang' : 'Lowongan Kerja'}
                             </span>
-                          ) : job.status === 'closed' ? (
-                            <span className="bg-slate-100 text-slate-600 border border-slate-200 px-3 py-1 rounded-full font-bold text-[11px] inline-flex items-center gap-1.5">
-                              Tutup
-                            </span>
-                          ) : (
-                            <span className="bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1 rounded-full font-bold text-[11px] inline-flex items-center gap-1.5">
-                              In Review
-                            </span>
-                          )}
-                        </div>
 
-                        <div className="flex items-start gap-4 pt-1">
-                          {job.companyLogo ? (
-                            <img 
-                              src={job.companyLogo} 
-                              alt={job.judul}
-                              className="w-16 h-16 object-contain rounded-xl border border-slate-200 shrink-0 bg-white p-1.5 shadow-xs" 
-                            />
-                          ) : (
-                            <div className="w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
-                              <Building2 className="w-6 h-6" />
-                            </div>
-                          )}
-                          <div className="space-y-1 min-w-0 flex-1">
-                            <h4 className="font-extrabold text-slate-900 group-hover:text-[#10B981] transition-colors text-base sm:text-lg truncate">{job.judul}</h4>
+                            {/* Status Pills */}
+                            {job.status === 'published' ? (
+                              <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-3 py-1 rounded-full font-bold text-[11px] inline-flex items-center gap-1.5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                Aktif
+                              </span>
+                            ) : job.status === 'closed' ? (
+                              <span className="bg-slate-100 text-slate-600 border border-slate-200 px-3 py-1 rounded-full font-bold text-[11px] inline-flex items-center gap-1.5">
+                                Tutup
+                              </span>
+                            ) : (
+                              <span className="bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1 rounded-full font-bold text-[11px] inline-flex items-center gap-1.5">
+                                In Review
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex items-start gap-4 pt-1">
+                            {job.companyLogo ? (
+                              <img 
+                                src={job.companyLogo} 
+                                alt={displayTitle}
+                                className="w-16 h-16 object-contain rounded-xl border border-slate-200 shrink-0 bg-white p-1.5 shadow-xs" 
+                              />
+                            ) : (
+                              <div className="w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
+                                <Briefcase className="w-6 h-6 text-[#0077C6]" />
+                              </div>
+                            )}
+                            <div className="space-y-1 min-w-0 flex-1">
+                              <h4 className="font-extrabold text-slate-900 group-hover:text-[#0077C6] transition-colors text-base sm:text-lg truncate">{displayTitle}</h4>
                             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 font-medium">
                               <span className="flex items-center gap-1 truncate"><MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {job.lokasi}</span>
                               <span className="flex items-center gap-1 shrink-0"><Users className="w-3.5 h-3.5 text-slate-400 shrink-0" /> Kuota: {job.kuota || 3}</span>
@@ -1472,7 +1609,8 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                         </button>
                       </div>
                     </div>
-                  ))}
+                  );
+                })}
                 </div>
               )}
             </div>
@@ -1783,7 +1921,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                             <div className="text-xs space-y-1.5 bg-white p-3 rounded-xl border border-slate-100">
                               <div className="flex justify-between items-center">
                                 <span className="text-slate-500 font-medium">Posisi:</span>
-                                <span className="font-bold text-slate-800 text-right">{appl.tujuanMagang}</span>
+                                <span className="font-bold text-slate-800 text-right">{getJobTitle(appl.tujuanMagang, namaInstansi)}</span>
                               </div>
                               <div className="flex justify-between items-center">
                                 <span className="text-slate-500 font-medium">Tanggal Melamar:</span>
@@ -1865,7 +2003,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                       <table className="w-full text-left border-collapse text-xs sm:text-sm">
                         <thead>
                           <tr className="bg-slate-100/70 border-b border-slate-200 text-slate-600 font-extrabold text-xs uppercase tracking-wider">
-                            <th className="py-4 px-4">Kandidat</th>
+                            <th className="py-4 px-4">Pelamar</th>
                             <th className="py-4 px-4">Pendidikan</th>
                             <th className="py-4 px-4">Posisi yang Dilamar</th>
                             <th className="py-4 px-4">Tanggal Melamar</th>
@@ -1874,20 +2012,32 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 text-slate-700" id="applicants-table-body">
-                          {paginatedAppls.map((appl) => (
-                            <tr key={appl.id} className="hover:bg-slate-50/80 transition duration-150">
-                              <td className="py-4 px-4 font-bold text-slate-900">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-extrabold flex items-center justify-center text-xs shrink-0 shadow-2xs">
-                                    {appl.namaMahasiswa ? appl.namaMahasiswa.charAt(0).toUpperCase() : 'M'}
-                                  </div>
+                          {paginatedAppls.map((appl) => {
+                            const studentRecord = getFromDB<Mahasiswa>('mahasiswa').find(
+                              s => s.userId === appl.userId || s.id === appl.mahasiswaId || (appl.nim && s.nim === appl.nim)
+                            );
+                            const photoUrl = studentRecord?.photoUrl;
+
+                            return (
+                              <tr key={appl.id} className="hover:bg-slate-50/80 transition duration-150">
+                                <td className="py-4 px-4 font-bold text-slate-900">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 shrink-0">
+                                      {photoUrl ? (
+                                        <img src={photoUrl} alt={appl.namaMahasiswa} className="w-9 h-9 object-cover rounded-2xl border border-slate-200 shadow-2xs" />
+                                      ) : (
+                                        <div className="w-9 h-9 bg-[#1B365D] text-white rounded-2xl flex items-center justify-center font-black text-xs shadow-2xs border border-slate-700/50">
+                                          {appl.namaMahasiswa ? appl.namaMahasiswa.charAt(0).toUpperCase() : 'M'}
+                                        </div>
+                                      )}
+                                    </div>
                                   <div>
                                     <div className="font-extrabold text-slate-900">{appl.namaMahasiswa}</div>
                                   </div>
                                 </div>
                               </td>
                               <td className="py-4 px-4 text-slate-600 font-medium">{appl.programStudi || '-'}</td>
-                              <td className="py-4 px-4 font-semibold text-slate-800">{appl.tujuanMagang}</td>
+                              <td className="py-4 px-4 font-semibold text-slate-800">{getJobTitle(appl.tujuanMagang, namaInstansi)}</td>
                               <td className="py-4 px-4 text-slate-500 font-medium text-xs whitespace-nowrap">
                                 {formatDate(appl.createdAt || appl.tanggalMulai)}
                               </td>
@@ -1967,7 +2117,8 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                                 })()}
                               </td>
                             </tr>
-                          ))}
+                          );
+                        })}
                         </tbody>
                       </table>
                     </div>
@@ -2108,16 +2259,16 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
       {schedulingApplicant && (
         <div className="fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
           <div className="bg-white max-w-lg w-full rounded-3xl border border-slate-200 shadow-2xl overflow-hidden my-8">
-            <div className="bg-purple-700 text-white p-6 relative flex items-center justify-between">
+            <div className="bg-[#1B365D] text-white p-6 relative flex items-center justify-between">
               <div>
-                <span className="text-purple-200 font-extrabold text-[10px] uppercase tracking-wider block mb-1">
+                <span className="text-emerald-400 font-extrabold text-[10px] uppercase tracking-wider block mb-1">
                   Penjadwalan Wawancara Pelamar
                 </span>
                 <h3 className="text-xl font-extrabold text-white">
                   Jadwalkan Interview
                 </h3>
-                <p className="text-purple-200 text-xs mt-0.5 font-mono">
-                  Pelamar: {schedulingApplicant.namaMahasiswa} ({schedulingApplicant.nim})
+                <p className="text-slate-300 text-xs mt-0.5 font-medium">
+                  Pelamar: {schedulingApplicant.namaMahasiswa} ({schedulingApplicant.nim || 'Job Seeker'})
                 </p>
               </div>
               <button
@@ -2138,7 +2289,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                     required
                     value={interviewDate}
                     onChange={(e) => setInterviewDate(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 focus:border-[#0077C6]"
                   />
                 </div>
 
@@ -2150,7 +2301,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                     value={interviewTime}
                     onChange={(e) => setInterviewTime(e.target.value)}
                     placeholder="Contoh: 10:00 WITA"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 focus:border-[#0077C6]"
                   />
                 </div>
               </div>
@@ -2163,7 +2314,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                     onClick={() => setInterviewMethod('online')}
                     className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
                       interviewMethod === 'online'
-                        ? 'bg-purple-50 text-purple-700 border-purple-300 ring-2 ring-purple-500/20'
+                        ? 'bg-blue-50 text-[#0077C6] border-[#0077C6] ring-2 ring-[#0077C6]/20'
                         : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
                     }`}
                   >
@@ -2174,7 +2325,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                     onClick={() => setInterviewMethod('offline')}
                     className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
                       interviewMethod === 'offline'
-                        ? 'bg-purple-50 text-purple-700 border-purple-300 ring-2 ring-purple-500/20'
+                        ? 'bg-blue-50 text-[#0077C6] border-[#0077C6] ring-2 ring-[#0077C6]/20'
                         : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
                     }`}
                   >
@@ -2192,7 +2343,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                     value={interviewLink}
                     onChange={(e) => setInterviewLink(e.target.value)}
                     placeholder="https://meet.google.com/xxx-xxxx-xxx"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 focus:border-[#0077C6]"
                   />
                 </div>
               ) : (
@@ -2204,7 +2355,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                     value={interviewLocation}
                     onChange={(e) => setInterviewLocation(e.target.value)}
                     placeholder="Kantor Perusahaan Lt. 2 Ruang Rapat HRD"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 focus:border-[#0077C6]"
                   />
                 </div>
               )}
@@ -2216,7 +2367,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                   value={interviewNote}
                   onChange={(e) => setInterviewNote(e.target.value)}
                   placeholder="Contoh: Harap membawa dokumen CV fisik & portofolio terbaru."
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 focus:border-[#0077C6]"
                 />
               </div>
 
@@ -2230,7 +2381,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 </button>
                 <button
                   type="submit"
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs transition shadow-md flex items-center gap-1.5 cursor-pointer"
+                  className="bg-[#0077C6] hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs transition shadow-md flex items-center gap-1.5 cursor-pointer"
                 >
                   <CheckCircle className="w-4 h-4" /> Kirim Undangan
                 </button>
@@ -2246,15 +2397,29 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
           <div className="bg-white max-w-4xl w-full rounded-3xl border border-slate-200 shadow-2xl overflow-hidden my-6 max-h-[92vh] flex flex-col">
             
             {/* Modal Header */}
-            <div className="bg-[#1E3A8A] text-white p-5 sm:p-6 relative flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white font-extrabold text-lg shrink-0">
-                  {selectedApplicantDoc.namaMahasiswa.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <span className="text-emerald-400 font-extrabold text-[10px] uppercase tracking-wider block mb-0.5">
-                    DETAIL KANDIDAT • {selectedApplicantDoc.tujuanMagang}
-                  </span>
+            {(() => {
+              const studentRecord = getFromDB<Mahasiswa>('mahasiswa').find(
+                s => s.userId === selectedApplicantDoc.userId || s.id === selectedApplicantDoc.mahasiswaId || (selectedApplicantDoc.nim && s.nim === selectedApplicantDoc.nim)
+              );
+              const photoUrl = studentRecord?.photoUrl;
+              const jobTitleText = getJobTitle(selectedApplicantDoc.tujuanMagang, namaInstansi);
+
+              return (
+                <div className="bg-[#1B365D] text-white p-5 sm:p-6 relative flex items-center justify-between shrink-0">
+                  <div className="flex items-center gap-4">
+                    <div className="w-13 h-13 rounded-2xl shrink-0 overflow-hidden">
+                      {photoUrl ? (
+                        <img src={photoUrl} alt={selectedApplicantDoc.namaMahasiswa} className="w-13 h-13 object-cover rounded-2xl border-2 border-white/30 shadow-xs" />
+                      ) : (
+                        <div className="w-13 h-13 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white font-black text-xl shadow-xs">
+                          {selectedApplicantDoc.namaMahasiswa.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <span className="text-emerald-400 font-extrabold text-[10px] uppercase tracking-wider block mb-0.5">
+                        DETAIL PELAMAR • {jobTitleText}
+                      </span>
                   <h3 className="text-lg sm:text-xl font-extrabold text-white leading-tight">
                     {selectedApplicantDoc.namaMahasiswa}
                   </h3>
@@ -2267,24 +2432,26 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => setSelectedApplicantDoc(null)}
-                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition shrink-0 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+                <button
+                  onClick={() => setSelectedApplicantDoc(null)}
+                  className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition shrink-0 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            );
+          })()}
 
             {/* Modal Body (Scrollable) */}
             <div className="p-6 sm:p-8 space-y-6 text-xs sm:text-sm overflow-y-auto flex-1">
               
               {/* 1. PROFIL PELAMAR & LOWONGAN YANG DILAMAR */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {/* PROFIL KANDIDAT */}
+                {/* PROFIL PELAMAR */}
                 <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-200/80 space-y-3">
                   <div className="flex items-center gap-2 border-b border-slate-200/70 pb-2.5">
                     <User className="w-4 h-4 text-[#0077C6]" />
-                    <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider">PROFIL KANDIDAT</h4>
+                    <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider">PROFIL PELAMAR</h4>
                   </div>
                   <div className="space-y-2 text-xs">
                     <div className="flex items-center justify-between">
@@ -2326,13 +2493,13 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 {/* LOWONGAN YANG DILAMAR */}
                 <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-200/80 space-y-3">
                   <div className="flex items-center gap-2 border-b border-slate-200/70 pb-2.5">
-                    <Briefcase className="w-4 h-4 text-purple-600" />
+                    <Briefcase className="w-4 h-4 text-[#0077C6]" />
                     <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider">LOWONGAN YANG DILAMAR</h4>
                   </div>
                   <div className="space-y-2 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="text-slate-500 font-medium">Nama Posisi:</span>
-                      <span className="font-bold text-slate-900">{selectedApplicantDoc.tujuanMagang}</span>
+                      <span className="font-bold text-slate-900">{getJobTitle(selectedApplicantDoc.tujuanMagang, namaInstansi)}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-slate-500 font-medium">Jenis Program:</span>
@@ -2350,27 +2517,27 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 </div>
               </div>
 
-              {/* 2. TENTANG KANDIDAT */}
+              {/* 2. TENTANG PELAMAR */}
               <div className="space-y-2">
                 <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
-                  <Info className="w-4 h-4 text-blue-600" /> TENTANG KANDIDAT
+                  <Info className="w-4 h-4 text-[#0077C6]" /> TENTANG PELAMAR
                 </h4>
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/70 text-slate-700 text-xs leading-relaxed">
                   {selectedApplicantDoc.catatan || 'Mahasiswa aktif semester 6 yang berintegritas tinggi, berorientasi pada detail, serta memiliki motivasi kuat untuk berkontribusi secara nyata dalam lingkungan kerja industri professional.'}
                 </div>
               </div>
 
-              {/* CATATAN INTERNAL KANDIDAT */}
+              {/* CATATAN INTERNAL PELAMAR */}
               <div className="bg-amber-50/60 p-5 rounded-2xl border border-amber-200/80 space-y-3">
                 <div className="flex items-center justify-between border-b border-amber-200/70 pb-2.5">
                   <div className="flex items-center gap-2">
                     <Edit3 className="w-4 h-4 text-amber-700" />
                     <h4 className="font-extrabold text-amber-950 text-xs uppercase tracking-wider">
-                      CATATAN INTERNAL KANDIDAT
+                      CATATAN INTERNAL PELAMAR
                     </h4>
                   </div>
                   <span className="text-[10px] font-bold text-amber-800 bg-amber-100/90 border border-amber-300/80 px-2.5 py-0.5 rounded-md">
-                    🔒 Rahasia (Tidak Terlihat oleh Kandidat)
+                    🔒 Rahasia (Tidak Terlihat oleh Pelamar)
                   </span>
                 </div>
 
@@ -2379,7 +2546,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                     rows={3}
                     value={internalNoteInput}
                     onChange={(e) => setInternalNoteInput(e.target.value)}
-                    placeholder="Tuliskan catatan evaluasi internal tentang kandidat (misal: Memiliki kemampuan React yang baik. Perlu ditanyakan pengalaman deployment saat interview)..."
+                    placeholder="Tuliskan catatan evaluasi internal tentang pelamar (misal: Memiliki kemampuan React yang baik. Perlu ditanyakan pengalaman deployment saat interview)..."
                     className="w-full p-3.5 rounded-xl border border-amber-300/80 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 leading-relaxed font-medium"
                   />
                   <div className="flex justify-end">
@@ -2388,7 +2555,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                       onClick={() => handleSaveInternalNote(selectedApplicantDoc.id)}
                       className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-2xs flex items-center gap-1.5 cursor-pointer"
                     >
-                      <CheckCircle className="w-3.5 h-3.5" /> Simpan Catatan Internal Kandidat
+                      <CheckCircle className="w-3.5 h-3.5" /> Simpan Catatan Internal Pelamar
                     </button>
                   </div>
                 </div>
@@ -2594,10 +2761,9 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
                   <FileText className="w-4 h-4 text-[#0077C6]" /> DOKUMEN CURRICULUM VITAE (CV)
                 </h4>
-                
-                <div className="border-2 border-dashed border-emerald-300 bg-emerald-50/40 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="border-2 border-dashed border-emerald-300 bg-emerald-50/40 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-12 h-12 rounded-xl bg-[#10B981] text-white flex items-center justify-center font-extrabold text-xs shrink-0 shadow-xs">
+                    <div className="w-12 h-12 rounded-xl bg-[#0077C6] text-white flex items-center justify-center font-extrabold text-xs shrink-0 shadow-xs">
                       PDF
                     </div>
                     <div className="space-y-0.5 min-w-0">
@@ -2605,14 +2771,14 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                         {selectedApplicantDoc.berkasNama || `CV_${selectedApplicantDoc.namaMahasiswa.replace(/\s+/g, '_')}.pdf`}
                       </h4>
                       <p className="text-[11px] text-emerald-700 font-medium flex items-center gap-1">
-                        <CheckCircle className="w-3.5 h-3.5 text-[#10B981]" /> CV Kandidat
+                        <CheckCircle className="w-3.5 h-3.5 text-emerald-600" /> CV Pelamar Resmi
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
                     <a
-                      href={selectedApplicantDoc.berkasUrl || 'data:application/pdf;base64,JVBERi0xLjQKJSDi48jNCjEgMCBvYmoKPDwvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFI+PgplbmRvYmoKMiAwIG9iaiA8PC9UeXBlIC9QYWdlcyAvQ291bnQgMSAvS2lkcyBbMyAwIFJdPj4KZW5kb2JqCjMgMCBvYmoKPDwvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9Db250ZW50cyA0IDAgUj4+CmVuZG9iaiA0IDAgb2JqCjw8L0xlbmd0aCA0NCA+PgpzdHJlYW0KQlQKL0YxIDEyIFRmCjEwMCA3MDAgVGRgCihDVl9QZWxhbWFyX0NEQ19VTUtlbmRhcmkpIFRqCkVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDUNCjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAxNSAwMDAwMCBuIAowMDAwMDAwMDY4IDA0MDAwIG4gCjAwMDAwMDAxMjUgMDAwMDAgbiAKMDAwMDAwMDIxMyAwMDAwMCBuIAp0cmFpbGVyCjw8L1NpemUgNSAvUm9vdCAxIDAgUj4+CnN0YXJ0eHJlZgozMDcKJSVFT0Y='}
+                      href={selectedApplicantDoc.berkasUrl || '#'}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 px-4 py-2.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 cursor-pointer"
@@ -2620,9 +2786,9 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                       <ExternalLink className="w-3.5 h-3.5" /> Lihat CV
                     </a>
                     <a
-                      href={selectedApplicantDoc.berkasUrl || 'data:application/pdf;base64,JVBERi0xLjQKJSDi48jNCjEgMCBvYmoKPDwvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFI+PgplbmRvYmoKMiAwIG9iaiA8PC9UeXBlIC9QYWdlcyAvQ291bnQgMSAvS2lkcyBbMyAwIFJdPj4KZW5kb2JqCjMgMCBvYmoKPDwvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9Db250ZW50cyA0IDAgUj4+CmVuZG9iaiA0IDAgb2JqCjw8L0xlbmd0aCA0NCA+PgpzdHJlYW0KQlQKL0YxIDEyIFRmCjEwMCA3MDAgVGRgCihDVl9QZWxhbWFyX0NEQ19VTUtlbmRhcmkpIFRqCkVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDUNCjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAxNSAwMDAwMCBuIAowMDAwMDAwMDY4IDA0MDAwIG4gCjAwMDAwMDAxMjUgMDAwMDAgbiAKMDAwMDAwMDIxMyAwMDAwMCBuIAp0cmFpbGVyCjw8L1NpemUgNSAvUm9vdCAxIDAgUj4+CnN0YXJ0eHJlZgozMDcKJSVFT0Y='}
+                      href={selectedApplicantDoc.berkasUrl || '#'}
                       download={selectedApplicantDoc.berkasNama || `CV_${selectedApplicantDoc.namaMahasiswa.replace(/\s+/g, '_')}.pdf`}
-                      className="bg-[#10B981] hover:bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+                      className="bg-[#0077C6] hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer"
                     >
                       <Download className="w-3.5 h-3.5" /> Download CV
                     </a>
@@ -2630,32 +2796,10 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 </div>
 
                 {/* Frame Preview */}
-                {(() => {
-                  const pdfTargetUrl = (selectedApplicantDoc.berkasUrl && selectedApplicantDoc.berkasUrl.startsWith('data:'))
-                    ? selectedApplicantDoc.berkasUrl
-                    : 'data:application/pdf;base64,JVBERi0xLjQKJSDi48jNCjEgMCBvYmoKPDwvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFI+PgplbmRvYmoKMiAwIG9iaiA8PC9UeXBlIC9QYWdlcyAvQ291bnQgMSAvS2lkcyBbMyAwIFJdPj4KZW5kb2JqCjMgMCBvYmoKPDwvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9Db250ZW50cyA0IDAgUj4+CmVuZG9iaiA0IDAgb2JqCjw8L0xlbmd0aCA0NCA+PgpzdHJlYW0KQlQKL0YxIDEyIFRmCjEwMCA3MDAgVGRgCihDVl9QZWxhbWFyX0NEQ19VTUtlbmRhcmkpIFRqCkVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDUNCjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAxNSAwMDAwMCBuIAowMDAwMDAwMDY4IDA0MDAwIG4gCjAwMDAwMDAxMjUgMDAwMDAgbiAKMDAwMDAwMDIxMyAwMDAwMCBuIAp0cmFpbGVyCjw8L1NpemUgNSAvUm9vdCAxIDAgUj4+CnN0YXJ0eHJlZgozMDcKJSVFT0Y=';
-                  const isImg = pdfTargetUrl.startsWith('data:image/');
-
-                  return (
-                    <div className="w-full h-80 border border-slate-300 rounded-2xl overflow-hidden bg-slate-100 flex items-center justify-center relative shadow-inner">
-                      {isImg ? (
-                        <img src={pdfTargetUrl} alt="Preview Berkas CV" className="max-h-full object-contain mx-auto" />
-                      ) : (
-                        <object 
-                          data={pdfTargetUrl} 
-                          type="application/pdf" 
-                          className="w-full h-full bg-white"
-                        >
-                          <iframe 
-                            src={pdfTargetUrl} 
-                            className="w-full h-full border-0 bg-white" 
-                            title="Dokumen CV PDF" 
-                          />
-                        </object>
-                      )}
-                    </div>
-                  );
-                })()}
+                <PdfViewerPreview
+                  berkasUrl={selectedApplicantDoc.berkasUrl}
+                  fileName={selectedApplicantDoc.berkasNama || `CV_${selectedApplicantDoc.namaMahasiswa.replace(/\s+/g, '_')}.pdf`}
+                />
               </div>
 
             </div>
@@ -2684,7 +2828,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                         }}
                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer flex items-center gap-1.5"
                       >
-                        <ArrowRight className="w-4 h-4" /> Mulai Review Kandidat
+                        <ArrowRight className="w-4 h-4" /> Mulai Review Pelamar
                       </button>
                     );
                   }
@@ -2774,9 +2918,22 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                   ? `Apakah Anda yakin ingin menerima ${confirmModal.applicant.namaMahasiswa} sebagai peserta?` 
                   : `Apakah Anda yakin ingin menolak pelamar ini?`}
               </p>
-              <div className="text-[11px] font-mono text-slate-400 pt-1">
-                {confirmModal.applicant.namaMahasiswa} • NIM: {confirmModal.applicant.nim}
-              </div>
+              {(() => {
+                const student = getFromDB<Mahasiswa>('mahasiswa').find(
+                  s => s.userId === confirmModal.applicant.userId || 
+                       s.id === confirmModal.applicant.mahasiswaId || 
+                       (confirmModal.applicant.nim && s.nim === confirmModal.applicant.nim)
+                );
+                const isMahasiswa = student?.userStatusType === 'Mahasiswa';
+                const subtitleLabel = isMahasiswa && confirmModal.applicant.nim 
+                  ? ` • NIM: ${confirmModal.applicant.nim}`
+                  : ` • ${confirmModal.applicant.programStudi || 'Job Seeker'}`;
+                return (
+                  <div className="text-[11px] font-medium text-slate-500 pt-1">
+                    {confirmModal.applicant.namaMahasiswa}{subtitleLabel}
+                  </div>
+                );
+              })()}
             </div>
 
             <div className="pt-2 flex items-center justify-center gap-3">

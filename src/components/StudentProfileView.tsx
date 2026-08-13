@@ -7,6 +7,7 @@ import {
   updateUserProfile,
   getFromDB,
   getSavedJobIds,
+  getValidSavedJobs,
   toggleSaveJob
 } from '../data';
 import { 
@@ -62,8 +63,16 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
   // Avatar State & File Ref
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [avatarUrl, setAvatarUrl] = useState(
-    mahasiswaData?.photoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300&auto=format&fit=crop'
+    mahasiswaData?.photoUrl || user.photoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300&auto=format&fit=crop'
   );
+
+  React.useEffect(() => {
+    if (mahasiswaData?.photoUrl) {
+      setAvatarUrl(mahasiswaData.photoUrl);
+    } else if (user.photoUrl) {
+      setAvatarUrl(user.photoUrl);
+    }
+  }, [mahasiswaData?.photoUrl, user.photoUrl]);
 
   const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -75,9 +84,10 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
       const reader = new FileReader();
       reader.onloadend = () => {
         if (typeof reader.result === 'string') {
-          setAvatarUrl(reader.result);
-          updateUserProfile(user.id, { photoUrl: reader.result });
-          triggerToast('Foto profil dari berkas lokal berhasil diunggah!');
+          const base64Photo = reader.result; // Base64 data URL
+          setAvatarUrl(base64Photo);
+          updateUserProfile(user.id, { photoUrl: base64Photo });
+          triggerToast('Foto profil dari berkas lokal berhasil diunggah (Base64)!');
           if (onProfileUpdated) onProfileUpdated();
         }
       };
@@ -526,12 +536,11 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
             <span>Lowongan Tersimpan</span>
             {(() => {
               try {
-                const saved = localStorage.getItem('cdc_saved_job_ids');
-                const count = saved ? JSON.parse(saved).length : 0;
-                if (count > 0) {
+                const validSaved = getValidSavedJobs();
+                if (validSaved.length > 0) {
                   return (
                     <span className="bg-blue-100 text-[#0077C6] text-[10px] font-extrabold px-2 py-0.5 rounded-full ml-0.5">
-                      {count}
+                      {validSaved.length}
                     </span>
                   );
                 }
@@ -961,14 +970,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
 
         {/* SUB-TAB B: MY BOOKMARKS */}
         {subTab === 'bookmarks' && (() => {
-          let savedJobIds: string[] = [];
-          try {
-            const saved = localStorage.getItem('cdc_saved_job_ids');
-            savedJobIds = saved ? JSON.parse(saved) : [];
-          } catch {}
-
-          const allJobs = getFromDB<any>('lowongan');
-          const savedJobs = allJobs.filter((j: any) => savedJobIds.includes(j.id));
+          const savedJobs = getValidSavedJobs();
 
           return (
             <div className="w-full space-y-5 animate-fadeIn max-w-4xl mx-auto">

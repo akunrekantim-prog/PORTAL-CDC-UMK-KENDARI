@@ -1195,28 +1195,42 @@ export function updateUserProfile(userId: string, profileData: Partial<Mahasiswa
   const students = getFromDB<Mahasiswa>('mahasiswa');
   let student = students.find(s => s.userId === userId);
 
+  let updatedStudent: Mahasiswa;
   if (student) {
-    const updatedStudent = { ...student, ...profileData };
+    updatedStudent = { ...student, ...profileData };
     updateInDB<Mahasiswa>('mahasiswa', updatedStudent);
-    return updatedStudent;
+  } else {
+    // If no existing record, create one
+    updatedStudent = {
+      id: `mhs_${Date.now()}`,
+      userId: userId,
+      nim: profileData.nim || '',
+      nama: profileData.nama || '',
+      email: profileData.email || '',
+      phone: profileData.phone || '',
+      programStudi: profileData.programStudi || '',
+      fakultas: profileData.fakultas || '',
+      angkatan: profileData.angkatan || '',
+      semester: profileData.semester || 1,
+      ...profileData
+    };
+    insertToDB<Mahasiswa>('mahasiswa', updatedStudent);
   }
 
-  // If no existing record, create one
-  const newStudent: Mahasiswa = {
-    id: `mhs_${Date.now()}`,
-    userId: userId,
-    nim: profileData.nim || '',
-    nama: profileData.nama || '',
-    email: profileData.email || '',
-    phone: profileData.phone || '',
-    programStudi: profileData.programStudi || '',
-    fakultas: profileData.fakultas || '',
-    angkatan: profileData.angkatan || '',
-    semester: profileData.semester || 1,
-    ...profileData
-  };
-  insertToDB<Mahasiswa>('mahasiswa', newStudent);
-  return newStudent;
+  // Also update User record in 'users' database if photoUrl, name, email, or phone is updated
+  if (profileData.photoUrl || profileData.nama || profileData.email || profileData.phone) {
+    const users = getFromDB<User>('users');
+    const uIdx = users.findIndex(u => u.id === userId);
+    if (uIdx !== -1) {
+      if (profileData.photoUrl) users[uIdx].photoUrl = profileData.photoUrl;
+      if (profileData.nama) users[uIdx].name = profileData.nama;
+      if (profileData.email) users[uIdx].email = profileData.email;
+      if (profileData.phone) users[uIdx].phone = profileData.phone;
+      saveToDB('users', users);
+    }
+  }
+
+  return updatedStudent;
 }
 
 export function applyForJob(userId: string, job: Lowongan, extraData?: any) {
@@ -1250,8 +1264,8 @@ export function applyForJob(userId: string, job: Lowongan, extraData?: any) {
     tujuanMagang: job.judul,
     lokasiMagang: job.lokasi,
     catatan: extraData?.applicantNotes || '',
-    // Do NOT store base64 file content in localStorage (causes QuotaExceededError)
-    berkasUrl: undefined,
+    // Save uploaded CV file URL (Base64 data URL)
+    berkasUrl: extraData?.uploadedFileUrl || undefined,
     berkasNama: extraData?.uploadedFileName || 'CV_Mahasiswa_Pelamar.pdf',
     tanggalMulai: new Date().toISOString().split('T')[0],
     tanggalSelesai: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -1313,6 +1327,20 @@ export function getSavedJobIds(): string[] {
   } catch {
     return [];
   }
+}
+
+export function getValidSavedJobs(): Lowongan[] {
+  const savedIds = getSavedJobIds();
+  const allJobs = getFromDB<Lowongan>('lowongan');
+  const validJobs = allJobs.filter(j => savedIds.includes(j.id));
+  
+  // Clean up any stale/ghost IDs from localStorage if count doesn't match
+  if (validJobs.length !== savedIds.length) {
+    const validIds = validJobs.map(j => j.id);
+    localStorage.setItem('cdc_saved_job_ids', JSON.stringify(validIds));
+  }
+  
+  return validJobs;
 }
 
 export function toggleSaveJob(jobId: string): boolean {

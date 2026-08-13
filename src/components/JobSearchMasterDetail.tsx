@@ -160,7 +160,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
   }, [keyword, selectedLocations, selectedSpecializations]);
 
   // Filter Published Jobs (Lowongan kerja terbaru selalu di atas)
-  const publishedJobs = sortJobsByNewest(jobs.filter(j => j.status === 'published' && j.tipe !== 'magang'));
+  const publishedJobs = sortJobsByNewest(jobs.filter(j => j.status === 'published'));
 
   // Filter Jobs Logic
   const filteredJobs = publishedJobs.filter(job => {

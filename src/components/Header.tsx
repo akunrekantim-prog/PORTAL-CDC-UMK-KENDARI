@@ -134,6 +134,12 @@ const NAV_ITEMS: NavItem[] = [
     ],
   },
   {
+    id: 'masuk',
+    label: 'Masuk',
+    tab: 'login',
+    isAction: true,
+  },
+  {
     id: 'register',
     label: 'Register',
     isAction: true,

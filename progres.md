@@ -1027,6 +1027,7 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 
 ---
 
+
 ## Tanggal: 13 Agustus 2026
 **Developer:** Mirzat L. Teori  
 **Fokus Pekerjaan:** Pembuatan Fitur Input Konten Admin — Lowongan, Berita & Artikel, dan Program & Pengumuman
@@ -1090,5 +1091,125 @@ Catatan penempatan: Program & Pengumuman **disuntikkan ke section yang sudah ada
 ---
 
 > 📌 **Progres Mirzat L. Teori** — Selesai & terverifikasi..
+
+## Tanggal: 13 Agustus 2026 — Sesi 5
+**Developer:** ikhsan  
+**Fokus Pekerjaan:** Perbaikan Akses Dashboard User Fast-Role Switcher & Pembukaan Visibilitas Lowongan Program Magang Mitra di Job Info / Search Job Dashboard User
+
+---
+
+### 🚀 Ringkasan Perubahan
+
+#### 1. Perbaikan Login Fast-Role Switcher & Tombol Masuk Header (`App.tsx` & `Header.tsx`)
+- **Fix Role Switcher**: Mengubah penanganan `handleFastRoleSwitch` dan ID tombol `USER` di bar topbar hitam agar mendukung `role: 'user'` dan `role: 'mahasiswa'`. Tombol `USER` kini langsung mengaktifkan sesi login dashboard user (*Muhammad Fadly Alamsyah*).
+- **Tombol Masuk Navbar**: Menambahkan item menu **Masuk** pada `NAV_ITEMS` di `Header.tsx` untuk kemudahan navigasi otentikasi.
+
+#### 2. Perbaikan Visibilitas Lowongan Program Magang Mitra (`PublicLayout.tsx` & `JobSearchMasterDetail.tsx`)
+- **Penyebab Utama**: Terdapat filter kondisional tersembunyi `&& tipe !== 'magang'` pada pembacaan daftar lowongan terpublikasi (`publishedLowongan` & `publishedJobs`). Karena mitra secara default memposting loker bertipe **Program Magang**, seluruh loker tersebut terfilter dan tidak muncul pada publik & dashboard user.
+- **Perbaikan**: Menghapus klausa penyaring `&& tipe !== 'magang'` pada `PublicLayout.tsx` (Job Info & Beranda) dan `JobSearchMasterDetail.tsx` (Pencarian Lowongan Dashboard User), sehingga seluruh lowongan aktif (baik Program Magang maupun Lowongan Kerja) otomatis tampil sempurna.
+
+### 📁 File Diubah
+- **[MODIFY]** `src/App.tsx` — Perbaikan handler & ID Fast-Role Switcher
+- **[MODIFY]** `src/components/Header.tsx` — Penambahan tombol Masuk pada menu navigasi utama
+- **[MODIFY]** `src/components/PublicLayout.tsx` — Penghapusan penyaringan `&& tipe !== 'magang'` dari `publishedLowongan`
+- **[MODIFY]** `src/components/JobSearchMasterDetail.tsx` — Penghapusan penyaringan `&& tipe !== 'magang'` dari `publishedJobs`
+- **[MODIFY]** `progres.md` — Pencatatan laporan progres sesi ini
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Perbaikan Fast-Role Switcher tombol USER agar langsung masuk ke Dashboard User
+- [x] Penambahan tombol "Masuk" pada menu utama navbar Header
+- [x] Identifikasi & eliminasi klausa pemicu bug `&& tipe !== 'magang'` di `PublicLayout.tsx` dan `JobSearchMasterDetail.tsx`
+- [x] Verifikasi visibilitas lowongan Program Magang Mitra pada Halaman Publik, Job Info, dan Dashboard User
+- [x] Verifikasi typecheck TypeScript (`npx tsc --noEmit` -> 0 error)
+- [x] Pencatatan laporan progres di `progres.md`
+
+---
+
+## Tanggal: 13 Agustus 2026 — Sesi 6
+**Developer:** Ikhsan  
+**Fokus Pekerjaan:** Synchronizing Jumlah Badge Lowongan Tersimpan & Penyimpanan Foto Profil Berkas Lokal ke Format Base64
+
+---
+
+### 🚀 Ringkasan Perubahan
+
+#### 1. Sinkronisasi Badge & Daftar Lowongan Tersimpan (`data.ts` & `StudentProfileView.tsx`)
+- **Penyebab Diskrepansi**: Badge `Lowongan Tersimpan` sebelumnya membaca `localStorage.getItem('cdc_saved_job_ids')` secara mentah (yang mungkin menyimpan ID lowongan yang sudah dihapus/stale), sedangkan tampilan daftar di dalam tab memfilter terhadap lowongan aktif di database (`allJobs`).
+- **Perbaikan**: 
+  - Membuat fungsi helper `getValidSavedJobs()` di `data.ts` yang memvalidasi ID tersimpan terhadap lowongan aktif di database dan otomatis membersihkan ID ghost/stale dari `localStorage`.
+  - Memperbarui perhitungan jumlah badge pada sub-tab `Lowongan Tersimpan` dan tampilan daftar di `StudentProfileView.tsx` menggunakan `getValidSavedJobs()`, sehingga angka di badge (misal: 0) dan judul daftar selalu sinkron 100%.
+
+#### 2. Penyimpanan Foto Profil Unggahan Lokal ke Format Base64 (`StudentProfileView.tsx` & `data.ts`)
+- **Penyimpanan Base64**: Menggunakan `FileReader.readAsDataURL(file)` untuk mengonversi berkas gambar lokal yang diunggah pengguna menjadi *Data URL Base64*.
+- **Sinkronisasi Database**: Meng-update `updateUserProfile` di `data.ts` agar pembaruan `photoUrl` (serta nama, email, dan telepon) otomatis meng-update tabel `mahasiswa` sekaligus tabel `users` di `localStorage`.
+
+### 📁 File Diubah
+- **[MODIFY]** `src/data.ts` — Menambahkan `getValidSavedJobs()` dan meng-update `updateUserProfile` untuk meng-update tabel `users` & `mahasiswa`
+- **[MODIFY]** `src/components/StudentProfileView.tsx` — Penggunaan `getValidSavedJobs()` untuk badge & daftar bookmark, serta konversi unggah foto profil ke Base64
+- **[MODIFY]** `progres.md` — Pencatatan laporan progres sesi ini
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Pembuatan fungsi `getValidSavedJobs()` dengan auto-cleanup ID stale dari `localStorage`
+- [x] Penyelarasan badge `Lowongan Tersimpan` dengan daftar lowongan aktif (menghilangkan diskrepansi badge count 1 vs list 0)
+- [x] Konversi foto profil lokal ke format string Base64 (`data:image/...;base64,...`) saat diunggah
+- [x] Sinkronisasi `photoUrl` pengguna ke tabel `mahasiswa` dan `users`
+- [x] Verifikasi typecheck TypeScript (`npx tsc --noEmit` -> 0 error)
+- [x] Pencatatan laporan progres di `progres.md`
+
+---
+
+## Tanggal: 13 Agustus 2026 — Sesi 7
+**Developer:** Ikhsan  
+**Fokus Pekerjaan:** Redesain Visual UI/UX Dashboard Mitra & Modal Lamaran Kerja (Eliminasi AI Slop, Standardisasi Warna Brand CDC, & Manajemen Unggah PDF CV Pelamar)
+
+---
+
+### 🚀 Ringkasan Perubahan
+
+#### 1. Redesain Visual Dashboard Mitra (`MitraDashboard.tsx`)
+- **Eliminasi AI Slop & Restrukturisasi Visual**:
+  - Menghapus gradasi warna generik (AI slop) pada foto profil default dan menggantinya dengan penayangan foto asli pelamar (`photoUrl`) dari tabel `mahasiswa` atau box solid `#1B365D` CDC Navy.
+  - Mengganti istilah **"Kandidat" menjadi "Pelamar"** pada seluruh tabel, badge status, header modal detail, dan tombol aksi.
+  - Memperbaiki kartu KPI statistik (`TOTAL LOWONGAN`, `PELAMAR MASUK`, `LOLOS & REKRUT`) dengan desain modern high-contrast.
+- **Standardisasi Sistem Warna Brand CDC Kendari**:
+  - Menyelaraskan seluruh warna tombol CTA utama dan header menjadi **CDC Ocean Blue (`#0077C6`)** & **CDC Navy (`#1B365D`)**, menghilangkan inkonsistensi warna tombol ("atas biru bawah hijau").
+- **Resolusi Judul Lowongan (`getJobTitle()`)**:
+  - Mengimplementasikan helper `getJobTitle()` untuk mengonversi ID numerik/pendek (seperti `1`) pada tabel dan kartu lowongan menjadi judul posisi lowongan resmi (contoh: *Programmer Web Fullstack*).
+
+#### 2. Redesain Bukti Pengajuan Lamaran & Form (`JobApplicationModal.tsx`)
+- **Header Solid & Resi Digital Modern**:
+  - Menghapus gradasi hijau/teal 3-lapis pada header modal pengajuan lamaran, digantikan dengan warna solid CDC Navy (`#1B365D`).
+  - Menampilkan judul posisi lowongan asli (bukan ID `1`) dan kartu Bukti Pengajuan Digital Resi yang bersih dan elegan.
+- **Catatan Surat Pengantar Opsional**:
+  - Mengubah input Surat Pengantar / Catatan Tambahan menjadi **(Opsional)**, dengan berkas CV PDF tetap bersifat **(Wajib)**.
+
+#### 3. Manajemen Unggah & Pratinjau Real-Time Berkas CV PDF (`JobApplicationModal.tsx`, `MitraDashboard.tsx`, & `data.ts`)
+- **Restriksi Format & Ukuran Berkas**:
+  - Mengunci input unggah berkas khusus untuk **Format PDF (`.pdf`)** dengan batas ukuran maksimal **1 MB**.
+  - Menambahkan validasi error real-time jika pelamar mengunggah berkas di atas 1 MB atau non-PDF.
+- **Penyimpanan Base64 PDF (`data.ts`)**:
+  - Memperbarui fungsi `applyForJob` di `src/data.ts` agar menyimpan string Base64 (`extraData?.uploadedFileUrl`) ke properti `berkasUrl` pada data `pengajuan_magang`.
+- **Pratinjau PDF Real-Time (`PdfViewerPreview` di `MitraDashboard.tsx`)**:
+  - Mengimplementasikan komponen `PdfViewerPreview` yang mengonversi Base64 PDF menjadi **Blob Data URL (`blob:http://...`)**.
+  - Mengatasi kendala browser Chromium/Edge security error (*"We can't open this file"*) sehingga berkas PDF CV pelamar dapat ditayangkan secara utuh, jelas, dan dapat diunduh oleh Mitra Industri.
+
+### 📁 File Diubah
+- **[MODIFY]** `src/components/MitraDashboard.tsx` — Redesain UI dashboard mitra, penyelarasan warna brand CDC, resolusi judul lowongan, dan penambahan `PdfViewerPreview` (Blob URL)
+- **[MODIFY]** `src/components/JobApplicationModal.tsx` — Redesain modal bukti pengajuan lamaran, validasi unggah CV PDF max 1 MB, dan catatan opsional
+- **[MODIFY]** `src/data.ts` — Penyimpanan `uploadedFileUrl` (Base64 PDF) ke `berkasUrl` pada pengajuan lamaran
+- **[MODIFY]** `progres.md` — Pencatatan laporan progres resmi Sesi 7 oleh **Ikhsan**
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Eliminasi gradasi AI Slop dan penggantian istilah "Kandidat" -> "Pelamar" di Dashboard Mitra
+- [x] Standardisasi sistem warna brand CDC Navy (`#1B365D`) & Ocean Blue (`#0077C6`) pada seluruh tombol CTA dan modal
+- [x] Resolusi judul lowongan otomatis `getJobTitle()` untuk mengatasi ID numerik `1`
+- [x] Redesain modal bukti pengajuan lamaran dengan resi digital bersih tanpa gradasi AI Slop
+- [x] Validasi unggah CV khusus format PDF (`.pdf`) dengan batas maksimal 1 MB
+- [x] Penyimpanan Base64 PDF ke `berkasUrl` di `localStorage` / DB
+- [x] Implementasi Blob URL (`PdfViewerPreview`) untuk render pratinjau PDF pelamar tanpa error browser
+- [x] Verifikasi typecheck TypeScript (`npx tsc --noEmit` -> 0 error)
+- [x] Pencatatan laporan progres resmi di `progres.md` atas nama **Ikhsan**
+
+ (Manajemen Unggah & Pratinjau Real-Time Berkas CV PDF)
 
 

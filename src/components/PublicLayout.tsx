@@ -116,7 +116,7 @@ export default function PublicLayout({
   const [filterType, setFilterType] = useState<'all' | 'magang' | 'kerja'>('all');
 
   /* Data helpers: Lowongan kerja terbaru (newest created) selalu di atas */
-  const publishedLowongan = sortJobsByNewest(lowongan.filter(l => l.status === 'published' && l.tipe !== 'magang'));
+  const publishedLowongan = sortJobsByNewest(lowongan.filter(l => l.status === 'published'));
   const publishedBerita = berita.filter(b => b.status === 'published');
   const publishedPengumuman = pengumuman.filter(p => p.status === 'published');
 
