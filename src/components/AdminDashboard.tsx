@@ -395,6 +395,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   const [eTipe, setETipe] = useState<'magang' | 'kerja'>('magang');
   const [eLinkLamar, setELinkLamar] = useState('');
   const [eKategori, setEKategori] = useState('');
+  const [eScope, setEScope] = useState<'LOKAL' | 'REGIONAL' | 'NASIONAL' | 'GLOBAL'>('LOKAL');
   const [eGaji, setEGaji] = useState('');
   const [eKuota, setEKuota] = useState('');
   const [eDeadline, setEDeadline] = useState('');
@@ -414,6 +415,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       setETipe(item.tipe || 'magang');
       setELinkLamar(item.linkLamar || '');
       setEKategori(item.kategori || '');
+      setEScope(item.scope || 'LOKAL');
       setEGaji(item.gaji || '');
       setEKuota(item.kuota != null ? String(item.kuota) : '');
       setEDeadline(item.deadline || '');
@@ -423,7 +425,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       setEditId(null);
       setEJenis(jenis || 'berita');
       setEJudul(''); setEBody(''); setEPenulis(''); setEThumbnail('');
-      setENamaInstansi(''); setETipe('magang'); setELinkLamar(''); setEKategori('');
+      setELinkLamar(''); setEKategori(''); setEScope('LOKAL');
       setEGaji(''); setEKuota(''); setEDeadline(''); setELinkCta(''); setEStatus('published');
     }
     setKontenSub('pembuatan');
@@ -761,6 +763,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       deadline: eJenis === 'lowongan' ? eDeadline : undefined,
       linkCta: (eJenis === 'program' || eJenis === 'workshop' || eJenis === 'softskill') ? eLinkCta.trim() : undefined,
       thumbnail: THUMB_REQUIRED[eJenis] ? eThumbnail : undefined,
+      scope: eJenis === 'berita' ? eScope : undefined,
       status: eStatus,
       createdAt: editId ? (konten.find((k) => k.id === editId)?.createdAt || now) : now,
       updatedAt: now,
@@ -1420,10 +1423,21 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                     </div>
 
                     {eJenis === 'berita' && (
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-slate-500">Penulis</label>
-                        <input value={ePenulis} onChange={(e) => setEPenulis(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder={user.name} />
-                      </div>
+                      <>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-slate-500">Penulis</label>
+                          <input value={ePenulis} onChange={(e) => setEPenulis(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder={user.name} />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-slate-500">Skala / Cakupan</label>
+                          <Dropdown value={eScope} onChange={(v) => setEScope(v as any)} className="w-full" options={[
+                            { value: 'LOKAL', label: 'Lokal' },
+                            { value: 'REGIONAL', label: 'Regional' },
+                            { value: 'NASIONAL', label: 'Nasional' },
+                            { value: 'GLOBAL', label: 'Global' }
+                          ]} />
+                        </div>
+                      </>
                     )}
 
                     {eJenis === 'lowongan' && (

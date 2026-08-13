@@ -102,6 +102,7 @@ export interface KontenKarir {
   deadline?: string;
   linkCta?: string;
   thumbnail?: string;
+  scope?: 'LOKAL' | 'REGIONAL' | 'NASIONAL' | 'GLOBAL';
   status: 'draft' | 'published';
   createdAt: string;
   updatedAt?: string;
@@ -276,6 +277,8 @@ export interface Berita {
   authorId: string;
   publishedAt?: string;
   createdAt: string;
+  scope?: 'LOKAL' | 'REGIONAL' | 'NASIONAL' | 'GLOBAL';
+  penulis?: string;
 }
 
 export interface Pengumuman {

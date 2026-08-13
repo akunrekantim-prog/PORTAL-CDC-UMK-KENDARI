@@ -740,6 +740,37 @@ export const SEED_BERITA: Berita[] = [
   }
 ];
 
+export const SEED_KONTEN_KARIR: KontenKarir[] = [
+  {
+    id: 'kk_seed_berita1',
+    jenis: 'berita',
+    judul: 'UMK Raih Penghargaan Perguruan Tinggi Berdaya Saing Tinggi di Tingkat Regional Sulawesi',
+    body: '# Prestasi Gemilang UMK di Ajang Regional\n\nUniversitas Muhammadiyah Kendari kembali menorehkan prestasi membanggakan dengan meraih penghargaan sebagai Perguruan Tinggi Berdaya Saing Tinggi tingkat **Regional Sulawesi**.\n\nPenghargaan ini diberikan berdasarkan evaluasi terhadap kualitas lulusan, rasio penyerapan kerja alumni, serta kolaborasi aktif dengan mitra industri di kawasan timur Indonesia.\n\n> Capaian ini merupakan hasil kerja sama lintas fakultas dan dukungan penuh dari CDC UM Kendari dalam memfasilitasi tracer study serta program magang terstruktur.\n\nKe depannya, UMK menargetkan perluasan jaringan mitra hingga cakupan nasional guna meningkatkan peluang karir mahasiswa.',
+    penulis: 'Humas UMK',
+    thumbnail: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=800&auto=format&fit=crop',
+    scope: 'REGIONAL',
+    status: 'published',
+    createdAt: '2026-06-02T08:30:00Z',
+    updatedAt: '2026-06-02T08:30:00Z',
+    createdBy: 'usr_admin',
+    createdByName: 'Admin CDC'
+  },
+  {
+    id: 'kk_seed_berita2',
+    jenis: 'berita',
+    judul: 'Career Expo 2026 UMK Tawarkan 1.200 Lowongan dari 60 Perusahaan Mitra',
+    body: '# Career Expo 2026 Siap Digelar\n\nCDC UM Kendari akan menggelar **Career Expo 2026** yang mempertemukan mahasiswa dan alumni dengan puluhan perusahaan mitra.\n\nBeberapa agenda utama:\n1. Job fair dengan 1.200+ posisi tersedia\n2. Workshop CV & interview oleh praktisi HR\n3. One-on-one mentoring karir\n\nAcara terbuka untuk seluruh mahasiswa aktif dan alumni. Pastikan dokumen lamaran sudah lengkap sebelum hadir.',
+    penulis: 'CDC UM Kendari',
+    thumbnail: 'https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=800&auto=format&fit=crop',
+    scope: 'LOKAL',
+    status: 'published',
+    createdAt: '2026-06-10T10:00:00Z',
+    updatedAt: '2026-06-10T10:00:00Z',
+    createdBy: 'usr_admin',
+    createdByName: 'Admin CDC'
+  }
+];
+
 export const SEED_PENGUMUMAN: Pengumuman[] = [
   {
     id: 'ann1',
@@ -972,14 +1003,14 @@ const DEFAULT_SEEDS = {
   berita: SEED_BERITA,
   pengumuman: SEED_PENGUMUMAN,
   survei_lulusan: SEED_SURVEI_LULUSAN,
-  konten_karir: [] as KontenKarir[]
+  konten_karir: SEED_KONTEN_KARIR
 };
 
 let _dbInitialized = false;
 
 // Initializer to make sure local storage has everything
 export function initializeDB() {
-  const CURRENT_SEED_VERSION = 'v3_posters_9_16';
+  const CURRENT_SEED_VERSION = 'v4_konten_berita';
   if (localStorage.getItem('cdc_seed_version') !== CURRENT_SEED_VERSION) {
     Object.entries(DEFAULT_SEEDS).forEach(([key, val]) => {
       const storageKey = `cdc_umk_${key}`;

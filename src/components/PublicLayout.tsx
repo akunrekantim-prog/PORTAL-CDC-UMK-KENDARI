@@ -570,7 +570,7 @@ export default function PublicLayout({
                             )}
                             <div className="absolute top-3 left-3 bg-[#1E3A8A] text-white
                                             text-[10px] font-bold px-2 py-1 rounded">
-                              BLOG &amp; INFO
+                              {item.scope || 'LOKAL'}
                             </div>
                           </div>
                           <div className="p-5 space-y-2">
@@ -580,7 +580,7 @@ export default function PublicLayout({
                             </h4>
                             <p className="text-slate-500 text-xs line-clamp-2 leading-relaxed">{item.excerpt}</p>
                             <div className="text-xs text-slate-400 font-medium pt-1">
-                              Admin CDC · {formatDateDisplay(item.createdAt)}
+                              Oleh {item.penulis || 'Admin CDC'} · {formatDateDisplay(item.createdAt)}
                             </div>
                           </div>
                         </motion.div>
@@ -905,12 +905,12 @@ export default function PublicLayout({
                   <div className="p-6 md:w-3/5 flex flex-col justify-between space-y-4">
                     <div className="space-y-2">
                       <div className="text-xs text-[#10B981] font-bold flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5" /> Berita Kampus
+                          <Calendar className="w-3.5 h-3.5" /> {item.scope || 'LOKAL'}
+                        </div>
+                        <h4 className="font-bold text-slate-900 text-base leading-snug line-clamp-2 hover:text-[#10B981] transition-colors">{item.title}</h4>
+                        <p className="text-slate-500 text-sm line-clamp-3 leading-relaxed">{item.excerpt}</p>
                       </div>
-                      <h4 className="font-bold text-slate-900 text-base leading-snug line-clamp-2 hover:text-[#10B981] transition-colors">{item.title}</h4>
-                      <p className="text-slate-500 text-sm line-clamp-3 leading-relaxed">{item.excerpt}</p>
-                    </div>
-                    <div className="text-xs text-slate-400 font-medium">Admin CDC · {formatDateDisplay(item.createdAt)}</div>
+                      <div className="text-xs text-slate-400 font-medium">Oleh {item.penulis || 'Admin CDC'} · {formatDateDisplay(item.createdAt)}</div>
                   </div>
                 </div>
               ))}

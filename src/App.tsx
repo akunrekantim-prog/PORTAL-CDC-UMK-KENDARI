@@ -8,7 +8,8 @@ import {
   User as UserType,
   Lowongan,
   Berita,
-  Pengumuman
+  Pengumuman,
+  KontenKarir
 } from './types';
 import {
   initializeDB,
@@ -39,6 +40,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { renderContentMarkdown } from './markdown';
 
 export default function App() {
   // Routes States
@@ -61,6 +63,24 @@ export default function App() {
   const [allBerita, setAllBerita] = useState<Berita[]>([]);
   const [allPengumuman, setAllPengumuman] = useState<Pengumuman[]>([]);
 
+  // Map KontenKarir jenis 'berita' (input admin) -> model Berita agar
+  // bisa langsung tampil di beranda & tab Berita tanpa duplikasi UI.
+  const mapKontenBeritaToBerita = (k: KontenKarir): Berita => ({
+    id: k.id,
+    title: k.judul,
+    slug: `kk-${k.id}`,
+    excerpt: (k.body || '').replace(/[#>*_`~\-]/g, '').slice(0, 160).trim(),
+    content: k.body || '',
+    coverImageUrl: k.thumbnail,
+    status: k.status,
+    authorId: k.createdBy || 'usr_admin',
+    publishedAt: k.createdAt,
+    createdAt: k.createdAt,
+    // field ekstra untuk tampilan scope & penulis
+    scope: k.scope,
+    penulis: k.penulis
+  });
+
   // Seed baseline database on mounting
   useEffect(() => {
     initializeDB();
@@ -69,7 +89,12 @@ export default function App() {
 
   const reloadDatabase = () => {
     setAllLowongan(sortJobsByNewest(getFromDB<Lowongan>('lowongan')));
-    setAllBerita(getFromDB<Berita>('berita'));
+    // Gabungkan seed berita lama + berita hasil input admin (konten_karir)
+    const beritaSeed = getFromDB<Berita>('berita');
+    const kontenBerita = getFromDB<KontenKarir>('konten_karir')
+      .filter((k) => k.jenis === 'berita' && k.status === 'published')
+      .map(mapKontenBeritaToBerita);
+    setAllBerita([...kontenBerita, ...beritaSeed]);
     setAllPengumuman(getFromDB<Pengumuman>('pengumuman'));
   };
 
@@ -269,19 +294,19 @@ export default function App() {
 
               <div className="p-8 sm:p-10 space-y-6" id="berita-detail-body">
                 <div className="space-y-3">
-                  <span className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold uppercase tracking-wider">
-                    {selectedBerita.status === 'published' ? 'Dipublikasikan' : 'Draft'}
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${selectedBerita.status === 'published' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}`}>
+                    {selectedBerita.scope || 'LOKAL'}
                   </span>
                   <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 leading-tight">
                     {selectedBerita.title}
                   </h1>
                   <p className="text-xs text-slate-400 font-medium">
-                    Dipublikasikan oleh: Admin CDC • {new Date(selectedBerita.createdAt).toLocaleDateString('id-ID')}
+                    Dipublikasikan oleh: {selectedBerita.penulis || 'Admin CDC'} · {new Date(selectedBerita.createdAt).toLocaleDateString('id-ID')}
                   </p>
                 </div>
 
-                <div className="border-t border-slate-100 pt-6 text-slate-700 text-sm sm:text-base leading-relaxed space-y-4 whitespace-pre-line">
-                  {selectedBerita.content}
+                <div className="border-t border-slate-100 pt-6 text-slate-700 text-sm sm:text-base space-y-4">
+                  {renderContentMarkdown(selectedBerita.content)}
                 </div>
               </div>
             </article>
