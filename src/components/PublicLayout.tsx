@@ -12,7 +12,7 @@ import {
   ExternalLink, Calendar, ShieldCheck,
 } from 'lucide-react';
 
-import { Lowongan, Berita, Pengumuman } from '../types';
+import { Lowongan, Berita, Pengumuman, KontenKarir } from '../types';
 import { sortJobsByNewest, formatDateDisplay, isJobDeadlinePassed } from '../data';
 import { motion } from 'motion/react';
 import Header from './Header';
@@ -35,9 +35,11 @@ interface PublicLayoutProps {
   setTab: (tab: string) => void;
   lowongan: Lowongan[];
   berita: Berita[];
+  program: KontenKarir[];
   pengumuman: Pengumuman[];
   onSelectLowongan: (id: string) => void;
   onSelectBerita: (slug: string) => void;
+  onSelectProgram: (id: string) => void;
   onNavigateToLogin: () => void;
   onNavigateToRegister?: (type?: 'alumni' | 'perusahaan') => void;
 }
@@ -102,9 +104,11 @@ export default function PublicLayout({
   setTab,
   lowongan,
   berita,
+  program,
   pengumuman,
   onSelectLowongan,
   onSelectBerita,
+  onSelectProgram,
   onNavigateToLogin,
   onNavigateToRegister,
 }: PublicLayoutProps) {
@@ -459,6 +463,81 @@ export default function PublicLayout({
                         </div>
                       </div>
                     ))}
+
+                    {/* Dynamic Program & Pengumuman (input admin, jenis 'program') */}
+                    {program.map((item) => {
+                      const isLink = !!item.linkCta && item.linkCta.trim() !== '';
+                      const hasBody = !!item.body && item.body.trim() !== '';
+                      const go = () => {
+                        // Kasus B & D: ada detail -> SELALU buka halaman detail
+                        // (D: di dalam detail ada tombol link yang bisa diklik pengunjung)
+                        if (hasBody) {
+                          onSelectProgram(item.id);
+                          return;
+                        }
+                        // Kasus C: tanpa detail tapi ada link -> redirect langsung
+                        if (isLink) {
+                          if (item.linkCta!.startsWith('#')) {
+                            setTab(item.linkCta!.slice(1));
+                          } else {
+                            window.open(item.linkCta, '_blank', 'noopener,noreferrer');
+                          }
+                          return;
+                        }
+                        // Kasus A: tanpa detail & tanpa link -> diam
+                      };
+                      return (
+                        <div
+                          key={item.id}
+                          onClick={go}
+                          className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group"
+                        >
+                          <div>
+                            <div className="w-full h-44 relative overflow-hidden bg-gradient-to-br from-[#1E3A8A] to-[#0077C6] flex items-center justify-center border-b border-slate-100">
+                              {item.thumbnail ? (
+                                <img src={item.thumbnail} alt={item.judul} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                              ) : (
+                                <Megaphone className="w-10 h-10 text-white/80" />
+                              )}
+                              <div className="absolute top-3 left-3 flex items-center gap-2">
+                                <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-white text-[#1E3A8A] uppercase tracking-wide">
+                                  {item.kategori || 'PROGRAM'}
+                                </span>
+                              </div>
+                              {isLink && (
+                                <div className="absolute top-3 right-3 bg-black/40 text-white rounded-md px-2 py-0.5 text-[10px] font-bold flex items-center gap-1">
+                                  <ExternalLink className="w-3 h-3" /> LINK
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="p-5 space-y-2">
+                              <div className="text-xs font-bold text-orange-600 tracking-wide uppercase truncate">
+                                CDC UM KENDARI
+                              </div>
+
+                              <h3 className="font-extrabold text-slate-900 text-lg leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2">
+                                {item.judul}
+                              </h3>
+
+                              <p className="text-slate-500 text-xs leading-relaxed line-clamp-2">
+                                {item.body && item.body.trim()
+                                  ? item.body.replace(/[#>*_`~\\-]/g, '').slice(0, 120).trim()
+                                  : (isLink ? 'Klik untuk membuka tautan terkait.' : 'Klik untuk membaca detail program & pengumuman.')}
+                              </p>
+
+                              <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
+                                <span className="whitespace-nowrap font-medium text-slate-400">by {item.createdByName || 'Admin CDC'}</span>
+                                <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
+                                  <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                  {formatDateDisplay(item.createdAt)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
 
                   </div>
                 </section>

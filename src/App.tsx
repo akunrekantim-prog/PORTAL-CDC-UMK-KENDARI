@@ -51,6 +51,7 @@ export default function App() {
   // Detail States 
   const [viewingLowonganId, setViewingLowonganId] = useState<string | null>(null);
   const [viewingBeritaSlug, setViewingBeritaSlug] = useState<string | null>(null);
+  const [viewingProgramId, setViewingProgramId] = useState<string | null>(null);
 
   // Authentication State
   const [currentUser, setCurrentUser] = useState<UserType | null>(null);
@@ -61,6 +62,7 @@ export default function App() {
   // Local database States for passing to sub-components
   const [allLowongan, setAllLowongan] = useState<Lowongan[]>([]);
   const [allBerita, setAllBerita] = useState<Berita[]>([]);
+  const [allProgram, setAllProgram] = useState<KontenKarir[]>([]);
   const [allPengumuman, setAllPengumuman] = useState<Pengumuman[]>([]);
 
   // Map KontenKarir jenis 'berita' (input admin) -> model Berita agar
@@ -96,6 +98,11 @@ export default function App() {
       .map(mapKontenBeritaToBerita);
     setAllBerita([...kontenBerita, ...beritaSeed]);
     setAllPengumuman(getFromDB<Pengumuman>('pengumuman'));
+    // Program & Pengumuman (input admin, jenis 'program', published)
+    const programList = getFromDB<KontenKarir>('konten_karir')
+      .filter((k) => k.jenis === 'program' && k.status === 'published')
+      .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
+    setAllProgram(programList);
   };
 
   // Login handler using simulated bcrypt/SQL
@@ -179,11 +186,19 @@ export default function App() {
   const handleSelectBerita = (slug: string) => {
     setViewingBeritaSlug(slug);
     setViewingLowonganId(null);
+    setViewingProgramId(null);
+  };
+
+  const handleSelectProgram = (id: string) => {
+    setViewingProgramId(id);
+    setViewingLowonganId(null);
+    setViewingBeritaSlug(null);
   };
 
   // Find detailed models
   const selectedLowongan = allLowongan.find(l => l.id === viewingLowonganId);
   const selectedBerita = allBerita.find(b => b.slug === viewingBeritaSlug);
+  const selectedProgram = allProgram.find(p => p.id === viewingProgramId);
 
   return (
     <div className="bg-white min-h-screen font-sans" id="app-root">
@@ -229,7 +244,7 @@ export default function App() {
       <div id="core-viewport">
 
         {/* VIEW 1: PUBLIC GENERAL CHANNELS */}
-        {currentView === 'public' && !viewingLowonganId && !viewingBeritaSlug && (
+        {currentView === 'public' && !viewingLowonganId && !viewingBeritaSlug && !viewingProgramId && (
           <PublicLayout
             currentTab={publicTab}
             setTab={(tab) => {
@@ -238,9 +253,11 @@ export default function App() {
             }}
             lowongan={allLowongan}
             berita={allBerita}
+            program={allProgram}
             pengumuman={allPengumuman}
             onSelectLowongan={handleSelectLowongan}
             onSelectBerita={handleSelectBerita}
+            onSelectProgram={handleSelectProgram}
             onNavigateToLogin={handleNavigateToLogin}
             onNavigateToRegister={handleNavigateToRegister}
           />
@@ -308,6 +325,69 @@ export default function App() {
                 <div className="border-t border-slate-100 pt-6 text-slate-700 text-sm sm:text-base space-y-4">
                   {renderContentMarkdown(selectedBerita.content)}
                 </div>
+              </div>
+            </article>
+          </div>
+        )}
+
+        {/* VIEW 3.5: PROGRAM & PENGUMUMAN DETAIL BLOCK */}
+        {currentView === 'public' && viewingProgramId && selectedProgram && (
+          <div className="max-w-3xl mx-auto px-4 py-16 space-y-6" id="program-detail-panel">
+            <button
+              onClick={() => setViewingProgramId(null)}
+              className="inline-flex items-center gap-1.5 text-slate-550 hover:text-slate-800 font-bold text-sm bg-white border border-slate-150 px-4 py-2 rounded-xl shadow-xs transition"
+              id="program-back-btn"
+            >
+              <ChevronLeft className="w-4 h-4" /> Kembali
+            </button>
+
+            <article className="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm" id="program-detail-doc">
+              {selectedProgram.thumbnail && (
+                <div className="aspect-[21/9]" id="program-detail-cover">
+                  <img
+                    src={selectedProgram.thumbnail}
+                    alt={selectedProgram.judul}
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+              )}
+
+              <div className="p-8 sm:p-10 space-y-6" id="program-detail-body">
+                <div className="space-y-3">
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${(selectedProgram.kategori || 'PROGRAM') ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-600'}`}>
+                    {selectedProgram.kategori || 'PROGRAM & PENGUMUMAN'}
+                  </span>
+                  <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 leading-tight">
+                    {selectedProgram.judul}
+                  </h1>
+                  <p className="text-xs text-slate-400 font-medium">
+                    Dipublikasikan oleh: {selectedProgram.createdByName || 'Admin CDC'} · {new Date(selectedProgram.createdAt).toLocaleDateString('id-ID')}
+                  </p>
+                </div>
+
+                {selectedProgram.body && selectedProgram.body.trim() ? (
+                  <div className="border-t border-slate-100 pt-6 text-slate-700 text-sm sm:text-base space-y-4">
+                    {renderContentMarkdown(selectedProgram.body)}
+                  </div>
+                ) : (
+                  <div className="border-t border-slate-100 pt-6">
+                    <p className="text-sm text-slate-400 italic">
+                      Tidak ada detail konten. {selectedProgram.linkCta ? 'Buka tautan di bawah untuk informasi lengkap.' : 'Silakan cek pengumuman terkait di beranda.'}
+                    </p>
+                  </div>
+                )}
+
+                {selectedProgram.linkCta && (
+                  <a
+                    href={selectedProgram.linkCta}
+                    target={selectedProgram.linkCta.startsWith('http') ? '_blank' : undefined}
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 bg-[#0077C6] hover:bg-[#1E3A8A] text-white font-bold text-sm px-5 py-3 rounded-xl transition"
+                  >
+                    Buka Tautan <ArrowRight className="w-4 h-4" />
+                  </a>
+                )}
               </div>
             </article>
           </div>

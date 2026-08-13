@@ -1025,4 +1025,70 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 - [x] Verifikasi typecheck TypeScript (`npx tsc --noEmit` -> 0 error)
 - [x] Pencatatan laporan progres di `progres.md` atas nama **Fachrul Alam Sanuddin**
 
+---
+
+## Tanggal: 13 Agustus 2026
+**Developer:** Mirzat L. Teori  
+**Fokus Pekerjaan:** Pembuatan Fitur Input Konten Admin — Lowongan, Berita & Artikel, dan Program & Pengumuman
+
+> 📌 **Progres Mirzat L. Teori** — Dokumentasi ini dibuat agar rekan tim dapat membaca dan melanjutkan pengembangan dengan mudah.
+
+### 🎯 Gambaran Umum (Buat Tim)
+Pada sesi ini telah dibuat **tiga fitur input konten** di sisi Admin Dashboard yang semuanya tersimpan di `localStorage` (belum pakai backend sungguhan). Ketiga fitur ini menjadi sumber tampilan di beranda portal:
+
+| No | Fitur | Lokasi Input (Admin) | Tampil Di Beranda |
+|----|-------|---------------------|-------------------|
+| 1 | **Input Lowongan** (Magang / Kerja) | Konten Karir → Lowongan | Section *INFO KARIR CDC TERKINI* & halaman Job Info |
+| 2 | **Input Berita & Artikel** | Konten Karir → Berita & Artikel | Section *BERITA & ARTIKEL TERKINI* |
+| 3 | **Input Program & Pengumuman** | Konten Karir → Program & Pengumuman | Section *PROGRAM & PENGUMUMAN* (antara Info Karir & Berita) |
+
+### 🚀 Ringkasan Perubahan
+
+#### 1. Input Lowongan (Magang / Kerja)
+- Form input lowongan lengkap: judul, instansi, kategori (Magang/Kerja), spesialisasi, lokasi, gaji, deskripsi, tanggung jawab, kualifikasi, keahlian, poster 9:16, dan status (Draft/Published).
+- Data masuk ke tabel `konten_karir` dengan `jenis: 'lowongan'`.
+- Tersinkronisasi ke halaman pencarian loker publik (Job Info) dan kartu beranda.
+
+#### 2. Input Berita & Artikel
+- Editor bergaya Medium (toolbar format teks lengkap: bold, italic, warna, list, heading, dll).
+- Thumbnail wajib (16:9) untuk header kartu & halaman detail.
+- Data masuk ke tabel `konten_karir` dengan `jenis: 'berita'`, lalu dipetakan ke model `Berita` untuk tampilan beranda dan halaman detail rinci.
+
+#### 3. Input Program & Pengumuman  ⭐ (Fokus Utama Sesi Ini)
+Dibuat agar admin bisa mengisi pengumuman/program dengan **4 model perilaku kartu** tergantung isian:
+
+- **Tanpa detail & tanpa link** → kartu diklik **diam** (tidak terjadi apa-apa).
+- **Ada detail, tanpa link** → kartu diklik **masuk ke halaman detail** (render Medium seperti Berita & Artikel).
+- **Tanpa detail, ada link** → kartu diklik **langsung redirect** ke web/menu tujuan (link bisa berupa URL `https://...` atau `#nama-tab` untuk arahkan ke menu beranda).
+- **Ada detail & ada link** → kartu diklik **masuk ke halaman detail**, dan di dalam detail terdapat **tombol tautan** yang bisa diklik pengunjung.
+
+Fitur pendukung di form admin:
+- **Upload thumbnail wajib** (header kartu).
+- **Kategori bebas** (KERJA / MAGANG / UMUM / DLL — bisa diketik admin).
+- **Field Link Tujuan** yang bisa diisi dari kosong (tidak harus diisi dulu baru muncul).
+- **Isi konten opsional** menggunakan textarea biasa (tidak pakai toolbar Medium — sengaja dibuat simpel sesuai arahan).
+
+Catatan penempatan: Program & Pengumuman **disuntikkan ke section yang sudah ada** di beranda (antara *INFO KARIR CDC TERKINI* dan *BERITA & ARTIKEL TERKINI*), bukan membuat section baru, sehingga tidak ada section dobel.
+
+### 📁 File Diubah & Ditambahkan
+- **[MODIFY]** `src/App.tsx` — Plumbing data program (state `allProgram`, route detail `viewingProgramId`, handler `handleSelectProgram`, dan tombol tautan di halaman detail Program & Pengumuman).
+- **[MODIFY]** `src/data.ts` — Seed `KontenKarir` jenis `program` + kenaikan `CURRENT_SEED_VERSION` agar data reseed di posisi yang benar.
+- **[MODIFY]** `src/components/AdminDashboard.tsx` — Editor Program & Pengumuman (upload thumbnail wajib, kategori bebas, link tujuan, textarea isi opsional); editor Lowongan & Berita sudah ada sebelumnya.
+- **[MODIFY]** `src/components/PublicLayout.tsx` — Kartu Program & Pengumuman di section beranda dengan logika klik 4 kasus di atas.
+- **[MODIFY]** `progres.md` — Pencatatan progres ini.
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Input Lowongan (Magang/Kerja) aktif di Admin Dashboard
+- [x] Input Berita & Artikel aktif (editor Medium + thumbnail)
+- [x] Input Program & Pengumuman aktif (thumbnail, kategori bebas, link, isi opsional)
+- [x] 4 model perilaku kartu Program & Pengumuman (diam / detail / redirect / detail+link)
+- [x] Tombol tautan di halaman detail Program & Pengumuman
+- [x] Penempatan Program & Pengumuman di section beranda yang benar (tanpa section dobel)
+- [x] Verifikasi `npm run lint` (tsc --noEmit) → **0 error**
+- [x] Verifikasi `npm run build` (vite build) → **0 error**
+
+---
+
+> 📌 **Progres Mirzat L. Teori** — Selesai & terverifikasi..
+
 

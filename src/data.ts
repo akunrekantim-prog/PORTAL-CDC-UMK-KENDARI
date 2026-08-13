@@ -768,6 +768,34 @@ export const SEED_KONTEN_KARIR: KontenKarir[] = [
     updatedAt: '2026-06-10T10:00:00Z',
     createdBy: 'usr_admin',
     createdByName: 'Admin CDC'
+  },
+  {
+    id: 'kk_seed_program1',
+    jenis: 'program',
+    judul: 'Program Magang Bersertifikat Industri 2026 — Batch Ganjil',
+    body: '# Program Magang Bersertifikat Industri 2026\n\nCDC UM Kendari membuka kembali program magang bersertifikat yang menghubungkan mahasiswa dengan mitra industri ternama di Kawasan Timur Indonesia.\n\n## Keunggulan Program\n1. Sertifikat resmi dari instansi mitra\n2. Pendampingan dosen pembimbing & pembimbing industri\n3. Peluang penyerapan kerja pasca-magang\n\n> Program ini terbuka untuk mahasiswa semester 6 ke atas dari seluruh fakultas. Persiapkan CV dan Surat Pengantar Akademik sebelum mendaftar.\n\nInformasi lengkap dan alur pendaftaran dapat dilihat pada menu **Layanan → Internship** atau hubungi langsung admin CDC.',
+    kategori: 'MAGANG',
+    thumbnail: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=1200&auto=format&fit=crop',
+    linkCta: '',
+    status: 'published',
+    createdAt: '2026-07-01T08:00:00Z',
+    updatedAt: '2026-07-01T08:00:00Z',
+    createdBy: 'usr_admin',
+    createdByName: 'Admin CDC'
+  },
+  {
+    id: 'kk_seed_program2',
+    jenis: 'program',
+    judul: 'Lowongan Kerja Masuk PT Go Digital Kendari — Daftar Sekarang',
+    body: '',
+    kategori: 'KERJA',
+    thumbnail: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?q=80&w=1200&auto=format&fit=crop',
+    linkCta: 'https://tracerstudy.umkendari.ac.id',
+    status: 'published',
+    createdAt: '2026-07-05T09:30:00Z',
+    updatedAt: '2026-07-05T09:30:00Z',
+    createdBy: 'usr_admin',
+    createdByName: 'Admin CDC'
   }
 ];
 
@@ -1010,7 +1038,7 @@ let _dbInitialized = false;
 
 // Initializer to make sure local storage has everything
 export function initializeDB() {
-  const CURRENT_SEED_VERSION = 'v4_konten_berita';
+  const CURRENT_SEED_VERSION = 'v6_program_relocate';
   if (localStorage.getItem('cdc_seed_version') !== CURRENT_SEED_VERSION) {
     Object.entries(DEFAULT_SEEDS).forEach(([key, val]) => {
       const storageKey = `cdc_umk_${key}`;

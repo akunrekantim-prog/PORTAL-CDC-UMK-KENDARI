@@ -122,7 +122,7 @@ const JENIS_ICON: Record<JenisKonten, React.ReactNode> = {
 const THUMB_REQUIRED: Record<JenisKonten, boolean> = {
   berita: true,    // 16:9
   lowongan: true,  // 9:16
-  program: false,  // tanpa thumbnail
+  program: true,     // thumbnail wajib (header kartu)
   workshop: true,  // 16:9
   softskill: true, // 16:9
   seminar: true    // 16:9
@@ -739,7 +739,11 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   };
 
   const handleSaveKonten = () => {
-    if (!eJudul.trim() || !eBody.trim()) {
+    if (!eJudul.trim()) {
+      triggerToast('error', 'Judul wajib diisi.');
+      return;
+    }
+    if (eJenis !== 'program' && !eBody.trim()) {
       triggerToast('error', 'Judul dan isi konten wajib diisi.');
       return;
     }
@@ -757,7 +761,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       namaInstansi: eJenis === 'lowongan' ? eNamaInstansi.trim() : undefined,
       tipe: eJenis === 'lowongan' ? eTipe : undefined,
       linkLamar: eJenis === 'lowongan' ? eLinkLamar.trim() : undefined,
-      kategori: eJenis === 'lowongan' ? eKategori.trim() : undefined,
+      kategori: (eJenis === 'lowongan' || eJenis === 'program') ? eKategori.trim() : undefined,
       gaji: eJenis === 'lowongan' ? eGaji.trim() : undefined,
       kuota: eJenis === 'lowongan' && eKuota ? Number(eKuota) : undefined,
       deadline: eJenis === 'lowongan' ? eDeadline : undefined,
@@ -1475,8 +1479,22 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
 
                     {(eJenis === 'program' || eJenis === 'workshop' || eJenis === 'softskill') && (
                       <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-slate-500">Link CTA / Eksternal (Daftar/Register/Kontak)</label>
-                        <input value={eLinkCta} onChange={(e) => setELinkCta(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="https://forms.gle/..." />
+                        <label className="text-xs font-medium text-slate-500">
+                          {eJenis === 'program' ? 'Kategori Pengumuman (bebas, mis. KERJA / MAGANG / UMUM)' : 'Link CTA / Eksternal (Daftar/Register/Kontak)'}
+                        </label>
+                        {eJenis === 'program' ? (
+                          <input value={eKategori} onChange={(e) => setEKategori(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="KERJA / MAGANG / UMUM / DLL" />
+                        ) : (
+                          <input value={eLinkCta} onChange={(e) => setELinkCta(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="https://forms.gle/..." />
+                        )}
+                      </div>
+                    )}
+
+                    {eJenis === 'program' && (
+                      <div className="space-y-1.5 md:col-span-1">
+                        <label className="text-xs font-medium text-slate-500">Link Tujuan (arahkan klik ke web/menu tertentu)</label>
+                        <input value={eLinkCta} onChange={(e) => setELinkCta(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="https://... atau #nama-tab" />
+                        <p className="text-[11px] text-slate-400">Kosongkan jika ingin klik membuka halaman detail. Awali dengan # untuk arahkan ke menu beranda.</p>
                       </div>
                     )}
                   </div>
@@ -1485,7 +1503,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                   {THUMB_REQUIRED[eJenis] && (
                     <div className="space-y-1.5">
                       <label className="text-xs font-medium text-slate-500">
-                        Thumbnail {eJenis === 'lowongan' ? '(Poster 9:16 wajib)' : '(16:9 wajib)'}
+                        {eJenis === 'program' ? 'Thumbnail / Poster (wajib — header kartu)' : (eJenis === 'lowongan' ? '(Poster 9:16 wajib)' : '(16:9 wajib)')}
                       </label>
                       <div className="flex items-center gap-3">
                         <label className="cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1.5">
@@ -1497,7 +1515,28 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                     </div>
                   )}
 
-                  {/* Editor Medium */}
+                  {eJenis === 'program' ? (
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-slate-500">Isi Konten (opsional — kosongkan jika hanya ingin mengarahkan klik kartu ke link)</label>
+                      <textarea
+                        ref={bodyRef}
+                        value={eBody}
+                        onChange={(e) => setEBody(e.target.value)}
+                        rows={10}
+                        className="w-full border border-slate-300 rounded-xl p-3 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        placeholder="Tulis detail program & pengumuman di sini (opsional). Kosongkan jika klik kartu langsung diarahkan ke link di atas."
+                      />
+                      {eBody.trim() && (
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium text-slate-500">Pratinjau</label>
+                          <div className="border border-slate-200 rounded-xl p-4 bg-white max-h-80 overflow-auto no-scrollbar">
+                            {renderMedium(eBody)}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                  <>
                   <div className="space-y-2">
                     <label className="text-xs font-medium text-slate-500">Isi Konten (Gaya Medium + Format Word)</label>
                     <div className="flex flex-wrap items-center gap-1.5 border border-slate-200 rounded-t-xl p-2 bg-slate-50">
@@ -1576,6 +1615,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                       {eBody.trim() ? renderMedium(eBody) : <div className="text-sm text-slate-400">Belum ada isi.</div>}
                     </div>
                   </div>
+                  </>)}
 
                   <div className="flex items-center justify-between gap-3 pt-2">
                     <div className="flex items-center gap-2">
