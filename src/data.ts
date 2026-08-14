@@ -449,7 +449,7 @@ export const SEED_LOWONGAN: Lowongan[] = [
   },
   {
     id: 'low8',
-    mitraId: 'mtr_trisakti1',
+    mitraId: 'mtr1',
     createdBy: 'usr_mitra1',
     judul: 'Junior Project Engineer',
     tipe: 'kerja',
@@ -478,7 +478,7 @@ export const SEED_LOWONGAN: Lowongan[] = [
   },
   {
     id: 'low9',
-    mitraId: 'mtr_trisakti2',
+    mitraId: 'mtr1',
     createdBy: 'usr_mitra1',
     judul: 'PT Yanasurya Bhaktipersada is Hiring for Marketing EXIM Staff!',
     tipe: 'kerja',
@@ -506,7 +506,7 @@ export const SEED_LOWONGAN: Lowongan[] = [
   },
   {
     id: 'low10',
-    mitraId: 'mtr_trisakti3',
+    mitraId: 'mtr1',
     createdBy: 'usr_mitra1',
     judul: 'Jr Quality Assurance',
     tipe: 'kerja',
@@ -1112,7 +1112,7 @@ let _dbInitialized = false;
 
 // Initializer to make sure local storage has everything
 export function initializeDB() {
-  const CURRENT_SEED_VERSION = 'v5_prestasi';
+  const CURRENT_SEED_VERSION = 'v6_all9lowongan';
   if (localStorage.getItem('cdc_seed_version') !== CURRENT_SEED_VERSION) {
     Object.entries(DEFAULT_SEEDS).forEach(([key, val]) => {
       const storageKey = `cdc_umk_${key}`;

@@ -18,7 +18,8 @@ import {
   saveToDB, 
   insertToDB, 
   updateInDB,
-  deleteInDB
+  deleteInDB,
+  formatDateDisplay
 } from '../data';
 import { 
   Building2, 
@@ -51,7 +52,7 @@ import {
   Code,
   User
 } from 'lucide-react';
-import { JOB_SPECIALIZATIONS } from './JobSearchMasterDetail';
+import { JOB_SPECIALIZATIONS, getCompanyBadgeColor, getCompanyInitials } from './JobSearchMasterDetail';
 
 interface MitraDashboardProps {
   user: UserType;
@@ -103,11 +104,13 @@ const formatDate = (dateStr?: string) => {
 const getJobTitle = (jobIdOrTitle?: string, fallbackInstansi?: string): string => {
   if (!jobIdOrTitle) return 'Program Magang Industri';
   const allLowongan = getFromDB<Lowongan>('lowongan');
-  const found = allLowongan.find(j => j.id === jobIdOrTitle || j.judul.toLowerCase() === jobIdOrTitle.toLowerCase());
+  const targetLower = jobIdOrTitle.toLowerCase();
+  const found = allLowongan.find(j => j.id === jobIdOrTitle || (j.judul && j.judul.toLowerCase() === targetLower));
   if (found) return found.judul;
   if (/^\d+$/.test(jobIdOrTitle) || jobIdOrTitle.length <= 2) {
     if (fallbackInstansi) {
-      const companyJob = allLowongan.find(j => j.namaInstansi.toLowerCase() === fallbackInstansi.toLowerCase());
+      const fallbackLower = fallbackInstansi.toLowerCase();
+      const companyJob = allLowongan.find(j => j.namaInstansi && j.namaInstansi.toLowerCase() === fallbackLower);
       if (companyJob) return companyJob.judul;
     }
     return allLowongan[0]?.judul || 'Pengembang Aplikasi Web / Software Engineer';
@@ -209,6 +212,14 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
   // Add & Edit Job Form States (Matches 100% with Job Detail fields)
   const [showAddJob, setShowAddJob] = useState(false);
   const [editingJobId, setEditingJobId] = useState<string | null>(null);
+
+  // Search, Filter & Pagination States for Kelola Lowongan
+  const [jobSearchKeyword, setJobSearchKeyword] = useState('');
+  const [jobTipeFilter, setJobTipeFilter] = useState<'all' | 'magang' | 'kerja'>('all');
+  const [jobStatusFilter, setJobStatusFilter] = useState<'all' | 'published' | 'closed'>('all');
+  const [jobSortOrder, setJobSortOrder] = useState<'newest' | 'oldest' | 'alphabetical'>('newest');
+  const [jobCurrentPage, setJobCurrentPage] = useState(1);
+  const jobsPerPage = 6;
 
   const [judul, setJudul] = useState('');
   const [tipe, setTipe] = useState<'magang' | 'kerja'>('magang');
@@ -850,8 +861,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 { id: 'ringkasan', label: 'Ringkasan Kerja', icon: Building2 },
                 { id: 'profil', label: 'Profil Instansi', icon: FileText },
                 { id: 'lowongan', label: 'Kelola Lowongan', icon: Briefcase },
-                { id: 'pelamar', label: 'Pelamar & Seleksi', icon: Users },
-                { id: 'survei', label: 'Survei Mutu Lulusan', icon: Star }
+                { id: 'pelamar', label: 'Pelamar & Seleksi', icon: Users }
               ].map((menu) => {
                 const Icon = menu.icon;
                 const isActive = activeTab === menu.id;
@@ -1170,451 +1180,617 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
           )}
 
           {/* TAB 3: KELOLA LOWONGAN (FR-MTR-03 & FR-MTR-04) */}
-          {activeTab === 'lowongan' && (
-            <div className="space-y-6" id="mtr-panel-lowongan">
-              
-              {/* TOP BAR ACTION TRIGGER */}
-              <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h3 className="font-extrabold text-slate-900 text-lg">Manajemen Database Lowongan</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">Kelola kuota, batas tanggal pendaftaran, serta publikasi lowongan magang atau kerja.</p>
-                </div>
-                <button 
-                  onClick={() => setShowAddJob(!showAddJob)}
-                  className="bg-[#0077C6] hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-2 shadow-xs shrink-0 cursor-pointer active:scale-95"
-                >
-                  <Plus className="w-4 h-4" />
-                  {showAddJob ? "Sembunyikan Form" : "Posting Lowongan Baru"}
-                </button>
-              </div>
+          {activeTab === 'lowongan' && (() => {
+            // Filter and Sort myJobs
+            const filteredMyJobs = (myJobs || []).filter(j => {
+              if (!j) return false;
+              if (jobSearchKeyword) {
+                const kw = jobSearchKeyword.toLowerCase();
+                const matchTitle = (j.judul || '').toLowerCase().includes(kw);
+                const matchInstansi = (j.namaInstansi || '').toLowerCase().includes(kw);
+                const matchLoc = (j.lokasi || '').toLowerCase().includes(kw);
+                const matchDesc = (j.deskripsi || '').toLowerCase().includes(kw);
+                if (!matchTitle && !matchInstansi && !matchLoc && !matchDesc) return false;
+              }
+              if (jobTipeFilter !== 'all' && j.tipe !== jobTipeFilter) return false;
+              if (jobStatusFilter !== 'all' && j.status !== jobStatusFilter) return false;
+              return true;
+            });
 
-              {/* ADD & EDIT VACANCY FORM SCREEN (SYNCED 100% WITH JOB DETAIL) */}
-              {showAddJob && (
-                <div className="bg-white rounded-2xl border border-slate-100 p-6 sm:p-8 shadow-sm space-y-6 animate-fadeIn" id="add-vacancy-panel">
-                  <div className="border-b border-slate-100 pb-4 flex items-center justify-between">
-                    <div>
-                      <h4 className="font-extrabold text-slate-900 text-base flex items-center gap-2">
-                        {editingJobId ? <Edit3 className="w-5 h-5 text-[#10B981]" /> : <Plus className="w-5 h-5 text-[#10B981]" />}
-                        {editingJobId ? "Edit Lowongan Pekerjaan" : "Form Input Lowongan Kerja / Magang Baru"}
-                      </h4>
-                      <p className="text-xs text-slate-400 mt-0.5">Isi rincian lengkap lowongan yang akan ditampilkan pada kartu Job Info dan Halaman Job Detail.</p>
+            const sortedMyJobs = [...filteredMyJobs].sort((a, b) => {
+              if (jobSortOrder === 'oldest') {
+                const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                return timeA - timeB;
+              }
+              if (jobSortOrder === 'alphabetical') {
+                return (a.judul || '').localeCompare(b.judul || '');
+              }
+              // Default: newest first
+              const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+              const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+              if (timeA !== timeB) return timeB - timeA;
+              return (b.id || '').localeCompare(a.id || '', undefined, { numeric: true });
+            });
+
+            const totalJobPages = Math.max(1, Math.ceil(sortedMyJobs.length / jobsPerPage));
+            const startJobIdx = (jobCurrentPage - 1) * jobsPerPage;
+            const displayedMyJobs = sortedMyJobs.slice(startJobIdx, startJobIdx + jobsPerPage);
+
+            return (
+              <div className="space-y-6" id="mtr-panel-lowongan">
+                
+                {/* TOP BAR HEADER & POSTING BUTTON */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h3 className="font-extrabold text-slate-900 text-2xl tracking-tight">Manajemen Database Lowongan</h3>
+                    <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+                      Kelola kuota, batas tanggal pendaftaran, serta publikasi lowongan magang atau kerja.
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => setShowAddJob(!showAddJob)}
+                    className="bg-[#0055D4] hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 shadow-xs shrink-0 cursor-pointer active:scale-95"
+                  >
+                    <Plus className="w-4 h-4" />
+                    {showAddJob ? "Sembunyikan Form" : "Posting Lowongan Baru"}
+                  </button>
+                </div>
+
+                {/* SEARCH & FILTER CONTROLS BAR (MATCHING SCREENSHOT 1:1) */}
+                {!showAddJob && (
+                  <div className="bg-white relative">
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+                      
+                      {/* 1. SEARCH BOX */}
+                      <div className="md:col-span-6 bg-white text-slate-900 rounded-xl flex items-center px-3.5 py-2 border border-slate-200 focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-600 transition shadow-2xs">
+                        <Search className="w-4 h-4 text-slate-400 shrink-0 mr-2.5" />
+                        <input
+                          type="text"
+                          placeholder="Cari judul lowongan, posisi, atau kata kunci"
+                          value={jobSearchKeyword}
+                          onChange={(e) => {
+                            setJobSearchKeyword(e.target.value);
+                            setJobCurrentPage(1);
+                          }}
+                          className="w-full bg-transparent border-none focus:outline-none text-xs md:text-sm font-medium text-slate-800 placeholder:text-slate-400"
+                        />
+                        {jobSearchKeyword && (
+                          <button onClick={() => setJobSearchKeyword('')} className="text-slate-400 hover:text-slate-600 ml-1">
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* 2. TYPE FILTER */}
+                      <div className="md:col-span-2">
+                        <select
+                          value={jobTipeFilter}
+                          onChange={(e) => {
+                            setJobTipeFilter(e.target.value as any);
+                            setJobCurrentPage(1);
+                          }}
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-2xs cursor-pointer"
+                        >
+                          <option value="all">Semua Jenis</option>
+                          <option value="magang">Program Magang</option>
+                          <option value="kerja">Lowongan Kerja</option>
+                        </select>
+                      </div>
+
+                      {/* 3. STATUS FILTER */}
+                      <div className="md:col-span-2">
+                        <select
+                          value={jobStatusFilter}
+                          onChange={(e) => {
+                            setJobStatusFilter(e.target.value as any);
+                            setJobCurrentPage(1);
+                          }}
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-2xs cursor-pointer"
+                        >
+                          <option value="all">Semua Status</option>
+                          <option value="published">Aktif</option>
+                          <option value="closed">Tutup</option>
+                        </select>
+                      </div>
+
+                      {/* 4. SORT ORDER */}
+                      <div className="md:col-span-2">
+                        <select
+                          value={jobSortOrder}
+                          onChange={(e) => {
+                            setJobSortOrder(e.target.value as any);
+                            setJobCurrentPage(1);
+                          }}
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-2xs cursor-pointer"
+                        >
+                          <option value="newest">Terbaru</option>
+                          <option value="oldest">Terlama</option>
+                          <option value="alphabetical">Abjad (A-Z)</option>
+                        </select>
+                      </div>
+
                     </div>
                   </div>
+                )}
 
-                  <form onSubmit={handleAddJobPosting} className="space-y-6 text-xs" id="add-job-form">
-                    
-                    {/* BAGIAN 1: INFORMASI UTAMA REKRUTMEN */}
-                    <div className="space-y-4">
-                      <h5 className="font-bold text-slate-800 text-xs uppercase tracking-wider border-b border-slate-100 pb-2">1. Informasi Utama Rekrutmen</h5>
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <div className="space-y-1.5 sm:col-span-2">
-                          <label className="text-xs font-bold text-slate-700">Judul Rekrutmen Karir / Posisi Pekerjaan *</label>
-                          <input 
-                            type="text" 
-                            required
-                            value={judul}
-                            onChange={(e) => setJudul(e.target.value)}
-                            placeholder="Contoh: Fullstack Web Developer Intern"
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Tipe Lowongan *</label>
-                          <select 
-                            value={tipe}
-                            onChange={(e) => setTipe(e.target.value as any)}
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm bg-white font-normal transition"
-                          >
-                            <option value="magang">Magang (Mahasiswa Aktif)</option>
-                            <option value="kerja">Kerja (Lulusan Baru / Alumni)</option>
-                          </select>
-                        </div>
-
-                        <div className="space-y-2 sm:col-span-2">
-                          <div className="flex items-center justify-between">
-                            <label className="text-xs font-bold text-slate-700">
-                              Spesialisasi / Kategori Pekerjaan * (Bisa pilih lebih dari 1)
-                            </label>
-                            <span className="text-[11px] font-bold text-[#10B981] bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                              {selectedKategori.length} Kategori Dipilih
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200">
-                            {JOB_SPECIALIZATIONS.map((spec) => {
-                              const isChecked = selectedKategori.includes(spec);
-                              return (
-                                <label 
-                                  key={spec} 
-                                  className={`flex items-center gap-2.5 p-2.5 rounded-xl border text-xs font-semibold transition cursor-pointer select-none ${
-                                    isChecked 
-                                      ? 'bg-white border-[#10B981] text-slate-900 shadow-xs ring-1 ring-[#10B981]/30 font-bold' 
-                                      : 'bg-white/60 border-slate-200 text-slate-600 hover:bg-white hover:border-slate-300'
-                                  }`}
-                                >
-                                  <input 
-                                    type="checkbox"
-                                    checked={isChecked}
-                                    onChange={() => handleCategoryToggle(spec)}
-                                    className="w-4 h-4 rounded border-slate-300 text-[#10B981] focus:ring-[#10B981] cursor-pointer accent-[#10B981]"
-                                  />
-                                  <span className="truncate">{spec}</span>
-                                </label>
-                              );
-                            })}
-                          </div>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Lokasi Penempatan Kerja *</label>
-                          <input 
-                            type="text" 
-                            required
-                            value={lokasi}
-                            onChange={(e) => setLokasi(e.target.value)}
-                            placeholder="Contoh: Kendari (Hybrid)"
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Kisaran Gaji / Insentif (Opsional)</label>
-                          <input 
-                            type="text" 
-                            value={gaji}
-                            onChange={(e) => setGaji(e.target.value)}
-                            placeholder="Contoh: Rp 3.500.000 - Rp 5.000.000 / Kompetitif"
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Rencana Kuota Penerimaan (Orang)</label>
-                          <input 
-                            type="number" 
-                            min="1"
-                            placeholder="Contoh: 3"
-                            value={kuota}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              if (val === '') {
-                                setKuota('');
-                              } else {
-                                const parsed = parseInt(val, 10);
-                                setKuota(isNaN(parsed) ? '' : String(parsed));
-                              }
-                            }}
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Batas Tanggal Pendaftaran (Deadline) *</label>
-                          <input 
-                            type="date" 
-                            required
-                            value={deadline}
-                            onChange={(e) => setDeadline(e.target.value)}
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
-                          />
-                        </div>
+                {/* ADD & EDIT FORM SCREEN */}
+                {showAddJob && (
+                  <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-2xs space-y-6 animate-fadeIn" id="add-vacancy-panel">
+                    <div className="border-b border-slate-100 pb-4 flex items-center justify-between">
+                      <div>
+                        <h4 className="font-extrabold text-slate-900 text-base flex items-center gap-2">
+                          {editingJobId ? <Edit3 className="w-5 h-5 text-[#10B981]" /> : <Plus className="w-5 h-5 text-[#10B981]" />}
+                          {editingJobId ? "Edit Lowongan Pekerjaan" : "Form Input Lowongan Kerja / Magang Baru"}
+                        </h4>
+                        <p className="text-xs text-slate-400 mt-0.5">Isi rincian lengkap lowongan yang akan ditampilkan pada kartu Job Info dan Halaman Job Detail.</p>
                       </div>
                     </div>
 
-                    {/* BAGIAN 2: MEDIA VISUAL (LOGO PERUSAHAAN & POSTER LOWONGAN) */}
-                    <div className="space-y-4 pt-2">
-                      <h5 className="font-bold text-slate-800 text-xs uppercase tracking-wider border-b border-slate-100 pb-2">2. Visual Media (Logo Perusahaan & Poster Lowongan)</h5>
+                    <form onSubmit={handleAddJobPosting} className="space-y-6 text-xs" id="add-job-form">
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        
-                        {/* 1. LOGO PERUSAHAAN (DIPAKAI DI KARTU JOB INFO) */}
-                        <div className="space-y-3 bg-slate-50/70 p-4 rounded-2xl border border-slate-150">
-                          <div className="flex items-center justify-between">
-                            <label className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
-                              <Building2 className="w-4 h-4 text-blue-600" /> Logo Perusahaan (Kartu Job Info)
-                            </label>
-                            <div className="flex bg-white rounded-lg p-0.5 border border-slate-200 text-[11px] font-bold">
-                              <button
-                                type="button"
-                                onClick={() => setLogoUploadType('file')}
-                                className={`px-2 py-1 rounded transition ${logoUploadType === 'file' ? 'bg-slate-800 text-white' : 'text-slate-500'}`}
-                              >
-                                File
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setLogoUploadType('url')}
-                                className={`px-2 py-1 rounded transition ${logoUploadType === 'url' ? 'bg-slate-800 text-white' : 'text-slate-500'}`}
-                              >
-                                URL
-                              </button>
-                            </div>
-                          </div>
-
-                          {logoUploadType === 'file' ? (
-                            <div className="space-y-2">
-                              <input
-                                type="file"
-                                accept="image/png, image/jpeg, image/jpg"
-                                onChange={handleLogoFileUpload}
-                                className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
-                              />
-                            </div>
-                          ) : (
-                            <input 
-                              type="url"
-                              value={companyLogoUrl}
-                              onChange={(e) => setCompanyLogoUrl(e.target.value)}
-                              placeholder="https://..."
-                              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:border-blue-500"
-                            />
-                          )}
-
-                          {companyLogoUrl && (
-                            <div className="flex items-center gap-3 pt-1">
-                              <img src={companyLogoUrl} alt="Logo" className="w-12 h-12 object-contain rounded-lg border border-slate-200 bg-white p-1" />
-                              <span className="text-[11px] font-semibold text-emerald-600 flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5" /> Logo Siap Ditampilkan</span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* 2. POSTER / FLYER LOWONGAN (DIPAKAI DI HALAMAN JOB DETAIL) */}
-                        <div className="space-y-3 bg-slate-50/70 p-4 rounded-2xl border border-slate-150">
-                          <div className="flex items-center justify-between">
-                            <label className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
-                              <ImageIcon className="w-4 h-4 text-[#10B981]" /> Poster Lowongan (Halaman Job Detail)
-                            </label>
-                            <div className="flex bg-white rounded-lg p-0.5 border border-slate-200 text-[11px] font-bold">
-                              <button
-                                type="button"
-                                onClick={() => setPosterUploadType('file')}
-                                className={`px-2 py-1 rounded transition ${posterUploadType === 'file' ? 'bg-slate-800 text-white' : 'text-slate-500'}`}
-                              >
-                                File
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setPosterUploadType('url')}
-                                className={`px-2 py-1 rounded transition ${posterUploadType === 'url' ? 'bg-slate-800 text-white' : 'text-slate-500'}`}
-                              >
-                                URL
-                              </button>
-                            </div>
-                          </div>
-
-                          {posterUploadType === 'file' ? (
-                            <div className="space-y-2">
-                              <input
-                                type="file"
-                                accept="image/png, image/jpeg, image/jpg"
-                                onChange={handlePosterFileUpload}
-                                className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer"
-                              />
-                            </div>
-                          ) : (
-                            <input 
-                              type="url"
-                              value={posterUrl}
-                              onChange={(e) => setPosterUrl(e.target.value)}
-                              placeholder="https://..."
-                              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:border-emerald-500"
-                            />
-                          )}
-
-                          {posterUrl && (
-                            <div className="flex items-center gap-3 pt-1">
-                              <img src={posterUrl} alt="Poster" className="w-10 h-14 object-cover rounded-lg border border-slate-200 bg-white" />
-                              <span className="text-[11px] font-semibold text-emerald-600 flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5" /> Poster Siap Ditampilkan</span>
-                            </div>
-                          )}
-                        </div>
-
-                      </div>
-                    </div>
-
-                    {/* BAGIAN 3: DETAIL ISI & PERSYARATAN PEKERJAAN */}
-                    <div className="space-y-4 pt-2">
-                      <h5 className="font-bold text-slate-800 text-xs uppercase tracking-wider border-b border-slate-100 pb-2">3. Detail Konten & Kriteria Lowongan</h5>
-                      
+                      {/* BAGIAN 1: INFORMASI UTAMA REKRUTMEN */}
                       <div className="space-y-4">
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Deskripsi Ringkas Pekerjaan *</label>
-                          <textarea 
-                            required
-                            value={deskripsi}
-                            onChange={(e) => setDeskripsi(e.target.value)}
-                            rows={3}
-                            placeholder="Uraikan gambaran umum, lingkup tugas, dan teknologi yang dipakai..."
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
-                          ></textarea>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Tanggung Jawab Pekerjaan (Satu baris untuk setiap poin)</label>
-                          <textarea 
-                            value={tanggungJawab}
-                            onChange={(e) => setTanggungJawab(e.target.value)}
-                            rows={3}
-                            placeholder="Contoh:&#10;Membantu dalam pengembangan aplikasi web&#10;Berkolaborasi dengan tim UI/UX Designer"
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
-                          ></textarea>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Kualifikasi & Persyaratan (Satu baris untuk setiap poin)</label>
-                          <textarea 
-                            value={kualifikasi}
-                            onChange={(e) => setKualifikasi(e.target.value)}
-                            rows={3}
-                            placeholder="Contoh:&#10;Mahasiswa Teknik Informatika semester 6&#10;Menguasai bahasa pemrograman Javascript & React"
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
-                          ></textarea>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Keahlian & Technical Skills yang Dibutuhkan (Satu baris untuk setiap poin)</label>
-                          <textarea 
-                            value={keahlian}
-                            onChange={(e) => setKeahlian(e.target.value)}
-                            rows={2}
-                            placeholder="Contoh:&#10;Javascript&#10;React.js&#10;TailwindCSS"
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
-                          ></textarea>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Benefit & Fasilitas Kompensasi (Satu baris untuk setiap poin)</label>
-                          <textarea 
-                            value={benefit}
-                            onChange={(e) => setBenefit(e.target.value)}
-                            rows={3}
-                            placeholder="Contoh:&#10;Uang saku bulanan&#10;Sertifikat magang industri resmi"
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
-                          ></textarea>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* ACTION BUTTONS */}
-                    <div className="pt-5 border-t border-slate-100 flex justify-end gap-3">
-                      <button 
-                        type="button"
-                        onClick={resetJobForm}
-                        className="bg-slate-100 text-slate-700 hover:bg-slate-200 px-5 py-2.5 rounded-xl text-xs font-semibold transition"
-                      >
-                        Batal
-                      </button>
-                      <button 
-                        type="submit"
-                        className="bg-[#0077C6] hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-2 cursor-pointer active:scale-95"
-                      >
-                        <CheckCircle className="w-4 h-4" /> {editingJobId ? "Simpan Perubahan Lowongan" : "Posting Lowongan ke Publik"}
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              )}
-
-              {/* LISTING VACANCIES WITH MODERN CARDS & STATUS PILLS */}
-              {myJobs.length === 0 ? (
-                <div className="bg-white border border-slate-100 rounded-2xl py-14 text-center text-xs text-slate-400 space-y-2 shadow-sm">
-                  <Briefcase className="w-10 h-10 text-slate-200 mx-auto" />
-                  <p>Instansi Anda belum memiliki postingan lowongan karir aktif.</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6" id="mitra-job-list">
-                  {myJobs.map((job) => {
-                    const displayTitle = getJobTitle(job.judul, namaInstansi);
-
-                    return (
-                      <div key={job.id} className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm hover:shadow-md transition flex flex-col justify-between group" id={`job-box-${job.id}`}>
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between gap-2">
-                            <span className={`px-3 py-1 rounded-full font-bold text-[10px] uppercase tracking-wider border ${
-                              job.tipe === 'magang' 
-                                ? 'bg-blue-50 text-blue-700 border-blue-200' 
-                                : 'bg-purple-50 text-purple-700 border-purple-200'
-                            }`}>
-                              {job.tipe === 'magang' ? 'Program Magang' : 'Lowongan Kerja'}
-                            </span>
-
-                            {/* Status Pills */}
-                            {job.status === 'published' ? (
-                              <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-3 py-1 rounded-full font-bold text-[11px] inline-flex items-center gap-1.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                Aktif
-                              </span>
-                            ) : job.status === 'closed' ? (
-                              <span className="bg-slate-100 text-slate-600 border border-slate-200 px-3 py-1 rounded-full font-bold text-[11px] inline-flex items-center gap-1.5">
-                                Tutup
-                              </span>
-                            ) : (
-                              <span className="bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1 rounded-full font-bold text-[11px] inline-flex items-center gap-1.5">
-                                In Review
-                              </span>
-                            )}
+                        <h5 className="font-bold text-slate-800 text-xs uppercase tracking-wider border-b border-slate-100 pb-2">1. Informasi Utama Rekrutmen</h5>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                          <div className="space-y-1.5 sm:col-span-2">
+                            <label className="text-xs font-bold text-slate-700">Judul Rekrutmen Karir / Posisi Pekerjaan *</label>
+                            <input 
+                              type="text" 
+                              required
+                              value={judul}
+                              onChange={(e) => setJudul(e.target.value)}
+                              placeholder="Contoh: Fullstack Web Developer Intern"
+                              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
+                            />
                           </div>
 
-                          <div className="flex items-start gap-4 pt-1">
-                            {job.companyLogo ? (
-                              <img 
-                                src={job.companyLogo} 
-                                alt={displayTitle}
-                                className="w-16 h-16 object-contain rounded-xl border border-slate-200 shrink-0 bg-white p-1.5 shadow-xs" 
-                              />
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-slate-700">Tipe Lowongan *</label>
+                            <select 
+                              value={tipe}
+                              onChange={(e) => setTipe(e.target.value as any)}
+                              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm bg-white font-normal transition"
+                            >
+                              <option value="magang">Magang (Mahasiswa Aktif)</option>
+                              <option value="kerja">Kerja (Lulusan Baru / Alumni)</option>
+                            </select>
+                          </div>
+
+                          <div className="space-y-2 sm:col-span-2">
+                            <div className="flex items-center justify-between">
+                              <label className="text-xs font-bold text-slate-700">
+                                Spesialisasi / Kategori Pekerjaan * (Bisa pilih lebih dari 1)
+                              </label>
+                              <span className="text-[11px] font-bold text-[#10B981] bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                                {selectedKategori.length} Kategori Dipilih
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200">
+                              {JOB_SPECIALIZATIONS.map((spec) => {
+                                const isChecked = selectedKategori.includes(spec);
+                                return (
+                                  <label 
+                                    key={spec} 
+                                    className={`flex items-center gap-2.5 p-2.5 rounded-xl border text-xs font-semibold transition cursor-pointer select-none ${
+                                      isChecked 
+                                        ? 'bg-white border-[#10B981] text-slate-900 shadow-xs ring-1 ring-[#10B981]/30 font-bold' 
+                                        : 'bg-white/60 border-slate-200 text-slate-600 hover:bg-white hover:border-slate-300'
+                                    }`}
+                                  >
+                                    <input 
+                                      type="checkbox"
+                                      checked={isChecked}
+                                      onChange={() => handleCategoryToggle(spec)}
+                                      className="w-4 h-4 rounded border-slate-300 text-[#10B981] focus:ring-[#10B981] cursor-pointer accent-[#10B981]"
+                                    />
+                                    <span className="truncate">{spec}</span>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-slate-700">Lokasi Penempatan Kerja *</label>
+                            <input 
+                              type="text" 
+                              required
+                              value={lokasi}
+                              onChange={(e) => setLokasi(e.target.value)}
+                              placeholder="Contoh: Kendari (Hybrid)"
+                              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-slate-700">Kisaran Gaji / Insentif (Opsional)</label>
+                            <input 
+                              type="text" 
+                              value={gaji}
+                              onChange={(e) => setGaji(e.target.value)}
+                              placeholder="Contoh: Rp 3.500.000 - Rp 5.000.000 / Kompetitif"
+                              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-slate-700">Rencana Kuota Penerimaan (Orang)</label>
+                            <input 
+                              type="number" 
+                              min="1"
+                              placeholder="Contoh: 3"
+                              value={kuota}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (val === '') {
+                                  setKuota('');
+                                } else {
+                                  const parsed = parseInt(val, 10);
+                                  setKuota(isNaN(parsed) ? '' : String(parsed));
+                                }
+                              }}
+                              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-slate-700">Batas Tanggal Pendaftaran (Deadline) *</label>
+                            <input 
+                              type="date" 
+                              required
+                              value={deadline}
+                              onChange={(e) => setDeadline(e.target.value)}
+                              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* BAGIAN 2: MEDIA VISUAL */}
+                      <div className="space-y-4 pt-2">
+                        <h5 className="font-bold text-slate-800 text-xs uppercase tracking-wider border-b border-slate-100 pb-2">2. Visual Media (Logo Perusahaan & Poster Lowongan)</h5>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          
+                          {/* 1. LOGO PERUSAHAAN */}
+                          <div className="space-y-3 bg-slate-50/70 p-4 rounded-2xl border border-slate-150">
+                            <div className="flex items-center justify-between">
+                              <label className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
+                                <Building2 className="w-4 h-4 text-blue-600" /> Logo Perusahaan (Kartu Job Info)
+                              </label>
+                              <div className="flex bg-white rounded-lg p-0.5 border border-slate-200 text-[11px] font-bold">
+                                <button
+                                  type="button"
+                                  onClick={() => setLogoUploadType('file')}
+                                  className={`px-2 py-1 rounded transition ${logoUploadType === 'file' ? 'bg-slate-800 text-white' : 'text-slate-500'}`}
+                                >
+                                  File
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setLogoUploadType('url')}
+                                  className={`px-2 py-1 rounded transition ${logoUploadType === 'url' ? 'bg-slate-800 text-white' : 'text-slate-500'}`}
+                                >
+                                  URL
+                                </button>
+                              </div>
+                            </div>
+
+                            {logoUploadType === 'file' ? (
+                              <div className="space-y-2">
+                                <input
+                                  type="file"
+                                  accept="image/png, image/jpeg, image/jpg"
+                                  onChange={handleLogoFileUpload}
+                                  className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                                />
+                              </div>
                             ) : (
-                              <div className="w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
-                                <Briefcase className="w-6 h-6 text-[#0077C6]" />
+                              <input 
+                                type="url"
+                                value={companyLogoUrl}
+                                onChange={(e) => setCompanyLogoUrl(e.target.value)}
+                                placeholder="https://..."
+                                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:border-blue-500"
+                              />
+                            )}
+
+                            {companyLogoUrl && (
+                              <div className="flex items-center gap-3 pt-1">
+                                <img src={companyLogoUrl} alt="Logo" className="w-12 h-12 object-contain rounded-lg border border-slate-200 bg-white p-1" />
+                                <span className="text-[11px] font-semibold text-emerald-600 flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5" /> Logo Siap Ditampilkan</span>
                               </div>
                             )}
-                            <div className="space-y-1 min-w-0 flex-1">
-                              <h4 className="font-extrabold text-slate-900 group-hover:text-[#0077C6] transition-colors text-base sm:text-lg truncate">{displayTitle}</h4>
-                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 font-medium">
-                              <span className="flex items-center gap-1 truncate"><MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {job.lokasi}</span>
-                              <span className="flex items-center gap-1 shrink-0"><Users className="w-3.5 h-3.5 text-slate-400 shrink-0" /> Kuota: {job.kuota || 3}</span>
+                          </div>
+
+                          {/* 2. POSTER LOWONGAN */}
+                          <div className="space-y-3 bg-slate-50/70 p-4 rounded-2xl border border-slate-150">
+                            <div className="flex items-center justify-between">
+                              <label className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
+                                <ImageIcon className="w-4 h-4 text-[#10B981]" /> Poster Lowongan (Halaman Job Detail)
+                              </label>
+                              <div className="flex bg-white rounded-lg p-0.5 border border-slate-200 text-[11px] font-bold">
+                                <button
+                                  type="button"
+                                  onClick={() => setPosterUploadType('file')}
+                                  className={`px-2 py-1 rounded transition ${posterUploadType === 'file' ? 'bg-slate-800 text-white' : 'text-slate-500'}`}
+                                >
+                                  File
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setPosterUploadType('url')}
+                                  className={`px-2 py-1 rounded transition ${posterUploadType === 'url' ? 'bg-slate-800 text-white' : 'text-slate-500'}`}
+                                >
+                                  URL
+                                </button>
+                              </div>
                             </div>
-                            <div className="text-[11px] text-slate-400 font-medium flex items-center gap-1 pt-0.5">
-                              <Clock className="w-3 h-3 text-slate-400 shrink-0" /> Deadline: <strong className="text-slate-600 font-mono">{job.deadline}</strong>
-                            </div>
+
+                            {posterUploadType === 'file' ? (
+                              <div className="space-y-2">
+                                <input
+                                  type="file"
+                                  accept="image/png, image/jpeg, image/jpg"
+                                  onChange={handlePosterFileUpload}
+                                  className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer"
+                                />
+                              </div>
+                            ) : (
+                              <input 
+                                type="url"
+                                value={posterUrl}
+                                onChange={(e) => setPosterUrl(e.target.value)}
+                                placeholder="https://..."
+                                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:border-emerald-500"
+                              />
+                            )}
+
+                            {posterUrl && (
+                              <div className="flex items-center gap-3 pt-1">
+                                <img src={posterUrl} alt="Poster" className="w-10 h-14 object-cover rounded-lg border border-slate-200 bg-white" />
+                                <span className="text-[11px] font-semibold text-emerald-600 flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5" /> Poster Siap Ditampilkan</span>
+                              </div>
+                            )}
+                          </div>
+
+                        </div>
+                      </div>
+
+                      {/* BAGIAN 3: DETAIL ISI & PERSYARATAN PEKERJAAN */}
+                      <div className="space-y-4 pt-2">
+                        <h5 className="font-bold text-slate-800 text-xs uppercase tracking-wider border-b border-slate-100 pb-2">3. Detail Konten & Kriteria Lowongan</h5>
+                        
+                        <div className="space-y-4">
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-slate-700">Deskripsi Ringkas Pekerjaan *</label>
+                            <textarea 
+                              required
+                              value={deskripsi}
+                              onChange={(e) => setDeskripsi(e.target.value)}
+                              rows={3}
+                              placeholder="Uraikan gambaran umum, lingkup tugas, dan teknologi yang dipakai..."
+                              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
+                            ></textarea>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-slate-700">Tanggung Jawab Pekerjaan (Satu baris untuk setiap poin)</label>
+                            <textarea 
+                              value={tanggungJawab}
+                              onChange={(e) => setTanggungJawab(e.target.value)}
+                              rows={3}
+                              placeholder="Contoh:&#10;Membantu dalam pengembangan aplikasi web&#10;Berkolaborasi dengan tim UI/UX Designer"
+                              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
+                            ></textarea>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-slate-700">Kualifikasi & Persyaratan (Satu baris untuk setiap poin)</label>
+                            <textarea 
+                              value={kualifikasi}
+                              onChange={(e) => setKualifikasi(e.target.value)}
+                              rows={3}
+                              placeholder="Contoh:&#10;Mahasiswa Teknik Informatika semester 6&#10;Menguasai bahasa pemrograman Javascript & React"
+                              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
+                            ></textarea>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-slate-700">Keahlian & Technical Skills yang Dibutuhkan (Satu baris untuk setiap poin)</label>
+                            <textarea 
+                              value={keahlian}
+                              onChange={(e) => setKeahlian(e.target.value)}
+                              rows={2}
+                              placeholder="Contoh:&#10;Javascript&#10;React.js&#10;TailwindCSS"
+                              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
+                            ></textarea>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-slate-700">Benefit & Fasilitas Kompensasi (Satu baris untuk setiap poin)</label>
+                            <textarea 
+                              value={benefit}
+                              onChange={(e) => setBenefit(e.target.value)}
+                              rows={3}
+                              placeholder="Contoh:&#10;Uang saku bulanan&#10;Sertifikat magang industri resmi"
+                              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
+                            ></textarea>
                           </div>
                         </div>
-
-                        <p className="text-slate-600 text-xs sm:text-sm line-clamp-2 leading-relaxed pt-3 border-t border-slate-100">{job.deskripsi}</p>
                       </div>
 
-                      {/* ACTIONS BAR */}
-                      <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-2 mt-5">
-                        <div className="flex items-center gap-2">
-                          <button 
-                            onClick={() => handleEditJob(job)}
-                            className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg font-bold text-xs transition flex items-center gap-1 border border-emerald-200"
-                          >
-                            <Edit3 className="w-3.5 h-3.5" /> Edit Detail
-                          </button>
-                          <button 
-                            onClick={() => handleToggleJobStatus(job.id, job.status)}
-                            className="bg-slate-100 text-slate-700 hover:bg-slate-200 px-3 py-1.5 rounded-lg font-semibold text-xs transition"
-                          >
-                            {job.status === 'published' ? 'Tutup' : 'Aktifkan'}
-                          </button>
-                        </div>
-
+                      {/* ACTION BUTTONS */}
+                      <div className="pt-5 border-t border-slate-100 flex justify-end gap-3">
                         <button 
-                          onClick={() => handleDeleteJob(job.id)}
-                          className="text-slate-400 hover:text-rose-600 p-2 rounded-xl hover:bg-rose-50 transition"
-                          title="Hapus Lowongan"
+                          type="button"
+                          onClick={resetJobForm}
+                          className="bg-slate-100 text-slate-700 hover:bg-slate-200 px-5 py-2.5 rounded-xl text-xs font-semibold transition"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          Batal
+                        </button>
+                        <button 
+                          type="submit"
+                          className="bg-[#0077C6] hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-2 cursor-pointer active:scale-95"
+                        >
+                          <CheckCircle className="w-4 h-4" /> {editingJobId ? "Simpan Perubahan Lowongan" : "Posting Lowongan ke Publik"}
                         </button>
                       </div>
-                    </div>
-                  );
-                })}
-                </div>
-              )}
-            </div>
-          )}
+                    </form>
+                  </div>
+                )}
+
+                {/* LISTING VACANCIES CARDS GRID (2 COLUMNS) MATCHING SCREENSHOT */}
+                {!showAddJob && (
+                  <>
+                    {displayedMyJobs.length === 0 ? (
+                      <div className="bg-white border border-slate-200 rounded-2xl py-14 text-center text-xs text-slate-400 space-y-2 shadow-2xs">
+                        <Briefcase className="w-10 h-10 text-slate-300 mx-auto" />
+                        <p className="font-bold text-slate-700 text-base">Tidak ada lowongan ditemukan.</p>
+                        <p className="text-slate-400 text-xs">Coba ubah kata kunci pencarian atau filter status lowongan.</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6" id="mitra-job-list">
+                        {displayedMyJobs.map((job) => {
+                          const displayTitle = getJobTitle(job.judul, namaInstansi);
+                          const isMagang = job.tipe === 'magang';
+                          const isActive = job.status === 'published';
+
+                          return (
+                            <div key={job.id} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs hover:shadow-md transition flex flex-col justify-between group relative" id={`job-box-${job.id}`}>
+                              <div className="space-y-3.5">
+                                
+                                {/* Top Badges Row */}
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className={`px-3 py-1 rounded-md font-extrabold text-[10px] uppercase tracking-wider border ${
+                                    isMagang 
+                                      ? 'bg-emerald-50/80 text-emerald-800 border-emerald-200/60' 
+                                      : 'bg-indigo-50/80 text-indigo-700 border-indigo-200/60'
+                                  }`}>
+                                    {isMagang ? 'PROGRAM MAGANG' : 'LOWONGAN KERJA'}
+                                  </span>
+
+                                  {/* Status Badge */}
+                                  {isActive ? (
+                                    <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2.5 py-0.5 rounded-full font-bold text-xs inline-flex items-center gap-1.5">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                      Aktif
+                                    </span>
+                                  ) : (
+                                    <span className="bg-slate-100 text-slate-600 border border-slate-200 px-2.5 py-0.5 rounded-full font-bold text-xs inline-flex items-center gap-1.5">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                                      Tutup
+                                    </span>
+                                  )}
+                                </div>
+
+                                {/* Logo & Info Header */}
+                                <div className="flex items-start gap-3.5 pt-1">
+                                  {job.companyLogo ? (
+                                    <img 
+                                      src={job.companyLogo} 
+                                      alt={displayTitle}
+                                      className="w-14 h-14 object-contain rounded-2xl border border-slate-200 shrink-0 bg-slate-50 p-1.5 shadow-2xs" 
+                                    />
+                                  ) : (
+                                    <div className={`w-14 h-14 rounded-2xl ${getCompanyBadgeColor(job.namaInstansi || namaInstansi || 'Instansi')} flex flex-col items-center justify-center p-1 shrink-0 shadow-2xs`}>
+                                      <span className="font-extrabold text-sm tracking-wider leading-none">{getCompanyInitials(job.namaInstansi || namaInstansi || 'Instansi')}</span>
+                                      <span className="text-[7px] font-extrabold tracking-wider uppercase mt-0.5 line-clamp-1">{(job.namaInstansi || namaInstansi || 'Instansi').replace(/^PT\s+/i, '').split(' ')[0]}</span>
+                                    </div>
+                                  )}
+
+                                  <div className="space-y-1 min-w-0 flex-1">
+                                    <h4 className="font-extrabold text-slate-900 group-hover:text-[#0055D4] transition-colors text-base sm:text-lg line-clamp-1">{displayTitle}</h4>
+                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500 font-medium">
+                                      <span className="flex items-center gap-1 truncate"><MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {job.lokasi || 'Kendari'}</span>
+                                      <span className="flex items-center gap-1 shrink-0"><Users className="w-3.5 h-3.5 text-slate-400 shrink-0" /> Kuota: {job.kuota || 3}</span>
+                                    </div>
+                                    <div className="text-xs text-slate-400 font-medium flex items-center gap-1 pt-0.5">
+                                      <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" /> Deadline: <strong className="text-slate-700 font-semibold">{formatDateDisplay(job.deadline)}</strong>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Short Description */}
+                                <p className="text-slate-600 text-xs line-clamp-2 leading-relaxed pt-2 border-t border-slate-100">{job.deskripsi || ''}</p>
+                              </div>
+
+                              {/* Actions Bar */}
+                              <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 mt-4">
+                                <div className="flex items-center gap-2">
+                                  <button 
+                                    onClick={() => handleEditJob(job)}
+                                    className="bg-white hover:bg-slate-50 text-slate-700 px-3.5 py-1.5 rounded-lg font-bold text-xs transition flex items-center gap-1.5 border border-slate-200 shadow-2xs"
+                                  >
+                                    <Edit3 className="w-3.5 h-3.5 text-emerald-600" /> Edit Detail
+                                  </button>
+                                  <button 
+                                    onClick={() => handleToggleJobStatus(job.id, job.status)}
+                                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-1.5 rounded-lg font-bold text-xs transition"
+                                  >
+                                    {job.status === 'published' ? 'Tutup' : 'Aktifkan'}
+                                  </button>
+                                </div>
+
+                                <button 
+                                  onClick={() => handleDeleteJob(job.id)}
+                                  className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 p-2 rounded-lg transition"
+                                  title="Hapus Lowongan"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* PAGINATION CONTROLS */}
+                    {sortedMyJobs.length > 0 && (
+                      <div className="flex items-center justify-center gap-1.5 pt-6">
+                        <button
+                          onClick={() => setJobCurrentPage(prev => Math.max(1, prev - 1))}
+                          disabled={jobCurrentPage === 1}
+                          className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition shadow-2xs"
+                        >
+                          &lt;
+                        </button>
+
+                        {Array.from({ length: totalJobPages }, (_, i) => i + 1).map((pageNum) => {
+                          const isActive = pageNum === jobCurrentPage;
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => setJobCurrentPage(pageNum)}
+                              className={`px-3.5 py-1.5 rounded-lg font-bold text-xs transition ${
+                                isActive
+                                  ? 'bg-[#0055D4] text-white shadow-xs'
+                                  : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-2xs'
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        })}
+
+                        <button
+                          onClick={() => setJobCurrentPage(prev => Math.min(totalJobPages, prev + 1))}
+                          disabled={jobCurrentPage === totalJobPages}
+                          className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition shadow-2xs"
+                        >
+                          &gt;
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+
+              </div>
+            );
+          })()}
 
           {/* TAB 4: PELAMAR & SELEKSI */}
           {activeTab === 'pelamar' && (() => {

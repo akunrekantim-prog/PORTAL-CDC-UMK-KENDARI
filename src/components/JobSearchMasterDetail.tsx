@@ -103,6 +103,34 @@ export const JOB_SPECIALIZATIONS: string[] = [
   'Lainnya'
 ];
 
+export const getCompanyBadgeColor = (name: string = '') => {
+  const safeName = name || 'Instansi';
+  const colors = [
+    'bg-[#008080] text-white', // Teal (Celerates)
+    'bg-[#312E81] text-white', // Indigo (Yanasurya)
+    'bg-[#064E3B] text-white', // Dark Green (Riasarana)
+    'bg-[#C2410C] text-white', // Orange (Cahaya Abadi)
+    'bg-[#1E3A8A] text-white', // Navy (Global Future)
+    'bg-[#581C87] text-white', // Purple (Tekno Solusi)
+    'bg-[#0284C7] text-white', // Sky (Go Digital)
+  ];
+  let hash = 0;
+  for (let i = 0; i < safeName.length; i++) {
+    hash = safeName.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
+};
+
+export const getCompanyInitials = (name: string = '') => {
+  const safeName = name || 'Instansi';
+  const clean = safeName.replace(/^PT\s+/i, '').replace(/^CV\s+/i, '').trim();
+  const words = clean.split(/\s+/);
+  if (words.length >= 2) {
+    return (words[0][0] + words[1][0]).toUpperCase();
+  }
+  return clean.substring(0, 2).toUpperCase();
+};
+
 interface JobSearchMasterDetailProps {
   jobs: Lowongan[];
   onApply: (job: Lowongan) => void;
@@ -124,6 +152,9 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
   // Checkbox Filter States (Location & Specialization)
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [selectedSpecializations, setSelectedSpecializations] = useState<string[]>([]);
+
+  // Sorting State
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest' | 'alphabetical'>('newest');
 
   // Search text inputs inside popover dropdowns
   const [locationSearch, setLocationSearch] = useState('');
@@ -154,13 +185,13 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Reset to page 1 on filter changes
+  // Reset to page 1 on filter or sort changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [keyword, selectedLocations, selectedSpecializations]);
+  }, [keyword, selectedLocations, selectedSpecializations, sortOrder]);
 
-  // Filter Published Jobs (Lowongan kerja terbaru selalu di atas)
-  const publishedJobs = sortJobsByNewest(jobs.filter(j => j.status === 'published'));
+  // Filter Published Jobs
+  const publishedJobs = jobs.filter(j => j.status === 'published');
 
   // Filter Jobs Logic
   const filteredJobs = publishedJobs.filter(job => {
@@ -176,21 +207,18 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
       }
     }
 
-    // Checkbox 1: Location Filter (All 38 Indonesian Provinces & Cities + Luar Negeri / Lainnya)
+    // Checkbox 1: Location Filter
     if (selectedLocations.length > 0) {
       const matchLoc = selectedLocations.some(loc => {
         const l = loc.toLowerCase().trim();
         const jobLoc = job.lokasi.toLowerCase().trim();
 
-        // 1. Checkbox "LAINNYA (LUAR NEGERI)" or "LAINNYA"
         if (l.includes('lainnya') || l.includes('luar negeri')) {
           if (!isIndonesianLocation(jobLoc)) return true;
         }
 
-        // 2. Direct name/substring match
         if (jobLoc.includes(l) || l.includes(jobLoc)) return true;
 
-        // 3. Province hierarchy lookup: If 'loc' is a province, check if jobLoc matches any city in that province
         const matchedProv = INDONESIAN_PROVINCES.find(
           p => p.province.toLowerCase() === l
         );
@@ -199,7 +227,6 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
           if (matchedProv.cities.some(city => jobLoc.includes(city.toLowerCase()))) return true;
         }
 
-        // 4. Reverse lookup: If jobLoc is a city/province, check against province hierarchy
         const jobProv = INDONESIAN_PROVINCES.find(
           p => p.province.toLowerCase() === jobLoc || p.cities.some(c => c.toLowerCase() === jobLoc)
         );
@@ -220,18 +247,14 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
         const title = job.judul.toLowerCase();
         const desc = job.deskripsi.toLowerCase();
 
-        // 1. Direct substring match
         if (cat.includes(s) || title.includes(s) || desc.includes(s)) return true;
 
-        // 2. Check individual category items split by comma
         const jobCatItems = cat.split(',').map(c => c.trim()).filter(Boolean);
         if (jobCatItems.some(ci => ci.includes(s) || s.includes(ci))) return true;
 
-        // 3. Sub-word match for multi-word categories (e.g. "Sains & Bioteknologi")
         const sWords = s.split(/[\s/&,]+/).filter(w => w.length > 2);
         if (sWords.length > 0 && sWords.some(w => cat.includes(w) || title.includes(w))) return true;
 
-        // 4. Keyword domain aliases
         if (s.includes('it') || s.includes('komputer') || s.includes('teknologi')) {
           if (cat.includes('it') || cat.includes('ti') || cat.includes('komputer') || cat.includes('teknologi') || title.includes('developer') || title.includes('engineer') || title.includes('ui/ux') || title.includes('software')) return true;
         }
@@ -252,11 +275,28 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
     return true;
   });
 
+  // Sort Jobs
+  const sortedJobs = [...filteredJobs].sort((a, b) => {
+    if (sortOrder === 'oldest') {
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return timeA - timeB;
+    }
+    if (sortOrder === 'alphabetical') {
+      return a.judul.localeCompare(b.judul);
+    }
+    // Default: newest first
+    const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    if (timeA !== timeB) return timeB - timeA;
+    return b.id.localeCompare(a.id, undefined, { numeric: true });
+  });
+
   // Dynamic Pagination
-  const totalJobs = filteredJobs.length;
+  const totalJobs = sortedJobs.length;
   const totalPages = Math.max(1, Math.ceil(totalJobs / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const displayedJobs = filteredJobs.slice(startIndex, startIndex + itemsPerPage);
+  const displayedJobs = sortedJobs.slice(startIndex, startIndex + itemsPerPage);
   const endIndex = Math.min(startIndex + displayedJobs.length, totalJobs);
 
   const handlePageChange = (page: number) => {
@@ -305,22 +345,32 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
     );
   }
 
-  // MAIN SEARCH VIEW: BLACK SEARCH BAR + 1:1 REPLICA OF PUBLIC JOB INFO CARDS GRID
+  // MAIN SEARCH VIEW: WHITE SEARCH BAR + 1:1 REPLICA OF USER SEARCH JOB SCREENSHOT
   return (
     <div className="space-y-6 animate-fadeIn font-sans bg-white" id="job-info-trisakti-search-view">
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 space-y-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 space-y-5">
 
-        {/* BLUE SEARCH BAR CONTAINER (PUSAT KARIR TRISAKTI SEARCH BAR DESIGN - BLUE THEME) */}
-        <div className="bg-[#1E3A8A] text-white p-3.5 md:p-4 rounded-md shadow-xl relative" ref={popupRef}>
+        {/* PAGE TITLE & SUBTITLE */}
+        <div className="space-y-1">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            Cari lowongan pekerjaan
+          </h1>
+          <p className="text-slate-500 font-medium text-sm sm:text-base">
+            Temukan peluang karier yang sesuai dengan minat dan keahlianmu.
+          </p>
+        </div>
+
+        {/* WHITE SEARCH BAR CONTAINER */}
+        <div className="bg-white relative" ref={popupRef}>
           <div className="flex flex-col md:flex-row items-stretch gap-2.5 md:gap-3">
             
-            {/* TEXTBOX 1: Kata Kunci, Jabatan, Perusahaan */}
-            <div className="flex-1 bg-white text-slate-900 rounded flex items-center px-3 py-2.5 border border-slate-200 focus-within:ring-2 focus-within:ring-blue-500 transition">
-              <Search className="w-4 h-4 text-slate-400 shrink-0 mr-2" />
+            {/* TEXTBOX 1: Kata kunci, jabatan, atau perusahaan */}
+            <div className="flex-1 bg-white text-slate-900 rounded-xl flex items-center px-3.5 py-2.5 border border-slate-200 focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-600 transition shadow-2xs">
+              <Search className="w-4 h-4 text-slate-400 shrink-0 mr-2.5" />
               <input
                 type="text"
-                placeholder="Kata Kunci, Jabatan, Perusahaan"
+                placeholder="Kata kunci, jabatan, atau perusahaan"
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
                 className="w-full bg-transparent border-none focus:outline-none text-xs md:text-sm font-medium text-slate-800 placeholder:text-slate-400"
@@ -332,15 +382,15 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
               )}
             </div>
 
-            {/* CHECKBOX 1: Semua Lokasi (All 38 Indonesian Provinces & Cities) */}
+            {/* CHECKBOX 1: Semua Lokasi */}
             <div className="flex-1 relative">
               <button
                 type="button"
                 onClick={() => setOpenPopup(openPopup === 'location' ? null : 'location')}
-                className="w-full bg-white text-slate-800 rounded flex items-center justify-between px-3 py-2.5 border border-slate-200 hover:border-slate-300 transition text-xs md:text-sm font-medium text-left"
+                className="w-full bg-white text-slate-800 rounded-xl flex items-center justify-between px-3.5 py-2.5 border border-slate-200 hover:border-slate-300 transition text-xs md:text-sm font-medium text-left shadow-2xs"
               >
                 <div className="flex items-center min-w-0 pr-2">
-                  <MapPin className="w-4 h-4 text-slate-400 shrink-0 mr-2" />
+                  <MapPin className="w-4 h-4 text-slate-400 shrink-0 mr-2.5" />
                   <span className="truncate">
                     {selectedLocations.length === 0
                       ? 'Semua Lokasi'
@@ -352,7 +402,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
 
               {/* POPOVER MENU FOR LOCATION CHECKBOXES */}
               {openPopup === 'location' && (
-                <div className="absolute top-full left-0 mt-1.5 z-50 w-80 max-w-[90vw] bg-white border border-slate-300 shadow-2xl rounded-md overflow-hidden text-slate-800 text-xs animate-fadeIn">
+                <div className="absolute top-full left-0 mt-1.5 z-50 w-80 max-w-[90vw] bg-white border border-slate-300 shadow-2xl rounded-xl overflow-hidden text-slate-800 text-xs animate-fadeIn">
                   <div className="bg-slate-50 border-b border-slate-200 px-3.5 py-2 font-bold text-slate-700 flex items-center justify-between">
                     <span>Lokasi Pekerjaan</span>
                     {selectedLocations.length > 0 && (
@@ -371,7 +421,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
                       placeholder="Cari provinsi, kota, atau luar negeri..."
                       value={locationSearch}
                       onChange={(e) => setLocationSearch(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
                     />
                   </div>
 
@@ -446,10 +496,10 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
               <button
                 type="button"
                 onClick={() => setOpenPopup(openPopup === 'specialization' ? null : 'specialization')}
-                className="w-full bg-white text-slate-800 rounded flex items-center justify-between px-3 py-2.5 border border-slate-200 hover:border-slate-300 transition text-xs md:text-sm font-medium text-left"
+                className="w-full bg-white text-slate-800 rounded-xl flex items-center justify-between px-3.5 py-2.5 border border-slate-200 hover:border-slate-300 transition text-xs md:text-sm font-medium text-left shadow-2xs"
               >
                 <div className="flex items-center min-w-0 pr-2">
-                  <Users className="w-4 h-4 text-slate-400 shrink-0 mr-2" />
+                  <Users className="w-4 h-4 text-slate-400 shrink-0 mr-2.5" />
                   <span className="truncate">
                     {selectedSpecializations.length === 0
                       ? 'Semua Spesialisasi'
@@ -461,7 +511,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
 
               {/* POPOVER MENU FOR SPECIALIZATION CHECKBOXES */}
               {openPopup === 'specialization' && (
-                <div className="absolute top-full left-0 mt-1.5 z-50 w-80 max-w-[90vw] bg-white border border-slate-300 shadow-2xl rounded-md overflow-hidden text-slate-800 text-xs animate-fadeIn">
+                <div className="absolute top-full left-0 mt-1.5 z-50 w-80 max-w-[90vw] bg-white border border-slate-300 shadow-2xl rounded-xl overflow-hidden text-slate-800 text-xs animate-fadeIn">
                   <div className="bg-slate-50 border-b border-slate-200 px-3.5 py-2 font-bold text-slate-700 flex items-center justify-between">
                     <span>Spesialisasi Pekerjaan</span>
                     {selectedSpecializations.length > 0 && (
@@ -480,7 +530,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
                       placeholder="Cari bidang spesialisasi..."
                       value={specializationSearch}
                       onChange={(e) => setSpecializationSearch(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
                     />
                   </div>
 
@@ -510,7 +560,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
             <button
               type="button"
               onClick={() => setOpenPopup(null)}
-              className="bg-[#0F172A] hover:bg-slate-900 text-white px-7 py-2.5 rounded font-bold text-xs md:text-sm transition shrink-0 border border-blue-400/30 shadow-md"
+              className="bg-[#0B1E48] hover:bg-[#071533] text-white px-7 py-2.5 rounded-xl font-bold text-xs md:text-sm transition shrink-0 shadow-sm"
             >
               Cari
             </button>
@@ -518,23 +568,37 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
           </div>
         </div>
 
-        {/* ACTIVE FILTERS SUMMARY & COUNTER */}
-        <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-semibold text-slate-600 pt-1">
+        {/* ACTIVE FILTERS SUMMARY & COUNTER & SORTING */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-semibold text-slate-600 pt-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <span>Menampilkan <strong>{totalJobs > 0 ? startIndex + 1 : 0}-{endIndex}</strong> dari <strong>{totalJobs}</strong> lowongan</span>
+            <span>Menampilkan {totalJobs > 0 ? startIndex + 1 : 0}-{endIndex} dari <strong className="text-[#0055D4] font-extrabold">{totalJobs} lowongan</strong></span>
             
             {hasActiveFilters && (
               <button
                 onClick={clearAllFilters}
-                className="text-red-600 hover:underline text-[11px] font-bold flex items-center gap-1 bg-red-50 px-2 py-0.5 rounded ml-2"
+                className="text-red-600 hover:underline text-[11px] font-bold flex items-center gap-1 bg-red-50 px-2 py-0.5 rounded-lg ml-2"
               >
                 <X className="w-3 h-3" /> Bersihkan Filter
               </button>
             )}
           </div>
+
+          {/* Sorting Select Dropdown */}
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <span className="text-slate-500 font-medium text-xs">Urutkan:</span>
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value as any)}
+              className="bg-white border border-slate-200 rounded-xl px-3.5 py-1.5 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-2xs cursor-pointer"
+            >
+              <option value="newest">Terbaru</option>
+              <option value="oldest">Terlama</option>
+              <option value="alphabetical">Abjad (A-Z)</option>
+            </select>
+          </div>
         </div>
 
-        {/* CARDS GRID (1:1 REPLICA OF PUBLIC JOB INFO PAGE CARDS AS IN SCREENSHOT 2) */}
+        {/* CARDS GRID */}
         {displayedJobs.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
             {displayedJobs.map(item => {
@@ -548,7 +612,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
                   className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group relative"
                 >
                   <div>
-                    {/* Company Logo Image Container (Matching Job Info logo container) */}
+                    {/* Company Logo Image Container */}
                     <div className="w-full h-44 relative overflow-hidden bg-slate-50 flex items-center justify-center p-4 border-b border-slate-100">
                       {hasLogo ? (
                         <img
@@ -560,18 +624,11 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
                           }}
                         />
                       ) : (
-                        <div className="flex flex-col items-center justify-center text-slate-300 space-y-1">
-                          <Building2 className="w-10 h-10 text-slate-400" />
-                          <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">{item.namaInstansi}</span>
+                        <div className={`w-32 h-24 rounded-2xl ${getCompanyBadgeColor(item.namaInstansi)} flex flex-col items-center justify-center p-2 shadow-xs group-hover:scale-105 transition-transform duration-300 text-center`}>
+                          <span className="font-extrabold text-xl tracking-wider leading-none">{getCompanyInitials(item.namaInstansi)}</span>
+                          <span className="text-[9px] font-extrabold tracking-wider uppercase mt-1 line-clamp-1 px-1">{item.namaInstansi.replace(/^PT\s+/i, '').split(' ')[0]}</span>
                         </div>
                       )}
-                      <div className="absolute top-3 left-3 flex items-center gap-2">
-                        {item.jenisPekerjaan && (
-                          <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-slate-700 text-white">
-                            {item.jenisPekerjaan === 'full-time' ? 'Full-Time' : 'Part-Time'}
-                          </span>
-                        )}
-                      </div>
 
                       <button
                         type="button"
@@ -580,10 +637,10 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
                           toggleSaveJob(item.id);
                           setSavedJobIds(getSavedJobIds());
                         }}
-                        className={`absolute top-3 right-3 p-2 rounded-full border transition z-10 cursor-pointer ${
+                        className={`absolute top-3 right-3 w-8 h-8 rounded-full border transition z-10 cursor-pointer flex items-center justify-center ${
                           savedJobIds.includes(item.id)
                             ? 'bg-amber-50 text-amber-600 border-amber-300 shadow-2xs'
-                            : 'bg-white/90 hover:bg-white text-slate-400 hover:text-amber-500 border-slate-200'
+                            : 'bg-white hover:bg-slate-50 text-slate-400 hover:text-amber-500 border-slate-200 shadow-2xs'
                         }`}
                         title={savedJobIds.includes(item.id) ? 'Lowongan Tersimpan' : 'Simpan Lowongan'}
                       >
@@ -594,24 +651,18 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
                     {/* Card Content */}
                     <div className="p-5 space-y-2">
                       {/* Instansi Subheading in Accent Orange */}
-                      <div className="text-xs font-bold text-orange-600 tracking-wide uppercase truncate">
+                      <div className="text-xs font-bold text-[#EA580C] uppercase tracking-wide truncate">
                         {item.namaInstansi}
                       </div>
 
                       {/* Main Title */}
-                      <h3 className="font-extrabold text-slate-900 text-lg leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2">
+                      <h3 className="font-extrabold text-slate-900 text-base md:text-lg leading-snug group-hover:text-[#0055D4] transition-colors line-clamp-2">
                         {item.judul}
                       </h3>
 
                       {/* Meta Footer: source + Upload Date */}
                       <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
-                        {item.sumber === 'admin' ? (
-                          <span className="whitespace-nowrap font-bold text-emerald-600 flex items-center gap-1">
-                            <ShieldCheck className="w-3.5 h-3.5" /> By Admin CDC
-                          </span>
-                        ) : (
-                          <span className="whitespace-nowrap font-medium text-slate-400">by {item.namaInstansi}</span>
-                        )}
+                        <span className="whitespace-nowrap font-medium text-slate-400">by {item.namaInstansi}</span>
                         <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
                           <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                           {formatDateDisplay(item.createdAt || item.deadline)}
@@ -630,7 +681,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
             <p className="text-slate-400 text-sm mt-1">Coba kata kunci lain atau pilih filter kategori/lokasi yang berbeda.</p>
             <button
               onClick={clearAllFilters}
-              className="mt-3 bg-[#1B365D] hover:bg-blue-900 text-white text-xs font-bold px-4 py-2 rounded-lg transition shadow-xs"
+              className="mt-3 bg-[#0B1E48] hover:bg-slate-900 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-xs"
             >
               Reset Filter
             </button>
@@ -643,7 +694,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition"
+              className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition shadow-2xs"
             >
               &lt;
             </button>
@@ -656,8 +707,8 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
                   onClick={() => handlePageChange(pageNum)}
                   className={`px-3.5 py-1.5 rounded-lg font-bold text-xs transition ${
                     isActive
-                      ? 'bg-[#1B365D] text-white shadow-xs'
-                      : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                      ? 'bg-[#0055D4] text-white shadow-xs'
+                      : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-2xs'
                   }`}
                 >
                   {pageNum}
@@ -668,7 +719,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition"
+              className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition shadow-2xs"
             >
               &gt;
             </button>
@@ -678,11 +729,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
       </div>
 
       {/* FOOTER */}
-      <Footer 
-        onSelectLowongan={onSelectLowongan} 
-        setTab={setTab} 
-      />
-
+      <Footer onSelectLowongan={onSelectLowongan} setTab={setTab} />
     </div>
   );
 };
