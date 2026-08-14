@@ -874,6 +874,43 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 
 ---
 
+## Tanggal: 14 Agustus 2026 (Sesi 4)
+**Developer:** ARYA APRIAWAN  
+**Fokus Pekerjaan:** Revisi Tampilan EventCardLayout Sub-menu Layanan (Workshop, Softskill, Seminar)
+
+---
+
+### 🚀 Ringkasan Perubahan
+
+#### 1. Revisi Informasi pada Kartu Kegiatan Sub-menu Layanan (`EventCardLayout.tsx`)
+- Menghapus informasi **Lokasi**, **Nama Pemateri**, dan **Kuota Terisi** dari tampilan kartu kegiatan (`EventCardLayout.tsx`).
+- Mempertahankan informasi **Tanggal & Waktu Pelaksanaan** pada kartu kegiatan.
+- Mengubah label badge uploader dari nama `organizer` menjadi **"By Admin Website"** (menandakan diupload oleh admin).
+
+#### 2. Revisi Modal Detail Kegiatan (`EventCardLayout.tsx`)
+- Menghapus informasi lokasi dan pemateri dari modal detail kegiatan, hanya menyisakan **Tanggal & Waktu Pelaksanaan**.
+- Mengubah label badge uploader di modal menjadi **"By Admin Website"**.
+
+#### 3. Pembersihan Controls & Verification
+- Memperbarui placeholder input pencarian menjadi `"Cari judul kegiatan..."`.
+- Menguji dan meyakinkan build (`npm run lint` & `npm run build` passed 100%).
+
+### 📁 File Diubah
+- **[MODIFY]** `src/components/layanan/ui/EventCardLayout.tsx`
+- **[MODIFY]** `progres.md`
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Penghapusan Lokasi, Pemateri, dan Kuota Terisi dari EventCardLayout
+- [x] Penetapan Keterangan Tanggal & Waktu Pelaksanaan saja
+- [x] Pengubahan badge uploader menjadi "By Admin Website"
+- [x] Verifikasi build & lint passed 100%
+
+### 💡 Rekomendasi Judul Commit Git
+- `refactor(layanan): update EventCardLayout info date-only and admin uploader badge`
+
+
+---
+
 ## Tanggal: 12 Agustus 2026 (Sesi 2)
 **Developer:** ARYA APRIAWAN  
 **Fokus Pekerjaan:** Redesign Card Layout, Fitur Pencarian & Filter Tanggal pada 3 Sub-menu Layanan (Workshop, Softskill, Seminar)

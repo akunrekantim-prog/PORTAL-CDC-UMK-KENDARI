@@ -122,7 +122,7 @@ export default function EventCardLayout({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari judul kegiatan, lokasi, atau pemateri..."
+              placeholder="Cari judul kegiatan..."
               className="w-full pl-10 pr-4 py-2.5 bg-slate-50 hover:bg-slate-100/80 focus:bg-white text-slate-800 text-sm rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
             />
             {searchQuery && (
@@ -212,7 +212,7 @@ export default function EventCardLayout({
                 </div>
                 <div className="absolute bottom-3 left-3 right-3">
                   <span className="inline-block px-2.5 py-1 rounded bg-slate-900/70 backdrop-blur-md text-white text-[11px] font-medium">
-                    {item.organizer}
+                    By Admin Website
                   </span>
                 </div>
               </div>
@@ -229,35 +229,12 @@ export default function EventCardLayout({
                 </div>
 
                 {/* Metadata List */}
-                <div className="space-y-2 pt-3 border-t border-slate-100 text-xs text-slate-600">
+                <div className="pt-3 border-t border-slate-100 text-xs text-slate-600">
                   <div className="flex items-center gap-2 text-slate-700">
                     <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                     <span>{formatDateIndo(item.date)}</span>
                     {item.time && <span className="text-slate-400">• {item.time}</span>}
                   </div>
-
-                  <div className="flex items-center gap-2 text-slate-600">
-                    <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    <span className="truncate">{item.location}</span>
-                  </div>
-
-                  {item.speaker && (
-                    <div className="flex items-center gap-2 text-slate-600">
-                      <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span className="truncate">{item.speaker}</span>
-                    </div>
-                  )}
-
-                  {item.quota && item.registeredCount !== undefined && (
-                    <div className="pt-1 flex items-center justify-between text-[11px] text-slate-500">
-                      <span className="flex items-center gap-1">
-                        <Users className="w-3 h-3 text-slate-400" /> Kuota Terisi
-                      </span>
-                      <span className="font-medium text-slate-700">
-                        {item.registeredCount} / {item.quota} peserta
-                      </span>
-                    </div>
-                  )}
                 </div>
 
                 {/* Card Action Footer */}
@@ -310,12 +287,12 @@ export default function EventCardLayout({
               >
                 <X className="w-5 h-5" />
               </button>
-              <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
-                {getStatusBadge(selectedEvent.status)}
-                <span className="bg-white/90 text-slate-800 text-xs px-2.5 py-1 rounded-md font-medium">
-                  {selectedEvent.organizer}
-                </span>
-              </div>
+                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+                  {getStatusBadge(selectedEvent.status)}
+                  <span className="bg-white/90 text-slate-800 text-xs px-2.5 py-1 rounded-md font-medium">
+                    By Admin Website
+                  </span>
+                </div>
             </div>
 
             {/* Modal Body Content */}
@@ -333,28 +310,10 @@ export default function EventCardLayout({
                 <div className="flex items-center gap-3">
                   <Calendar className="w-4 h-4 text-blue-600 shrink-0" />
                   <div>
-                    <strong className="block text-slate-900">Tanggal & Waktu Execution</strong>
+                    <strong className="block text-slate-900">Tanggal & Waktu Pelaksanaan</strong>
                     <span>{formatDateIndo(selectedEvent.date)} {selectedEvent.time ? `• ${selectedEvent.time}` : ''}</span>
                   </div>
                 </div>
-
-                <div className="flex items-center gap-3 pt-2 border-t border-slate-200/50">
-                  <MapPin className="w-4 h-4 text-rose-500 shrink-0" />
-                  <div>
-                    <strong className="block text-slate-900">Lokasi Pelaksanaan</strong>
-                    <span>{selectedEvent.location}</span>
-                  </div>
-                </div>
-
-                {selectedEvent.speaker && (
-                  <div className="flex items-center gap-3 pt-2 border-t border-slate-200/50">
-                    <User className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <div>
-                      <strong className="block text-slate-900">Pemateri / Pembicara</strong>
-                      <span>{selectedEvent.speaker}</span>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
 
