@@ -233,7 +233,6 @@ export default function EventCardLayout({
                   <div className="flex items-center gap-2 text-slate-700">
                     <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                     <span>{formatDateIndo(item.date)}</span>
-                    {item.time && <span className="text-slate-400">• {item.time}</span>}
                   </div>
                 </div>
 
