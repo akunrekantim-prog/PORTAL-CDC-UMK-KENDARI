@@ -12,7 +12,7 @@ import {
   ExternalLink, Calendar, ShieldCheck,
 } from 'lucide-react';
 
-import { Lowongan, Berita, Pengumuman, Prestasi } from '../types';
+import { Lowongan, Berita, Pengumuman, Prestasi, KontenKarir } from '../types';
 import { sortJobsByNewest, formatDateDisplay, isJobDeadlinePassed, getFromDB } from '../data';
 import { motion } from 'motion/react';
 import Header from './Header';
@@ -36,8 +36,10 @@ interface PublicLayoutProps {
   lowongan: Lowongan[];
   berita: Berita[];
   pengumuman: Pengumuman[];
+  program?: KontenKarir[];
   onSelectLowongan: (id: string) => void;
   onSelectBerita: (slug: string) => void;
+  onSelectProgram?: (id: string) => void;
   onNavigateToLogin: () => void;
   onNavigateToRegister?: (type?: 'alumni' | 'perusahaan') => void;
 }

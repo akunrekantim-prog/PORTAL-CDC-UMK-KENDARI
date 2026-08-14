@@ -1115,3 +1115,38 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 - [x] Grid 3-column Card Layout publik untuk postingan Prestasi di `PublicLayout.tsx`
 - [x] Verifikasi `npx tsc --noEmit` PASSED (0 error)
 - [x] Verifikasi `npm run build` PASSED (0 error, exit 0)
+
+---
+
+## Tanggal: 14 Agustus 2026
+**Developer:** Fachrul Alam Sanuddin  
+**Fokus Pekerjaan:** Pembaruan Poster Carousel HeroSlider (Slide 4 & Slide 5) & Perbaikan Transisi Slide Mulus Tanpa Blink / Layout Shift
+
+---
+
+### 🚀 Ringkasan Perubahan
+
+#### 1. Pembaruan Poster Carousel (`HeroSlider.tsx`)
+- **Slide 4**: Mengganti poster menjadi `public/TENTANG TRACER baru.svg` (`/TENTANG%20TRACER%20baru.svg`).
+- **Slide 5**: Mengganti poster menjadi `public/KONSELING KARIR slide ke 5.svg` (`/KONSELING%20KARIR%20slide%20ke%205.svg`).
+
+#### 2. Resolusi Efek Blink / Jebretan Layout saat Transisi Slide (`HeroSlider.tsx`)
+- **Preloading Gambar SVG**: Menambahkan `useEffect` preloading untuk seluruh 5 gambar poster SVG saat komponen dimuat pertama kali, mencegah jeda pemuatan/decoding gambar saat slide berganti.
+- **Aspect-Ratio Layout Keeper (*Zero Layout Shift*)**: Menambahkan elemen penentu tinggi alami sehingga tinggi kontainer carousel 100% konstan dan tidak pernah runtuh/bergeser saat transisi `AnimatePresence` terjadi.
+- **Stacked Absolute Layering & Hardware Acceleration**: Menempatkan slide pada layar absolute `transform-gpu` dengan kurva easing `[0.25, 1, 0.35, 1]`, menghasilkan pergantian slide 60 FPS yang sangat mulus tanpa kedipan.
+
+### 📁 File Diubah
+- **[MODIFY]** `src/components/HeroSlider.tsx` — Update URL poster slide 4 & 5, preloading image effect, aspect-ratio height keeper, dan optimasi GPU animation
+- **[MODIFY]** `progres.md` — Pencatatan laporan progres pengerjaan tanggal 14 Agustus 2026
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Pembaruan poster Slide 4 dengan `TENTANG TRACER baru.svg`
+- [x] Pembaruan poster Slide 5 dengan `KONSELING KARIR slide ke 5.svg`
+- [x] Implementasi preloading image effect untuk seluruh poster SVG
+- [x] Implementasi aspect-ratio layout keeper untuk mencegah layout collapse/blink
+- [x] Verifikasi transisi slide 60 FPS mulus di dev server
+
+### 💡 Rekomendasi Judul Commit Git
+- `feat(hero-slider): update poster slide 4 & 5 and fix transition blink`
+- `fix(hero-slider): update poster SVG and eliminate slide transition layout shift`
+

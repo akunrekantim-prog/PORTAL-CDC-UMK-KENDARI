@@ -1382,11 +1382,17 @@ export function applyForJob(userId: string, job: Lowongan, extraData?: any) {
 ───────────────────────────────────────────────────────────────── */
 export function getSavedJobIds(): string[] {
   try {
-    const saved = localStorage.getItem('cdc_saved_job_ids');
-    return saved ? JSON.parse(saved) : [];
+    const raw = localStorage.getItem('cdc_saved_job_ids');
+    return raw ? JSON.parse(raw) : [];
   } catch {
     return [];
   }
+}
+
+export function getValidSavedJobs(): Lowongan[] {
+  const savedIds = getSavedJobIds();
+  const allJobs = getFromDB<Lowongan>('lowongan');
+  return allJobs.filter(job => savedIds.includes(job.id));
 }
 
 export function toggleSaveJob(jobId: string): boolean {
