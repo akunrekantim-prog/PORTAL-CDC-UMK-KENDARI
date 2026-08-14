@@ -21,6 +21,10 @@ export default function EventCardLayout({
   const [endDate, setEndDate] = useState<string>('');
   const [selectedEvent, setSelectedEvent] = useState<EventLayananItem | null>(null);
 
+  const handleSelectEvent = (item: EventLayananItem) => {
+    setSelectedEvent(item);
+  };
+
   // Filter logic
   const filteredEvents = useMemo(() => {
     return events.filter(item => {
@@ -253,7 +257,7 @@ export default function EventCardLayout({
                 {/* Card Action Footer */}
                 <div className="pt-2">
                   <button
-                    onClick={() => setSelectedEvent(item)}
+                    onClick={() => handleSelectEvent(item)}
                     className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 text-xs font-semibold transition-colors cursor-pointer"
                   >
                     Detail Kegiatan <ChevronRight className="w-3.5 h-3.5" />
