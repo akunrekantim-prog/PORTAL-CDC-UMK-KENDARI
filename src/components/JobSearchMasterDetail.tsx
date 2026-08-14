@@ -662,7 +662,11 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
 
                       {/* Meta Footer: source + Upload Date */}
                       <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
-                        <span className="whitespace-nowrap font-medium text-slate-400">by {item.namaInstansi}</span>
+                        {item.sumber === 'admin' ? (
+                          <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
+                        ) : (
+                          <span className="whitespace-nowrap font-medium text-slate-400">by Mitra</span>
+                        )}
                         <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
                           <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                           {formatDateDisplay(item.createdAt || item.deadline)}

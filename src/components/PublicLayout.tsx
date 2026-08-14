@@ -308,11 +308,9 @@ export default function PublicLayout({
                               {/* Meta Footer: source + Upload Date */}
                               <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
                                 {item.sumber === 'admin' ? (
-                                  <span className="whitespace-nowrap font-bold text-emerald-600 flex items-center gap-1">
-                                    <ShieldCheck className="w-3.5 h-3.5" /> By Admin CDC
-                                  </span>
+                                  <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
                                 ) : (
-                                  <span className="whitespace-nowrap font-medium text-slate-400">by {item.namaInstansi}</span>
+                                  <span className="whitespace-nowrap font-medium text-slate-400">by Mitra</span>
                                 )}
                                 <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
                                   <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -877,11 +875,9 @@ export default function PublicLayout({
                           {/* Meta Footer: source + Upload Date */}
                           <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
                             {item.sumber === 'admin' ? (
-                              <span className="whitespace-nowrap font-bold text-emerald-600 flex items-center gap-1">
-                                <ShieldCheck className="w-3.5 h-3.5" /> By Admin CDC
-                              </span>
+                              <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
                             ) : (
-                              <span className="whitespace-nowrap font-medium text-slate-400">by {item.namaInstansi}</span>
+                              <span className="whitespace-nowrap font-medium text-slate-400">by Mitra</span>
                             )}
                             <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
                               <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />

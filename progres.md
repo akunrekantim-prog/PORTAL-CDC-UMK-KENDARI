@@ -1310,6 +1310,41 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 ### 💡 Rekomendasi Judul Commit Git
 - `feat(mitra & user): redesign Job Search & Kelola Lowongan views, align 9 jobs seed, and purify Mitra sidebar`
 
+---
+
+## Tanggal: 14 Agustus 2026 (Sesi 5)
+**Developer:** Fachrul Alam Sanuddin  
+**Fokus Pekerjaan:** Pembaruan Label Footer Card Layout Pengunggah ("by Admin Website" & "by Mitra")
+
+---
+
+### 🚀 Ringkasan Perubahan
+
+#### 1. Pembaruan Label Footer Card Layout Beranda (`PublicLayout.tsx`)
+- Memperbarui label footer pada kartu **INFO KARIR CDC TERKINI** dan **PROGRAM & PENGUMUMAN** di Beranda:
+  - Jika konten diinput oleh **Admin Website**: Menampilkan label **"by Admin Website"**.
+  - Jika konten diinput oleh **Mitra**: Menampilkan label **"by Mitra"**.
+
+#### 2. Penyelarasan Label Footer pada Katalog Lowongan & Magang (`JobSearchMasterDetail.tsx` & `Magang.tsx`)
+- Menyelaraskan footer kartu pada katalog **Cari Lowongan Pekerjaan** dan **Program Magang / Internship** agar konsisten menggunakan **"by Admin Website"** untuk postingan admin dan **"by Mitra"** untuk postingan mitra.
+
+### 📁 File Diubah
+- **[MODIFY]** `src/components/PublicLayout.tsx` — Update footer kartu Info Karir Terkini & Program/Pengumuman (by Admin Website / by Mitra)
+- **[MODIFY]** `src/components/JobSearchMasterDetail.tsx` — Update footer kartu katalog pencarian lowongan
+- **[MODIFY]** `src/components/layanan/Magang.tsx` — Update footer kartu daftar magang/internship
+- **[MODIFY]** `progres.md` — Pencatatan laporan progres pengerjaan tanggal 14 Agustus 2026 (Sesi 5)
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Pembaruan footer kartu Beranda Info Karir Terkini (by Admin Website / by Mitra)
+- [x] Pembaruan footer kartu Beranda Program & Pengumuman (by Admin Website)
+- [x] Penyelarasan footer kartu katalog Cari Lowongan (by Admin Website / by Mitra)
+- [x] Penyelarasan footer kartu daftar Magang (by Admin Website / by Mitra)
+- [x] Verifikasi `npx tsc --noEmit` PASSED (0 Error)
+
+### 💡 Rekomendasi Judul Commit Git
+- `refactor(cards): update card uploader attribution to by Admin Website and by Mitra`
+
+
 
 
 
