@@ -17,6 +17,8 @@ import {
   saveToDB,
   sortJobsByNewest
 } from './data';
+import EventDetailView from './components/layanan/EventDetailView';
+// ...
 import PublicLayout from './components/PublicLayout';
 import Register from './components/Register';
 import { JobDetail } from './components/JobDetail';
