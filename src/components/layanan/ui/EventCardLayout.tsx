@@ -228,11 +228,25 @@ export default function EventCardLayout({
                   </p>
                 </div>
 
-                {/* Metadata List */}
+              {/* Metadata List */}
                 <div className="pt-3 border-t border-slate-100 text-xs text-slate-600">
-                  <div className="flex items-center gap-2 text-slate-700">
-                    <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                    <span>{formatDateIndo(item.date)}</span>
+                  <div className="flex flex-col gap-1.5 text-slate-700">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                      <span>{formatDateIndo(item.date)}</span>
+                    </div>
+                    {item.location && (
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span>{item.location}</span>
+                      </div>
+                    )}
+                    {item.speaker && (
+                      <div className="flex items-center gap-2">
+                        <User className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                        <span>{item.speaker}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -302,7 +316,22 @@ export default function EventCardLayout({
                 </p>
               </div>
 
-              <div className="flex items-center justify-between">
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="bg-white border border-slate-100 p-3 rounded-xl shadow-sm">
+                  <p className="text-slate-400 font-medium">Tanggal</p>
+                  <p className="text-slate-800 font-semibold">{formatDateIndo(selectedEvent.date)}</p>
+                </div>
+                <div className="bg-white border border-slate-100 p-3 rounded-xl shadow-sm">
+                  <p className="text-slate-400 font-medium">Lokasi</p>
+                  <p className="text-slate-800 font-semibold">{selectedEvent.location}</p>
+                </div>
+                <div className="bg-white border border-slate-100 p-3 rounded-xl shadow-sm col-span-2">
+                  <p className="text-slate-400 font-medium">Narasumber</p>
+                  <p className="text-slate-800 font-semibold">{selectedEvent.speaker || '-'}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between mt-2">
                 {getStatusBadge(selectedEvent.status)}
                 <span className="text-slate-500 text-[10px] font-medium">
                   By Admin Website
