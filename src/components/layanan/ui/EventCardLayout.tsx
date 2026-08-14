@@ -290,11 +290,14 @@ export default function EventCardLayout({
 
             {/* Modal Body Content */}
             <div className="p-6 overflow-y-auto flex-1 space-y-4">
-              <div>
-                <h3 className="text-xl font-bold text-slate-900 leading-snug">
+              <div className="text-center space-y-2">
+                <h3 className="text-xl font-extrabold text-slate-900 leading-snug">
                   {selectedEvent.title}
                 </h3>
-                <p className="text-slate-600 text-sm mt-3 leading-relaxed">
+              </div>
+
+              <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                <p className="text-slate-600 text-sm leading-relaxed">
                   {selectedEvent.description}
                 </p>
               </div>
