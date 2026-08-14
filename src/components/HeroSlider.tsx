@@ -34,13 +34,13 @@ export default function HeroSlider({ setTab }: HeroSliderProps) {
     },
     {
       id: 'slide-4',
-      imageUrl: '/TENTANG%20TRACER.svg',
+      imageUrl: '/TENTANG%20TRACER%20baru.svg',
       alt: 'Tentang Tracer - Slide 4',
     },
     {
       id: 'slide-5',
-      imageUrl: '/poster-cdc-web-umk-2.svg',
-      alt: 'Poster CDC WEB UMK - Slide 5',
+      imageUrl: '/KONSELING%20KARIR%20slide%20ke%205.svg',
+      alt: 'Konseling Karir - Slide 5',
     },
   ];
 
@@ -61,6 +61,14 @@ export default function HeroSlider({ setTab }: HeroSliderProps) {
     setCurrentSlide(index);
   };
 
+  // Preload all slide images on mount to avoid decoding flash/blink during slide change
+  useEffect(() => {
+    slides.forEach((slide) => {
+      const img = new Image();
+      img.src = slide.imageUrl;
+    });
+  }, []);
+
   // Auto-play timer
   useEffect(() => {
     if (isPaused) return;
@@ -72,31 +80,26 @@ export default function HeroSlider({ setTab }: HeroSliderProps) {
     return () => clearInterval(timer);
   }, [currentSlide, isPaused]);
 
-  // Ultra-smooth slide variants with cubic-bezier easing and crossfade
+  // Ultra-smooth GPU-accelerated slide variants
   const slideVariants = {
     enter: (dir: number) => ({
       x: dir > 0 ? '100%' : '-100%',
       opacity: 0,
-      scale: 1.02,
     }),
     center: {
       x: 0,
       opacity: 1,
-      scale: 1,
       transition: {
-        x: { ease: [0.32, 0.72, 0, 1], duration: 0.7 },
-        opacity: { duration: 0.5, ease: 'easeInOut' },
-        scale: { duration: 0.7, ease: [0.32, 0.72, 0, 1] },
+        x: { ease: [0.25, 1, 0.35, 1], duration: 0.6 },
+        opacity: { duration: 0.4, ease: 'easeInOut' },
       },
     },
     exit: (dir: number) => ({
       x: dir < 0 ? '100%' : '-100%',
       opacity: 0,
-      scale: 0.98,
       transition: {
-        x: { ease: [0.32, 0.72, 0, 1], duration: 0.7 },
-        opacity: { duration: 0.5, ease: 'easeInOut' },
-        scale: { duration: 0.7, ease: [0.32, 0.72, 0, 1] },
+        x: { ease: [0.25, 1, 0.35, 1], duration: 0.6 },
+        opacity: { duration: 0.4, ease: 'easeInOut' },
       },
     }),
   };
@@ -110,26 +113,37 @@ export default function HeroSlider({ setTab }: HeroSliderProps) {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* 100% EDGE-TO-EDGE CAROUSEL CONTAINER */}
+      {/* 100% EDGE-TO-EDGE CAROUSEL CONTAINER WITH PERMANENT ASPECT RATIO */}
       <div className="carousel-inner w-full relative overflow-hidden">
-        <AnimatePresence initial={false} custom={direction} mode="popLayout">
-          <motion.div
-            key={current.id}
-            custom={direction}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            className="carousel-item active w-full block cursor-pointer"
-            onClick={() => setTab('lowongan')}
-          >
-            <img
-              src={current.imageUrl}
-              className="d-block w-100 w-full h-auto block object-cover m-0 p-0"
-              alt={current.alt}
-            />
-          </motion.div>
-        </AnimatePresence>
+        {/* Invisible Height Keeper to guarantee ZERO layout shift / container collapse */}
+        <img
+          src={slides[0].imageUrl}
+          className="w-full h-auto block opacity-0 pointer-events-none select-none aria-hidden"
+          alt=""
+          aria-hidden="true"
+        />
+
+        {/* ABSOLUTE SLIDE STACKING LAYER FOR ZERO-BLINK TRANSITIONS */}
+        <div className="absolute inset-0 w-full h-full overflow-hidden">
+          <AnimatePresence initial={false} custom={direction} mode="popLayout">
+            <motion.div
+              key={current.id}
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              className="carousel-item active absolute inset-0 w-full h-full cursor-pointer transform-gpu"
+              onClick={() => setTab('lowongan')}
+            >
+              <img
+                src={current.imageUrl}
+                className="w-full h-full object-cover block m-0 p-0"
+                alt={current.alt}
+              />
+            </motion.div>
+          </AnimatePresence>
+        </div>
 
         {/* FLOATING PREVIOUS CONTROL */}
         <button

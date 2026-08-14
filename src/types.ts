@@ -304,3 +304,21 @@ export interface SurveiLulusan {
   saran?: string;
   submittedAt: string;
 }
+
+export interface Prestasi {
+  id: string;
+  judul: string;
+  tingkat: 'internasional' | 'nasional' | 'wilayah';
+  kategori: 'akademik' | 'non-akademik';
+  peringkat: string; // misal: "Juara 1 / Gold Medal", "Juara 2 / Silver Medal", "Juara 3", "Best Presenter"
+  tahun: string;
+  namaMahasiswa: string;
+  prodi?: string;
+  deskripsi: string;
+  imageUrl?: string;
+  terverifikasi: boolean;
+  status: 'published' | 'draft';
+  createdAt: string;
+  createdBy?: string;
+}
+

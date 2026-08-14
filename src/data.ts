@@ -16,7 +16,8 @@ import {
   Pengumuman,
   SurveiLulusan,
   KontenKarir,
-  EventLayananItem
+  EventLayananItem,
+  Prestasi
 } from './types';
 
 // Mock Password: all seeded accounts use "password"
@@ -768,34 +769,6 @@ export const SEED_KONTEN_KARIR: KontenKarir[] = [
     updatedAt: '2026-06-10T10:00:00Z',
     createdBy: 'usr_admin',
     createdByName: 'Admin CDC'
-  },
-  {
-    id: 'kk_seed_program1',
-    jenis: 'program',
-    judul: 'Program Magang Bersertifikat Industri 2026 — Batch Ganjil',
-    body: '# Program Magang Bersertifikat Industri 2026\n\nCDC UM Kendari membuka kembali program magang bersertifikat yang menghubungkan mahasiswa dengan mitra industri ternama di Kawasan Timur Indonesia.\n\n## Keunggulan Program\n1. Sertifikat resmi dari instansi mitra\n2. Pendampingan dosen pembimbing & pembimbing industri\n3. Peluang penyerapan kerja pasca-magang\n\n> Program ini terbuka untuk mahasiswa semester 6 ke atas dari seluruh fakultas. Persiapkan CV dan Surat Pengantar Akademik sebelum mendaftar.\n\nInformasi lengkap dan alur pendaftaran dapat dilihat pada menu **Layanan → Internship** atau hubungi langsung admin CDC.',
-    kategori: 'MAGANG',
-    thumbnail: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=1200&auto=format&fit=crop',
-    linkCta: '',
-    status: 'published',
-    createdAt: '2026-07-01T08:00:00Z',
-    updatedAt: '2026-07-01T08:00:00Z',
-    createdBy: 'usr_admin',
-    createdByName: 'Admin CDC'
-  },
-  {
-    id: 'kk_seed_program2',
-    jenis: 'program',
-    judul: 'Lowongan Kerja Masuk PT Go Digital Kendari — Daftar Sekarang',
-    body: '',
-    kategori: 'KERJA',
-    thumbnail: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?q=80&w=1200&auto=format&fit=crop',
-    linkCta: 'https://tracerstudy.umkendari.ac.id',
-    status: 'published',
-    createdAt: '2026-07-05T09:30:00Z',
-    updatedAt: '2026-07-05T09:30:00Z',
-    createdBy: 'usr_admin',
-    createdByName: 'Admin CDC'
   }
 ];
 
@@ -1004,6 +977,105 @@ export const SEED_SURVEI_LULUSAN: SurveiLulusan[] = [
   }
 ];
 
+export const SEED_PRESTASI: Prestasi[] = [
+  {
+    id: 'prest_001',
+    judul: 'International Student Innovation & Technology Summit (ISITS) 2026',
+    tingkat: 'internasional',
+    kategori: 'akademik',
+    peringkat: 'Juara 1 / Gold Medal',
+    tahun: '2026',
+    namaMahasiswa: 'Tim Inovator Informatika UMK (Fachrul & Tim)',
+    prodi: 'Teknik Informatika',
+    deskripsi: 'Tim Delegasi Mahasiswa Universitas Muhammadiyah Kendari berhasil meraih Gold Medal atas karya inovasi IoT & AI Monitoring System untuk Pertanian Cerdas.',
+    imageUrl: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=800&auto=format&fit=crop',
+    terverifikasi: true,
+    status: 'published',
+    createdAt: '2026-06-15T09:00:00Z',
+    createdBy: 'usr_admin'
+  },
+  {
+    id: 'prest_002',
+    judul: 'ASEAN University Cultural & Martial Arts Championship 2026',
+    tingkat: 'internasional',
+    kategori: 'non-akademik',
+    peringkat: 'Juara 1 / Emas',
+    tahun: '2026',
+    namaMahasiswa: 'Andi Nurhaliza',
+    prodi: 'Pendidikan Olahraga',
+    deskripsi: 'Meraih Medali Emas kategori Seni Beladiri Pencak Silat Perguruan Tapak Suci Mahasiswa pada Kejuaraan Antar Perguruan Tinggi se-ASEAN.',
+    imageUrl: 'https://images.unsplash.com/photo-1517649763962-0c623266010b?q=80&w=800&auto=format&fit=crop',
+    terverifikasi: true,
+    status: 'published',
+    createdAt: '2026-05-20T10:30:00Z',
+    createdBy: 'usr_admin'
+  },
+  {
+    id: 'prest_003',
+    judul: 'Olimpiade Nasional MIPA & Karya Tulis Ilmiah Mahasiswa 2026',
+    tingkat: 'nasional',
+    kategori: 'akademik',
+    peringkat: 'Juara 1 / Medali Emas',
+    tahun: '2026',
+    namaMahasiswa: 'Rahmat Pratama & Tim',
+    prodi: 'Teknik Sipil',
+    deskripsi: 'Inovasi Beton Ramah Lingkungan Berbahan Dasar Limbah Lokal berhasil mengantarkan tim UMK meraih gelar Juara Utama Tingkat Nasional.',
+    imageUrl: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=800&auto=format&fit=crop',
+    terverifikasi: true,
+    status: 'published',
+    createdAt: '2026-04-12T14:00:00Z',
+    createdBy: 'usr_admin'
+  },
+  {
+    id: 'prest_004',
+    judul: 'Pekan Olahraga Mahasiswa Nasional (POMNAS) XVII 2025',
+    tingkat: 'nasional',
+    kategori: 'non-akademik',
+    peringkat: 'Juara 2 / Perak',
+    tahun: '2025',
+    namaMahasiswa: 'Tim Bulutangkis Ganda UMK',
+    prodi: 'Manajemen',
+    deskripsi: 'Meraih medali perak kategori Ganda Putra cabang olahraga Bulutangkis setelah pertarungan sengit di laga final POMNAS.',
+    imageUrl: 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?q=80&w=800&auto=format&fit=crop',
+    terverifikasi: true,
+    status: 'published',
+    createdAt: '2025-11-05T11:15:00Z',
+    createdBy: 'usr_admin'
+  },
+  {
+    id: 'prest_005',
+    judul: 'Kompetisi Debat Bahasa Inggris Mahasiswa Tingkat Wilayah Sulawesi 2026',
+    tingkat: 'wilayah',
+    kategori: 'akademik',
+    peringkat: 'Juara 1 / Best Speaker',
+    tahun: '2026',
+    namaMahasiswa: 'Siti Rahmawati',
+    prodi: 'Pendidikan Bahasa Inggris',
+    deskripsi: 'Siti Rahmawati menyabet gelar Best Speaker dan membawa Kontingen Debat UMK menjuarai ajang NDEIC Regional Sulawesi.',
+    imageUrl: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=800&auto=format&fit=crop',
+    terverifikasi: true,
+    status: 'published',
+    createdAt: '2026-03-18T16:20:00Z',
+    createdBy: 'usr_admin'
+  },
+  {
+    id: 'prest_006',
+    judul: 'Festival Seni, Fotografi & Kewirausahaan Kreatif Mahasiswa Sultra 2026',
+    tingkat: 'wilayah',
+    kategori: 'non-akademik',
+    peringkat: 'Juara 1 / Best Creative Product',
+    tahun: '2026',
+    namaMahasiswa: 'Komunitas Seni & Kreatif UMK',
+    prodi: 'Desain Komunikasi Visual',
+    deskripsi: 'Menampilkan karya kerajinan dan fotografi budaya lokal Sultra yang dinobatkan sebagai Produk Kreatif Terbaik Regional.',
+    imageUrl: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=800&auto=format&fit=crop',
+    terverifikasi: true,
+    status: 'published',
+    createdAt: '2026-02-10T13:45:00Z',
+    createdBy: 'usr_admin'
+  }
+];
+
 // Helper to safely access database keys
 export type DBKey =
   | 'users'
@@ -1017,7 +1089,8 @@ export type DBKey =
   | 'berita'
   | 'pengumuman'
   | 'survei_lulusan'
-  | 'konten_karir';
+  | 'konten_karir'
+  | 'prestasi';
 
 const DEFAULT_SEEDS = {
   users: SEED_USERS,
@@ -1031,14 +1104,15 @@ const DEFAULT_SEEDS = {
   berita: SEED_BERITA,
   pengumuman: SEED_PENGUMUMAN,
   survei_lulusan: SEED_SURVEI_LULUSAN,
-  konten_karir: SEED_KONTEN_KARIR
+  konten_karir: SEED_KONTEN_KARIR,
+  prestasi: SEED_PRESTASI
 };
 
 let _dbInitialized = false;
 
 // Initializer to make sure local storage has everything
 export function initializeDB() {
-  const CURRENT_SEED_VERSION = 'v6_program_relocate';
+  const CURRENT_SEED_VERSION = 'v5_prestasi';
   if (localStorage.getItem('cdc_seed_version') !== CURRENT_SEED_VERSION) {
     Object.entries(DEFAULT_SEEDS).forEach(([key, val]) => {
       const storageKey = `cdc_umk_${key}`;
@@ -1195,42 +1269,28 @@ export function updateUserProfile(userId: string, profileData: Partial<Mahasiswa
   const students = getFromDB<Mahasiswa>('mahasiswa');
   let student = students.find(s => s.userId === userId);
 
-  let updatedStudent: Mahasiswa;
   if (student) {
-    updatedStudent = { ...student, ...profileData };
+    const updatedStudent = { ...student, ...profileData };
     updateInDB<Mahasiswa>('mahasiswa', updatedStudent);
-  } else {
-    // If no existing record, create one
-    updatedStudent = {
-      id: `mhs_${Date.now()}`,
-      userId: userId,
-      nim: profileData.nim || '',
-      nama: profileData.nama || '',
-      email: profileData.email || '',
-      phone: profileData.phone || '',
-      programStudi: profileData.programStudi || '',
-      fakultas: profileData.fakultas || '',
-      angkatan: profileData.angkatan || '',
-      semester: profileData.semester || 1,
-      ...profileData
-    };
-    insertToDB<Mahasiswa>('mahasiswa', updatedStudent);
+    return updatedStudent;
   }
 
-  // Also update User record in 'users' database if photoUrl, name, email, or phone is updated
-  if (profileData.photoUrl || profileData.nama || profileData.email || profileData.phone) {
-    const users = getFromDB<User>('users');
-    const uIdx = users.findIndex(u => u.id === userId);
-    if (uIdx !== -1) {
-      if (profileData.photoUrl) users[uIdx].photoUrl = profileData.photoUrl;
-      if (profileData.nama) users[uIdx].name = profileData.nama;
-      if (profileData.email) users[uIdx].email = profileData.email;
-      if (profileData.phone) users[uIdx].phone = profileData.phone;
-      saveToDB('users', users);
-    }
-  }
-
-  return updatedStudent;
+  // If no existing record, create one
+  const newStudent: Mahasiswa = {
+    id: `mhs_${Date.now()}`,
+    userId: userId,
+    nim: profileData.nim || '',
+    nama: profileData.nama || '',
+    email: profileData.email || '',
+    phone: profileData.phone || '',
+    programStudi: profileData.programStudi || '',
+    fakultas: profileData.fakultas || '',
+    angkatan: profileData.angkatan || '',
+    semester: profileData.semester || 1,
+    ...profileData
+  };
+  insertToDB<Mahasiswa>('mahasiswa', newStudent);
+  return newStudent;
 }
 
 export function applyForJob(userId: string, job: Lowongan, extraData?: any) {
@@ -1264,8 +1324,8 @@ export function applyForJob(userId: string, job: Lowongan, extraData?: any) {
     tujuanMagang: job.judul,
     lokasiMagang: job.lokasi,
     catatan: extraData?.applicantNotes || '',
-    // Save uploaded CV file URL (Base64 data URL)
-    berkasUrl: extraData?.uploadedFileUrl || undefined,
+    // Do NOT store base64 file content in localStorage (causes QuotaExceededError)
+    berkasUrl: undefined,
     berkasNama: extraData?.uploadedFileName || 'CV_Mahasiswa_Pelamar.pdf',
     tanggalMulai: new Date().toISOString().split('T')[0],
     tanggalSelesai: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -1327,20 +1387,6 @@ export function getSavedJobIds(): string[] {
   } catch {
     return [];
   }
-}
-
-export function getValidSavedJobs(): Lowongan[] {
-  const savedIds = getSavedJobIds();
-  const allJobs = getFromDB<Lowongan>('lowongan');
-  const validJobs = allJobs.filter(j => savedIds.includes(j.id));
-  
-  // Clean up any stale/ghost IDs from localStorage if count doesn't match
-  if (validJobs.length !== savedIds.length) {
-    const validIds = validJobs.map(j => j.id);
-    localStorage.setItem('cdc_saved_job_ids', JSON.stringify(validIds));
-  }
-  
-  return validJobs;
 }
 
 export function toggleSaveJob(jobId: string): boolean {

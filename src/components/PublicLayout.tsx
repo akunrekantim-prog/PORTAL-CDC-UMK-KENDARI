@@ -12,8 +12,8 @@ import {
   ExternalLink, Calendar, ShieldCheck,
 } from 'lucide-react';
 
-import { Lowongan, Berita, Pengumuman, KontenKarir } from '../types';
-import { sortJobsByNewest, formatDateDisplay, isJobDeadlinePassed } from '../data';
+import { Lowongan, Berita, Pengumuman, Prestasi } from '../types';
+import { sortJobsByNewest, formatDateDisplay, isJobDeadlinePassed, getFromDB } from '../data';
 import { motion } from 'motion/react';
 import Header from './Header';
 import { Footer } from './Footer';
@@ -35,11 +35,9 @@ interface PublicLayoutProps {
   setTab: (tab: string) => void;
   lowongan: Lowongan[];
   berita: Berita[];
-  program: KontenKarir[];
   pengumuman: Pengumuman[];
   onSelectLowongan: (id: string) => void;
   onSelectBerita: (slug: string) => void;
-  onSelectProgram: (id: string) => void;
   onNavigateToLogin: () => void;
   onNavigateToRegister?: (type?: 'alumni' | 'perusahaan') => void;
 }
@@ -104,11 +102,9 @@ export default function PublicLayout({
   setTab,
   lowongan,
   berita,
-  program,
   pengumuman,
   onSelectLowongan,
   onSelectBerita,
-  onSelectProgram,
   onNavigateToLogin,
   onNavigateToRegister,
 }: PublicLayoutProps) {
@@ -116,7 +112,7 @@ export default function PublicLayout({
   const [filterType, setFilterType] = useState<'all' | 'magang' | 'kerja'>('all');
 
   /* Data helpers: Lowongan kerja terbaru (newest created) selalu di atas */
-  const publishedLowongan = sortJobsByNewest(lowongan.filter(l => l.status === 'published'));
+  const publishedLowongan = sortJobsByNewest(lowongan.filter(l => l.status === 'published' && l.tipe !== 'magang'));
   const publishedBerita = berita.filter(b => b.status === 'published');
   const publishedPengumuman = pengumuman.filter(p => p.status === 'published');
 
@@ -463,81 +459,6 @@ export default function PublicLayout({
                         </div>
                       </div>
                     ))}
-
-                    {/* Dynamic Program & Pengumuman (input admin, jenis 'program') */}
-                    {program.map((item) => {
-                      const isLink = !!item.linkCta && item.linkCta.trim() !== '';
-                      const hasBody = !!item.body && item.body.trim() !== '';
-                      const go = () => {
-                        // Kasus B & D: ada detail -> SELALU buka halaman detail
-                        // (D: di dalam detail ada tombol link yang bisa diklik pengunjung)
-                        if (hasBody) {
-                          onSelectProgram(item.id);
-                          return;
-                        }
-                        // Kasus C: tanpa detail tapi ada link -> redirect langsung
-                        if (isLink) {
-                          if (item.linkCta!.startsWith('#')) {
-                            setTab(item.linkCta!.slice(1));
-                          } else {
-                            window.open(item.linkCta, '_blank', 'noopener,noreferrer');
-                          }
-                          return;
-                        }
-                        // Kasus A: tanpa detail & tanpa link -> diam
-                      };
-                      return (
-                        <div
-                          key={item.id}
-                          onClick={go}
-                          className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group"
-                        >
-                          <div>
-                            <div className="w-full h-44 relative overflow-hidden bg-gradient-to-br from-[#1E3A8A] to-[#0077C6] flex items-center justify-center border-b border-slate-100">
-                              {item.thumbnail ? (
-                                <img src={item.thumbnail} alt={item.judul} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                              ) : (
-                                <Megaphone className="w-10 h-10 text-white/80" />
-                              )}
-                              <div className="absolute top-3 left-3 flex items-center gap-2">
-                                <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-white text-[#1E3A8A] uppercase tracking-wide">
-                                  {item.kategori || 'PROGRAM'}
-                                </span>
-                              </div>
-                              {isLink && (
-                                <div className="absolute top-3 right-3 bg-black/40 text-white rounded-md px-2 py-0.5 text-[10px] font-bold flex items-center gap-1">
-                                  <ExternalLink className="w-3 h-3" /> LINK
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="p-5 space-y-2">
-                              <div className="text-xs font-bold text-orange-600 tracking-wide uppercase truncate">
-                                CDC UM KENDARI
-                              </div>
-
-                              <h3 className="font-extrabold text-slate-900 text-lg leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2">
-                                {item.judul}
-                              </h3>
-
-                              <p className="text-slate-500 text-xs leading-relaxed line-clamp-2">
-                                {item.body && item.body.trim()
-                                  ? item.body.replace(/[#>*_`~\\-]/g, '').slice(0, 120).trim()
-                                  : (isLink ? 'Klik untuk membuka tautan terkait.' : 'Klik untuk membaca detail program & pengumuman.')}
-                              </p>
-
-                              <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
-                                <span className="whitespace-nowrap font-medium text-slate-400">by {item.createdByName || 'Admin CDC'}</span>
-                                <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
-                                  <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                                  {formatDateDisplay(item.createdAt)}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
 
                   </div>
                 </section>
@@ -1055,155 +976,158 @@ export default function PublicLayout({
         )}
 
         {/* ─── PRESTASI TAB PAGE ─────────────────────────────────── */}
-        {currentTab.startsWith('prestasi') && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10" id="tab-prestasi">
-            {/* Header Banner */}
-            <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 rounded-3xl p-8 sm:p-12 text-white shadow-xl relative overflow-hidden">
-              <div className="absolute right-0 top-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-              <div className="relative z-10 space-y-4 max-w-3xl">
-                <div className="inline-flex items-center gap-2 bg-amber-400/20 border border-amber-300/30 text-amber-300 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-                  <Award className="w-4 h-4 text-amber-400" />
-                  {currentTab.includes('internasional')
-                    ? 'Tingkat Internasional'
-                    : currentTab.includes('nasional')
-                    ? 'Tingkat Nasional'
-                    : 'Tingkat Wilayah'}
-                  {' • '}
-                  {currentTab.includes('non-akademik') ? 'Non-Akademik' : 'Akademik'}
+        {currentTab.startsWith('prestasi') && (() => {
+          const currentScope = currentTab.includes('internasional')
+            ? 'internasional'
+            : currentTab.includes('nasional')
+            ? 'nasional'
+            : 'wilayah';
+          const currentKategori = currentTab.includes('non-akademik') ? 'non-akademik' : 'akademik';
+
+          const allPrestasi = getFromDB<Prestasi>('prestasi');
+          const publishedPrestasi = allPrestasi.filter(
+            p => p.status !== 'draft' && p.tingkat === currentScope && p.kategori === currentKategori
+          );
+
+          const filteredItems = publishedPrestasi.filter(item => {
+            const q = searchQuery.toLowerCase();
+            const matchQ = !q || item.judul.toLowerCase().includes(q) || item.namaMahasiswa.toLowerCase().includes(q);
+            return matchQ;
+          });
+
+          return (
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10" id="tab-prestasi">
+              {/* Header Banner */}
+              <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 rounded-3xl p-8 sm:p-12 text-white shadow-xl relative overflow-hidden">
+                <div className="absolute right-0 top-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+                <div className="relative z-10 space-y-4 max-w-3xl">
+                  <div className="inline-flex items-center gap-2 bg-amber-400/20 border border-amber-300/30 text-amber-300 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                    <Award className="w-4 h-4 text-amber-400" />
+                    Tingkat {currentScope.toUpperCase()} • {currentKategori === 'non-akademik' ? 'NON-AKADEMIK' : 'AKADEMIK'}
+                  </div>
+
+                  <h1 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight capitalize">
+                    Prestasi Mahasiswa {currentScope} ({currentKategori})
+                  </h1>
+
+                  <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+                    Pusat Rekapitulasi &amp; Dokumentasi Capaian Mahasiswa Universitas Muhammadiyah Kendari di Bidang {currentKategori === 'non-akademik' ? 'Non-Akademik' : 'Akademik'} Tingkat {currentScope.charAt(0).toUpperCase() + currentScope.slice(1)}.
+                  </p>
+                </div>
+              </div>
+
+              {/* Content Section */}
+              <div className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-10 shadow-sm space-y-8">
+                {/* Section Header & CTA */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-6">
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+                      <Star className="w-5 h-5 text-amber-500 fill-amber-400" />
+                      Daftar Capaian Prestasi Unggulan
+                    </h2>
+                    <p className="text-slate-500 text-xs sm:text-sm mt-1">
+                      Menampilkan data prestasi mahasiswa peraih kejuaraan di tingkat {currentScope} ({currentKategori}).
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => (onNavigateToRegister ? onNavigateToRegister('alumni') : onNavigateToLogin())}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 shadow-md transition shrink-0"
+                  >
+                    <Award className="w-4 h-4" /> Laporkan Prestasi Mahasiswa
+                  </button>
                 </div>
 
-                <h1 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight">
-                  Prestasi Mahasiswa {currentTab.includes('internasional') ? 'Internasional' : currentTab.includes('nasional') ? 'Nasional' : 'Wilayah'}
-                </h1>
-
-                <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-                  Pusat Rekapitulasi & Dokumentasi Capaian Mahasiswa Universitas Muhammadiyah Kendari di Bidang {currentTab.includes('non-akademik') ? 'Non-Akademik' : 'Akademik'}.
-                </p>
-
-                {/* Sub-menu navigation pills inside page */}
-                <div className="pt-4 flex flex-wrap gap-2">
-                  {[
-                    { label: 'Internasional (Akademik)', tab: 'prestasi-internasional-akademik' },
-                    { label: 'Internasional (Non-Akademik)', tab: 'prestasi-internasional-non-akademik' },
-                    { label: 'Nasional (Akademik)', tab: 'prestasi-nasional-akademik' },
-                    { label: 'Nasional (Non-Akademik)', tab: 'prestasi-nasional-non-akademik' },
-                    { label: 'Wilayah (Akademik)', tab: 'prestasi-wilayah-akademik' },
-                    { label: 'Wilayah (Non-Akademik)', tab: 'prestasi-wilayah-non-akademik' },
-                  ].map((p) => (
-                    <button
-                      key={p.tab}
-                      onClick={() => setTab(p.tab)}
-                      className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
-                        currentTab === p.tab
-                          ? 'bg-amber-400 text-slate-950 font-bold shadow-md'
-                          : 'bg-white/10 hover:bg-white/20 text-slate-200 border border-white/10'
-                      }`}
-                    >
-                      {p.label}
-                    </button>
-                  ))}
+                {/* Search Bar */}
+                <div className="relative max-w-xl">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Cari kata kunci prestasi, kejuaraan, atau nama mahasiswa..."
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  />
                 </div>
+
+                {/* Achievement cards grid */}
+                {filteredItems.length === 0 ? (
+                  <div className="text-center py-16 bg-slate-50/50 rounded-2xl border border-dashed border-slate-300 space-y-3">
+                    <Award className="w-12 h-12 text-slate-300 mx-auto" />
+                    <h3 className="font-bold text-slate-700 text-base">Belum Ada Data Prestasi untuk Kategori Ini</h3>
+                    <p className="text-slate-400 text-xs max-w-md mx-auto">
+                      Belum terdapat postingan prestasi terpublikasi untuk {currentScope} ({currentKategori}). Admin dapat memposting prestasi baru dari Admin Dashboard.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredItems.map(item => (
+                      <div
+                        key={item.id}
+                        className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group"
+                      >
+                        <div>
+                          {/* Image documentation header */}
+                          <div className="w-full h-48 relative overflow-hidden bg-slate-100 border-b border-slate-100">
+                            {item.imageUrl ? (
+                              <img
+                                src={item.imageUrl}
+                                alt={item.judul}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex flex-col items-center justify-center bg-slate-100 text-slate-400 space-y-1">
+                                <Award className="w-10 h-10 text-amber-400" />
+                                <span className="text-xs font-bold text-slate-400 uppercase">Dokumentasi</span>
+                              </div>
+                            )}
+                            <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                              <span className="px-2.5 py-1 bg-amber-400 text-slate-950 rounded-lg text-xs font-black shadow-md flex items-center gap-1">
+                                <Award className="w-3.5 h-3.5 text-slate-950" /> {item.peringkat}
+                              </span>
+                            </div>
+                            <div className="absolute top-3 right-3">
+                              <span className="px-2.5 py-1 bg-black/60 backdrop-blur-md text-white rounded-lg text-xs font-bold">
+                                {item.tahun}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Card Body */}
+                          <div className="p-5 space-y-3">
+                            <div className="text-xs font-extrabold text-amber-600 uppercase tracking-wide truncate">
+                              {item.prodi || 'UM KENDARI'}
+                            </div>
+
+                            <h3 className="font-extrabold text-slate-900 text-base leading-snug group-hover:text-amber-600 transition-colors line-clamp-2">
+                              {item.judul}
+                            </h3>
+
+                            <p className="text-slate-600 text-xs leading-relaxed line-clamp-3">
+                              {item.deskripsi}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Card Footer */}
+                        <div className="px-5 py-3.5 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between text-xs">
+                          <div className="font-bold text-slate-800 truncate max-w-[170px]" title={item.namaMahasiswa}>
+                            {item.namaMahasiswa}
+                          </div>
+                          {item.terverifikasi !== false && (
+                            <span className="text-emerald-600 font-extrabold text-[11px] flex items-center gap-1 shrink-0">
+                              <ShieldCheck className="w-3.5 h-3.5" /> Terverifikasi CDC
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
-
-            {/* Content Section */}
-            <div className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-10 shadow-sm space-y-8">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-6">
-                <div>
-                  <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 flex items-center gap-2">
-                    <Star className="w-5 h-5 text-amber-500 fill-amber-400" />
-                    Daftar Capaian Prestasi Unggulan
-                  </h2>
-                  <p className="text-slate-500 text-xs sm:text-sm mt-1">
-                    Menampilkan data mahasiswa berprestasi UM Kendari
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => (onNavigateToRegister ? onNavigateToRegister('alumni') : onNavigateToLogin())}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 shadow-md transition shrink-0"
-                >
-                  <Award className="w-4 h-4" /> Laporkan Prestasi Mahasiswa
-                </button>
-              </div>
-
-              {/* Sample achievement cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="bg-slate-50 rounded-2xl border border-slate-200/90 p-5 space-y-4 hover:shadow-md transition">
-                  <div className="flex items-center justify-between">
-                    <span className="px-2.5 py-1 bg-amber-100 text-amber-800 rounded-lg text-xs font-extrabold flex items-center gap-1">
-                      <Award className="w-3.5 h-3.5 text-amber-600" /> Juara 1 / Gold Medal
-                    </span>
-                    <span className="text-xs text-slate-400 font-semibold">2026</span>
-                  </div>
-
-                  <h3 className="font-bold text-slate-900 text-base leading-snug">
-                    {currentTab.includes('non-akademik')
-                      ? 'Kompetisi Olahraga & Seni Mahasiswa'
-                      : 'Kompetisi Karya Tulis Ilmiah & Inovasi Teknologi'}
-                  </h3>
-
-                  <p className="text-slate-600 text-xs leading-relaxed">
-                    Delegasi Mahasiswa Universitas Muhammadiyah Kendari berhasil meraih penghargaan tertinggi pada ajang {currentTab.includes('internasional') ? 'Internasional' : currentTab.includes('nasional') ? 'Nasional' : 'Wilayah'}.
-                  </p>
-
-                  <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs text-slate-500 font-medium">
-                    <span>Tim Mahasiswa UMK</span>
-                    <span className="text-emerald-600 font-bold">Terverifikasi CDC</span>
-                  </div>
-                </div>
-
-                <div className="bg-slate-50 rounded-2xl border border-slate-200/90 p-5 space-y-4 hover:shadow-md transition">
-                  <div className="flex items-center justify-between">
-                    <span className="px-2.5 py-1 bg-slate-200 text-slate-800 rounded-lg text-xs font-extrabold flex items-center gap-1">
-                      <Award className="w-3.5 h-3.5 text-slate-600" /> Runner Up / Silver Medal
-                    </span>
-                    <span className="text-xs text-slate-400 font-semibold">2025</span>
-                  </div>
-
-                  <h3 className="font-bold text-slate-900 text-base leading-snug">
-                    {currentTab.includes('non-akademik')
-                      ? 'Festival Kebudayaan & Kewirausahaan'
-                      : 'Olimpiade Sains & Pemrograman Komputer'}
-                  </h3>
-
-                  <p className="text-slate-600 text-xs leading-relaxed">
-                    Capaian gemilang mahasiswa UMK memperkuat posisi kampus sebagai pusat keunggulan di tingkat {currentTab.includes('internasional') ? 'Internasional' : currentTab.includes('nasional') ? 'Nasional' : 'Wilayah'}.
-                  </p>
-
-                  <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs text-slate-500 font-medium">
-                    <span>Perwakilan Fakultas</span>
-                    <span className="text-emerald-600 font-bold">Terverifikasi CDC</span>
-                  </div>
-                </div>
-
-                <div className="bg-slate-50 rounded-2xl border border-slate-200/90 p-5 space-y-4 hover:shadow-md transition">
-                  <div className="flex items-center justify-between">
-                    <span className="px-2.5 py-1 bg-amber-50 text-amber-900 border border-amber-200 rounded-lg text-xs font-extrabold flex items-center gap-1">
-                      <Award className="w-3.5 h-3.5 text-amber-700" /> Juara 3 / Bronze Medal
-                    </span>
-                    <span className="text-xs text-slate-400 font-semibold">2025</span>
-                  </div>
-
-                  <h3 className="font-bold text-slate-900 text-base leading-snug">
-                    {currentTab.includes('non-akademik')
-                      ? 'Kejuaraan Debat & Public Speaking'
-                      : 'Simposum Riset Mahasiswa & Poster Ilmiah'}
-                  </h3>
-
-                  <p className="text-slate-600 text-xs leading-relaxed">
-                    Apresiasi tinggi atas dedikasi dan kerja keras civitas akademika dalam mengharumkan nama Universitas Muhammadiyah Kendari.
-                  </p>
-
-                  <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs text-slate-500 font-medium">
-                    <span>Mahasiswa Prestasi</span>
-                    <span className="text-emerald-600 font-bold">Terverifikasi CDC</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+          );
+        })()}
 
       </main>
 

@@ -21,7 +21,8 @@ import {
   Lowongan,
   PengajuanMagang,
   KontenKarir,
-  JenisKonten
+  JenisKonten,
+  Prestasi
 } from '../types';
 import {
   getFromDB,
@@ -87,7 +88,8 @@ import {
   LogOut,
   Save,
   ExternalLink,
-  MousePointerClick
+  MousePointerClick,
+  Award
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -96,7 +98,7 @@ interface AdminDashboardProps {
   onReloadData?: () => void;
 }
 
-type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin';
+type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin' | 'prestasi';
 type KontenSubTab = 'riwayat' | 'pembuatan';
 type MitraSubTab = 'approval' | 'list';
 
@@ -152,6 +154,25 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   const [appls, setAppls] = useState<PengajuanMagang[]>([]);
   const [allUsers, setAllUsers] = useState<UserType[]>([]);
   const [konten, setKonten] = useState<KontenKarir[]>([]);
+  const [prestasiList, setPrestasiList] = useState<Prestasi[]>([]);
+
+  // Prestasi Form States
+  const [showPrestasiForm, setShowPrestasiForm] = useState(false);
+  const [editPrestasiId, setEditPrestasiId] = useState<string | null>(null);
+  const [pJudul, setPJudul] = useState('');
+  const [pTingkat, setPTingkat] = useState<'internasional' | 'nasional' | 'wilayah'>('wilayah');
+  const [pKategori, setPKategori] = useState<'akademik' | 'non-akademik'>('akademik');
+  const [pPeringkat, setPPeringkat] = useState('Juara 1 / Gold Medal');
+  const [pNamaMahasiswa, setPNamaMahasiswa] = useState('');
+  const [pProdi, setPProdi] = useState('');
+  const [pTahun, setPTahun] = useState('2026');
+  const [pDeskripsi, setPDeskripsi] = useState('');
+  const [pImageUrl, setPImageUrl] = useState('');
+  const [pStatus, setPStatus] = useState<'published' | 'draft'>('published');
+  const [pTerverifikasi, setPTerverifikasi] = useState(true);
+  const [pQuery, setPQuery] = useState('');
+  const [pTingkatFilter, setPTingkatFilter] = useState<'Semua' | 'internasional' | 'nasional' | 'wilayah'>('Semua');
+  const [pKategoriFilter, setPKategoriFilter] = useState<'Semua' | 'akademik' | 'non-akademik'>('Semua');
 
   const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [zoomImage, setZoomImage] = useState<string | null>(null);
@@ -164,6 +185,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     setAppls(getFromDB<PengajuanMagang>('pengajuan_magang'));
     setAllUsers(getFromDB<UserType>('users'));
     setKonten(getFromDB<KontenKarir>('konten_karir'));
+    setPrestasiList(getFromDB<Prestasi>('prestasi'));
   };
 
   useEffect(() => {
@@ -176,11 +198,90 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     setTimeout(() => setToast(null), 3500);
   };
 
+  const openPrestasiForm = (item?: Prestasi) => {
+    if (item) {
+      setEditPrestasiId(item.id);
+      setPJudul(item.judul);
+      setPTingkat(item.tingkat);
+      setPKategori(item.kategori);
+      setPPeringkat(item.peringkat);
+      setPNamaMahasiswa(item.namaMahasiswa);
+      setPProdi(item.prodi || '');
+      setPTahun(item.tahun);
+      setPDeskripsi(item.deskripsi);
+      setPImageUrl(item.imageUrl || '');
+      setPStatus(item.status || 'published');
+      setPTerverifikasi(item.terverifikasi !== false);
+    } else {
+      setEditPrestasiId(null);
+      setPJudul(''); setPTingkat('wilayah'); setPKategori('akademik');
+      setPPeringkat('Juara 1 / Gold Medal'); setPNamaMahasiswa(''); setPProdi('');
+      setPTahun(new Date().getFullYear().toString()); setPDeskripsi(''); setPImageUrl('');
+      setPStatus('published'); setPTerverifikasi(true);
+    }
+    setShowPrestasiForm(true);
+  };
+
+  const handleSavePrestasi = () => {
+    if (!pJudul.trim() || !pNamaMahasiswa.trim() || !pDeskripsi.trim()) {
+      triggerToast('error', 'Judul, Nama Mahasiswa/Tim, dan Deskripsi wajib diisi.');
+      return;
+    }
+    const existing = editPrestasiId ? prestasiList.find(p => p.id === editPrestasiId) : null;
+    const newPrestasi: Prestasi = {
+      id: editPrestasiId || `prest_${Date.now()}`,
+      judul: pJudul.trim(),
+      tingkat: pTingkat,
+      kategori: pKategori,
+      peringkat: pPeringkat.trim() || 'Juara 1',
+      tahun: pTahun.trim() || '2026',
+      namaMahasiswa: pNamaMahasiswa.trim(),
+      prodi: pProdi.trim() || undefined,
+      deskripsi: pDeskripsi.trim(),
+      imageUrl: pImageUrl.trim() || 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=800&auto=format&fit=crop',
+      terverifikasi: pTerverifikasi,
+      status: pStatus,
+      createdAt: existing?.createdAt || new Date().toISOString(),
+      createdBy: user.id
+    };
+
+    if (editPrestasiId) {
+      updateInDB<Prestasi>('prestasi', newPrestasi);
+      triggerToast('success', 'Data Prestasi berhasil diperbarui.');
+    } else {
+      insertToDB<Prestasi>('prestasi', newPrestasi);
+      triggerToast('success', 'Prestasi baru berhasil dipublikasikan.');
+    }
+    setShowPrestasiForm(false);
+    reloadAll();
+  };
+
+  const handleDeletePrestasi = (item: Prestasi) => {
+    if (confirm(`Hapus prestasi "${item.judul}"?`)) {
+      deleteInDB('prestasi', item.id);
+      reloadAll();
+      triggerToast('success', 'Prestasi berhasil dihapus.');
+    }
+  };
+
+  const handleTogglePublishPrestasi = (item: Prestasi) => {
+    const nextStatus = item.status === 'published' ? 'draft' : 'published';
+    updateInDB<Prestasi>('prestasi', { ...item, status: nextStatus });
+    reloadAll();
+    triggerToast('success', `Status prestasi diubah ke ${nextStatus}.`);
+  };
+
   /* =========================================================
    *  SIDEBAR
    * =======================================================*/
   const MENU: { group: string; items: { id: AdminTab; label: string; icon: React.ReactNode }[] }[] = [
     { group: 'DASHBOARD', items: [{ id: 'ringkasan', label: 'Ringkasan Laporan', icon: <LayoutDashboard className="w-4 h-4" /> }] },
+    {
+      group: 'PRESTASI MAHASISWA',
+      items: [
+        { id: 'prestasi', label: 'Kelola Prestasi Mahasiswa', icon: <Trophy className="w-4 h-4" /> }
+      ]
+    },
     {
       group: 'KONTEN KARIR',
       items: [
@@ -1842,6 +1943,366 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* ============== MANAJEMEN PRESTASI ============== */}
+          {activeTab === 'prestasi' && (
+            <div className="space-y-6" id="adm-prestasi">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                    <Trophy className="w-6 h-6 text-amber-500" /> Kelola Prestasi Mahasiswa
+                  </h1>
+                  <p className="text-sm text-slate-500 mt-0.5">
+                    Publikasikan capaian prestasi mahasiswa di tingkat Internasional, Nasional, dan Wilayah.
+                  </p>
+                </div>
+                <button
+                  onClick={() => openPrestasiForm()}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-sm transition shrink-0"
+                >
+                  <Plus className="w-4 h-4" /> Post Prestasi Baru
+                </button>
+              </div>
+
+              {/* Form Input / Edit Prestasi */}
+              {showPrestasiForm && (
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-md p-6 space-y-6 animate-fade-in">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-amber-500" />
+                      {editPrestasiId ? 'Edit Data Prestasi' : 'Post Prestasi Mahasiswa Baru'}
+                    </h3>
+                    <button
+                      onClick={() => setShowPrestasiForm(false)}
+                      className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5 md:col-span-2">
+                      <label className="text-xs font-bold text-slate-700">Judul Prestasi / Ajang Kompetisi <span className="text-rose-500">*</span></label>
+                      <input
+                        type="text"
+                        value={pJudul}
+                        onChange={(e) => setPJudul(e.target.value)}
+                        placeholder="Contoh: International Student Innovation & Technology Summit 2026"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700">Tingkat Prestasi <span className="text-rose-500">*</span></label>
+                      <select
+                        value={pTingkat}
+                        onChange={(e) => setPTingkat(e.target.value as any)}
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                      >
+                        <option value="internasional">Internasional</option>
+                        <option value="nasional">Nasional</option>
+                        <option value="wilayah">Wilayah</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700">Kategori Bidang <span className="text-rose-500">*</span></label>
+                      <select
+                        value={pKategori}
+                        onChange={(e) => setPKategori(e.target.value as any)}
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                      >
+                        <option value="akademik">Akademik</option>
+                        <option value="non-akademik">Non-Akademik</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700">Peringkat / Capaian <span className="text-rose-500">*</span></label>
+                      <input
+                        type="text"
+                        value={pPeringkat}
+                        onChange={(e) => setPPeringkat(e.target.value)}
+                        placeholder="Contoh: Juara 1 / Gold Medal"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700">Tahun Penyelenggaraan <span className="text-rose-500">*</span></label>
+                      <input
+                        type="text"
+                        value={pTahun}
+                        onChange={(e) => setPTahun(e.target.value)}
+                        placeholder="Contoh: 2026"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700">Nama Mahasiswa / Tim Delegasi <span className="text-rose-500">*</span></label>
+                      <input
+                        type="text"
+                        value={pNamaMahasiswa}
+                        onChange={(e) => setPNamaMahasiswa(e.target.value)}
+                        placeholder="Contoh: Tim Inovator Informatika UMK"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700">Program Studi / Fakultas</label>
+                      <input
+                        type="text"
+                        value={pProdi}
+                        onChange={(e) => setPProdi(e.target.value)}
+                        placeholder="Contoh: Teknik Informatika"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5 md:col-span-2">
+                      <label className="text-xs font-bold text-slate-700">Deskripsi Capaian <span className="text-rose-500">*</span></label>
+                      <textarea
+                        rows={3}
+                        value={pDeskripsi}
+                        onChange={(e) => setPDeskripsi(e.target.value)}
+                        placeholder="Jelaskan secara singkat mengenai kompetisi dan pencapaian yang diraih..."
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5 md:col-span-2">
+                      <label className="text-xs font-bold text-slate-700">Foto Dokumentasi / Sertifikat</label>
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              setPImageUrl(await readFileAsDataUrl(file));
+                            }
+                          }}
+                          className="text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
+                        />
+                        {pImageUrl && (
+                          <div className="relative group w-24 h-16 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 shrink-0">
+                            <img src={pImageUrl} alt="Preview" className="w-full h-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => setPImageUrl('')}
+                              className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-xs font-bold"
+                            >
+                              Hapus
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700">Status Publikasi</label>
+                      <select
+                        value={pStatus}
+                        onChange={(e) => setPStatus(e.target.value as any)}
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                      >
+                        <option value="published">Published (Tampil Publik)</option>
+                        <option value="draft">Draft (Disembunyikan)</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5 flex items-center gap-2 pt-6">
+                      <input
+                        type="checkbox"
+                        id="terverifikasi-chk"
+                        checked={pTerverifikasi}
+                        onChange={(e) => setPTerverifikasi(e.target.checked)}
+                        className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500"
+                      />
+                      <label htmlFor="terverifikasi-chk" className="text-xs font-bold text-slate-700 cursor-pointer">
+                        Tandai Sebagai Terverifikasi CDC
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => setShowPrestasiForm(false)}
+                      className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSavePrestasi}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-md transition"
+                    >
+                      <Save className="w-4 h-4" /> Simpan &amp; Publikasikan
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Filter & Search Bar */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type="text"
+                    value={pQuery}
+                    onChange={(e) => setPQuery(e.target.value)}
+                    placeholder="Cari judul prestasi atau nama mahasiswa..."
+                    className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
+                    <span>Tingkat:</span>
+                    <select
+                      value={pTingkatFilter}
+                      onChange={(e) => setPTingkatFilter(e.target.value as any)}
+                      className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    >
+                      <option value="Semua">Semua Tingkat</option>
+                      <option value="internasional">Internasional</option>
+                      <option value="nasional">Nasional</option>
+                      <option value="wilayah">Wilayah</option>
+                    </select>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
+                    <span>Kategori:</span>
+                    <select
+                      value={pKategoriFilter}
+                      onChange={(e) => setPKategoriFilter(e.target.value as any)}
+                      className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    >
+                      <option value="Semua">Semua Kategori</option>
+                      <option value="akademik">Akademik</option>
+                      <option value="non-akademik">Non-Akademik</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Prestasi Table / Cards List */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="grid grid-cols-12 gap-3 px-5 py-3.5 bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200/80">
+                  <div className="col-span-5 sm:col-span-4">Prestasi &amp; Ajang</div>
+                  <div className="col-span-3 sm:col-span-3">Tingkat &amp; Kategori</div>
+                  <div className="hidden sm:block col-span-3">Delegasi Mahasiswa</div>
+                  <div className="col-span-4 sm:col-span-2 text-right">Aksi</div>
+                </div>
+
+                {prestasiList.filter(p => {
+                  const q = pQuery.trim().toLowerCase();
+                  const matchQ = !q || p.judul.toLowerCase().includes(q) || p.namaMahasiswa.toLowerCase().includes(q);
+                  const matchT = pTingkatFilter === 'Semua' || p.tingkat === pTingkatFilter;
+                  const matchK = pKategoriFilter === 'Semua' || p.kategori === pKategoriFilter;
+                  return matchQ && matchT && matchK;
+                }).length === 0 ? (
+                  <div className="p-12 text-center text-slate-400 space-y-2">
+                    <Trophy className="w-10 h-10 mx-auto text-slate-300" />
+                    <div className="font-bold text-slate-600">Belum Ada Data Prestasi Mahasiswa</div>
+                    <p className="text-xs">Klik tombol "Post Prestasi Baru" di atas untuk menambahkan data prestasi.</p>
+                  </div>
+                ) : (
+                  prestasiList
+                    .filter(p => {
+                      const q = pQuery.trim().toLowerCase();
+                      const matchQ = !q || p.judul.toLowerCase().includes(q) || p.namaMahasiswa.toLowerCase().includes(q);
+                      const matchT = pTingkatFilter === 'Semua' || p.tingkat === pTingkatFilter;
+                      const matchK = pKategoriFilter === 'Semua' || p.kategori === pKategoriFilter;
+                      return matchQ && matchT && matchK;
+                    })
+                    .map((item) => (
+                      <div key={item.id} className="grid grid-cols-12 gap-3 px-5 py-4 border-b border-slate-100 last:border-0 items-center hover:bg-slate-50/60 transition">
+                        <div className="col-span-5 sm:col-span-4 flex items-center gap-3 min-w-0">
+                          {item.imageUrl ? (
+                            <img
+                              src={item.imageUrl}
+                              alt=""
+                              className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0 bg-slate-100 cursor-pointer"
+                              onClick={() => setZoomImage(item.imageUrl || null)}
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center shrink-0">
+                              <Trophy className="w-6 h-6 text-amber-600" />
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
+                              <span className="px-2 py-0.5 bg-amber-100 text-amber-800 rounded-md text-[10px] font-extrabold flex items-center gap-1">
+                                <Award className="w-3 h-3 text-amber-600" /> {item.peringkat}
+                              </span>
+                              {item.status === 'draft' && (
+                                <span className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded text-[9px] font-bold uppercase">Draft</span>
+                              )}
+                            </div>
+                            <h4 className="font-bold text-slate-900 text-sm leading-snug line-clamp-1 truncate" title={item.judul}>
+                              {item.judul}
+                            </h4>
+                            <div className="text-[11px] text-slate-400 mt-0.5 font-medium">{item.tahun}</div>
+                          </div>
+                        </div>
+
+                        <div className="col-span-3 sm:col-span-3 space-y-1">
+                          <span className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase ${
+                            item.tingkat === 'internasional'
+                              ? 'bg-blue-100 text-blue-800'
+                              : item.tingkat === 'nasional'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-slate-100 text-slate-800'
+                          }`}>
+                            {item.tingkat}
+                          </span>
+                          <div className="text-xs font-semibold text-slate-600 capitalize">
+                            {item.kategori}
+                          </div>
+                        </div>
+
+                        <div className="hidden sm:block col-span-3 text-xs text-slate-700 font-medium">
+                          <div className="font-bold text-slate-900 truncate">{item.namaMahasiswa}</div>
+                          <div className="text-slate-400 text-[11px] truncate">{item.prodi || 'Universitas Muhammadiyah Kendari'}</div>
+                        </div>
+
+                        <div className="col-span-4 sm:col-span-2 flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => openPrestasiForm(item)}
+                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition"
+                            title="Edit"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleTogglePublishPrestasi(item)}
+                            className={`p-1.5 rounded-lg text-xs font-bold transition ${
+                              item.status === 'published'
+                                ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700'
+                                : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                            }`}
+                            title={item.status === 'published' ? 'Sembunyikan' : 'Publikasikan'}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeletePrestasi(item)}
+                            className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold transition"
+                            title="Hapus"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                )}
               </div>
             </div>
           )}

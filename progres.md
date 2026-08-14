@@ -1027,189 +1027,91 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 
 ---
 
-
 ## Tanggal: 13 Agustus 2026
-**Developer:** Mirzat L. Teori  
-**Fokus Pekerjaan:** Pembuatan Fitur Input Konten Admin — Lowongan, Berita & Artikel, dan Program & Pengumuman
-
-> 📌 **Progres Mirzat L. Teori** — Dokumentasi ini dibuat agar rekan tim dapat membaca dan melanjutkan pengembangan dengan mudah.
-
-### 🎯 Gambaran Umum (Buat Tim)
-Pada sesi ini telah dibuat **tiga fitur input konten** di sisi Admin Dashboard yang semuanya tersimpan di `localStorage` (belum pakai backend sungguhan). Ketiga fitur ini menjadi sumber tampilan di beranda portal:
-
-| No | Fitur | Lokasi Input (Admin) | Tampil Di Beranda |
-|----|-------|---------------------|-------------------|
-| 1 | **Input Lowongan** (Magang / Kerja) | Konten Karir → Lowongan | Section *INFO KARIR CDC TERKINI* & halaman Job Info |
-| 2 | **Input Berita & Artikel** | Konten Karir → Berita & Artikel | Section *BERITA & ARTIKEL TERKINI* |
-| 3 | **Input Program & Pengumuman** | Konten Karir → Program & Pengumuman | Section *PROGRAM & PENGUMUMAN* (antara Info Karir & Berita) |
-
-### 🚀 Ringkasan Perubahan
-
-#### 1. Input Lowongan (Magang / Kerja)
-- Form input lowongan lengkap: judul, instansi, kategori (Magang/Kerja), spesialisasi, lokasi, gaji, deskripsi, tanggung jawab, kualifikasi, keahlian, poster 9:16, dan status (Draft/Published).
-- Data masuk ke tabel `konten_karir` dengan `jenis: 'lowongan'`.
-- Tersinkronisasi ke halaman pencarian loker publik (Job Info) dan kartu beranda.
-
-#### 2. Input Berita & Artikel
-- Editor bergaya Medium (toolbar format teks lengkap: bold, italic, warna, list, heading, dll).
-- Thumbnail wajib (16:9) untuk header kartu & halaman detail.
-- Data masuk ke tabel `konten_karir` dengan `jenis: 'berita'`, lalu dipetakan ke model `Berita` untuk tampilan beranda dan halaman detail rinci.
-
-#### 3. Input Program & Pengumuman  ⭐ (Fokus Utama Sesi Ini)
-Dibuat agar admin bisa mengisi pengumuman/program dengan **4 model perilaku kartu** tergantung isian:
-
-- **Tanpa detail & tanpa link** → kartu diklik **diam** (tidak terjadi apa-apa).
-- **Ada detail, tanpa link** → kartu diklik **masuk ke halaman detail** (render Medium seperti Berita & Artikel).
-- **Tanpa detail, ada link** → kartu diklik **langsung redirect** ke web/menu tujuan (link bisa berupa URL `https://...` atau `#nama-tab` untuk arahkan ke menu beranda).
-- **Ada detail & ada link** → kartu diklik **masuk ke halaman detail**, dan di dalam detail terdapat **tombol tautan** yang bisa diklik pengunjung.
-
-Fitur pendukung di form admin:
-- **Upload thumbnail wajib** (header kartu).
-- **Kategori bebas** (KERJA / MAGANG / UMUM / DLL — bisa diketik admin).
-- **Field Link Tujuan** yang bisa diisi dari kosong (tidak harus diisi dulu baru muncul).
-- **Isi konten opsional** menggunakan textarea biasa (tidak pakai toolbar Medium — sengaja dibuat simpel sesuai arahan).
-
-Catatan penempatan: Program & Pengumuman **disuntikkan ke section yang sudah ada** di beranda (antara *INFO KARIR CDC TERKINI* dan *BERITA & ARTIKEL TERKINI*), bukan membuat section baru, sehingga tidak ada section dobel.
-
-### 📁 File Diubah & Ditambahkan
-- **[MODIFY]** `src/App.tsx` — Plumbing data program (state `allProgram`, route detail `viewingProgramId`, handler `handleSelectProgram`, dan tombol tautan di halaman detail Program & Pengumuman).
-- **[MODIFY]** `src/data.ts` — Seed `KontenKarir` jenis `program` + kenaikan `CURRENT_SEED_VERSION` agar data reseed di posisi yang benar.
-- **[MODIFY]** `src/components/AdminDashboard.tsx` — Editor Program & Pengumuman (upload thumbnail wajib, kategori bebas, link tujuan, textarea isi opsional); editor Lowongan & Berita sudah ada sebelumnya.
-- **[MODIFY]** `src/components/PublicLayout.tsx` — Kartu Program & Pengumuman di section beranda dengan logika klik 4 kasus di atas.
-- **[MODIFY]** `progres.md` — Pencatatan progres ini.
-
-### 📋 Checklist Selesai Sesi Ini
-- [x] Input Lowongan (Magang/Kerja) aktif di Admin Dashboard
-- [x] Input Berita & Artikel aktif (editor Medium + thumbnail)
-- [x] Input Program & Pengumuman aktif (thumbnail, kategori bebas, link, isi opsional)
-- [x] 4 model perilaku kartu Program & Pengumuman (diam / detail / redirect / detail+link)
-- [x] Tombol tautan di halaman detail Program & Pengumuman
-- [x] Penempatan Program & Pengumuman di section beranda yang benar (tanpa section dobel)
-- [x] Verifikasi `npm run lint` (tsc --noEmit) → **0 error**
-- [x] Verifikasi `npm run build` (vite build) → **0 error**
-
----
-
-> 📌 **Progres Mirzat L. Teori** — Selesai & terverifikasi..
-
-## Tanggal: 13 Agustus 2026 — Sesi 5
-**Developer:** ikhsan  
-**Fokus Pekerjaan:** Perbaikan Akses Dashboard User Fast-Role Switcher & Pembukaan Visibilitas Lowongan Program Magang Mitra di Job Info / Search Job Dashboard User
+**Developer:** Fachrul Alam Sanuddin  
+**Fokus Pekerjaan:** Implementasi Fitur Input Admin & Card Layout Publik Prestasi Mahasiswa Multi-Level (Internasional, Nasional, Wilayah - Akademik & Non-Akademik)
 
 ---
 
 ### 🚀 Ringkasan Perubahan
 
-#### 1. Perbaikan Login Fast-Role Switcher & Tombol Masuk Header (`App.tsx` & `Header.tsx`)
-- **Fix Role Switcher**: Mengubah penanganan `handleFastRoleSwitch` dan ID tombol `USER` di bar topbar hitam agar mendukung `role: 'user'` dan `role: 'mahasiswa'`. Tombol `USER` kini langsung mengaktifkan sesi login dashboard user (*Muhammad Fadly Alamsyah*).
-- **Tombol Masuk Navbar**: Menambahkan item menu **Masuk** pada `NAV_ITEMS` di `Header.tsx` untuk kemudahan navigasi otentikasi.
+#### 1. Pembaruan Structure & Model Data (`types.ts` & `data.ts`)
+- Menambahkan interface `Prestasi` pada `src/types.ts` (id, judul, tingkat, kategori, peringkat, tahun, namaMahasiswa, prodi, deskripsi, imageUrl, terverifikasi, status, createdAt, createdBy).
+- Menambahkan mock seed data `SEED_PRESTASI` di `src/data.ts` untuk 6 kombinasi tingkat & kategori (Internasional Akademik, Internasional Non-Akademik, Nasional Akademik, Nasional Non-Akademik, Wilayah Akademik, Wilayah Non-Akademik).
+- Memperbarui `DBKey` & `DEFAULT_SEEDS` di `src/data.ts` serta menaikkan `CURRENT_SEED_VERSION` ke `v5_prestasi`.
 
-#### 2. Perbaikan Visibilitas Lowongan Program Magang Mitra (`PublicLayout.tsx` & `JobSearchMasterDetail.tsx`)
-- **Penyebab Utama**: Terdapat filter kondisional tersembunyi `&& tipe !== 'magang'` pada pembacaan daftar lowongan terpublikasi (`publishedLowongan` & `publishedJobs`). Karena mitra secara default memposting loker bertipe **Program Magang**, seluruh loker tersebut terfilter dan tidak muncul pada publik & dashboard user.
-- **Perbaikan**: Menghapus klausa penyaring `&& tipe !== 'magang'` pada `PublicLayout.tsx` (Job Info & Beranda) dan `JobSearchMasterDetail.tsx` (Pencarian Lowongan Dashboard User), sehingga seluruh lowongan aktif (baik Program Magang maupun Lowongan Kerja) otomatis tampil sempurna.
+#### 2. Manajemen & Form Input Admin Prestasi (`AdminDashboard.tsx`)
+- Menambahkan tab navigasi baru **Kelola Prestasi Mahasiswa** di bawah grup menu **PRESTASI MAHASISWA**.
+- Menyediakan **Form Input / Edit Prestasi** bagi Admin CDC lengkap dengan field:
+  - Judul Prestasi / Ajang Kompetisi
+  - Tingkat (*Internasional / Nasional / Wilayah*)
+  - Kategori (*Akademik / Non-Akademik*)
+  - Peringkat / Capaian (*Juara 1 / Gold Medal, Runner Up, dll.*)
+  - Nama Mahasiswa / Tim & Program Studi
+  - Tahun Penyelenggaraan
+  - Deskripsi Capaian
+  - Unggah Foto Dokumentasi / Sertifikat dari file lokal (Native File Input + Base64 FileReader & image preview)
+  - Status Publikasi (*Published / Draft*)
+  - Checkbox Tandai Terverifikasi CDC
+- Fitur tabel pengelolaan prestasi dengan filter pencarian live, filter tingkat, filter kategori, tombol Edit, Toggle Status Publikasi, dan Hapus Prestasi.
+
+#### 3. Tampilan Dynamic Card Layout Publik (`PublicLayout.tsx`)
+- Membaca data `prestasi` secara dinamis dari localStorage database (`getFromDB<Prestasi>('prestasi')`).
+- Memisahkan dan mendistribusikan postingan prestasi ke masing-masing sub-menu secara presisi:
+  - `prestasi-internasional-akademik` → khusus Internasional (Akademik)
+  - `prestasi-internasional-non-akademik` → khusus Internasional (Non-Akademik)
+  - `prestasi-nasional-akademik` → khusus Nasional (Akademik)
+  - `prestasi-nasional-non-akademik` → khusus Nasional (Non-Akademik)
+  - `prestasi-wilayah-akademik` → khusus Wilayah (Akademik)
+  - `prestasi-wilayah-non-akademik` → khusus Wilayah (Non-Akademik)
+- Merender grid **Card Layout (3-Column Grid)** yang modern dan clean:
+  - Header foto dokumentasi 16:9 dengan *hover scale animation*.
+  - Badge Peringkat emas/perak/perunggu + Badge Tahun.
+  - Sub-header program studi / instansi UMK.
+  - Judul prestasi tebal & deskripsi singkat.
+  - Status `Terverifikasi CDC`.
+- Menyediakan baris pencarian kata kunci live pada halaman publik prestasi.
 
 ### 📁 File Diubah
-- **[MODIFY]** `src/App.tsx` — Perbaikan handler & ID Fast-Role Switcher
-- **[MODIFY]** `src/components/Header.tsx` — Penambahan tombol Masuk pada menu navigasi utama
-- **[MODIFY]** `src/components/PublicLayout.tsx` — Penghapusan penyaringan `&& tipe !== 'magang'` dari `publishedLowongan`
-- **[MODIFY]** `src/components/JobSearchMasterDetail.tsx` — Penghapusan penyaringan `&& tipe !== 'magang'` dari `publishedJobs`
-- **[MODIFY]** `progres.md` — Pencatatan laporan progres sesi ini
+- **[MODIFY]** `src/types.ts` — Penambahan interface `Prestasi`
+- **[MODIFY]** `src/data.ts` — Penambahan seed data `SEED_PRESTASI`, `DBKey`, & `DEFAULT_SEEDS`
+- **[MODIFY]** `src/components/AdminDashboard.tsx` — Implementasi tab & form input Admin Prestasi Mahasiswa
+- **[MODIFY]** `src/components/PublicLayout.tsx` — Implementasi dynamic filtering & 3-column Card Layout publik Prestasi
+- **[MODIFY]** `progres.md` — Laporan progres pengerjaan tanggal 13 Agustus 2026
 
 ### 📋 Checklist Selesai Sesi Ini
-- [x] Perbaikan Fast-Role Switcher tombol USER agar langsung masuk ke Dashboard User
-- [x] Penambahan tombol "Masuk" pada menu utama navbar Header
-- [x] Identifikasi & eliminasi klausa pemicu bug `&& tipe !== 'magang'` di `PublicLayout.tsx` dan `JobSearchMasterDetail.tsx`
-- [x] Verifikasi visibilitas lowongan Program Magang Mitra pada Halaman Publik, Job Info, dan Dashboard User
-- [x] Verifikasi typecheck TypeScript (`npx tsc --noEmit` -> 0 error)
-- [x] Pencatatan laporan progres di `progres.md`
+- [x] Penambahan interface `Prestasi` & seed data `SEED_PRESTASI`
+- [x] Pembuatan tab & form input posting Prestasi di Admin Dashboard
+- [x] Fitur upload foto dokumentasi lokal, edit, hapus, & toggle publish Admin
+- [x] Filter dinamis per sub-menu (Internasional, Nasional, Wilayah - Akademik & Non-Akademik)
+- [x] Redesign tampilan publik Prestasi ke format 3-Column Card Layout
+- [x] Live search filter pada halaman publik Prestasi
+- [x] Verifikasi `npm run lint` PASSED (0 error)
+- [x] Verifikasi `npm run build` PASSED (0 error, exit 0)
 
 ---
 
-## Tanggal: 13 Agustus 2026 — Sesi 6
-**Developer:** Ikhsan  
-**Fokus Pekerjaan:** Synchronizing Jumlah Badge Lowongan Tersimpan & Penyimpanan Foto Profil Berkas Lokal ke Format Base64
+## Tanggal: 13 Agustus 2026 (Sesi 2)
+**Developer:** Fachrul Alam Sanuddin  
+**Fokus Pekerjaan:** Pemisahan Halaman Sub-Menu Prestasi Menjadi Halaman Mandiri (Tanpa Pill Navigasi Internal)
 
 ---
 
 ### 🚀 Ringkasan Perubahan
-
-#### 1. Sinkronisasi Badge & Daftar Lowongan Tersimpan (`data.ts` & `StudentProfileView.tsx`)
-- **Penyebab Diskrepansi**: Badge `Lowongan Tersimpan` sebelumnya membaca `localStorage.getItem('cdc_saved_job_ids')` secara mentah (yang mungkin menyimpan ID lowongan yang sudah dihapus/stale), sedangkan tampilan daftar di dalam tab memfilter terhadap lowongan aktif di database (`allJobs`).
-- **Perbaikan**: 
-  - Membuat fungsi helper `getValidSavedJobs()` di `data.ts` yang memvalidasi ID tersimpan terhadap lowongan aktif di database dan otomatis membersihkan ID ghost/stale dari `localStorage`.
-  - Memperbarui perhitungan jumlah badge pada sub-tab `Lowongan Tersimpan` dan tampilan daftar di `StudentProfileView.tsx` menggunakan `getValidSavedJobs()`, sehingga angka di badge (misal: 0) dan judul daftar selalu sinkron 100%.
-
-#### 2. Penyimpanan Foto Profil Unggahan Lokal ke Format Base64 (`StudentProfileView.tsx` & `data.ts`)
-- **Penyimpanan Base64**: Menggunakan `FileReader.readAsDataURL(file)` untuk mengonversi berkas gambar lokal yang diunggah pengguna menjadi *Data URL Base64*.
-- **Sinkronisasi Database**: Meng-update `updateUserProfile` di `data.ts` agar pembaruan `photoUrl` (serta nama, email, dan telepon) otomatis meng-update tabel `mahasiswa` sekaligus tabel `users` di `localStorage`.
+- **Penghapusan Pill Navigasi Internal (`PublicLayout.tsx`)**: Menghapus tombol/pill navigasi pemintas internal di dalam Hero Banner halaman Prestasi.
+- **Enforcement Halaman Mandiri**: Setiap halaman sub-menu Prestasi (**Internasional**, **Nasional**, **Wilayah** — **Akademik** & **Non-Akademik**) kini tampil murni dan fokus khusus untuk sub-menu tersebut tanpa opsi pergantian tab di dalam konten. Perpindahan antar-halaman dilakukan melalui navigasi utama Header top-bar.
 
 ### 📁 File Diubah
-- **[MODIFY]** `src/data.ts` — Menambahkan `getValidSavedJobs()` dan meng-update `updateUserProfile` untuk meng-update tabel `users` & `mahasiswa`
-- **[MODIFY]** `src/components/StudentProfileView.tsx` — Penggunaan `getValidSavedJobs()` untuk badge & daftar bookmark, serta konversi unggah foto profil ke Base64
-- **[MODIFY]** `progres.md` — Pencatatan laporan progres sesi ini
+- **[MODIFY]** `src/components/PublicLayout.tsx` — Sembunyikan pill navigasi internal di Hero Banner Halaman Prestasi
+- **[MODIFY]** `src/components/AdminDashboard.tsx` — Tab & Form Input Admin Prestasi Mahasiswa
+- **[MODIFY]** `src/types.ts` — Interface `Prestasi` (Internasional, Nasional, Wilayah - Akademik & Non-Akademik)
+- **[MODIFY]** `src/data.ts` — Seed data `SEED_PRESTASI` & pengaktifan DBKey `v5_prestasi`
+- **[MODIFY]** `progres.md` — Laporan progres pengerjaan tanggal 13 Agustus 2026
 
 ### 📋 Checklist Selesai Sesi Ini
-- [x] Pembuatan fungsi `getValidSavedJobs()` dengan auto-cleanup ID stale dari `localStorage`
-- [x] Penyelarasan badge `Lowongan Tersimpan` dengan daftar lowongan aktif (menghilangkan diskrepansi badge count 1 vs list 0)
-- [x] Konversi foto profil lokal ke format string Base64 (`data:image/...;base64,...`) saat diunggah
-- [x] Sinkronisasi `photoUrl` pengguna ke tabel `mahasiswa` dan `users`
-- [x] Verifikasi typecheck TypeScript (`npx tsc --noEmit` -> 0 error)
-- [x] Pencatatan laporan progres di `progres.md`
-
----
-
-## Tanggal: 13 Agustus 2026 — Sesi 7
-**Developer:** Ikhsan  
-**Fokus Pekerjaan:** Redesain Visual UI/UX Dashboard Mitra & Modal Lamaran Kerja (Eliminasi AI Slop, Standardisasi Warna Brand CDC, & Manajemen Unggah PDF CV Pelamar)
-
----
-
-### 🚀 Ringkasan Perubahan
-
-#### 1. Redesain Visual Dashboard Mitra (`MitraDashboard.tsx`)
-- **Eliminasi AI Slop & Restrukturisasi Visual**:
-  - Menghapus gradasi warna generik (AI slop) pada foto profil default dan menggantinya dengan penayangan foto asli pelamar (`photoUrl`) dari tabel `mahasiswa` atau box solid `#1B365D` CDC Navy.
-  - Mengganti istilah **"Kandidat" menjadi "Pelamar"** pada seluruh tabel, badge status, header modal detail, dan tombol aksi.
-  - Memperbaiki kartu KPI statistik (`TOTAL LOWONGAN`, `PELAMAR MASUK`, `LOLOS & REKRUT`) dengan desain modern high-contrast.
-- **Standardisasi Sistem Warna Brand CDC Kendari**:
-  - Menyelaraskan seluruh warna tombol CTA utama dan header menjadi **CDC Ocean Blue (`#0077C6`)** & **CDC Navy (`#1B365D`)**, menghilangkan inkonsistensi warna tombol ("atas biru bawah hijau").
-- **Resolusi Judul Lowongan (`getJobTitle()`)**:
-  - Mengimplementasikan helper `getJobTitle()` untuk mengonversi ID numerik/pendek (seperti `1`) pada tabel dan kartu lowongan menjadi judul posisi lowongan resmi (contoh: *Programmer Web Fullstack*).
-
-#### 2. Redesain Bukti Pengajuan Lamaran & Form (`JobApplicationModal.tsx`)
-- **Header Solid & Resi Digital Modern**:
-  - Menghapus gradasi hijau/teal 3-lapis pada header modal pengajuan lamaran, digantikan dengan warna solid CDC Navy (`#1B365D`).
-  - Menampilkan judul posisi lowongan asli (bukan ID `1`) dan kartu Bukti Pengajuan Digital Resi yang bersih dan elegan.
-- **Catatan Surat Pengantar Opsional**:
-  - Mengubah input Surat Pengantar / Catatan Tambahan menjadi **(Opsional)**, dengan berkas CV PDF tetap bersifat **(Wajib)**.
-
-#### 3. Manajemen Unggah & Pratinjau Real-Time Berkas CV PDF (`JobApplicationModal.tsx`, `MitraDashboard.tsx`, & `data.ts`)
-- **Restriksi Format & Ukuran Berkas**:
-  - Mengunci input unggah berkas khusus untuk **Format PDF (`.pdf`)** dengan batas ukuran maksimal **1 MB**.
-  - Menambahkan validasi error real-time jika pelamar mengunggah berkas di atas 1 MB atau non-PDF.
-- **Penyimpanan Base64 PDF (`data.ts`)**:
-  - Memperbarui fungsi `applyForJob` di `src/data.ts` agar menyimpan string Base64 (`extraData?.uploadedFileUrl`) ke properti `berkasUrl` pada data `pengajuan_magang`.
-- **Pratinjau PDF Real-Time (`PdfViewerPreview` di `MitraDashboard.tsx`)**:
-  - Mengimplementasikan komponen `PdfViewerPreview` yang mengonversi Base64 PDF menjadi **Blob Data URL (`blob:http://...`)**.
-  - Mengatasi kendala browser Chromium/Edge security error (*"We can't open this file"*) sehingga berkas PDF CV pelamar dapat ditayangkan secara utuh, jelas, dan dapat diunduh oleh Mitra Industri.
-
-### 📁 File Diubah
-- **[MODIFY]** `src/components/MitraDashboard.tsx` — Redesain UI dashboard mitra, penyelarasan warna brand CDC, resolusi judul lowongan, dan penambahan `PdfViewerPreview` (Blob URL)
-- **[MODIFY]** `src/components/JobApplicationModal.tsx` — Redesain modal bukti pengajuan lamaran, validasi unggah CV PDF max 1 MB, dan catatan opsional
-- **[MODIFY]** `src/data.ts` — Penyimpanan `uploadedFileUrl` (Base64 PDF) ke `berkasUrl` pada pengajuan lamaran
-- **[MODIFY]** `progres.md` — Pencatatan laporan progres resmi Sesi 7 oleh **Ikhsan**
-
-### 📋 Checklist Selesai Sesi Ini
-- [x] Eliminasi gradasi AI Slop dan penggantian istilah "Kandidat" -> "Pelamar" di Dashboard Mitra
-- [x] Standardisasi sistem warna brand CDC Navy (`#1B365D`) & Ocean Blue (`#0077C6`) pada seluruh tombol CTA dan modal
-- [x] Resolusi judul lowongan otomatis `getJobTitle()` untuk mengatasi ID numerik `1`
-- [x] Redesain modal bukti pengajuan lamaran dengan resi digital bersih tanpa gradasi AI Slop
-- [x] Validasi unggah CV khusus format PDF (`.pdf`) dengan batas maksimal 1 MB
-- [x] Penyimpanan Base64 PDF ke `berkasUrl` di `localStorage` / DB
-- [x] Implementasi Blob URL (`PdfViewerPreview`) untuk render pratinjau PDF pelamar tanpa error browser
-- [x] Verifikasi typecheck TypeScript (`npx tsc --noEmit` -> 0 error)
-- [x] Pencatatan laporan progres resmi di `progres.md` atas nama **Ikhsan**
-
- (Manajemen Unggah & Pratinjau Real-Time Berkas CV PDF)
-
-
+- [x] Penghapusan pill navigasi pemintas internal pada Hero Banner halaman Prestasi
+- [x] Enforcement tampilan halaman publik Prestasi sebagai halaman mandiri per sub-menu
+- [x] Form input Admin Prestasi di `AdminDashboard.tsx` (fitur upload foto dokumentasi lokal, edit, hapus, & publish)
+- [x] Grid 3-column Card Layout publik untuk postingan Prestasi di `PublicLayout.tsx`
+- [x] Verifikasi `npx tsc --noEmit` PASSED (0 error)
+- [x] Verifikasi `npm run build` PASSED (0 error, exit 0)
