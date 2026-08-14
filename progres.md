@@ -1150,3 +1150,34 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 - `feat(hero-slider): update poster slide 4 & 5 and fix transition blink`
 - `fix(hero-slider): update poster SVG and eliminate slide transition layout shift`
 
+---
+
+## Tanggal: 14 Agustus 2026 (Sesi 2)
+**Developer:** Fachrul Alam Sanuddin  
+**Fokus Pekerjaan:** Pengintegrasian Menu "Masuk / Login" ke Dalam Dropdown Menu Register pada Header Navigasi
+
+---
+
+### 🚀 Ringkasan Perubahan
+
+#### 1. Pembersihan Barisan Menu Utama (`Header.tsx`)
+- Menghapus item standalone `{ id: 'masuk', label: 'Masuk', tab: 'login', isAction: true }` dari daftar `NAV_ITEMS` agar barisan menu utama tingkat atas tetap rapi, bersih, dan lega.
+
+#### 2. Integrasi Otentikasi Akun pada Dropdown Menu Register (`Header.tsx`)
+- Menambahkan item **"Masuk / Login"** sebagai opsi di dalam dropdown menu **Register** (berdampingan dengan *Register User* dan *Register Mitra*).
+- Menyesuaikan fungsi `navigate()` agar ketika pengguna mengeklik **"Masuk / Login"** di dalam dropdown, sistem langsung memicu fungsi otentikasi login (`onNavigateToLogin()`).
+
+### 📁 File Diubah
+- **[MODIFY]** `src/components/Header.tsx` — Hapus standalone item `masuk`, integrasikan ke `register` dropdown, dan perbarui event handler `navigate`
+- **[MODIFY]** `progres.md` — Pencatatan laporan progres pengerjaan tanggal 14 Agustus 2026 (Sesi 2)
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Penghapusan item menu "Masuk" yang berdiri sendiri di barisan menu utama
+- [x] Penambahan item "Masuk / Login" di dalam dropdown menu Register
+- [x] Pengujian navigasi klik "Masuk / Login" menuju form login
+- [x] Verifikasi `npx tsc --noEmit` PASSED (0 error)
+
+### 💡 Rekomendasi Judul Commit Git
+- `refactor(header): integrate Masuk/Login into Register dropdown menu`
+
+

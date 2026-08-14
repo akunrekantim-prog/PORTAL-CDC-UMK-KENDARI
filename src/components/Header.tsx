@@ -134,16 +134,11 @@ const NAV_ITEMS: NavItem[] = [
     ],
   },
   {
-    id: 'masuk',
-    label: 'Masuk',
-    tab: 'login',
-    isAction: true,
-  },
-  {
     id: 'register',
     label: 'Register',
     isAction: true,
     children: [
+      { label: 'Masuk / Login', tab: 'login' },
       { label: 'Register User', tab: 'register-alumni' },
       { label: 'Register Mitra', tab: 'register-perusahaan' },
     ],
@@ -224,7 +219,9 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
     setOpenDropdown(null);
     setIsMobileOpen(false);
     setMobileExpanded(null);
-    if (tab === 'register-alumni') {
+    if (tab === 'login') {
+      onNavigateToLogin();
+    } else if (tab === 'register-alumni') {
       if (onNavigateToRegister) onNavigateToRegister('alumni');
       else onNavigateToLogin();
     } else if (tab === 'register-perusahaan') {
