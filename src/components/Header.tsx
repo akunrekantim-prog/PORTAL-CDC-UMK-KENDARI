@@ -97,7 +97,7 @@ const NAV_ITEMS: NavItem[] = [
   },
   {
     id: 'simbelmawa',
-    label: 'SIMBELMAWA',
+    label: 'Simbelmawa',
     children: [
       { label: 'PKM', href: 'https://simbelmawa.kemdiktisaintek.go.id/pkm' },
       { label: 'PPK ORMAWA', href: 'https://ppkormawa.kemdiktisaintek.go.id/' },
@@ -108,7 +108,7 @@ const NAV_ITEMS: NavItem[] = [
   },
   {
     id: 'prestasi',
-    label: 'PRESTASI',
+    label: 'Prestasi',
     children: [
       {
         label: 'Internasional',
