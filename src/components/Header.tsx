@@ -138,7 +138,6 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Register',
     isAction: true,
     children: [
-      { label: 'Masuk / Login', tab: 'login' },
       { label: 'Register User', tab: 'register-alumni' },
       { label: 'Register Mitra', tab: 'register-perusahaan' },
     ],

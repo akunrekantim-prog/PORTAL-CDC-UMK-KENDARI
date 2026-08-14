@@ -1180,4 +1180,38 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 ### 💡 Rekomendasi Judul Commit Git
 - `refactor(header): integrate Masuk/Login into Register dropdown menu`
 
+---
+
+## Tanggal: 14 Agustus 2026 (Sesi 3)
+**Developer:** Fachrul Alam Sanuddin  
+**Fokus Pekerjaan:** Pemurnian Alur Navigasi Login Khusus via Halaman Register (Tanpa Sub-menu Masuk di Header)
+
+---
+
+### 🚀 Ringkasan Perubahan
+
+#### 1. Pemurnian Dropdown Menu Register (`Header.tsx`)
+- Menghapus item `"Masuk / Login"` dari dropdown menu `Register` di `Header.tsx`.
+- Menjadikan dropdown menu `Register` murni hanya berisi 2 opsi pendaftaran akun:
+  - **Register User** (`tab: 'register-alumni'`)
+  - **Register Mitra** (`tab: 'register-perusahaan'`)
+
+#### 2. Penyeragaman Alur Masuk (Login) Khusus via Halaman Register (`Register.tsx`)
+- Pengguna yang memilih **Register User** atau **Register Mitra** diarahkan ke halaman registrasi.
+- Pada bagian bawah form registrasi (`Register.tsx`), pengguna dapat menekan tombol link **"Sudah memiliki akun di Portal? Masuk (Login) Sekarang →"** untuk membuka form login.
+
+### 📁 File Diubah
+- **[MODIFY]** `src/components/Header.tsx` — Hapus item `Masuk / Login` dari dropdown `register`
+- **[MODIFY]** `progres.md` — Pencatatan laporan progres pengerjaan tanggal 14 Agustus 2026 (Sesi 3)
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Pemurnian dropdown menu Register (hanya berisi Register User & Register Mitra)
+- [x] Penghapusan item "Masuk" dari seluruh barisan dan dropdown Header
+- [x] Penyeragaman alur login khusus melalui link halaman Register ("Masuk (Login) Sekarang")
+- [x] Verifikasi `npx tsc --noEmit` PASSED (0 error)
+
+### 💡 Rekomendasi Judul Commit Git
+- `refactor(header): purify Register dropdown and direct login flow via Register page`
+
+
 
