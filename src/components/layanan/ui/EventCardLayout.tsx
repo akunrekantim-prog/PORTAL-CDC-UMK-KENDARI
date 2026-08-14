@@ -329,23 +329,12 @@ export default function EventCardLayout({
               </div>
               
               <div className="pt-6 mt-6 border-t border-slate-100">
-                {selectedEvent.status === 'buka' && selectedEvent.registrationLink ? (
-                  <a
-                    href={selectedEvent.registrationLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full inline-flex items-center justify-center gap-2 py-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-2xl shadow-md transition-colors"
-                  >
-                    Daftar Sekarang <ExternalLink className="w-4 h-4" />
-                  </a>
-                ) : (
-                  <button
-                    disabled
-                    className="w-full py-4 bg-slate-100 text-slate-400 text-sm font-bold rounded-2xl cursor-not-allowed"
-                  >
-                    {selectedEvent.status === 'segera' ? 'Pendaftaran Belum Dibuka' : 'Pendaftaran Ditutup'}
-                  </button>
-                )}
+                <button
+                  onClick={() => setSelectedEvent(null)}
+                  className="w-full inline-flex items-center justify-center gap-2 py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-2xl transition-colors cursor-pointer"
+                >
+                  Tutup
+                </button>
               </div>
             </div>
           </div>
