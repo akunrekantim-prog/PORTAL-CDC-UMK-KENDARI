@@ -272,13 +272,13 @@ export default function EventCardLayout({
       {/* Modal Detail Event */}
       {selectedEvent && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl border border-slate-100 max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-white rounded-2xl max-w-sm w-full overflow-hidden shadow-2xl border border-slate-100 max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-200">
             {/* Modal Header Image */}
-            <div className="relative aspect-[16/8] bg-slate-900">
+            <div className="relative aspect-[9/16] bg-slate-900">
               <img
                 src={selectedEvent.image}
                 alt={selectedEvent.title}
-                className="w-full h-full object-cover opacity-90"
+                className="w-full h-full object-contain"
               />
               <button
                 onClick={() => setSelectedEvent(null)}
@@ -287,62 +287,51 @@ export default function EventCardLayout({
               >
                 <X className="w-5 h-5" />
               </button>
-                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
-                  {getStatusBadge(selectedEvent.status)}
-                  <span className="bg-white/90 text-slate-800 text-xs px-2.5 py-1 rounded-md font-medium">
-                    By Admin Website
-                  </span>
-                </div>
             </div>
 
             {/* Modal Body Content */}
-            <div className="p-6 overflow-y-auto space-y-5 flex-1">
+            <div className="p-6 overflow-y-auto flex-1 space-y-4">
               <div>
-                <h3 className="text-xl font-bold text-slate-900 leading-snug">
+                <h3 className="text-lg font-bold text-slate-900 leading-snug">
                   {selectedEvent.title}
                 </h3>
-                <p className="text-slate-600 text-sm mt-2 leading-relaxed">
+                <p className="text-slate-600 text-sm mt-1 leading-relaxed">
                   {selectedEvent.description}
                 </p>
               </div>
 
-              <div className="bg-slate-50 rounded-xl p-4 space-y-3 text-xs text-slate-700 border border-slate-200/70">
-                <div className="flex items-center gap-3">
-                  <Calendar className="w-4 h-4 text-blue-600 shrink-0" />
-                  <div>
-                    <strong className="block text-slate-900">Tanggal & Waktu Pelaksanaan</strong>
-                    <span>{formatDateIndo(selectedEvent.date)} {selectedEvent.time ? `• ${selectedEvent.time}` : ''}</span>
-                  </div>
-                </div>
+              <div className="flex items-center justify-between">
+                {getStatusBadge(selectedEvent.status)}
+                <span className="text-slate-500 text-[10px] font-medium">
+                  By Admin Website
+                </span>
               </div>
-            </div>
-
-            {/* Modal Footer Action */}
-            <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3">
-              <button
-                onClick={() => setSelectedEvent(null)}
-                className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg border border-slate-200 transition-colors cursor-pointer"
-              >
-                Tutup
-              </button>
-              {selectedEvent.status === 'buka' && selectedEvent.registrationLink ? (
-                <a
-                  href={selectedEvent.registrationLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors"
+              
+              <div className="pt-2 border-t border-slate-100 flex gap-2">
+                <button
+                  onClick={() => setSelectedEvent(null)}
+                  className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
                 >
-                  Daftar Sekarang <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              ) : selectedEvent.status === 'segera' ? (
-                <span className="text-xs text-amber-700 font-medium px-3 py-1.5 bg-amber-50 rounded-lg border border-amber-200">
-                  Pendaftaran Belum Dibuka
-                </span>
-              ) : (
-                <span className="text-xs text-slate-500 font-medium px-3 py-1.5 bg-slate-200 rounded-lg">
-                  Pendaftaran Ditutup
-                </span>
-              )}
+                  Tutup
+                </button>
+                {selectedEvent.status === 'buka' && selectedEvent.registrationLink ? (
+                  <a
+                    href={selectedEvent.registrationLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-[2] inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl shadow-sm transition-colors"
+                  >
+                    Daftar Sekarang <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                ) : (
+                  <button
+                    disabled
+                    className="flex-[2] px-4 py-2.5 bg-slate-100 text-slate-400 text-xs font-semibold rounded-xl cursor-not-allowed"
+                  >
+                    {selectedEvent.status === 'segera' ? 'Pendaftaran Belum Dibuka' : 'Pendaftaran Ditutup'}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

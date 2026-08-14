@@ -1219,36 +1219,30 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 
 ---
 
-## Tanggal: 14 Agustus 2026 (Sesi 3)
-**Developer:** Fachrul Alam Sanuddin  
-**Fokus Pekerjaan:** Pemurnian Alur Navigasi Login Khusus via Halaman Register (Tanpa Sub-menu Masuk di Header)
+## Tanggal: 14 Agustus 2026 (Sesi 4)
+**Developer:** ARYA APRIAWAN  
+**Fokus Pekerjaan:** Revisi Tampilan Detail Kegiatan Sub-Menu Layanan (Rasio 9:16)
 
 ---
 
 ### 🚀 Ringkasan Perubahan
-
-#### 1. Pemurnian Dropdown Menu Register (`Header.tsx`)
-- Menghapus item `"Masuk / Login"` dari dropdown menu `Register` di `Header.tsx`.
-- Menjadikan dropdown menu `Register` murni hanya berisi 2 opsi pendaftaran akun:
-  - **Register User** (`tab: 'register-alumni'`)
-  - **Register Mitra** (`tab: 'register-perusahaan'`)
-
-#### 2. Penyeragaman Alur Masuk (Login) Khusus via Halaman Register (`Register.tsx`)
-- Pengguna yang memilih **Register User** atau **Register Mitra** diarahkan ke halaman registrasi.
-- Pada bagian bawah form registrasi (`Register.tsx`), pengguna dapat menekan tombol link **"Sudah memiliki akun di Portal? Masuk (Login) Sekarang →"** untuk membuka form login.
+1. **Revisi UI Detail Kegiatan:**
+   - Mengubah rasio tampilan poster/banner detail kegiatan menjadi 9:16 (portrait) pada modal `EventCardLayout`.
+   - Mengatur ulang tata letak modal agar konten (judul, deskripsi, status, tombol aksi) tampil lebih proporsional di bawah poster, meniru tampilan pada modul *Job Info*.
+   - Memastikan tombol aksi "Tutup" dan "Daftar Sekarang" berada di posisi yang tepat di bagian bawah modal.
 
 ### 📁 File Diubah
-- **[MODIFY]** `src/components/Header.tsx` — Hapus item `Masuk / Login` dari dropdown `register`
-- **[MODIFY]** `progres.md` — Pencatatan laporan progres pengerjaan tanggal 14 Agustus 2026 (Sesi 3)
+- **[MODIFY]** `src/components/layanan/ui/EventCardLayout.tsx`
+- **[MODIFY]** `progres.md`
 
 ### 📋 Checklist Selesai Sesi Ini
-- [x] Pemurnian dropdown menu Register (hanya berisi Register User & Register Mitra)
-- [x] Penghapusan item "Masuk" dari seluruh barisan dan dropdown Header
-- [x] Penyeragaman alur login khusus melalui link halaman Register ("Masuk (Login) Sekarang")
-- [x] Verifikasi `npx tsc --noEmit` PASSED (0 error)
+- [x] Implementasi rasio poster 9:16 pada modal detail kegiatan.
+- [x] Restrukturisasi tata letak isi modal (judul, deskripsi, status, tombol).
+- [x] Verifikasi konsistensi UI dengan referensi dashboard Job Info.
+- [x] Dokumentasi progres oleh ARYA APRIAWAN.
 
 ### 💡 Rekomendasi Judul Commit Git
-- `refactor(header): purify Register dropdown and direct login flow via Register page`
+- `refactor(layanan): update event detail modal to 9:16 aspect ratio and match Job Info UI`
 
 
 
