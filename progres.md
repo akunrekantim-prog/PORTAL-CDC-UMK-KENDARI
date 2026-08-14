@@ -1244,5 +1244,72 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 ### 💡 Rekomendasi Judul Commit Git
 - `refactor(layanan): update event detail modal to 9:16 aspect ratio and match Job Info UI`
 
+---
+
+## Tanggal: 14 Agustus 2026 (Sesi 4)
+**Developer:** Ikhsan  
+**Fokus Pekerjaan:** Redesain UI Search Job & Kelola Lowongan Mitra, Penyelarasan Data 9 Lowongan, Pembersihan Sidebar Mitra, dan Perbaikan Null-Safety Header
+
+---
+
+### 🚀 Ringkasan Perubahan
+
+#### 1. Redesain Halaman Cari Lowongan / Search Job (`JobSearchMasterDetail.tsx`)
+- Mengubah judul halaman menjadi **"Cari lowongan pekerjaan"** dan subtitle *"Temukan peluang karier yang sesuai dengan minat dan keahlianmu."*
+- Meredesain kontainer pencarian bertema putih bersih (*clean white theme*) dengan 3 input/dropdown (Kata Kunci, Semua Lokasi, Semua Spesialisasi) & tombol Cari biru gelap `#0B1E48`.
+- Menambahkan fitur sorting lowongan: **Terbaru**, **Terlama**, dan **Abjad (A-Z)**.
+- Menyelaraskan format counter **"Menampilkan 1-6 dari 9 lowongan"** (angka 9 dicetak tebal dengan warna biru `#0055D4`).
+- Mengimplementasikan helper logo badge squircle (`getCompanyBadgeColor` & `getCompanyInitials`) dengan dukungan warna unik per instansi (CL, YB, RE, CA, GF, TS).
+- Menambahkan tombol bookmark bundar di sudut kanan atas kartu, badge nama instansi oranye `#EA580C`, info tanggal & jam di footer kartu, dan pagination `< 1 2 >`.
+
+#### 2. Redesain Header Navigation Bar Mahasiswa (`MahasiswaDashboard.tsx`)
+- Mengubah tampilan header dari warna biru gelap (`#1E3A8A`) menjadi putih bersih (`bg-white border-b border-slate-200`).
+- Menambahkan badge koper hijau (`#10B981`), teks brand **Career Portal UMK**, link navigasi aktif dengan garis bawah biru `#0055D4`, dropdown profil pengguna, dan tombol keluar.
+
+#### 3. Pembersihan Sidebar Navigasi Mitra (`MitraDashboard.tsx`)
+- Menghapus opsi sub-menu **"Survei Mutu Lulusan"** dari sidebar navigasi Dashboard Mitra sesuai instruksi pengguna.
+
+#### 4. Penyelarasan Scope & Database Seed 9 Lowongan (`src/data.ts`)
+- Menghubungkan seluruh 9 lowongan publik di `SEED_LOWONGAN` ke ID Mitra Demo (`mtr1` / PT Go Digital Kendari).
+- Memperbarui versi seed database ke `v6_all9lowongan` agar `localStorage` ter-sync otomatis sehingga Dashboard Mitra dan Search Job sama-sama menampilkan 9 lowongan.
+
+#### 5. Redesain Tab "Kelola Lowongan" Dashboard Mitra (`MitraDashboard.tsx`)
+- Meredesain tampilan tab Kelola Lowongan presisi 1:1 dengan screenshot mockup:
+  - Judul Halaman: **Manajemen Database Lowongan** dengan subtitle penjelasan & tombol **`+ Posting Lowongan Baru`** (`#0055D4`).
+  - Bar Kontrol Pencarian & Filter 4 Kolom: Input pencarian kata kunci + 3 dropdown filter (`Semua Jenis`, `Semua Status`, `Terbaru`).
+  - Layout Grid 2 Kolom x 3 Baris (6 kartu per halaman) dengan badge tipe (`PROGRAM MAGANG` / `LOWONGAN KERJA`), badge status (`● Aktif` / `● Tutup`), logo squircle, meta info lokasi & kuota, deadline, serta baris tombol aksi (`Edit Detail`, `Tutup`, icon Hapus).
+  - Kontrol Pagination `< 1 2 >` di bagian bawah.
+
+#### 6. Perbaikan Bug Blank Screen & Proteksi Null-Safety (`MitraDashboard.tsx` & `JobSearchMasterDetail.tsx`)
+- Meng-import `formatDateDisplay` pada `MitraDashboard.tsx` untuk mengatasi `ReferenceError` pada penanggalan deadline.
+- Menambahkan proteksi *null-safety* lengkap (`(j.judul || '')`, `(j.namaInstansi || '')`, `(j.lokasi || '')`, `(j.deskripsi || '')`) pada filter pencarian, sorting, dan pembentukan badge logo perusahaan agar aplikasi 100% stabil.
+- Verifikasi kompilasi TypeScript `npx tsc --noEmit` lulus sempurna dengan **0 Error**.
+
+---
+
+### 📁 File Diubah
+- **[MODIFY]** `src/components/JobSearchMasterDetail.tsx` — Redesain UI Search Job, pencarian, sorting, logo squircle, dan pagination
+- **[MODIFY]** `src/components/MahasiswaDashboard.tsx` — Redesain header navigasi bertema putih dengan aksen biru & hijau
+- **[MODIFY]** `src/components/MitraDashboard.tsx` — Redesain Kelola Lowongan, hapus menu Survei Mutu Lulusan, import `formatDateDisplay`, dan perbaikan null-safety
+- **[MODIFY]** `src/data.ts` — Update `mitraId: 'mtr1'` pada `low8`, `low9`, `low10`, dan upgrade seed version ke `v6_all9lowongan`
+- **[MODIFY]** `progres.md` — Pencatatan laporan progres pengerjaan tanggal 14 Agustus 2026 (Sesi 4)
+
+---
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Redesain Halaman Search Job bertema putih dengan pencarian 3 dropdown, sorting, counter tebal biru, dan logo squircle
+- [x] Redesain Header Navigation Bar Mahasiswa bertema putih dengan logo koper hijau & active tab border biru
+- [x] Penghapusan menu Survei Mutu Lulusan dari sidebar Dashboard Mitra
+- [x] Penyelarasan data 9 lowongan antara Dashboard Mitra & Search Job (Upgrade Seed Database v6)
+- [x] Redesain Tab Kelola Lowongan Dashboard Mitra presisi 1:1 (Top bar, search, 3 filter dropdown, 2-column grid cards, pagination)
+- [x] Perbaikan error blank screen (`formatDateDisplay` import fix & null-safety hardening)
+- [x] Verifikasi `npx tsc --noEmit` PASSED (0 Error)
+
+---
+
+### 💡 Rekomendasi Judul Commit Git
+- `feat(mitra & user): redesign Job Search & Kelola Lowongan views, align 9 jobs seed, and purify Mitra sidebar`
+
+
 
 

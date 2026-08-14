@@ -182,40 +182,51 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
         </div>
       )}
 
-      {/* Header / Top Navigation */}
-      <header className="bg-[#1E3A8A] text-white sticky top-0 z-40 shadow-md">
+      {/* Header / Top Navigation (Matching Screenshot 1:1) */}
+      <header className="bg-white text-slate-900 sticky top-0 z-40 border-b border-slate-200/80 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-8">
-            <div className="flex items-center gap-2">
-              <div className="bg-[#10B981] text-white p-2 rounded-xl">
+            <div className="flex items-center gap-2.5">
+              <div className="bg-[#10B981] text-white p-2 rounded-xl shadow-xs">
                 <Briefcase className="w-5 h-5" />
               </div>
-              <div className="font-bold text-lg tracking-tight">Career Portal UMK</div>
+              <div className="font-extrabold text-lg sm:text-xl tracking-tight text-slate-900">Career Portal UMK</div>
             </div>
             
-            <nav className="hidden md:flex items-center gap-1">
+            <nav className="hidden md:flex items-center gap-2">
               <button
                 onClick={() => setActiveTab('search')}
-                className={`px-4 py-2 rounded-lg font-semibold text-sm transition ${
-                  activeTab === 'search' ? 'bg-white/10 text-white' : 'text-blue-100 hover:bg-white/5 hover:text-white'
+                className={`px-3.5 py-5 border-b-2 font-extrabold text-sm transition-all flex items-center gap-1.5 ${
+                  activeTab === 'search'
+                    ? 'border-[#0055D4] text-[#0055D4]'
+                    : 'border-transparent text-slate-600 hover:text-slate-900'
                 }`}
               >
-                Cari Lowongan
+                Lowongan
               </button>
 
               <button
                 onClick={() => setActiveTab('applications')}
-                className={`px-4 py-2 rounded-lg font-semibold text-sm transition flex items-center gap-2 ${
-                  activeTab === 'applications' ? 'bg-white/10 text-white' : 'text-blue-100 hover:bg-white/5 hover:text-white'
+                className={`px-3.5 py-5 border-b-2 font-extrabold text-sm transition-all flex items-center gap-1.5 ${
+                  activeTab === 'applications'
+                    ? 'border-[#0055D4] text-[#0055D4]'
+                    : 'border-transparent text-slate-600 hover:text-slate-900'
                 }`}
               >
                 <span>Lamaran Saya</span>
+                {interviewAlertCount > 0 && (
+                  <span className="bg-amber-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full animate-pulse">
+                    {interviewAlertCount}
+                  </span>
+                )}
               </button>
 
               <button
                 onClick={() => setActiveTab('profile')}
-                className={`px-4 py-2 rounded-lg font-semibold text-sm transition ${
-                  activeTab === 'profile' ? 'bg-white/10 text-white' : 'text-blue-100 hover:bg-white/5 hover:text-white'
+                className={`px-3.5 py-5 border-b-2 font-extrabold text-sm transition-all flex items-center gap-1.5 ${
+                  activeTab === 'profile'
+                    ? 'border-[#0055D4] text-[#0055D4]'
+                    : 'border-transparent text-slate-600 hover:text-slate-900'
                 }`}
               >
                 Profil Saya
@@ -224,41 +235,42 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="text-right hidden sm:block">
-              <div className="font-bold text-sm text-white leading-tight">{user.name}</div>
+            <div className="text-right hidden sm:flex items-center gap-1 cursor-pointer group">
+              <span className="font-extrabold text-sm text-slate-800 group-hover:text-blue-600 transition">{user.name}</span>
+              <ChevronDown className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition" />
             </div>
             <button 
               onClick={onLogout}
-              className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-lg text-xs font-semibold transition"
+              className="flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3.5 py-1.5 rounded-lg text-xs font-bold transition shadow-2xs"
             >
-              <LogOut className="w-4 h-4" /> Keluar
+              <LogOut className="w-3.5 h-3.5" /> Keluar
             </button>
           </div>
         </div>
       </header>
 
       {/* Mobile Nav */}
-      <div className="md:hidden bg-[#1E3A8A] border-t border-blue-800 px-2 py-2 flex gap-2">
+      <div className="md:hidden bg-white border-t border-slate-200 px-2 py-2 flex gap-2">
         <button
           onClick={() => setActiveTab('search')}
-          className={`flex-1 py-2 rounded-lg font-semibold text-xs transition ${
-            activeTab === 'search' ? 'bg-[#10B981] text-white' : 'text-blue-200 hover:bg-white/5'
+          className={`flex-1 py-2 rounded-lg font-bold text-xs transition ${
+            activeTab === 'search' ? 'bg-[#0055D4] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
           }`}
         >
-          Cari Lowongan
+          Lowongan
         </button>
         <button
           onClick={() => setActiveTab('applications')}
-          className={`flex-1 py-2 rounded-lg font-semibold text-xs transition flex items-center justify-center gap-1 ${
-            activeTab === 'applications' ? 'bg-[#10B981] text-white' : 'text-blue-200 hover:bg-white/5'
+          className={`flex-1 py-2 rounded-lg font-bold text-xs transition flex items-center justify-center gap-1 ${
+            activeTab === 'applications' ? 'bg-[#0055D4] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
           }`}
         >
           <span>Lamaran Saya</span>
         </button>
         <button
           onClick={() => setActiveTab('profile')}
-          className={`flex-1 py-2 rounded-lg font-semibold text-xs transition ${
-            activeTab === 'profile' ? 'bg-[#10B981] text-white' : 'text-blue-200 hover:bg-white/5'
+          className={`flex-1 py-2 rounded-lg font-bold text-xs transition ${
+            activeTab === 'profile' ? 'bg-[#0055D4] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
           }`}
         >
           Profil Saya
