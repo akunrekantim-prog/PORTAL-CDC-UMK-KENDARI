@@ -9,10 +9,10 @@ import {
   FileText, Mail, Phone, Clock, ArrowRight, Globe, Megaphone,
   Info, GraduationCap, ChevronRight, Facebook, Instagram, Youtube,
   Users, Building, Shield, Award, Star, TrendingUp, Zap, Target,
-  ExternalLink, Calendar, ShieldCheck,
+  ExternalLink, Calendar, ShieldCheck, Trophy,
 } from 'lucide-react';
 
-import { Lowongan, Berita, Pengumuman, Prestasi, KontenKarir } from '../types';
+import { Lowongan, Berita, Pengumuman, KontenKarir } from '../types';
 import { sortJobsByNewest, formatDateDisplay, isJobDeadlinePassed, getFromDB } from '../data';
 import { motion } from 'motion/react';
 import Header from './Header';
@@ -601,6 +601,64 @@ export default function PublicLayout({
                   </section>
                 )}
 
+                {/* ── PRESENTASI ─────────────────────────────────────── */}
+                {(() => {
+                  const presentasiHome = getFromDB<KontenKarir>('konten_karir').filter(
+                    (k) => k.jenis === 'presentasi' && k.status !== 'draft'
+                  ).slice(0, 3);
+                  if (presentasiHome.length === 0) return null;
+                  return (
+                    <section id="presentasi-home">
+                      <div className="flex items-center justify-between mb-7">
+                        <h3 className="text-xl sm:text-2xl font-extrabold text-[#1E3A8A]
+                                       flex items-center gap-2 before:block before:w-1.5 before:h-6
+                                       before:rounded-full before:bg-amber-400">
+                          PRESENTASI MAHASISWA
+                        </h3>
+                        <button
+                          onClick={() => setTab('presentasi-internasional-akademik')}
+                          className="text-amber-600 hover:text-amber-700 font-bold text-sm flex items-center gap-1"
+                        >
+                          Lihat Semua <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                        {presentasiHome.map(item => (
+                          <motion.div
+                            key={item.id}
+                            whileHover={{ y: -3 }}
+                            onClick={() => setTab(`presentasi-${item.kategori}-${item.subKategori}`)}
+                            className="bg-white rounded-2xl overflow-hidden border border-slate-200
+                                       shadow-sm cursor-pointer group"
+                          >
+                            <div className="aspect-[16/9] bg-slate-100 relative overflow-hidden">
+                              {item.thumbnail ? (
+                                <img src={item.thumbnail} alt={item.judul} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <Trophy className="w-10 h-10 text-amber-300" />
+                                </div>
+                              )}
+                              <div className="absolute top-3 left-3 bg-amber-400 text-slate-950 text-[10px] font-bold px-2 py-1 rounded">
+                                {item.peringkat}
+                              </div>
+                            </div>
+                            <div className="p-4 space-y-2">
+                              <div className="text-[11px] font-extrabold text-amber-600 uppercase tracking-wide truncate">
+                                {item.prodi || 'UM KENDARI'} • {item.kategori}
+                              </div>
+                              <h4 className="font-bold text-slate-900 text-sm leading-snug line-clamp-2 group-hover:text-amber-600 transition-colors">
+                                {item.judul}
+                              </h4>
+                              <p className="text-slate-500 text-xs truncate">{item.namaMahasiswa}</p>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </section>
+                  );
+                })()}
+
                 {/* ── PENGUMUMAN ────────────────────────────────────── */}
                 {publishedPengumuman.length > 0 && (
                   <div className="bg-emerald-50 rounded-2xl border border-emerald-200 p-5 shadow-sm">
@@ -1026,7 +1084,7 @@ export default function PublicLayout({
         )}
 
         {/* ─── PRESTASI TAB PAGE ─────────────────────────────────── */}
-        {currentTab.startsWith('prestasi') && (() => {
+        {currentTab.startsWith('presentasi') && (() => {
           const currentScope = currentTab.includes('internasional')
             ? 'internasional'
             : currentTab.includes('nasional')
@@ -1034,19 +1092,21 @@ export default function PublicLayout({
             : 'wilayah';
           const currentKategori = currentTab.includes('non-akademik') ? 'non-akademik' : 'akademik';
 
-          const allPrestasi = getFromDB<Prestasi>('prestasi');
-          const publishedPrestasi = allPrestasi.filter(
-            p => p.status !== 'draft' && p.tingkat === currentScope && p.kategori === currentKategori
+          const allPresentasi = getFromDB<KontenKarir>('konten_karir').filter(
+            (k) => k.jenis === 'presentasi' && k.status !== 'draft'
+          );
+          const publishedPresentasi = allPresentasi.filter(
+            (p) => p.kategori === currentScope && p.subKategori === currentKategori
           );
 
-          const filteredItems = publishedPrestasi.filter(item => {
+          const filteredItems = publishedPresentasi.filter(item => {
             const q = searchQuery.toLowerCase();
-            const matchQ = !q || item.judul.toLowerCase().includes(q) || item.namaMahasiswa.toLowerCase().includes(q);
+            const matchQ = !q || item.judul.toLowerCase().includes(q) || (item.namaMahasiswa || '').toLowerCase().includes(q);
             return matchQ;
           });
 
           return (
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10" id="tab-prestasi">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10" id="tab-presentasi">
               {/* Header Banner */}
               <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 rounded-3xl p-8 sm:p-12 text-white shadow-xl relative overflow-hidden">
                 <div className="absolute right-0 top-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -1057,7 +1117,7 @@ export default function PublicLayout({
                   </div>
 
                   <h1 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight capitalize">
-                    Prestasi Mahasiswa {currentScope} ({currentKategori})
+                    Presentasi {currentScope} ({currentKategori})
                   </h1>
 
                   <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
@@ -1073,7 +1133,7 @@ export default function PublicLayout({
                   <div>
                     <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 flex items-center gap-2">
                       <Star className="w-5 h-5 text-amber-500 fill-amber-400" />
-                      Daftar Capaian Prestasi Unggulan
+                      Daftar Capaian Presentasi Unggulan
                     </h2>
                     <p className="text-slate-500 text-xs sm:text-sm mt-1">
                       Menampilkan data prestasi mahasiswa peraih kejuaraan di tingkat {currentScope} ({currentKategori}).
@@ -1084,7 +1144,7 @@ export default function PublicLayout({
                     onClick={() => (onNavigateToRegister ? onNavigateToRegister('alumni') : onNavigateToLogin())}
                     className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 shadow-md transition shrink-0"
                   >
-                    <Award className="w-4 h-4" /> Laporkan Prestasi Mahasiswa
+                    <Award className="w-4 h-4" /> Laporkan Presentasi
                   </button>
                 </div>
 
@@ -1095,7 +1155,7 @@ export default function PublicLayout({
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Cari kata kunci prestasi, kejuaraan, atau nama mahasiswa..."
+                    placeholder="Cari kata kunci presentasi, capaian, atau nama mahasiswa..."
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                   />
                 </div>
@@ -1104,9 +1164,9 @@ export default function PublicLayout({
                 {filteredItems.length === 0 ? (
                   <div className="text-center py-16 bg-slate-50/50 rounded-2xl border border-dashed border-slate-300 space-y-3">
                     <Award className="w-12 h-12 text-slate-300 mx-auto" />
-                    <h3 className="font-bold text-slate-700 text-base">Belum Ada Data Prestasi untuk Kategori Ini</h3>
+                    <h3 className="font-bold text-slate-700 text-base">Belum Ada Data Presentasi untuk Kategori Ini</h3>
                     <p className="text-slate-400 text-xs max-w-md mx-auto">
-                      Belum terdapat postingan prestasi terpublikasi untuk {currentScope} ({currentKategori}). Admin dapat memposting prestasi baru dari Admin Dashboard.
+                      Belum terdapat postingan presentasi terpublikasi untuk {currentScope} ({currentKategori}). Admin dapat memposting presentasi baru dari Admin Dashboard.
                     </p>
                   </div>
                 ) : (
@@ -1119,9 +1179,9 @@ export default function PublicLayout({
                         <div>
                           {/* Image documentation header */}
                           <div className="w-full h-48 relative overflow-hidden bg-slate-100 border-b border-slate-100">
-                            {item.imageUrl ? (
+                            {item.thumbnail ? (
                               <img
-                                src={item.imageUrl}
+                                src={item.thumbnail}
                                 alt={item.judul}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                               />
@@ -1154,7 +1214,7 @@ export default function PublicLayout({
                             </h3>
 
                             <p className="text-slate-600 text-xs leading-relaxed line-clamp-3">
-                              {item.deskripsi}
+                              {item.body}
                             </p>
                           </div>
                         </div>

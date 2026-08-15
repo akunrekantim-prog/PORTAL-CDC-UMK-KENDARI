@@ -10,8 +10,18 @@ interface EventCardLayoutProps {
   kontenEvents?: KontenKarir[]; // hasil input admin (jenis workshop/softskill/seminar)
 }
 
-// Map KontenKarir (event layanan) -> EventLayananItem agar bisa ditampilkan
-// seragam di grid EventCardLayout.
+// Bersihkan teks markdown sederhana dari body konten admin agar tampil
+// rapi di kartu (tanpa tag sisa seperti "# Workshop" atau "[c:...]").
+const cleanText = (s: string = ''): string =>
+  s
+    .replace(/\n/g, ' ')
+    .replace(/\\n/g, ' ')
+    .replace(/\[\/[a-z]+\]/gi, '')
+    .replace(/\[[a-z]+(?::[^\]]*)?\]/gi, '')
+    .replace(/[#>*_`~\\]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
 const mapKontenToEvent = (k: KontenKarir): EventLayananItem => ({
   id: `kk_${k.id}`,
   category: (k.jenis === 'workshop' || k.jenis === 'softskill' || k.jenis === 'seminar')
@@ -23,7 +33,7 @@ const mapKontenToEvent = (k: KontenKarir): EventLayananItem => ({
   time: k.waktu,
   location: k.lokasiEvent || '-',
   image: k.thumbnail || 'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=800&auto=format&fit=crop',
-  description: (k.body || '').replace(/[#>*_`~\[\]\/c:hl:sub:sup:fs:block:lokasi:kalender:jam]/g, '').slice(0, 180).trim(),
+  description: cleanText(k.body).slice(0, 180),
   speaker: k.pembicara,
   quota: k.kuotaEvent,
   registeredCount: k.terdaftar,
@@ -138,13 +148,16 @@ export default function EventCardLayout({
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
       {/* Header Title Section */}
-      <div className="border-b border-slate-200 pb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-          {pageTitle}
-        </h1>
-        <p className="text-slate-600 mt-2 text-base leading-relaxed">
-          {subtitle}
-        </p>
+      <div className="border-b border-slate-200 pb-6 flex items-start gap-3">
+        <div className="mt-1.5 w-1.5 h-10 rounded-full bg-[#0077C6] shrink-0"></div>
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+            {pageTitle}
+          </h1>
+          <p className="text-slate-600 mt-2 text-base leading-relaxed">
+            {subtitle}
+          </p>
+        </div>
       </div>
 
       {/* Control Panel: Search & Date Filters */}

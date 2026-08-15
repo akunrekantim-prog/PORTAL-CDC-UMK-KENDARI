@@ -22,7 +22,6 @@ import {
   PengajuanMagang,
   KontenKarir,
   JenisKonten,
-  Prestasi
 } from '../types';
 import {
   getFromDB,
@@ -81,6 +80,7 @@ import {
   List,
   ListOrdered,
   Image as ImageIcon,
+  Link as LinkIcon,
   Users,
   Download,
   AlertCircle,
@@ -98,7 +98,7 @@ interface AdminDashboardProps {
   onReloadData?: () => void;
 }
 
-type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin' | 'prestasi';
+type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin';
 type KontenSubTab = 'riwayat' | 'pembuatan';
 type MitraSubTab = 'approval' | 'list';
 
@@ -108,7 +108,8 @@ const JENIS_LABEL: Record<JenisKonten, string> = {
   program: 'Program & Pengumuman',
   workshop: 'Workshop & Pelatihan Karir',
   softskill: 'Pelatihan Softskill & Kewirausahaan',
-  seminar: 'Seminar Sukses Berkarir'
+  seminar: 'Seminar Sukses Berkarir',
+  presentasi: 'Presentasi'
 };
 
 const JENIS_ICON: Record<JenisKonten, React.ReactNode> = {
@@ -117,17 +118,19 @@ const JENIS_ICON: Record<JenisKonten, React.ReactNode> = {
   program: <Megaphone className="w-4 h-4" />,
   workshop: <GraduationCap className="w-4 h-4" />,
   softskill: <Sparkles className="w-4 h-4" />,
-  seminar: <GraduationCap className="w-4 h-4" />
+  seminar: <GraduationCap className="w-4 h-4" />,
+  presentasi: <Trophy className="w-4 h-4" />
 };
 
 // Rasio thumbnail wajib per jenis
 const THUMB_REQUIRED: Record<JenisKonten, boolean> = {
-  berita: true,    // 16:9
+  berita: true,    // 16:9 — wajib upload poster
   lowongan: true,  // 9:16
   program: true,     // thumbnail wajib (header kartu)
   workshop: false,  // opsional — fallback ke gambar default di EventCardLayout
   softskill: false, // opsional
-  seminar: false    // opsional
+  seminar: false,    // opsional
+  presentasi: true   // wajib upload poster/dokumentasi
 };
 
 const formatTanggal = (iso?: string) =>
@@ -138,6 +141,34 @@ const readFileAsDataUrl = (file: File): Promise<string> =>
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result as string);
     reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+// Kompresi gambar (thumbnail/poster) agar tidak membanjiri localStorage.
+// Resize maksimal maxW px + quality, hasil selalu data URL JPEG/PNG kecil (~100-250KB).
+const compressImage = (file: File, maxW = 1280, quality = 0.82): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Gagal memuat gambar'));
+      img.onload = () => {
+        const scale = Math.min(1, maxW / img.width);
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { reject(new Error('Canvas tidak didukung')); return; }
+        ctx.drawImage(img, 0, 0, w, h);
+        // PNG transparan tetap PNG; lainnya JPEG untuk ukuran kecil
+        const isPng = (file.type === 'image/png');
+        resolve(canvas.toDataURL(isPng ? 'image/png' : 'image/jpeg', quality));
+      };
+      img.src = reader.result as string;
+    };
     reader.readAsDataURL(file);
   });
 
@@ -154,26 +185,6 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   const [appls, setAppls] = useState<PengajuanMagang[]>([]);
   const [allUsers, setAllUsers] = useState<UserType[]>([]);
   const [konten, setKonten] = useState<KontenKarir[]>([]);
-  const [prestasiList, setPrestasiList] = useState<Prestasi[]>([]);
-
-  // Prestasi Form States
-  const [showPrestasiForm, setShowPrestasiForm] = useState(false);
-  const [editPrestasiId, setEditPrestasiId] = useState<string | null>(null);
-  const [pJudul, setPJudul] = useState('');
-  const [pTingkat, setPTingkat] = useState<'internasional' | 'nasional' | 'wilayah'>('wilayah');
-  const [pKategori, setPKategori] = useState<'akademik' | 'non-akademik'>('akademik');
-  const [pPeringkat, setPPeringkat] = useState('Juara 1 / Gold Medal');
-  const [pNamaMahasiswa, setPNamaMahasiswa] = useState('');
-  const [pProdi, setPProdi] = useState('');
-  const [pTahun, setPTahun] = useState('2026');
-  const [pDeskripsi, setPDeskripsi] = useState('');
-  const [pImageUrl, setPImageUrl] = useState('');
-  const [pStatus, setPStatus] = useState<'published' | 'draft'>('published');
-  const [pTerverifikasi, setPTerverifikasi] = useState(true);
-  const [pQuery, setPQuery] = useState('');
-  const [pTingkatFilter, setPTingkatFilter] = useState<'Semua' | 'internasional' | 'nasional' | 'wilayah'>('Semua');
-  const [pKategoriFilter, setPKategoriFilter] = useState<'Semua' | 'akademik' | 'non-akademik'>('Semua');
-
   const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [zoomImage, setZoomImage] = useState<string | null>(null);
 
@@ -185,7 +196,6 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     setAppls(getFromDB<PengajuanMagang>('pengajuan_magang'));
     setAllUsers(getFromDB<UserType>('users'));
     setKonten(getFromDB<KontenKarir>('konten_karir'));
-    setPrestasiList(getFromDB<Prestasi>('prestasi'));
   };
 
   useEffect(() => {
@@ -198,96 +208,12 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     setTimeout(() => setToast(null), 3500);
   };
 
-  const openPrestasiForm = (item?: Prestasi) => {
-    if (item) {
-      setEditPrestasiId(item.id);
-      setPJudul(item.judul);
-      setPTingkat(item.tingkat);
-      setPKategori(item.kategori);
-      setPPeringkat(item.peringkat);
-      setPNamaMahasiswa(item.namaMahasiswa);
-      setPProdi(item.prodi || '');
-      setPTahun(item.tahun);
-      setPDeskripsi(item.deskripsi);
-      setPImageUrl(item.imageUrl || '');
-      setPStatus(item.status || 'published');
-      setPTerverifikasi(item.terverifikasi !== false);
-    } else {
-      setEditPrestasiId(null);
-      setPJudul(''); setPTingkat('wilayah'); setPKategori('akademik');
-      setPPeringkat('Juara 1 / Gold Medal'); setPNamaMahasiswa(''); setPProdi('');
-      setPTahun(new Date().getFullYear().toString()); setPDeskripsi(''); setPImageUrl('');
-      setPStatus('published'); setPTerverifikasi(true);
-    }
-    setShowPrestasiForm(true);
-  };
-
-  const handleSavePrestasi = () => {
-    if (!pJudul.trim() || !pNamaMahasiswa.trim() || !pDeskripsi.trim()) {
-      triggerToast('error', 'Judul, Nama Mahasiswa/Tim, dan Deskripsi wajib diisi.');
-      return;
-    }
-    const existing = editPrestasiId ? prestasiList.find(p => p.id === editPrestasiId) : null;
-    const newPrestasi: Prestasi = {
-      id: editPrestasiId || `prest_${Date.now()}`,
-      judul: pJudul.trim(),
-      tingkat: pTingkat,
-      kategori: pKategori,
-      peringkat: pPeringkat.trim() || 'Juara 1',
-      tahun: pTahun.trim() || '2026',
-      namaMahasiswa: pNamaMahasiswa.trim(),
-      prodi: pProdi.trim() || undefined,
-      deskripsi: pDeskripsi.trim(),
-      imageUrl: pImageUrl.trim() || 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=800&auto=format&fit=crop',
-      terverifikasi: pTerverifikasi,
-      status: pStatus,
-      createdAt: existing?.createdAt || new Date().toISOString(),
-      createdBy: user.id
-    };
-
-    if (editPrestasiId) {
-      updateInDB<Prestasi>('prestasi', newPrestasi);
-      triggerToast('success', 'Data Prestasi berhasil diperbarui.');
-    } else {
-      insertToDB<Prestasi>('prestasi', newPrestasi);
-      triggerToast('success', 'Prestasi baru berhasil dipublikasikan.');
-    }
-    setShowPrestasiForm(false);
-    reloadAll();
-  };
-
-  const handleDeletePrestasi = (item: Prestasi) => {
-    if (confirm(`Hapus prestasi "${item.judul}"?`)) {
-      deleteInDB('prestasi', item.id);
-      reloadAll();
-      triggerToast('success', 'Prestasi berhasil dihapus.');
-    }
-  };
-
-  const handleTogglePublishPrestasi = (item: Prestasi) => {
-    const nextStatus = item.status === 'published' ? 'draft' : 'published';
-    updateInDB<Prestasi>('prestasi', { ...item, status: nextStatus });
-    reloadAll();
-    triggerToast('success', `Status prestasi diubah ke ${nextStatus}.`);
-  };
-
   /* =========================================================
    *  SIDEBAR
    * =======================================================*/
   const MENU: { group: string; items: { id: AdminTab; label: string; icon: React.ReactNode }[] }[] = [
     { group: 'DASHBOARD', items: [{ id: 'ringkasan', label: 'Ringkasan Laporan', icon: <LayoutDashboard className="w-4 h-4" /> }] },
-    {
-      group: 'PRESTASI MAHASISWA',
-      items: [
-        { id: 'prestasi', label: 'Kelola Prestasi Mahasiswa', icon: <Trophy className="w-4 h-4" /> }
-      ]
-    },
-    {
-      group: 'KONTEN KARIR',
-      items: [
-        { id: 'konten', label: 'Riwayat & Pembuatan Konten', icon: <FileText className="w-4 h-4" /> }
-      ]
-    },
+    { group: 'KONTEN KARIR', items: [ { id: 'konten', label: 'Riwayat & Pembuatan Konten', icon: <FileText className="w-4 h-4" /> } ] },
     {
       group: 'MANAJEMEN MITRA',
       items: [
@@ -491,6 +417,13 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   const [eJenis, setEJenis] = useState<JenisKonten>('berita');
   const [eJudul, setEJudul] = useState('');
   const [eBody, setEBody] = useState('');
+  // Init isi editor berita (WYSIWYG) saat editor terbuka — diletakkan SETELAH state terkait dideklarasikan.
+  useEffect(() => {
+    if (editorOpen && eJenis === 'berita' && beritaEditRef.current) {
+      beritaEditRef.current.innerHTML = markdownToHtml(eBody);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editorOpen, eJenis]);
   const [ePenulis, setEPenulis] = useState('');
   const [eThumbnail, setEThumbnail] = useState('');
   const [eNamaInstansi, setENamaInstansi] = useState('');
@@ -512,7 +445,73 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   const [eTerdaftar, setETerdaftar] = useState('');
   const [eLinkDaftar, setELinkDaftar] = useState('');
   const [eStatusEvent, setEStatusEvent] = useState<'buka' | 'segera' | 'selesai'>('buka');
+  // Field khusus Presentasi (konversi dari Prestasi)
+  const [eSubKategori, setESubKategori] = useState<'akademik' | 'non-akademik'>('akademik');
+  const [eNamaMahasiswa, setENamaMahasiswa] = useState('');
+  const [eProdi, setEProdi] = useState('');
+  const [eTahunPres, setETahunPres] = useState(new Date().getFullYear().toString());
+  const [ePeringkat, setEPeringkat] = useState('Juara 1');
+  const [eTerverifikasi, setETerverifikasi] = useState(true);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
+  const beritaEditRef = useRef<HTMLDivElement>(null);
+  const [beritaPop, setBeritaPop] = useState<null | 'bullets' | 'numbering'>(null);
+
+  const applyQuote = () => {
+    const ed = beritaEditRef.current; if (!ed) return; ed.focus();
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return;
+    const range = sel.getRangeAt(0);
+    range.deleteContents();
+    const openQ = document.createTextNode('“');
+    const closeQ = document.createTextNode('”');
+    const frag = document.createDocumentFragment();
+    frag.appendChild(openQ); frag.appendChild(closeQ);
+    range.insertNode(frag);
+    const r = document.createRange();
+    r.setStart(openQ, 1); r.collapse(true);
+    sel.removeAllRanges(); sel.addRange(r);
+  };
+
+  const BULLET_OPTIONS = [
+    { ch: '•', css: 'disc', label: 'Titik lingkaran padat' },
+    { ch: '◦', css: 'circle', label: 'Lingkaran kecil tanpa isi' },
+    { ch: '■', css: 'square', label: 'Persegi padat' },
+    { ch: '✓', css: '"✓ "', label: 'Ceklis (daftar tugas)' },
+    { ch: '◆', css: '"◆ "', label: 'Wajik / berlian kecil' },
+    { ch: '➔', css: '"➔ "', label: 'Panah ke kanan' },
+  ];
+
+  const insertList = (tag: 'ul' | 'ol', style?: string, paren?: boolean) => {
+    const ed = beritaEditRef.current; if (!ed) return;
+    ed.focus();
+    // Bersihkan placeholder kosong agar list tidak numpuk di bawah teks kosong.
+    if (ed.innerHTML === '<div><br></div>' || ed.innerHTML.trim() === '') ed.innerHTML = '';
+    const list = document.createElement(tag);
+    if (style) list.style.listStyleType = style;
+    if (paren && tag === 'ol') list.classList.add('list-paren');
+    const li = document.createElement('li');
+    li.appendChild(document.createElement('br'));
+    list.appendChild(li);
+    ed.appendChild(list);
+    const r = document.createRange();
+    r.setStart(li, 0);
+    r.collapse(true);
+    const s = window.getSelection();
+    s?.removeAllRanges();
+    s?.addRange(r);
+  };
+
+  const applyBullet = (marker: string) => {
+    const opt = BULLET_OPTIONS.find((b) => b.ch === marker);
+    insertList('ul', opt?.css);
+    setBeritaPop(null);
+  };
+
+  const applyNumbering = (paren: boolean) => {
+    insertList('ol', undefined, paren);
+    setBeritaPop(null);
+  };
+
 
   const openEditor = (item?: KontenKarir, jenis?: JenisKonten) => {
     if (item) {
@@ -540,6 +539,12 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       setETerdaftar(item.terdaftar != null ? String(item.terdaftar) : '');
       setELinkDaftar(item.linkDaftar || '');
       setEStatusEvent(item.statusEvent || 'buka');
+      setESubKategori(item.subKategori || 'akademik');
+      setENamaMahasiswa(item.namaMahasiswa || '');
+      setEProdi(item.prodi || '');
+      setETahunPres(item.tahun || new Date().getFullYear().toString());
+      setEPeringkat(item.peringkat || 'Juara 1');
+      setETerverifikasi(item.terverifikasi !== false);
     } else {
       setEditId(null);
       setEJenis(jenis || 'berita');
@@ -548,6 +553,8 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       setEGaji(''); setEKuota(''); setEDeadline(''); setELinkCta(''); setEStatus('published');
       setETanggal(''); setEWaktu(''); setELokasiEvent(''); setEPembicara('');
       setELinkDaftar(''); setEStatusEvent('buka');
+      setESubKategori('akademik'); setENamaMahasiswa(''); setEProdi('');
+      setETahunPres(new Date().getFullYear().toString()); setEPeringkat('Juara 1'); setETerverifikasi(true);
     }
     setSaveError(null);
     setKontenSub('pembuatan');
@@ -855,8 +862,12 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   const handleThumbChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const url = await readFileAsDataUrl(file);
-      setEThumbnail(url);
+      try {
+        const url = await compressImage(file);
+        setEThumbnail(url);
+      } catch (err) {
+        triggerToast('error', 'Gagal memproses gambar thumbnail.');
+      }
     }
   };
 
@@ -867,7 +878,8 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       triggerToast('error', 'Judul wajib diisi.');
       return;
     }
-    if (eJenis !== 'program' && !eBody.trim()) {
+    const currentBody = eJenis === 'berita' ? (beritaEditRef.current?.innerHTML || '').replace(/<br\s*\/?>/gi, '').trim() : eBody;
+    if (eJenis !== 'program' && !currentBody) {
       setSaveError('Isi konten (body) wajib diisi.');
       triggerToast('error', 'Judul dan isi konten wajib diisi.');
       return;
@@ -887,7 +899,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       id: editId || `kk_${Date.now()}`,
       jenis: eJenis,
       judul: eJudul.trim(),
-      body: eBody,
+      body: eJenis === 'berita' ? (beritaEditRef.current?.innerHTML || '') : eBody,
       penulis: eJenis === 'berita' ? (ePenulis.trim() || user.name) : undefined,
       namaInstansi: eJenis === 'lowongan' ? eNamaInstansi.trim() : undefined,
       tipe: eJenis === 'lowongan' ? eTipe : undefined,
@@ -899,6 +911,13 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       linkCta: (eJenis === 'program' || eJenis === 'workshop' || eJenis === 'softskill') ? eLinkCta.trim() : undefined,
       thumbnail: THUMB_REQUIRED[eJenis] ? eThumbnail : undefined,
       scope: eJenis === 'berita' ? eScope : undefined,
+      // Field khusus Presentasi
+      subKategori: eJenis === 'presentasi' ? eSubKategori : undefined,
+      namaMahasiswa: eJenis === 'presentasi' ? eNamaMahasiswa.trim() : undefined,
+      prodi: eJenis === 'presentasi' ? eProdi.trim() : undefined,
+      tahun: eJenis === 'presentasi' ? eTahunPres.trim() : undefined,
+      peringkat: eJenis === 'presentasi' ? ePeringkat.trim() : undefined,
+      terverifikasi: eJenis === 'presentasi' ? eTerverifikasi : undefined,
       status: eStatus,
       createdAt: editId ? (konten.find((k) => k.id === editId)?.createdAt || now) : now,
       updatedAt: now,
@@ -914,12 +933,22 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       linkDaftar: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? eLinkDaftar.trim() : undefined,
       statusEvent: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? eStatusEvent : undefined
     };
-    if (editId) {
-      updateInDB<KontenKarir>('konten_karir', base);
-      triggerToast('success', 'Konten diperbarui.');
-    } else {
-      insertToDB<KontenKarir>('konten_karir', base);
-      triggerToast('success', 'Konten diterbitkan.');
+    try {
+      if (editId) {
+        updateInDB<KontenKarir>('konten_karir', base);
+        triggerToast('success', 'Konten diperbarui.');
+      } else {
+        insertToDB<KontenKarir>('konten_karir', base);
+        triggerToast('success', 'Konten diterbitkan.');
+      }
+    } catch (err: any) {
+      console.error('SAVE_KONTEN_FAIL', err);
+      const msg = (err && err.name === 'QuotaExceededError')
+        ? 'Gagal menyimpan: storage penuh. Coba thumbnail lebih kecil atau hapus beberapa konten lama.'
+        : 'Gagal menyimpan konten ke penyimpanan lokal.';
+      setSaveError(msg);
+      triggerToast('error', msg);
+      return;
     }
     setSaveError(null);
     setEditorOpen(false);
@@ -995,6 +1024,15 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   };
 
   const renderMedium = (raw: string) => {
+    // Jika isi sudah berupa HTML (berita yang diedit via WYSIWYG), render langsung.
+    // Berita lama (markdown) tetap diparse seperti biasa.
+    if (/<[a-z][\s\S]*>/i.test(raw)) {
+      const clean = raw
+        .replace(/<script[\s\S]*?<\/script>/gi, '')
+        .replace(/ on\w+="[^"]*"/gi, '')
+        .replace(/javascript:/gi, '');
+      return <div className="prose-berita" dangerouslySetInnerHTML={{ __html: clean }} />;
+    }
     const out: React.ReactNode[] = [];
     const blockRegex = /\[block\s+align=(left|center|right|justify)\s+spacing=(\d+)\]([\s\S]*?)\[\/block\]/g;
     let last = 0;
@@ -1065,6 +1103,29 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     if (last < raw.length) pushPlain(raw.slice(last), `p${bi}`);
     return out;
   };
+
+  // Konversi markdown sederhana -> HTML untuk init contentEditable saat edit berita lama.
+  function markdownToHtml(md: string): string {
+    if (!md) return '';
+    if (/<[a-z][\s\S]*>/i.test(md)) return md; // sudah HTML
+    const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const inline = (s: string) =>
+      esc(s)
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/__(.+?)__/g, '<u>$1</u>')
+        .replace(/~~(.+?)~~/g, '<span class="line-through">$1</span>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>');
+    return md.split('\n').map((line) => {
+      if (line.trim() === '---') return '<hr/>';
+      if (line.startsWith('## ')) return `<h2>${inline(line.slice(3))}</h2>`;
+      if (line.startsWith('# ')) return `<h1>${inline(line.slice(2))}</h1>`;
+      if (line.startsWith('> ')) return `<blockquote>${inline(line.slice(2))}</blockquote>`;
+      if (/^[-*]\s+/.test(line)) return `<li>${inline(line.replace(/^[-*]\s+/, ''))}</li>`;
+      if (/^\d+\.\s+/.test(line)) return `<li>${inline(line.replace(/^\d+\.\s+/, ''))}</li>`;
+      if (line.trim() === '') return '';
+      return `<p>${inline(line)}</p>`;
+    }).join('');
+  }
 
   const formatInline = (text: string) => renderInline(text);
 
@@ -1681,6 +1742,46 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                         <p className="text-[11px] text-slate-400">Kosongkan jika ingin klik membuka halaman detail. Awali dengan # untuk arahkan ke menu beranda.</p>
                       </div>
                     )}
+
+                    {eJenis === 'presentasi' && (
+                      <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-slate-500">Tingkat Presentasi *</label>
+                          <Dropdown value={eKategori as any} onChange={(v) => setEKategori(v as string)} className="w-full" options={[
+                            { value: 'internasional', label: 'Internasional' },
+                            { value: 'nasional', label: 'Nasional' },
+                            { value: 'wilayah', label: 'Wilayah' }
+                          ]} />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-slate-500">Kategori *</label>
+                          <Dropdown value={eSubKategori} onChange={(v) => setESubKategori(v as any)} className="w-full" options={[
+                            { value: 'akademik', label: 'Akademik' },
+                            { value: 'non-akademik', label: 'Non-Akademik' }
+                          ]} />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-slate-500">Nama Mahasiswa / Tim *</label>
+                          <input value={eNamaMahasiswa} onChange={(e) => setENamaMahasiswa(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="Tim Inovator Informatika UMK" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-slate-500">Program Studi / Fakultas</label>
+                          <input value={eProdi} onChange={(e) => setEProdi(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="Teknik Informatika" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-slate-500">Tahun</label>
+                          <input value={eTahunPres} onChange={(e) => setETahunPres(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="2026" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-slate-500">Peringkat / Capaian</label>
+                          <input value={ePeringkat} onChange={(e) => setEPeringkat(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="Juara 1 / Gold Medal" />
+                        </div>
+                        <div className="space-y-1.5 sm:col-span-2 flex items-center gap-2">
+                          <input type="checkbox" checked={eTerverifikasi} onChange={(e) => setETerverifikasi(e.target.checked)} className="w-4 h-4" />
+                          <label className="text-xs font-medium text-slate-500">Terverifikasi CDC</label>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Thumbnail */}
@@ -1699,16 +1800,16 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                     </div>
                   )}
 
-                  {eJenis === 'program' ? (
+                  {eJenis === 'program' || eJenis === 'presentasi' ? (
                     <div className="space-y-2">
-                      <label className="text-xs font-medium text-slate-500">Isi Konten (opsional — kosongkan jika hanya ingin mengarahkan klik kartu ke link)</label>
+                      <label className="text-xs font-medium text-slate-500">Deskripsi {eJenis === 'presentasi' ? 'Prestasi / Capaian' : 'Konten (opsional — kosongkan jika hanya ingin mengarahkan klik kartu ke link)'}</label>
                       <textarea
                         ref={bodyRef}
                         value={eBody}
                         onChange={(e) => setEBody(e.target.value)}
                         rows={10}
                         className="w-full border border-slate-300 rounded-xl p-3 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-300"
-                        placeholder="Tulis detail program & pengumuman di sini (opsional). Kosongkan jika klik kartu langsung diarahkan ke link di atas."
+                        placeholder={eJenis === 'presentasi' ? "Tulis deskripsi singkat capaian presentasi ini..." : "Tulis detail program & pengumuman di sini (opsional). Kosongkan jika klik kartu langsung diarahkan ke link di atas."}
                       />
                       {eBody.trim() && (
                         <div className="space-y-2">
@@ -1723,81 +1824,52 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                   <>
                   <div className="space-y-2">
                     <label className="text-xs font-medium text-slate-500">Isi Konten (Gaya Medium + Format Word)</label>
-                    <div className="flex flex-wrap items-center gap-1.5 border border-slate-200 rounded-t-xl p-2 bg-slate-50">
-                      {/* Font Color */}
-                      <label title="Warna Teks" className="relative flex items-center justify-center px-2 py-1.5 rounded-lg hover:bg-white border border-transparent hover:border-slate-300 cursor-pointer text-slate-600 transition">
-                        <BaselineIcon className="w-4 h-4" />
-                        <input type="color" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onChange={(e) => wrapInlineArg(`[c:${e.target.value}]`, '[/c]')} />
-                      </label>
-                      {/* Highlight */}
-                      <label title="Sorot (Highlight)" className="relative flex items-center justify-center px-2 py-1.5 rounded-lg hover:bg-white border border-transparent hover:border-slate-300 cursor-pointer text-slate-600 transition">
-                        <HighlighterIcon className="w-4 h-4" />
-                        <input type="color" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onChange={(e) => wrapInlineArg(`[hl:${e.target.value}]`, '[/hl]')} />
-                      </label>
+                    <div className="flex flex-wrap items-center gap-1.5 border border-slate-200 rounded-t-xl p-2 bg-slate-50 relative">
+                      <ToolbarBtn icon={<Bold className="w-4 h-4" />} label="Bold" onMouseDown={(e) => e.preventDefault()} onClick={() => document.execCommand('bold')} />
+                      <ToolbarBtn icon={<Italic className="w-4 h-4" />} label="Italic" onMouseDown={(e) => e.preventDefault()} onClick={() => document.execCommand('italic')} />
+                      <ToolbarBtn icon={<UnderlineIcon className="w-4 h-4" />} label="Underline" onMouseDown={(e) => e.preventDefault()} onClick={() => document.execCommand('underline')} />
+                      <ToolbarBtn icon={<StrikethroughIcon className="w-4 h-4" />} label="Strikethrough" onMouseDown={(e) => e.preventDefault()} onClick={() => document.execCommand('strikeThrough')} />
                       <span className="w-px h-6 bg-slate-300 mx-0.5" />
-                      {/* Basic format */}
-                      <ToolbarBtn icon={<Bold className="w-4 h-4" />} label="Bold" onClick={() => wrapInline('**')} />
-                      <ToolbarBtn icon={<Italic className="w-4 h-4" />} label="Italic" onClick={() => wrapInline('*')} />
-                      <ToolbarBtn icon={<UnderlineIcon className="w-4 h-4" />} label="Underline" onClick={() => wrapInline('__')} />
-                      <ToolbarBtn icon={<StrikethroughIcon className="w-4 h-4" />} label="Strikethrough" onClick={() => wrapInline('~~')} />
-                      <ToolbarBtn icon={<SubscriptIcon className="w-4 h-4" />} label="Subscript" onClick={() => wrapInlineArg('[sub]', '[/sub]')} />
-                      <ToolbarBtn icon={<SuperscriptIcon className="w-4 h-4" />} label="Superscript" onClick={() => wrapInlineArg('[sup]', '[/sup]')} />
-                      <span className="w-px h-6 bg-slate-300 mx-0.5" />
-                      {/* Change Case */}
-                      <ToolbarBtn icon={<CaseIcon className="w-4 h-4" />} label="Upper Case" onClick={() => changeCase('upper')} />
-                      <ToolbarBtn icon={<CaseIcon className="w-4 h-4 scale-x-[-1]" />} label="Lower Case" onClick={() => changeCase('lower')} />
-                      <ToolbarBtn icon={<CaseIcon className="w-4 h-4" />} label="Title Case" onClick={() => changeCase('title')} />
-                      <span className="w-px h-6 bg-slate-300 mx-0.5" />
-                      {/* Font Size */}
-                      <ToolbarBtn icon={<ChevronDown className="w-4 h-4" />} label="Font Size -" onClick={() => fontSizeAdjust(-2)} />
-                      <ToolbarBtn icon={<ChevronUp className="w-4 h-4" />} label="Font Size +" onClick={() => fontSizeAdjust(2)} />
-                      <ToolbarBtn icon={<TypeIcon className="w-4 h-4" />} label="Clear All Formatting" onClick={() => clearFormatting()} />
-                      <span className="w-px h-6 bg-slate-300 mx-0.5" />
-                      {/* Lists */}
-                      <ToolbarBtn icon={<List className="w-4 h-4" />} label="Bullets" onClick={() => toggleLinePrefix('- ')} />
-                      <ToolbarBtn icon={<ListOrdered className="w-4 h-4" />} label="Numbering" onClick={() => toggleLinePrefix('1. ')} />
-                      <span className="w-px h-6 bg-slate-300 mx-0.5" />
-                      {/* Align */}
-                      <ToolbarBtn icon={<AlignLeft className="w-4 h-4" />} label="Align Left" onClick={() => { setBlockAlign('left'); applyBlock('left'); }} />
-                      <ToolbarBtn icon={<AlignCenter className="w-4 h-4" />} label="Align Center" onClick={() => { setBlockAlign('center'); applyBlock('center'); }} />
-                      <ToolbarBtn icon={<AlignRight className="w-4 h-4" />} label="Align Right" onClick={() => { setBlockAlign('right'); applyBlock('right'); }} />
-                      <ToolbarBtn icon={<AlignJustify className="w-4 h-4" />} label="Justify" onClick={() => { setBlockAlign('justify'); applyBlock('justify'); }} />
-                      <span className="w-px h-6 bg-slate-300 mx-0.5" />
-                      {/* Line & Paragraph Spacing */}
-                      <div className="flex items-center gap-1" title="Line & Paragraph Spacing">
-                        <PilcrowIcon className="w-4 h-4 text-slate-500" />
-                        <button type="button" onClick={() => { setBlockSpacing(Math.max(0, blockSpacing - 1)); applyBlock(undefined, Math.max(0, blockSpacing - 1)); }} className="px-1.5 py-1 rounded-lg hover:bg-white border border-transparent hover:border-slate-300 text-slate-600 text-xs font-bold">-</button>
-                        <span className="text-xs font-bold text-slate-600 w-4 text-center">{blockSpacing}</span>
-                        <button type="button" onClick={() => { setBlockSpacing(Math.min(6, blockSpacing + 1)); applyBlock(undefined, Math.min(6, blockSpacing + 1)); }} className="px-1.5 py-1 rounded-lg hover:bg-white border border-transparent hover:border-slate-300 text-slate-600 text-xs font-bold">+</button>
+                      <ToolbarBtn icon={<Heading1 className="w-4 h-4" />} label="H1" onMouseDown={(e) => e.preventDefault()} onClick={() => document.execCommand('formatBlock', false, 'h1')} />
+                      <ToolbarBtn icon={<Heading2 className="w-4 h-4" />} label="H2" onMouseDown={(e) => e.preventDefault()} onClick={() => document.execCommand('formatBlock', false, 'h2')} />
+                      <div className="relative">
+                        <ToolbarBtn icon={<List className="w-4 h-4" />} label="Bullets" onClick={() => setBeritaPop(beritaPop === 'bullets' ? null : 'bullets')} />
+                        {beritaPop === 'bullets' && (
+                          <div className="absolute z-30 mt-1 w-56 bg-white border border-slate-200 rounded-xl shadow-lg p-1.5 space-y-0.5">
+                            {BULLET_OPTIONS.map((b) => (
+                              <button key={b.ch} type="button" onClick={() => applyBullet(b.ch)} className="w-full flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 text-left text-sm text-slate-700">
+                                <span className="w-6 text-center text-base leading-none">{b.ch}</span>
+                                <span>{b.label}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
+                      <div className="relative">
+                        <ToolbarBtn icon={<ListOrdered className="w-4 h-4" />} label="Numbering" onClick={() => setBeritaPop(beritaPop === 'numbering' ? null : 'numbering')} />
+                        {beritaPop === 'numbering' && (
+                          <div className="absolute z-30 mt-1 w-64 bg-white border border-slate-200 rounded-xl shadow-lg p-1.5 space-y-0.5">
+                            <button type="button" onClick={() => applyNumbering(false)} className="w-full flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 text-left text-sm text-slate-700">
+                              <span className="w-8 text-center font-mono">1.</span><span>Penomoran standar (1, 2, 3, ...)</span>
+                            </button>
+                            <button type="button" onClick={() => applyNumbering(true)} className="w-full flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 text-left text-sm text-slate-700">
+                              <span className="w-8 text-center font-mono">1)</span><span>Angka Arab + kurung tutup (1), 2), ...)</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      <ToolbarBtn icon={<Quote className="w-4 h-4" />} label="Quote" onMouseDown={(e) => e.preventDefault()} onClick={applyQuote} />
                       <span className="w-px h-6 bg-slate-300 mx-0.5" />
-                      {/* Heading / Quote / Divider */}
-                      <ToolbarBtn icon={<Heading1 className="w-4 h-4" />} label="H1" onClick={() => insertLineToken('# ')} />
-                      <ToolbarBtn icon={<Heading2 className="w-4 h-4" />} label="H2" onClick={() => insertLineToken('## ')} />
-                      <ToolbarBtn icon={<Quote className="w-4 h-4" />} label="Quote" onClick={() => insertLineToken('> ')} />
-                      <ToolbarBtn icon={<Minus className="w-4 h-4" />} label="Garis" onClick={() => insertLineToken('---')} />
-                      <span className="w-px h-6 bg-slate-300 mx-0.5" />
-                      {/* Icons */}
-                      <ToolbarBtn icon={<MapPin className="w-4 h-4" />} label="Lokasi" onClick={() => insertIconLine('lokasi')} />
-                      <ToolbarBtn icon={<Calendar className="w-4 h-4" />} label="Kalender" onClick={() => insertIconLine('kalender')} />
-                      <ToolbarBtn icon={<Clock className="w-4 h-4" />} label="Jam" onClick={() => insertIconLine('jam')} />
+                      <ToolbarBtn icon={<LinkIcon className="w-4 h-4" />} label="Link" onMouseDown={(e) => e.preventDefault()} onClick={() => { const u = prompt('URL link:'); if (u) document.execCommand('createLink', false, u); }} />
+                      <ToolbarBtn icon={<ImageIcon className="w-4 h-4" />} label="Gambar" onMouseDown={(e) => e.preventDefault()} onClick={() => { const u = prompt('URL gambar:'); if (u) document.execCommand('insertImage', false, u); }} />
                     </div>
-                    <textarea
-                      ref={bodyRef}
-                      value={eBody}
-                      onChange={(e) => setEBody(e.target.value)}
-                      rows={12}
-                      className="w-full border border-slate-300 rounded-b-xl p-3 text-sm font-mono leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-300"
-                      placeholder={'# Judul Besar\n## Sub Judul\nTulis **tebal**, *miring*, __garis bawah__, ~~coret~~.\n[sub]sub[/sub] [sup]sup[/sup] [hl]sorot[/hl] [c:#e11d48]warna[/c] [fs:20]besar[/fs]\n- poin satu\n1. nomor satu\n[block align=center spacing=2]\nTeks rata tengah spasi 2\n[/block]\n> kutipan\n[lokasi: Kampus UMK]\n---'}
+                    <div
+                      ref={beritaEditRef}
+                      contentEditable
+                      suppressContentEditableWarning
+                      onMouseDown={() => setBeritaPop(null)}
+                      className="w-full min-h-[320px] border border-slate-300 rounded-b-xl p-4 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-300 prose max-w-none"
                     />
-                  </div>
-
-                  {/* Preview */}
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-slate-500">Pratinjau</label>
-                    <div className="border border-slate-200 rounded-xl p-4 bg-white max-h-80 overflow-auto no-scrollbar">
-                      {eBody.trim() ? renderMedium(eBody) : <div className="text-sm text-slate-400">Belum ada isi.</div>}
-                    </div>
                   </div>
                   </>)}
 
@@ -2030,365 +2102,6 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
             </div>
           )}
 
-          {/* ============== MANAJEMEN PRESTASI ============== */}
-          {activeTab === 'prestasi' && (
-            <div className="space-y-6" id="adm-prestasi">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                  <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-                    <Trophy className="w-6 h-6 text-amber-500" /> Kelola Prestasi Mahasiswa
-                  </h1>
-                  <p className="text-sm text-slate-500 mt-0.5">
-                    Publikasikan capaian prestasi mahasiswa di tingkat Internasional, Nasional, dan Wilayah.
-                  </p>
-                </div>
-                <button
-                  onClick={() => openPrestasiForm()}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-sm transition shrink-0"
-                >
-                  <Plus className="w-4 h-4" /> Post Prestasi Baru
-                </button>
-              </div>
-
-              {/* Form Input / Edit Prestasi */}
-              {showPrestasiForm && (
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-md p-6 space-y-6 animate-fade-in">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-amber-500" />
-                      {editPrestasiId ? 'Edit Data Prestasi' : 'Post Prestasi Mahasiswa Baru'}
-                    </h3>
-                    <button
-                      onClick={() => setShowPrestasiForm(false)}
-                      className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1.5 md:col-span-2">
-                      <label className="text-xs font-bold text-slate-700">Judul Prestasi / Ajang Kompetisi <span className="text-rose-500">*</span></label>
-                      <input
-                        type="text"
-                        value={pJudul}
-                        onChange={(e) => setPJudul(e.target.value)}
-                        placeholder="Contoh: International Student Innovation & Technology Summit 2026"
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Tingkat Prestasi <span className="text-rose-500">*</span></label>
-                      <select
-                        value={pTingkat}
-                        onChange={(e) => setPTingkat(e.target.value as any)}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-                      >
-                        <option value="internasional">Internasional</option>
-                        <option value="nasional">Nasional</option>
-                        <option value="wilayah">Wilayah</option>
-                      </select>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Kategori Bidang <span className="text-rose-500">*</span></label>
-                      <select
-                        value={pKategori}
-                        onChange={(e) => setPKategori(e.target.value as any)}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-                      >
-                        <option value="akademik">Akademik</option>
-                        <option value="non-akademik">Non-Akademik</option>
-                      </select>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Peringkat / Capaian <span className="text-rose-500">*</span></label>
-                      <input
-                        type="text"
-                        value={pPeringkat}
-                        onChange={(e) => setPPeringkat(e.target.value)}
-                        placeholder="Contoh: Juara 1 / Gold Medal"
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Tahun Penyelenggaraan <span className="text-rose-500">*</span></label>
-                      <input
-                        type="text"
-                        value={pTahun}
-                        onChange={(e) => setPTahun(e.target.value)}
-                        placeholder="Contoh: 2026"
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Nama Mahasiswa / Tim Delegasi <span className="text-rose-500">*</span></label>
-                      <input
-                        type="text"
-                        value={pNamaMahasiswa}
-                        onChange={(e) => setPNamaMahasiswa(e.target.value)}
-                        placeholder="Contoh: Tim Inovator Informatika UMK"
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Program Studi / Fakultas</label>
-                      <input
-                        type="text"
-                        value={pProdi}
-                        onChange={(e) => setPProdi(e.target.value)}
-                        placeholder="Contoh: Teknik Informatika"
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5 md:col-span-2">
-                      <label className="text-xs font-bold text-slate-700">Deskripsi Capaian <span className="text-rose-500">*</span></label>
-                      <textarea
-                        rows={3}
-                        value={pDeskripsi}
-                        onChange={(e) => setPDeskripsi(e.target.value)}
-                        placeholder="Jelaskan secara singkat mengenai kompetisi dan pencapaian yang diraih..."
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5 md:col-span-2">
-                      <label className="text-xs font-bold text-slate-700">Foto Dokumentasi / Sertifikat</label>
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              setPImageUrl(await readFileAsDataUrl(file));
-                            }
-                          }}
-                          className="text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
-                        />
-                        {pImageUrl && (
-                          <div className="relative group w-24 h-16 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 shrink-0">
-                            <img src={pImageUrl} alt="Preview" className="w-full h-full object-cover" />
-                            <button
-                              type="button"
-                              onClick={() => setPImageUrl('')}
-                              className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-xs font-bold"
-                            >
-                              Hapus
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Status Publikasi</label>
-                      <select
-                        value={pStatus}
-                        onChange={(e) => setPStatus(e.target.value as any)}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-                      >
-                        <option value="published">Published (Tampil Publik)</option>
-                        <option value="draft">Draft (Disembunyikan)</option>
-                      </select>
-                    </div>
-
-                    <div className="space-y-1.5 flex items-center gap-2 pt-6">
-                      <input
-                        type="checkbox"
-                        id="terverifikasi-chk"
-                        checked={pTerverifikasi}
-                        onChange={(e) => setPTerverifikasi(e.target.checked)}
-                        className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500"
-                      />
-                      <label htmlFor="terverifikasi-chk" className="text-xs font-bold text-slate-700 cursor-pointer">
-                        Tandai Sebagai Terverifikasi CDC
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-                    <button
-                      type="button"
-                      onClick={() => setShowPrestasiForm(false)}
-                      className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100"
-                    >
-                      Batal
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleSavePrestasi}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-md transition"
-                    >
-                      <Save className="w-4 h-4" /> Simpan &amp; Publikasikan
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Filter & Search Bar */}
-              <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type="text"
-                    value={pQuery}
-                    onChange={(e) => setPQuery(e.target.value)}
-                    placeholder="Cari judul prestasi atau nama mahasiswa..."
-                    className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  />
-                </div>
-
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
-                    <span>Tingkat:</span>
-                    <select
-                      value={pTingkatFilter}
-                      onChange={(e) => setPTingkatFilter(e.target.value as any)}
-                      className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    >
-                      <option value="Semua">Semua Tingkat</option>
-                      <option value="internasional">Internasional</option>
-                      <option value="nasional">Nasional</option>
-                      <option value="wilayah">Wilayah</option>
-                    </select>
-                  </div>
-
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
-                    <span>Kategori:</span>
-                    <select
-                      value={pKategoriFilter}
-                      onChange={(e) => setPKategoriFilter(e.target.value as any)}
-                      className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    >
-                      <option value="Semua">Semua Kategori</option>
-                      <option value="akademik">Akademik</option>
-                      <option value="non-akademik">Non-Akademik</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Prestasi Table / Cards List */}
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="grid grid-cols-12 gap-3 px-5 py-3.5 bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200/80">
-                  <div className="col-span-5 sm:col-span-4">Prestasi &amp; Ajang</div>
-                  <div className="col-span-3 sm:col-span-3">Tingkat &amp; Kategori</div>
-                  <div className="hidden sm:block col-span-3">Delegasi Mahasiswa</div>
-                  <div className="col-span-4 sm:col-span-2 text-right">Aksi</div>
-                </div>
-
-                {prestasiList.filter(p => {
-                  const q = pQuery.trim().toLowerCase();
-                  const matchQ = !q || p.judul.toLowerCase().includes(q) || p.namaMahasiswa.toLowerCase().includes(q);
-                  const matchT = pTingkatFilter === 'Semua' || p.tingkat === pTingkatFilter;
-                  const matchK = pKategoriFilter === 'Semua' || p.kategori === pKategoriFilter;
-                  return matchQ && matchT && matchK;
-                }).length === 0 ? (
-                  <div className="p-12 text-center text-slate-400 space-y-2">
-                    <Trophy className="w-10 h-10 mx-auto text-slate-300" />
-                    <div className="font-bold text-slate-600">Belum Ada Data Prestasi Mahasiswa</div>
-                    <p className="text-xs">Klik tombol "Post Prestasi Baru" di atas untuk menambahkan data prestasi.</p>
-                  </div>
-                ) : (
-                  prestasiList
-                    .filter(p => {
-                      const q = pQuery.trim().toLowerCase();
-                      const matchQ = !q || p.judul.toLowerCase().includes(q) || p.namaMahasiswa.toLowerCase().includes(q);
-                      const matchT = pTingkatFilter === 'Semua' || p.tingkat === pTingkatFilter;
-                      const matchK = pKategoriFilter === 'Semua' || p.kategori === pKategoriFilter;
-                      return matchQ && matchT && matchK;
-                    })
-                    .map((item) => (
-                      <div key={item.id} className="grid grid-cols-12 gap-3 px-5 py-4 border-b border-slate-100 last:border-0 items-center hover:bg-slate-50/60 transition">
-                        <div className="col-span-5 sm:col-span-4 flex items-center gap-3 min-w-0">
-                          {item.imageUrl ? (
-                            <img
-                              src={item.imageUrl}
-                              alt=""
-                              className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0 bg-slate-100 cursor-pointer"
-                              onClick={() => setZoomImage(item.imageUrl || null)}
-                            />
-                          ) : (
-                            <div className="w-12 h-12 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center shrink-0">
-                              <Trophy className="w-6 h-6 text-amber-600" />
-                            </div>
-                          )}
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
-                              <span className="px-2 py-0.5 bg-amber-100 text-amber-800 rounded-md text-[10px] font-extrabold flex items-center gap-1">
-                                <Award className="w-3 h-3 text-amber-600" /> {item.peringkat}
-                              </span>
-                              {item.status === 'draft' && (
-                                <span className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded text-[9px] font-bold uppercase">Draft</span>
-                              )}
-                            </div>
-                            <h4 className="font-bold text-slate-900 text-sm leading-snug line-clamp-1 truncate" title={item.judul}>
-                              {item.judul}
-                            </h4>
-                            <div className="text-[11px] text-slate-400 mt-0.5 font-medium">{item.tahun}</div>
-                          </div>
-                        </div>
-
-                        <div className="col-span-3 sm:col-span-3 space-y-1">
-                          <span className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase ${
-                            item.tingkat === 'internasional'
-                              ? 'bg-blue-100 text-blue-800'
-                              : item.tingkat === 'nasional'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : 'bg-slate-100 text-slate-800'
-                          }`}>
-                            {item.tingkat}
-                          </span>
-                          <div className="text-xs font-semibold text-slate-600 capitalize">
-                            {item.kategori}
-                          </div>
-                        </div>
-
-                        <div className="hidden sm:block col-span-3 text-xs text-slate-700 font-medium">
-                          <div className="font-bold text-slate-900 truncate">{item.namaMahasiswa}</div>
-                          <div className="text-slate-400 text-[11px] truncate">{item.prodi || 'Universitas Muhammadiyah Kendari'}</div>
-                        </div>
-
-                        <div className="col-span-4 sm:col-span-2 flex items-center justify-end gap-1.5">
-                          <button
-                            onClick={() => openPrestasiForm(item)}
-                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition"
-                            title="Edit"
-                          >
-                            <Edit3 className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleTogglePublishPrestasi(item)}
-                            className={`p-1.5 rounded-lg text-xs font-bold transition ${
-                              item.status === 'published'
-                                ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700'
-                                : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
-                            }`}
-                            title={item.status === 'published' ? 'Sembunyikan' : 'Publikasikan'}
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeletePrestasi(item)}
-                            className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold transition"
-                            title="Hapus"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))
-                )}
-              </div>
-            </div>
-          )}
 
         </main>
       </div>
@@ -2413,11 +2126,12 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
 /* =========================================================
  *  HELPER COMPONENTS
  * =======================================================*/
-function ToolbarBtn({ icon, label, onClick }: { icon: React.ReactNode; label: string; onClick: () => void }) {
+function ToolbarBtn({ icon, label, onClick, onMouseDown }: { icon: React.ReactNode; label: string; onClick: () => void; onMouseDown?: (e: React.MouseEvent) => void }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      onMouseDown={onMouseDown}
       title={label}
       className="px-2 py-1.5 rounded-lg hover:bg-white border border-transparent hover:border-slate-300 text-slate-600 transition flex items-center"
     >

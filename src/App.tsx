@@ -74,7 +74,7 @@ export default function App() {
     id: k.id,
     title: k.judul,
     slug: `kk-${k.id}`,
-    excerpt: (k.body || '').replace(/[#>*_`~\-]/g, '').slice(0, 160).trim(),
+    excerpt: (k.body || '').replace(/<[^>]*>/g, '').replace(/&[a-z]+;/gi, ' ').replace(/\s+/g, ' ').trim().slice(0, 160),
     content: k.body || '',
     coverImageUrl: k.thumbnail,
     status: k.status,

@@ -16,8 +16,7 @@ import {
   Pengumuman,
   SurveiLulusan,
   KontenKarir,
-  EventLayananItem,
-  Prestasi
+  EventLayananItem
 } from './types';
 
 // Mock Password: all seeded accounts use "password"
@@ -983,102 +982,120 @@ export const SEED_SURVEI_LULUSAN: SurveiLulusan[] = [
   }
 ];
 
-export const SEED_PRESTASI: Prestasi[] = [
+export const SEED_KONTEN_KARIR_PRESENTASI: KontenKarir[] = [
   {
     id: 'prest_001',
+    jenis: 'presentasi',
     judul: 'International Student Innovation & Technology Summit (ISITS) 2026',
-    tingkat: 'internasional',
-    kategori: 'akademik',
+    kategori: 'internasional',
+    subKategori: 'akademik',
     peringkat: 'Juara 1 / Gold Medal',
     tahun: '2026',
     namaMahasiswa: 'Tim Inovator Informatika UMK (Fachrul & Tim)',
     prodi: 'Teknik Informatika',
-    deskripsi: 'Tim Delegasi Mahasiswa Universitas Muhammadiyah Kendari berhasil meraih Gold Medal atas karya inovasi IoT & AI Monitoring System untuk Pertanian Cerdas.',
-    imageUrl: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=800&auto=format&fit=crop',
+    body: 'Tim Delegasi Mahasiswa Universitas Muhammadiyah Kendari berhasil meraih Gold Medal atas karya inovasi IoT & AI Monitoring System untuk Pertanian Cerdas.',
+    thumbnail: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=800&auto=format&fit=crop',
     terverifikasi: true,
     status: 'published',
     createdAt: '2026-06-15T09:00:00Z',
-    createdBy: 'usr_admin'
+    updatedAt: '2026-06-15T09:00:00Z',
+    createdBy: 'usr_admin',
+    createdByName: 'Admin CDC'
   },
   {
     id: 'prest_002',
+    jenis: 'presentasi',
     judul: 'ASEAN University Cultural & Martial Arts Championship 2026',
-    tingkat: 'internasional',
-    kategori: 'non-akademik',
+    kategori: 'internasional',
+    subKategori: 'non-akademik',
     peringkat: 'Juara 1 / Emas',
     tahun: '2026',
     namaMahasiswa: 'Andi Nurhaliza',
     prodi: 'Pendidikan Olahraga',
-    deskripsi: 'Meraih Medali Emas kategori Seni Beladiri Pencak Silat Perguruan Tapak Suci Mahasiswa pada Kejuaraan Antar Perguruan Tinggi se-ASEAN.',
-    imageUrl: 'https://images.unsplash.com/photo-1517649763962-0c623266010b?q=80&w=800&auto=format&fit=crop',
+    body: 'Meraih Medali Emas kategori Seni Beladiri Pencak Silat Perguruan Tapak Suci Mahasiswa pada Kejuaraan Antar Perguruan Tinggi se-ASEAN.',
+    thumbnail: 'https://images.unsplash.com/photo-1517649763962-0c623266010b?q=80&w=800&auto=format&fit=crop',
     terverifikasi: true,
     status: 'published',
     createdAt: '2026-05-20T10:30:00Z',
-    createdBy: 'usr_admin'
+    updatedAt: '2026-05-20T10:30:00Z',
+    createdBy: 'usr_admin',
+    createdByName: 'Admin CDC'
   },
   {
     id: 'prest_003',
+    jenis: 'presentasi',
     judul: 'Olimpiade Nasional MIPA & Karya Tulis Ilmiah Mahasiswa 2026',
-    tingkat: 'nasional',
-    kategori: 'akademik',
+    kategori: 'nasional',
+    subKategori: 'akademik',
     peringkat: 'Juara 1 / Medali Emas',
     tahun: '2026',
     namaMahasiswa: 'Rahmat Pratama & Tim',
     prodi: 'Teknik Sipil',
-    deskripsi: 'Inovasi Beton Ramah Lingkungan Berbahan Dasar Limbah Lokal berhasil mengantarkan tim UMK meraih gelar Juara Utama Tingkat Nasional.',
-    imageUrl: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=800&auto=format&fit=crop',
+    body: 'Inovasi Beton Ramah Lingkungan Berbahan Dasar Limbah Lokal berhasil mengantarkan tim UMK meraih gelar Juara Utama Tingkat Nasional.',
+    thumbnail: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=800&auto=format&fit=crop',
     terverifikasi: true,
     status: 'published',
     createdAt: '2026-04-12T14:00:00Z',
-    createdBy: 'usr_admin'
+    updatedAt: '2026-04-12T14:00:00Z',
+    createdBy: 'usr_admin',
+    createdByName: 'Admin CDC'
   },
   {
     id: 'prest_004',
+    jenis: 'presentasi',
     judul: 'Pekan Olahraga Mahasiswa Nasional (POMNAS) XVII 2025',
-    tingkat: 'nasional',
-    kategori: 'non-akademik',
+    kategori: 'nasional',
+    subKategori: 'non-akademik',
     peringkat: 'Juara 2 / Perak',
     tahun: '2025',
     namaMahasiswa: 'Tim Bulutangkis Ganda UMK',
     prodi: 'Manajemen',
-    deskripsi: 'Meraih medali perak kategori Ganda Putra cabang olahraga Bulutangkis setelah pertarungan sengit di laga final POMNAS.',
-    imageUrl: 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?q=80&w=800&auto=format&fit=crop',
+    body: 'Meraih medali perak kategori Ganda Putra cabang olahraga Bulutangkis setelah pertarungan sengit di laga final POMNAS.',
+    thumbnail: 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?q=80&w=800&auto=format&fit=crop',
     terverifikasi: true,
     status: 'published',
     createdAt: '2025-11-05T11:15:00Z',
-    createdBy: 'usr_admin'
+    updatedAt: '2025-11-05T11:15:00Z',
+    createdBy: 'usr_admin',
+    createdByName: 'Admin CDC'
   },
   {
     id: 'prest_005',
+    jenis: 'presentasi',
     judul: 'Kompetisi Debat Bahasa Inggris Mahasiswa Tingkat Wilayah Sulawesi 2026',
-    tingkat: 'wilayah',
-    kategori: 'akademik',
+    kategori: 'wilayah',
+    subKategori: 'akademik',
     peringkat: 'Juara 1 / Best Speaker',
     tahun: '2026',
     namaMahasiswa: 'Siti Rahmawati',
     prodi: 'Pendidikan Bahasa Inggris',
-    deskripsi: 'Siti Rahmawati menyabet gelar Best Speaker dan membawa Kontingen Debat UMK menjuarai ajang NDEIC Regional Sulawesi.',
-    imageUrl: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=800&auto=format&fit=crop',
+    body: 'Siti Rahmawati menyabet gelar Best Speaker dan membawa Kontingen Debat UMK menjuarai ajang NDEIC Regional Sulawesi.',
+    thumbnail: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=800&auto=format&fit=crop',
     terverifikasi: true,
     status: 'published',
     createdAt: '2026-03-18T16:20:00Z',
-    createdBy: 'usr_admin'
+    updatedAt: '2026-03-18T16:20:00Z',
+    createdBy: 'usr_admin',
+    createdByName: 'Admin CDC'
   },
   {
     id: 'prest_006',
+    jenis: 'presentasi',
     judul: 'Festival Seni, Fotografi & Kewirausahaan Kreatif Mahasiswa Sultra 2026',
-    tingkat: 'wilayah',
-    kategori: 'non-akademik',
+    kategori: 'wilayah',
+    subKategori: 'non-akademik',
     peringkat: 'Juara 1 / Best Creative Product',
     tahun: '2026',
     namaMahasiswa: 'Komunitas Seni & Kreatif UMK',
     prodi: 'Desain Komunikasi Visual',
-    deskripsi: 'Menampilkan karya kerajinan dan fotografi budaya lokal Sultra yang dinobatkan sebagai Produk Kreatif Terbaik Regional.',
-    imageUrl: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=800&auto=format&fit=crop',
+    body: 'Menampilkan karya kerajinan dan fotografi budaya lokal Sultra yang dinobatkan sebagai Produk Kreatif Terbaik Regional.',
+    thumbnail: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=800&auto=format&fit=crop',
     terverifikasi: true,
     status: 'published',
     createdAt: '2026-02-10T13:45:00Z',
-    createdBy: 'usr_admin'
+    updatedAt: '2026-02-10T13:45:00Z',
+    createdBy: 'usr_admin',
+    createdByName: 'Admin CDC'
   }
 ];
 
@@ -1095,8 +1112,7 @@ export type DBKey =
   | 'berita'
   | 'pengumuman'
   | 'survei_lulusan'
-  | 'konten_karir'
-  | 'prestasi';
+  | 'konten_karir';
 
 const DEFAULT_SEEDS = {
   users: SEED_USERS,
@@ -1110,8 +1126,7 @@ const DEFAULT_SEEDS = {
   berita: SEED_BERITA,
   pengumuman: SEED_PENGUMUMAN,
   survei_lulusan: SEED_SURVEI_LULUSAN,
-  konten_karir: SEED_KONTEN_KARIR,
-  prestasi: SEED_PRESTASI
+  konten_karir: [...SEED_KONTEN_KARIR, ...SEED_KONTEN_KARIR_PRESENTASI],
 };
 
 let _dbInitialized = false;

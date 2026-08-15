@@ -10,6 +10,15 @@ import React from 'react';
  */
 export function renderContentMarkdown(raw?: string): React.ReactNode {
   if (!raw) return null;
+  // Jika isi sudah berupa HTML (berita yang diedit via WYSIWYG), render langsung.
+  // Berita lama (markdown) tetap diparse seperti biasa.
+  if (/<[a-z][\s\S]*>/i.test(raw)) {
+    const clean = raw
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/ on\w+="[^"]*"/gi, '')
+      .replace(/javascript:/gi, '');
+    return <div className="prose-berita" dangerouslySetInnerHTML={{ __html: clean }} />;
+  }
   const blocks: React.ReactNode[] = [];
   const lines = raw.split('\n');
   let i = 0;

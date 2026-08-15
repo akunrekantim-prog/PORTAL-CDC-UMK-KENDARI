@@ -68,7 +68,7 @@ export interface Mahasiswa {
   }>;
 }
 
-export type JenisKonten = 'berita' | 'lowongan' | 'program' | 'workshop' | 'softskill' | 'seminar';
+export type JenisKonten = 'berita' | 'lowongan' | 'program' | 'workshop' | 'softskill' | 'seminar' | 'presentasi';
 
 export interface EventLayananItem {
   id: string;
@@ -117,6 +117,13 @@ export interface KontenKarir {
   terdaftar?: number;
   linkDaftar?: string; // URL pendaftaran eksternal
   statusEvent?: 'buka' | 'segera' | 'selesai';
+  // Field khusus Presentasi (konversi dari Prestasi)
+  subKategori?: 'akademik' | 'non-akademik'; // kategori Akademik / Non-Akademik
+  namaMahasiswa?: string;
+  prodi?: string;
+  tahun?: string;
+  peringkat?: string; // misal "Juara 1", "Gold Medal", "Best Presenter"
+  terverifikasi?: boolean;
 }
 
 export interface Alumni {
