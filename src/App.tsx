@@ -65,6 +65,7 @@ export default function App() {
   const [allLowongan, setAllLowongan] = useState<Lowongan[]>([]);
   const [allBerita, setAllBerita] = useState<Berita[]>([]);
   const [allProgram, setAllProgram] = useState<KontenKarir[]>([]);
+  const [allKonten, setAllKonten] = useState<KontenKarir[]>([]);
   const [allPengumuman, setAllPengumuman] = useState<Pengumuman[]>([]);
 
   // Map KontenKarir jenis 'berita' (input admin) -> model Berita agar
@@ -105,6 +106,8 @@ export default function App() {
       .filter((k) => k.jenis === 'program' && k.status === 'published')
       .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
     setAllProgram(programList);
+    // Seluruh konten_karir (termasuk event layanan: workshop/softskill/seminar)
+    setAllKonten(getFromDB<KontenKarir>('konten_karir'));
   };
 
   // Login handler using simulated bcrypt/SQL
@@ -257,6 +260,7 @@ export default function App() {
             lowongan={allLowongan}
             berita={allBerita}
             program={allProgram}
+            konten={allKonten}
             pengumuman={allPengumuman}
             onSelectLowongan={handleSelectLowongan}
             onSelectBerita={handleSelectBerita}

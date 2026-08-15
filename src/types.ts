@@ -108,6 +108,15 @@ export interface KontenKarir {
   updatedAt?: string;
   createdBy?: string; // user.id — 'usr_admin' untuk konten buatan admin
   createdByName?: string; // nama pembuat, untuk tracking
+  // Field khusus event layanan (workshop / softskill / seminar)
+  tanggal?: string; // YYYY-MM-DD
+  waktu?: string; // mis. "09:00 - 14:00 WITA"
+  lokasiEvent?: string; // lokasi pelaksanaan kegiatan
+  pembicara?: string;
+  kuotaEvent?: number;
+  terdaftar?: number;
+  linkDaftar?: string; // URL pendaftaran eksternal
+  statusEvent?: 'buka' | 'segera' | 'selesai';
 }
 
 export interface Alumni {

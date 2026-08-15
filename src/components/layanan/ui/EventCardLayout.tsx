@@ -1,19 +1,42 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Calendar, Clock, MapPin, User, Users, ExternalLink, Filter, X, ChevronRight, CheckCircle, AlertCircle } from 'lucide-react';
-import { EventLayananItem } from '../../../types';
+import { EventLayananItem, KontenKarir } from '../../../types';
 
 interface EventCardLayoutProps {
   category: 'workshop' | 'softskill' | 'seminar';
   pageTitle: string;
   subtitle: string;
   events: EventLayananItem[];
+  kontenEvents?: KontenKarir[]; // hasil input admin (jenis workshop/softskill/seminar)
 }
+
+// Map KontenKarir (event layanan) -> EventLayananItem agar bisa ditampilkan
+// seragam di grid EventCardLayout.
+const mapKontenToEvent = (k: KontenKarir): EventLayananItem => ({
+  id: `kk_${k.id}`,
+  category: (k.jenis === 'workshop' || k.jenis === 'softskill' || k.jenis === 'seminar')
+    ? k.jenis
+    : 'workshop',
+  title: k.judul,
+  organizer: k.namaInstansi || 'CDC UM Kendari',
+  date: k.tanggal || k.createdAt.slice(0, 10),
+  time: k.waktu,
+  location: k.lokasiEvent || '-',
+  image: k.thumbnail || 'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=800&auto=format&fit=crop',
+  description: (k.body || '').replace(/[#>*_`~\[\]\/c:hl:sub:sup:fs:block:lokasi:kalender:jam]/g, '').slice(0, 180).trim(),
+  speaker: k.pembicara,
+  quota: k.kuotaEvent,
+  registeredCount: k.terdaftar,
+  registrationLink: k.linkDaftar,
+  status: k.statusEvent || 'buka'
+});
 
 export default function EventCardLayout({
   category,
   pageTitle,
   subtitle,
-  events
+  events,
+  kontenEvents
 }: EventCardLayoutProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('semua');
@@ -21,13 +44,21 @@ export default function EventCardLayout({
   const [endDate, setEndDate] = useState<string>('');
   const [selectedEvent, setSelectedEvent] = useState<EventLayananItem | null>(null);
 
+  // Gabungkan seed dummy + hasil admin yang sudah published
+  const allEvents = useMemo(() => {
+    const fromKonten = (kontenEvents || [])
+      .filter(k => k.status === 'published' && k.jenis === category)
+      .map(mapKontenToEvent);
+    return [...fromKonten, ...events];
+  }, [events, kontenEvents, category]);
+
   const handleSelectEvent = (item: EventLayananItem) => {
     setSelectedEvent(item);
   };
 
   // Filter logic
   const filteredEvents = useMemo(() => {
-    return events.filter(item => {
+    return allEvents.filter(item => {
       // Category match
       if (item.category !== category) return false;
 
@@ -183,7 +214,7 @@ export default function EventCardLayout({
         {hasActiveFilters && (
           <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs text-slate-500">
             <span>
-              Menampilkan <strong className="text-slate-800 font-semibold">{filteredEvents.length}</strong> kegiatan dari total {events.filter(e => e.category === category).length}
+              Menampilkan <strong className="text-slate-800 font-semibold">{filteredEvents.length}</strong> kegiatan dari total {allEvents.filter(e => e.category === category).length}
             </span>
             <button
               onClick={resetFilters}
@@ -233,11 +264,35 @@ export default function EventCardLayout({
                 </div>
 
                 {/* Metadata List */}
-                <div className="pt-3 border-t border-slate-100 text-xs text-slate-600">
+                <div className="pt-3 border-t border-slate-100 text-xs text-slate-600 space-y-1.5">
                   <div className="flex items-center gap-2 text-slate-700">
                     <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                     <span>{formatDateIndo(item.date)}</span>
+                    {item.time && (
+                      <>
+                        <Clock className="w-3.5 h-3.5 text-blue-600 shrink-0 ml-1" />
+                        <span>{item.time}</span>
+                      </>
+                    )}
                   </div>
+                  {item.location && item.location !== '-' && (
+                    <div className="flex items-center gap-2 text-slate-700">
+                      <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                      <span>{item.location}</span>
+                    </div>
+                  )}
+                  {item.speaker && (
+                    <div className="flex items-center gap-2 text-slate-700">
+                      <User className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                      <span>{item.speaker}</span>
+                    </div>
+                  )}
+                  {item.quota != null && (
+                    <div className="flex items-center gap-2 text-slate-700">
+                      <Users className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                      <span>Kuota: {item.quota}{item.registeredCount != null ? ` · Terdaftar ${item.registeredCount}` : ''}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Card Action Footer */}
@@ -323,12 +378,40 @@ export default function EventCardLayout({
                 <div className="space-y-3">
                   <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm text-sm">
                     <p className="text-slate-400 font-medium text-xs">Tanggal Pelaksanaan</p>
-                    <p className="text-slate-800 font-semibold">{formatDateIndo(selectedEvent.date)}</p>
+                    <p className="text-slate-800 font-semibold">{formatDateIndo(selectedEvent.date)}{selectedEvent.time ? ` · ${selectedEvent.time}` : ''}</p>
                   </div>
+                  {selectedEvent.location && selectedEvent.location !== '-' && (
+                    <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm text-sm">
+                      <p className="text-slate-400 font-medium text-xs">Lokasi</p>
+                      <p className="text-slate-800 font-semibold">{selectedEvent.location}</p>
+                    </div>
+                  )}
+                  {selectedEvent.speaker && (
+                    <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm text-sm">
+                      <p className="text-slate-400 font-medium text-xs">Pembicara / Narasumber</p>
+                      <p className="text-slate-800 font-semibold">{selectedEvent.speaker}</p>
+                    </div>
+                  )}
+                  {selectedEvent.quota != null && (
+                    <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm text-sm">
+                      <p className="text-slate-400 font-medium text-xs">Kuota Peserta</p>
+                      <p className="text-slate-800 font-semibold">{selectedEvent.quota}{selectedEvent.registeredCount != null ? ` · Terdaftar ${selectedEvent.registeredCount}` : ''}</p>
+                    </div>
+                  )}
                 </div>
               </div>
               
-              <div className="pt-6 mt-6 border-t border-slate-100">
+              <div className="pt-6 mt-6 border-t border-slate-100 space-y-2">
+                {selectedEvent.registrationLink && (
+                  <a
+                    href={selectedEvent.registrationLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full inline-flex items-center justify-center gap-2 py-4 bg-[#0077C6] hover:bg-[#1E3A8A] text-white text-sm font-bold rounded-2xl transition-colors"
+                  >
+                    Daftar Sekarang <ExternalLink className="w-4 h-4" />
+                  </a>
+                )}
                 <button
                   onClick={() => setSelectedEvent(null)}
                   className="w-full inline-flex items-center justify-center gap-2 py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-2xl transition-colors cursor-pointer"

@@ -125,9 +125,9 @@ const THUMB_REQUIRED: Record<JenisKonten, boolean> = {
   berita: true,    // 16:9
   lowongan: true,  // 9:16
   program: true,     // thumbnail wajib (header kartu)
-  workshop: true,  // 16:9
-  softskill: true, // 16:9
-  seminar: true    // 16:9
+  workshop: false,  // opsional — fallback ke gambar default di EventCardLayout
+  softskill: false, // opsional
+  seminar: false    // opsional
 };
 
 const formatTanggal = (iso?: string) =>
@@ -487,6 +487,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
 
   const [editorOpen, setEditorOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [eJenis, setEJenis] = useState<JenisKonten>('berita');
   const [eJudul, setEJudul] = useState('');
   const [eBody, setEBody] = useState('');
@@ -502,6 +503,15 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   const [eDeadline, setEDeadline] = useState('');
   const [eLinkCta, setELinkCta] = useState('');
   const [eStatus, setEStatus] = useState<'draft' | 'published'>('published');
+  // Field khusus event layanan (workshop / softskill / seminar)
+  const [eTanggal, setETanggal] = useState('');
+  const [eWaktu, setEWaktu] = useState('');
+  const [eLokasiEvent, setELokasiEvent] = useState('');
+  const [ePembicara, setEPembicara] = useState('');
+  const [eKuotaEvent, setEKuotaEvent] = useState('');
+  const [eTerdaftar, setETerdaftar] = useState('');
+  const [eLinkDaftar, setELinkDaftar] = useState('');
+  const [eStatusEvent, setEStatusEvent] = useState<'buka' | 'segera' | 'selesai'>('buka');
   const bodyRef = useRef<HTMLTextAreaElement>(null);
 
   const openEditor = (item?: KontenKarir, jenis?: JenisKonten) => {
@@ -522,13 +532,24 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       setEDeadline(item.deadline || '');
       setELinkCta(item.linkCta || '');
       setEStatus(item.status);
+      setETanggal(item.tanggal || '');
+      setEWaktu(item.waktu || '');
+      setELokasiEvent(item.lokasiEvent || '');
+      setEPembicara(item.pembicara || '');
+      setEKuotaEvent(item.kuotaEvent != null ? String(item.kuotaEvent) : '');
+      setETerdaftar(item.terdaftar != null ? String(item.terdaftar) : '');
+      setELinkDaftar(item.linkDaftar || '');
+      setEStatusEvent(item.statusEvent || 'buka');
     } else {
       setEditId(null);
       setEJenis(jenis || 'berita');
       setEJudul(''); setEBody(''); setEPenulis(''); setEThumbnail('');
       setELinkLamar(''); setEKategori(''); setEScope('LOKAL');
       setEGaji(''); setEKuota(''); setEDeadline(''); setELinkCta(''); setEStatus('published');
+      setETanggal(''); setEWaktu(''); setELokasiEvent(''); setEPembicara('');
+      setELinkDaftar(''); setEStatusEvent('buka');
     }
+    setSaveError(null);
     setKontenSub('pembuatan');
     setEditorOpen(true);
   };
@@ -840,16 +861,25 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   };
 
   const handleSaveKonten = () => {
+    setSaveError(null);
     if (!eJudul.trim()) {
+      setSaveError('Judul wajib diisi.');
       triggerToast('error', 'Judul wajib diisi.');
       return;
     }
     if (eJenis !== 'program' && !eBody.trim()) {
+      setSaveError('Isi konten (body) wajib diisi.');
       triggerToast('error', 'Judul dan isi konten wajib diisi.');
       return;
     }
     if (THUMB_REQUIRED[eJenis] && !eThumbnail) {
+      setSaveError(`Thumbnail wajib diunggah untuk ${JENIS_LABEL[eJenis]}.`);
       triggerToast('error', `Thumbnail wajib untuk ${JENIS_LABEL[eJenis]}.`);
+      return;
+    }
+    if ((eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') && !eTanggal) {
+      setSaveError('Tanggal Pelaksanaan wajib diisi untuk konten event layanan. Klik ikon kalender dan pilih tanggal.');
+      triggerToast('error', 'Tanggal Pelaksanaan wajib diisi untuk konten event layanan.');
       return;
     }
     const now = new Date().toISOString();
@@ -873,7 +903,16 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       createdAt: editId ? (konten.find((k) => k.id === editId)?.createdAt || now) : now,
       updatedAt: now,
       createdBy: 'usr_admin',
-      createdByName: 'Admin CDC'
+      createdByName: 'Admin CDC',
+      // Field khusus event layanan
+      tanggal: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? eTanggal : undefined,
+      waktu: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? eWaktu.trim() : undefined,
+      lokasiEvent: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? eLokasiEvent.trim() : undefined,
+      pembicara: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? ePembicara.trim() : undefined,
+      kuotaEvent: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') && eKuotaEvent ? Number(eKuotaEvent) : undefined,
+      terdaftar: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') && eTerdaftar ? Number(eTerdaftar) : undefined,
+      linkDaftar: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? eLinkDaftar.trim() : undefined,
+      statusEvent: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? eStatusEvent : undefined
     };
     if (editId) {
       updateInDB<KontenKarir>('konten_karir', base);
@@ -882,6 +921,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       insertToDB<KontenKarir>('konten_karir', base);
       triggerToast('success', 'Konten diterbitkan.');
     }
+    setSaveError(null);
     setEditorOpen(false);
     setKontenJenisBaru(null);
     reloadAll();
@@ -1521,6 +1561,13 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                     <button onClick={() => { setEditorOpen(false); setKontenSub('riwayat'); }} className="text-slate-400 hover:text-slate-700"><X className="w-5 h-5" /></button>
                   </div>
 
+                  {saveError && (
+                    <div className="flex items-start gap-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 text-sm font-medium">
+                      <span className="mt-0.5">⚠️</span>
+                      <span>{saveError}</span>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-xs font-medium text-slate-500">Judul</label>
@@ -1578,16 +1625,52 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                       </>
                     )}
 
-                    {(eJenis === 'program' || eJenis === 'workshop' || eJenis === 'softskill') && (
+                    {eJenis === 'program' && (
                       <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-slate-500">
-                          {eJenis === 'program' ? 'Kategori Pengumuman (bebas, mis. KERJA / MAGANG / UMUM)' : 'Link CTA / Eksternal (Daftar/Register/Kontak)'}
-                        </label>
-                        {eJenis === 'program' ? (
-                          <input value={eKategori} onChange={(e) => setEKategori(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="KERJA / MAGANG / UMUM / DLL" />
-                        ) : (
-                          <input value={eLinkCta} onChange={(e) => setELinkCta(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="https://forms.gle/..." />
-                        )}
+                        <label className="text-xs font-medium text-slate-500">Kategori Pengumuman (bebas, mis. KERJA / MAGANG / UMUM)</label>
+                        <input value={eKategori} onChange={(e) => setEKategori(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="KERJA / MAGANG / UMUM / DLL" />
+                      </div>
+                    )}
+
+                    {(eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') && (
+                      <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
+                        <div className="space-y-1.5">
+                              <label className="text-xs font-medium text-slate-500">Tanggal Pelaksanaan *</label>
+                              <input value={eTanggal} onChange={(e) => setETanggal(e.target.value)} type="date" required className={`w-full px-3 py-2 rounded-xl border text-sm ${!eTanggal ? 'border-rose-300 bg-rose-50/40 focus:border-rose-400 focus:ring-2 focus:ring-rose-200' : 'border-slate-300'}`} />
+                              {!eTanggal && <p className="text-[11px] text-rose-500 font-medium">Wajib diisi — klik ikon kalender di kanan input dan pilih tanggal.</p>}
+                            </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-slate-500">Waktu (mis. 09:00 - 14:00 WITA)</label>
+                          <input value={eWaktu} onChange={(e) => setEWaktu(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="09:00 - 14:00 WITA" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-slate-500">Tempat / Lokasi</label>
+                          <input value={eLokasiEvent} onChange={(e) => setELokasiEvent(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="Ruang Seminar Perpustakaan UMK" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-slate-500">Pembicara / Narasumber</label>
+                          <input value={ePembicara} onChange={(e) => setEPembicara(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="Dr. Hj. Wa Ode Sitti, M.Pd." />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-slate-500">Kuota Peserta</label>
+                          <input value={eKuotaEvent} onChange={(e) => setEKuotaEvent(e.target.value)} type="number" min="1" className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="75" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-slate-500">Sudah Terdaftar</label>
+                          <input value={eTerdaftar} onChange={(e) => setETerdaftar(e.target.value)} type="number" min="0" className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="0" />
+                        </div>
+                        <div className="space-y-1.5 sm:col-span-2">
+                          <label className="text-xs font-medium text-slate-500">Link Pendaftaran (URL eksternal, mis. Google Form)</label>
+                          <input value={eLinkDaftar} onChange={(e) => setELinkDaftar(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="https://bit.ly/..." />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-slate-500">Status Pendaftaran</label>
+                          <Dropdown value={eStatusEvent} onChange={(v) => setEStatusEvent(v as any)} className="w-full" options={[
+                            { value: 'buka', label: 'Pendaftaran Dibuka' },
+                            { value: 'segera', label: 'Segera Hadir' },
+                            { value: 'selesai', label: 'Selesai' }
+                          ]} />
+                        </div>
                       </div>
                     )}
 

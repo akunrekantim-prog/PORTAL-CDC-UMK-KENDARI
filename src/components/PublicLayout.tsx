@@ -37,6 +37,7 @@ interface PublicLayoutProps {
   berita: Berita[];
   pengumuman: Pengumuman[];
   program?: KontenKarir[];
+  konten?: KontenKarir[];
   onSelectLowongan: (id: string) => void;
   onSelectBerita: (slug: string) => void;
   onSelectProgram?: (id: string) => void;
@@ -105,8 +106,11 @@ export default function PublicLayout({
   lowongan,
   berita,
   pengumuman,
+  program,
+  konten,
   onSelectLowongan,
   onSelectBerita,
+  onSelectProgram,
   onNavigateToLogin,
   onNavigateToRegister,
 }: PublicLayoutProps) {
@@ -1012,9 +1016,9 @@ export default function PublicLayout({
           <LayananContainer currentTab={currentTab} setTab={setTab}>
             {currentTab === 'konseling' && <BimbinganKarir />}
             {currentTab === 'tes-minat' && <TesMinat />}
-            {currentTab === 'workshop' && <Workshop />}
-            {currentTab === 'softskill' && <Softskill />}
-            {currentTab === 'seminar' && <Seminar />}
+            {currentTab === 'workshop' && <Workshop konten={konten} />}
+            {currentTab === 'softskill' && <Softskill konten={konten} />}
+            {currentTab === 'seminar' && <Seminar konten={konten} />}
             {currentTab === 'career-fair' && <CareerFair />}
             {currentTab === 'campus-hiring' && <CampusHiring />}
             {currentTab === 'magang' && <Magang lowongan={lowongan} onSelectLowongan={onSelectLowongan} />}
