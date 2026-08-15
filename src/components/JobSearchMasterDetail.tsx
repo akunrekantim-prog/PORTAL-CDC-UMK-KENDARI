@@ -165,7 +165,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const itemsPerPage = 6;
+  const itemsPerPage = 9;
 
   // Selected Job for Full JobDetail Page View
   const [selectedJobForDetail, setSelectedJobForDetail] = useState<Lowongan | null>(null);
@@ -693,7 +693,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
         )}
 
         {/* PAGINATION */}
-        {totalJobs > 0 && (
+        {totalPages > 1 && (
           <div className="flex items-center justify-center gap-1.5 pt-6">
             <button
               onClick={() => handlePageChange(currentPage - 1)}

@@ -1344,6 +1344,62 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 ### 💡 Rekomendasi Judul Commit Git
 - `refactor(cards): update card uploader attribution to by Admin Website and by Mitra`
 
+---
+
+## Tanggal: 15 Agustus 2026
+**Developer:** Ikhsan  
+**Fokus Pekerjaan:** Perbaikan PDF CV Pelamar, Standarisasi Pagination (9 Card Lowongan & 10 Pelamar/Hal), dan Modal Pop-Up Tengah (Diterima / Ditolak / Interview)
+
+---
+
+### 🚀 Ringkasan Perubahan
+
+#### 1. Perbaikan Persistensi & Rendering Preview CV PDF Pelamar
+- **Penyimpanan Berkas PDF (`src/data.ts`):** Memperbaiki fungsi `applyForJob` agar berkas PDF yang diunggah pelamar tersimpan secara persisten ke database lokal (`berkasUrl`), sehingga mitra industri dapat mengakses CV asli pelamar.
+- **Rendering Canvas PDF.js (`MitraDashboard.tsx`):** Mengganti elemen iframe/object bawaan dengan rendering canvas berbasis `pdfjsLib` untuk mengatasi pemblokiran sandbox browser Microsoft Edge (*"We can't open this file"*).
+- **Pembersihan Modal & Tombol "Lihat":** Menghilangkan kotak toolbar ganda pada modal detail pelamar dan menyelaraskan tombol aksi menjadi **"Lihat"** dan **"Download PDF"**.
+
+#### 2. Standarisasi Batas Pagination Lowongan & Job Info (9 Card per Halaman)
+- **Katalog Lowongan (`JobSearchMasterDetail.tsx`):** Mengatur batas maksimal 9 kartu lowongan per halaman (`itemsPerPage = 9`). Jika lowongan lebih dari 9, otomatis muncul navigasi halaman selanjutnya.
+- **Info Karir & Magang (`PublicLayout.tsx` & `Magang.tsx`):** Memastikan batas tampilan 9 kartu dan pagination responsif.
+
+#### 3. Standarisasi Pagination Pelamar & Seleksi (10 Orang per Halaman)
+- **Daftar Pelamar Mitra (`MitraDashboard.tsx`):** Mengatur batas maksimal 10 pelamar per halaman pada tab Pelamar & Seleksi mitra industri.
+- **Navigasi & Auto-Reset:** Menyediakan tombol navigasi halaman (`<` `1` `2` `...` `>`) dan indikator jumlah pelamar, serta reset otomatis ke halaman 1 saat mitra mengganti filter atau melakukan pencarian.
+
+#### 4. Pembuatan Modal Pop-Up Tengah dengan Tombol "OK" (Diterima / Ditolak / Interview)
+- **Center Dialog Pop-up (`MitraDashboard.tsx`):** Membuat modal dialog di tengah layar dengan backdrop blur dan tombol **`[ OK ]`** yang elegan saat aksi berhasil diproses:
+  - **Diterima:** Pop-up hijau (Emerald) dengan ikon centang besar `[✓]` dan pesan konfirmasi penerimaan pelamar.
+  - **Ditolak:** Pop-up merah (Rose) dengan ikon peringatan `[!]` dan pesan konfirmasi penolakan pelamar.
+  - **Jadwal Interview:** Pop-up konfirmasi jadwal interview tersimpan.
+- **Dialog Konfirmasi Penolakan:** Menyediakan modal konfirmasi sebelum aksi tolak dieksekusi untuk mencegah kesalahan klik.
+- **Toast Notifier Pojok Kanan Atas:** Penyelarasan notifikasi toast agar selaras dengan status aksi.
+
+---
+
+### 📁 File Diubah
+- **[MODIFY]** `src/data.ts` — Memperbaiki persistensi berkas CV PDF pada fungsi `applyForJob`
+- **[MODIFY]** `src/components/MitraDashboard.tsx` — Implementasi canvas preview PDF, pagination 10 pelamar/halaman, dialog konfirmasi, toast notifier, dan modal pop-up tengah dengan tombol OK
+- **[MODIFY]** `src/components/JobSearchMasterDetail.tsx` — Konfigurasi pagination 9 card lowongan per halaman
+- **[MODIFY]** `progres.md` — Pencatatan laporan progres pengerjaan tanggal 15 Agustus 2026 oleh Ikhsan
+
+---
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Perbaikan simpan berkas PDF CV saat pelamar submit lamaran
+- [x] Implementasi PDF.js canvas renderer mengatasi error "Can't open this file" di Edge
+- [x] Perubahan label aksi modal pelamar menjadi "Lihat"
+- [x] Konfigurasi pagination lowongan & info karir 9 card per halaman
+- [x] Konfigurasi pagination pelamar & seleksi 10 orang per halaman dengan auto-reset
+- [x] Implementasi modal pop-up tengah (Center Dialog) dengan tombol OK saat status Diterima / Ditolak / Interview
+- [x] Verifikasi `npx tsc --noEmit` PASSED (0 Error)
+
+---
+
+### 💡 Rekomendasi Judul Commit Git
+- `feat(mitra & applicants): implement PDF preview canvas, 10-item applicant pagination, and center alert popup with OK button`
+
+
 
 
 

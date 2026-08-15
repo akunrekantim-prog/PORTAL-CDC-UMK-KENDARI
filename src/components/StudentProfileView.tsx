@@ -990,7 +990,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                       className="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md transition-all flex justify-between items-start cursor-pointer group hover:border-[#0077C6]/50"
                     >
                       <div className="space-y-2.5 min-w-0 pr-3">
-                        <span className="text-xs font-bold text-[#0077C6] uppercase tracking-wide block truncate">{job.namaInstansi}</span>
+                        <span className="text-xs font-bold text-orange-600 uppercase tracking-wide block truncate">{job.namaInstansi}</span>
                         <h4 className="text-base font-extrabold text-slate-900 group-hover:text-[#0077C6] transition-colors leading-snug line-clamp-2">
                           {job.judul}
                         </h4>

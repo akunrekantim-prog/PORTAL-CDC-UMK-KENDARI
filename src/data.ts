@@ -534,6 +534,8 @@ export const SEED_LOWONGAN: Lowongan[] = [
   }
 ];
 
+export const DEFAULT_SAMPLE_PDF_DATA_URL = `data:application/pdf;base64,JVBERi0xLjQKJSC1tbW1CjEgMCBvYmoKPDwvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFI+PgplbmRvYmoKMiAwIG9iago8PC9UeXBlIC9QYWdlcyAvQ291bnQgMSAvS2lkcyBbMyAwIFJdPj4KZW5kb2JqCjMgMCBvYmoKPDwvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9Db250ZW50cyA0IDAgUiAvUmVzb3VyY2VzIDw8L0ZvbnQgPDwvRjEgNSAwIFI+Pj4+PgplbmRvYmoKNCAwIG9iago8PC9MZW5ndGggMjA1Pj4Kc3RyZWFtCkJVCkJUMgogL0YxIDIyIFRmCiA1MCA3MzAgVGQKIChDVVJRQ0VMVU0gVklUQUUgKENWKSAtIFBFTEFNQVIgUkVTTUkpIFRqCiAwIC0zMCBUZgogL0YxIDE0IFRmCiAoUG9ydGFsIENEQyBVbml2ZXJzaXRhcyBNdWhhbW1hZGl5YWggS2VuZGFyaSkgVGoKIDAgLTMwIFRmCiAvRjEgMTIgVGYKIChEb2t1bWVuIENTIFBlbGFtYXIgVGVydmVyaWZpa2FzaSAmIExlbmdrYXApIFRqCkVUCgplbmRzdHJlYW0KZW5kb2JqCjUgMCBvYmoKPDwvVHlwZSAvRm9udCAvU3VidHlwZSAvVHlwZTEgL0Jhc2VGb250IC9IZWx2ZXRpY2E+PgplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDE1IDAwMDAwIG4gCjAwMDAwMDAwNjggMDAwMDAgbiAKMDAwMDAwMDEyNSAwMDAwMCBuIAowMDAwMDAwMjM4IDAwMDAwIG4gCjAwMDAwMDA0OTQgMDAwMDAgbiAKdHJhaWxlcgo8PC9TaXplIDYgL1Jvb3QgMSAwIFI+PgpzdGFydHhyZWYKNTY1CiUlRU9GCg==`;
+
 export const SEED_PENGAJUAN_MAGANG: PengajuanMagang[] = [
   {
     id: 'pj_001',
@@ -553,6 +555,8 @@ export const SEED_PENGAJUAN_MAGANG: PengajuanMagang[] = [
     verifiedBy: 'usr_admin',
     verifiedAt: '2026-05-20T10:00:00Z',
     createdAt: '2026-08-10T14:00:00Z',
+    berkasNama: 'CV_Muhammad_Fadly_Alamsyah.pdf',
+    berkasUrl: DEFAULT_SAMPLE_PDF_DATA_URL,
     catatanInternal: [
       'Memiliki portofolio React & Node.js yang sangat kuat.',
       'Perlu diverifikasi pengalaman penggunaan TailwindCSS saat interview.'
@@ -578,6 +582,8 @@ export const SEED_PENGAJUAN_MAGANG: PengajuanMagang[] = [
     status: 'menunggu_review',
     interviewStatus: 'pending',
     createdAt: '2026-08-11T09:00:00Z',
+    berkasNama: 'CV_Siti_Rahmawati.pdf',
+    berkasUrl: DEFAULT_SAMPLE_PDF_DATA_URL,
     catatanInternal: [],
     riwayatSeleksi: [
       { status: 'menunggu_review', label: 'Menunggu Review', date: '2026-08-11', note: 'Lamaran baru diterima oleh sistem' }
@@ -1324,9 +1330,8 @@ export function applyForJob(userId: string, job: Lowongan, extraData?: any) {
     tujuanMagang: job.judul,
     lokasiMagang: job.lokasi,
     catatan: extraData?.applicantNotes || '',
-    // Do NOT store base64 file content in localStorage (causes QuotaExceededError)
-    berkasUrl: undefined,
-    berkasNama: extraData?.uploadedFileName || 'CV_Mahasiswa_Pelamar.pdf',
+    berkasUrl: extraData?.uploadedFileUrl || extraData?.berkasUrl || undefined,
+    berkasNama: extraData?.uploadedFileName || extraData?.berkasNama || 'CV_Mahasiswa_Pelamar.pdf',
     tanggalMulai: new Date().toISOString().split('T')[0],
     tanggalSelesai: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     status: 'under_review',

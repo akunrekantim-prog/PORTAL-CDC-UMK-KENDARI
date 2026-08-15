@@ -103,11 +103,6 @@ export default function Magang({ lowongan = [], onSelectLowongan }: MagangProps)
                         <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">{item.namaInstansi}</span>
                       </div>
                     )}
-                    <div className="absolute top-3 left-3 flex items-center gap-2">
-                      <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-teal-700 text-white">
-                        Program Magang
-                      </span>
-                    </div>
                   </div>
 
                   {/* Card Content */}

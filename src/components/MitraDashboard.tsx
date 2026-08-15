@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   User as UserType, 
   Mitra, 
@@ -50,7 +50,8 @@ import {
   GraduationCap,
   Award,
   Code,
-  User
+  User,
+  XCircle
 } from 'lucide-react';
 import { JOB_SPECIALIZATIONS, getCompanyBadgeColor, getCompanyInitials } from './JobSearchMasterDetail';
 
@@ -118,74 +119,280 @@ const getJobTitle = (jobIdOrTitle?: string, fallbackInstansi?: string): string =
   return jobIdOrTitle;
 };
 
-function PdfViewerPreview({ berkasUrl, fileName }: { berkasUrl?: string; fileName?: string }) {
-  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+const DEFAULT_SAMPLE_PDF_DATA_URL = `data:application/pdf;base64,JVBERi0xLjQKJSC1tbW1CjEgMCBvYmoKPDwvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFI+PgplbmRvYmoKMiAwIG9iago8PC9UeXBlIC9QYWdlcyAvQ291bnQgMSAvS2lkcyBbMyAwIFJdPj4KZW5kb2JqCjMgMCBvYmoKPDwvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9Db250ZW50cyA0IDAgUiAvUmVzb3VyY2VzIDw8L0ZvbnQgPDwvRjEgNSAwIFI+Pj4+PgplbmRvYmoKNCAwIG9iago8PC9MZW5ndGggMjA1Pj4Kc3RyZWFtCkJVCkJUMgogL0YxIDIyIFRmCiA1MCA3MzAgVGQKIChDVVJRQ0VMVU0gVklUQUUgKENWKSAtIFBFTEFNQVIgUkVTTUkpIFRqCiAwIC0zMCBUZgogL0YxIDE0IFRmCiAoUG9ydGFsIENEQyBVbml2ZXJzaXRhcyBNdWhhbW1hZGl5YWggS2VuZGFyaSkgVGoKIDAgLTMwIFRmCiAvRjEgMTIgVGYKIChEb2t1bWVuIENTIFBlbGFtYXIgVGVydmVyaWZpa2FzaSAmIExlbmdrYXApIFRqCkVUCgplbmRzdHJlYW0KZW5kb2JqCjUgMCBvYmoKPDwvVHlwZSAvRm9udCAvU3VidHlwZSAvVHlwZTEgL0Jhc2VGb250IC9IZWx2ZXRpY2E+PgplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDE1IDAwMDAwIG4gCjAwMDAwMDAwNjggMDAwMDAgbiAKMDAwMDAwMDEyNSAwMDAwMCBuIAowMDAwMDAwMjM4IDAwMDAwIG4gCjAwMDAwMDA0OTQgMDAwMDAgbiAKdHJhaWxlcgo8PC9TaXplIDYgL1Jvb3QgMSAwIFI+PgpzdGFydHhyZWYKNTY1CiUlRU9GCg==`;
+
+const handleOpenPdf = (url?: string) => {
+  const pdfUrl = url && url !== '#' ? url : DEFAULT_SAMPLE_PDF_DATA_URL;
+  try {
+    if (pdfUrl.startsWith('data:')) {
+      const arr = pdfUrl.split(',');
+      const mimeMatch = arr[0].match(/:(.*?);/);
+      const mime = mimeMatch ? mimeMatch[1] : 'application/pdf';
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      const blob = new Blob([u8arr], { type: mime });
+      const blobUrl = URL.createObjectURL(blob);
+      window.open(blobUrl, '_blank');
+    } else {
+      window.open(pdfUrl, '_blank');
+    }
+  } catch (err) {
+    window.open(pdfUrl, '_blank');
+  }
+};
+
+const handleDownloadPdf = (url?: string, filename?: string) => {
+  const pdfUrl = url && url !== '#' ? url : DEFAULT_SAMPLE_PDF_DATA_URL;
+  const name = filename || 'CV_Pelamar.pdf';
+  try {
+    if (pdfUrl.startsWith('data:')) {
+      const arr = pdfUrl.split(',');
+      const mimeMatch = arr[0].match(/:(.*?);/);
+      const mime = mimeMatch ? mimeMatch[1] : 'application/pdf';
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      const blob = new Blob([u8arr], { type: mime });
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 200);
+    } else {
+      const link = document.createElement('a');
+      link.href = pdfUrl;
+      link.download = name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  } catch (err) {
+    window.open(pdfUrl, '_blank');
+  }
+};
+
+function PdfViewerPreview({ 
+  berkasUrl, 
+  fileName, 
+  studentName = "Pelamar",
+  prodi = "Teknik Informatika"
+}: { 
+  berkasUrl?: string; 
+  fileName?: string; 
+  studentName?: string;
+  prodi?: string;
+}) {
+  const activeUrl = berkasUrl && berkasUrl !== '#' ? berkasUrl : DEFAULT_SAMPLE_PDF_DATA_URL;
+  const isImg = activeUrl.startsWith('data:image/');
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  
+  const [numPages, setNumPages] = useState<number>(1);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [scale, setScale] = useState<number>(1.2);
+  const [loadingPdf, setLoadingPdf] = useState<boolean>(true);
+  const [useFallback, setUseFallback] = useState<boolean>(false);
 
   useEffect(() => {
-    if (!berkasUrl) {
-      setBlobUrl(null);
-      return;
-    }
-    try {
-      if (berkasUrl.startsWith('data:')) {
-        const arr = berkasUrl.split(',');
-        const mimeMatch = arr[0].match(/:(.*?);/);
-        const mime = mimeMatch ? mimeMatch[1] : 'application/pdf';
-        const bstr = atob(arr[1]);
-        let n = bstr.length;
-        const u8arr = new Uint8Array(n);
-        while (n--) {
-          u8arr[n] = bstr.charCodeAt(n);
+    if (isImg) return;
+    let isCancelled = false;
+
+    const renderPdfCanvas = async () => {
+      setLoadingPdf(true);
+      setUseFallback(false);
+
+      try {
+        if (!(window as any).pdfjsLib) {
+          await new Promise<void>((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error("Failed to load PDF.js"));
+            document.head.appendChild(script);
+          });
         }
-        const blob = new Blob([u8arr], { type: mime });
-        const url = URL.createObjectURL(blob);
-        setBlobUrl(url);
-        return () => {
-          URL.revokeObjectURL(url);
-        };
-      } else {
-        setBlobUrl(berkasUrl);
+
+        const pdfjsLib = (window as any).pdfjsLib;
+        if (!pdfjsLib) {
+          throw new Error("PDF.js unavailable");
+        }
+
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        let pdfBytes: Uint8Array;
+        if (activeUrl.startsWith('data:')) {
+          const arr = activeUrl.split(',');
+          const bstr = atob(arr[1]);
+          pdfBytes = new Uint8Array(bstr.length);
+          for (let i = 0; i < bstr.length; i++) {
+            pdfBytes[i] = bstr.charCodeAt(i);
+          }
+        } else {
+          const resp = await fetch(activeUrl);
+          const buf = await resp.arrayBuffer();
+          pdfBytes = new Uint8Array(buf);
+        }
+
+        const loadingTask = pdfjsLib.getDocument({ data: pdfBytes });
+        const pdf = await loadingTask.promise;
+        if (isCancelled) return;
+
+        setNumPages(pdf.numPages || 1);
+        const page = await pdf.getPage(currentPage);
+        if (isCancelled) return;
+
+        const canvas = canvasRef.current;
+        if (canvas) {
+          const viewport = page.getViewport({ scale });
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            await page.render({ canvasContext: ctx, viewport }).promise;
+          }
+        }
+        setLoadingPdf(false);
+      } catch (err) {
+        console.warn("PDF Canvas render fallback:", err);
+        if (!isCancelled) {
+          setUseFallback(true);
+          setLoadingPdf(false);
+        }
       }
-    } catch (err) {
-      console.error("Failed to create blob URL for PDF preview:", err);
-      setBlobUrl(berkasUrl || null);
-    }
-  }, [berkasUrl]);
+    };
 
-  if (!berkasUrl && !blobUrl) {
-    return (
-      <div className="w-full h-80 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50 flex flex-col items-center justify-center p-6 text-center space-y-3 shadow-inner">
-        <div className="w-14 h-14 rounded-2xl bg-[#0077C6]/10 text-[#0077C6] flex items-center justify-center">
-          <FileText className="w-7 h-7" />
-        </div>
-        <div className="space-y-1 max-w-sm">
-          <h5 className="font-extrabold text-slate-800 text-sm">{fileName || 'CV_Pelamar.pdf'}</h5>
-          <p className="text-xs text-slate-500 font-medium leading-relaxed">
-            Berkas ini merupakan data simulasi bawaan. Silakan coba unggah berkas CV PDF asli saat mengajukan lamaran untuk melihat pratinjau dokumen langsung secara otomatis.
-          </p>
-        </div>
-      </div>
-    );
-  }
+    renderPdfCanvas();
 
-  const effectiveUrl = blobUrl || berkasUrl || '#';
-  const isImg = berkasUrl?.startsWith('data:image/');
+    return () => {
+      isCancelled = true;
+    };
+  }, [activeUrl, currentPage, scale, isImg]);
+
+  const openPdf = () => handleOpenPdf(activeUrl);
+  const downloadPdf = () => handleDownloadPdf(activeUrl, fileName || `CV_${studentName.replace(/\s+/g, '_')}.pdf`);
 
   if (isImg) {
     return (
-      <div className="w-full h-96 border border-slate-200 rounded-2xl bg-slate-100 flex items-center justify-center p-2 shadow-inner">
-        <img src={effectiveUrl} alt={fileName || "Berkas CV"} className="max-h-full object-contain mx-auto rounded-lg" />
+      <div className="w-full rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 p-4 flex items-center justify-center shadow-xs">
+        <img src={activeUrl} alt={fileName || "Berkas CV"} className="max-h-[500px] object-contain mx-auto rounded-lg" />
       </div>
     );
   }
 
   return (
-    <div className="w-full h-96 border border-slate-300 rounded-2xl overflow-hidden bg-slate-100 relative shadow-inner">
-      <iframe
-        src={effectiveUrl}
-        className="w-full h-full border-0 bg-white"
-        title={fileName || "Dokumen CV PDF"}
-      />
+    <div className="w-full rounded-2xl overflow-hidden border border-slate-200 bg-white shadow-xs">
+      {/* Top Single Unified Toolbar */}
+      <div className="bg-slate-900 text-white px-4 py-3 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-8 h-8 rounded-lg bg-[#0077C6] text-white flex items-center justify-center font-extrabold text-[11px] shrink-0">
+            PDF
+          </div>
+          <div className="min-w-0">
+            <span className="font-bold text-slate-100 text-xs truncate block max-w-xs sm:max-w-sm">
+              {fileName || `CV_${studentName}.pdf`}
+            </span>
+            <span className="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
+              <CheckCircle className="w-3 h-3 text-emerald-400" /> Berkas Resmi Pelamar
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {numPages > 1 && (
+            <div className="flex items-center gap-1.5 bg-slate-800 px-2.5 py-1 rounded-lg text-slate-300 font-mono text-[11px]">
+              <button
+                type="button"
+                disabled={currentPage <= 1}
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                className="hover:text-white disabled:opacity-30 cursor-pointer font-bold"
+              >
+                &larr;
+              </button>
+              <span>{currentPage} / {numPages}</span>
+              <button
+                type="button"
+                disabled={currentPage >= numPages}
+                onClick={() => setCurrentPage(p => Math.min(numPages, p + 1))}
+                className="hover:text-white disabled:opacity-30 cursor-pointer font-bold"
+              >
+                &rarr;
+              </button>
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={openPdf}
+            className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
+          >
+            <ExternalLink className="w-3.5 h-3.5" /> Lihat
+          </button>
+          <button
+            type="button"
+            onClick={downloadPdf}
+            className="bg-[#0077C6] hover:bg-blue-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+          >
+            <Download className="w-3.5 h-3.5" /> Download
+          </button>
+        </div>
+      </div>
+
+      {/* PDF Content Viewport */}
+      <div className="w-full min-h-[480px] max-h-[620px] overflow-auto bg-slate-200/80 p-4 flex items-center justify-center relative">
+        {loadingPdf && (
+          <div className="flex flex-col items-center justify-center p-12 text-slate-500 space-y-2">
+            <div className="w-8 h-8 border-3 border-[#0077C6] border-t-transparent rounded-full animate-spin"></div>
+            <span className="text-xs font-medium">Memuat pratinjau dokumen PDF...</span>
+          </div>
+        )}
+
+        <canvas
+          ref={canvasRef}
+          className={`max-w-full bg-white shadow-lg rounded-md transition-opacity duration-200 ${
+            loadingPdf || useFallback ? 'hidden' : 'block'
+          }`}
+        />
+
+        {useFallback && !loadingPdf && (
+          <div className="w-full max-w-lg bg-white rounded-2xl border border-slate-200 shadow-md p-6 space-y-5 text-slate-800 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-blue-50 text-[#0077C6] flex items-center justify-center border border-blue-100 mx-auto shadow-2xs">
+              <FileText className="w-7 h-7" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="font-extrabold text-slate-900 text-sm">{fileName || `CV_${studentName}.pdf`}</h4>
+              <p className="text-xs text-slate-500 font-medium">
+                Pelamar: <span className="font-bold text-slate-700">{studentName}</span> ({prodi})
+              </p>
+            </div>
+            <div className="flex items-center justify-center gap-3 pt-1">
+              <button
+                type="button"
+                onClick={openPdf}
+                className="bg-[#0077C6] hover:bg-blue-700 text-white font-extrabold px-5 py-2.5 rounded-xl text-xs shadow-xs transition flex items-center gap-2 cursor-pointer"
+              >
+                <ExternalLink className="w-3.5 h-3.5" /> Lihat Dokumen PDF
+              </button>
+              <button
+                type="button"
+                onClick={downloadPdf}
+                className="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 font-bold px-5 py-2.5 rounded-xl text-xs transition flex items-center gap-2 cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5" /> Download File
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -267,6 +474,11 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
 
+  // Reset pagination to page 1 on filter or search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedJobFilter, selectedStatusFilter, searchQuery]);
+
   // Form Jadwal Interview Modal States
   const [schedulingApplicant, setSchedulingApplicant] = useState<PengajuanMagang | null>(null);
   const [interviewDate, setInterviewDate] = useState<string>('2026-08-15');
@@ -281,6 +493,17 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
     type: 'accept' | 'reject';
     applicant: PengajuanMagang;
   } | null>(null);
+
+  // Center Alert Popup Modal State (with OK button)
+  const [alertPopup, setAlertPopup] = useState<{
+    type: 'success' | 'error' | 'info';
+    title: string;
+    message: string;
+  } | null>(null);
+
+  const triggerAlert = (type: 'success' | 'error' | 'info', title: string, message: string) => {
+    setAlertPopup({ type, title, message });
+  };
 
   // Internal Note State for Candidates
   const [internalNoteInput, setInternalNoteInput] = useState<string>('');
@@ -671,9 +894,21 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
       updateInDB<PengajuanMagang>('pengajuan_magang', target);
       loadMitraData();
       if (onReloadData) onReloadData();
-      triggerToast('success', customMessage || `Status pelamar berhasil diperbarui menjadi ${decision.toUpperCase()}.`);
+      const toastType = (decision === 'rejected' || decision === 'ditolak') ? 'error' : 'success';
+      triggerToast(toastType, customMessage || `Status pelamar berhasil diperbarui menjadi ${decision.toUpperCase()}.`);
+
+      if (decision === 'accepted' || decision === 'diterima') {
+        triggerAlert('success', 'Pelamar Berhasil Diterima!', customMessage || `Pelamar ${target.namaMahasiswa} telah berhasil DITERIMA untuk posisi ${target.tujuanMagang}.`);
+      } else if (decision === 'rejected' || decision === 'ditolak') {
+        triggerAlert('error', 'Pelamar Ditolak', customMessage || `Pelamar ${target.namaMahasiswa} telah DITOLAK.`);
+      } else if (decision === 'seleksi_administrasi') {
+        triggerAlert('success', 'Status Diperbarui', `Status pelamar ${target.namaMahasiswa} berhasil diubah ke tahap Seleksi Administrasi.`);
+      } else if (decision === 'interview') {
+        triggerAlert('success', 'Lolos ke Interview', `Pelamar ${target.namaMahasiswa} berhasil diloloskan ke tahap interview.`);
+      }
     } else {
       triggerToast('error', 'Data pelamar tidak ditemukan.');
+      triggerAlert('error', 'Gagal', 'Data pelamar tidak ditemukan.');
     }
   };
 
@@ -709,18 +944,17 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
       target.interviewDate = interviewDate;
       target.interviewTime = interviewTime;
       target.interviewMethod = interviewMethod;
-      target.interviewLink = interviewMethod === 'online' ? interviewLink : '';
-      target.interviewLocation = interviewMethod === 'offline' ? interviewLocation : '';
+      target.interviewLink = interviewMethod === 'online' ? interviewLink : undefined;
+      target.interviewLocation = interviewMethod === 'offline' ? interviewLocation : undefined;
       target.interviewNote = interviewNote;
       target.riwayatSeleksi = [...existingHistory, newLog];
-      target.catatanAdmin = `Jadwal interview diset pada ${interviewDate} jam ${interviewTime}`;
 
       updateInDB<PengajuanMagang>('pengajuan_magang', target);
       loadMitraData();
       if (onReloadData) onReloadData();
       setSchedulingApplicant(null);
-      setSelectedApplicantDoc(null);
       triggerToast('success', `Jadwal interview untuk ${target.namaMahasiswa} berhasil disimpan dan status diubah menjadi INTERVIEW.`);
+      triggerAlert('success', 'Jadwal Interview Tersimpan!', `Jadwal interview untuk ${target.namaMahasiswa} berhasil disimpan dan status diubah menjadi INTERVIEW.`);
     }
   };
 
@@ -754,16 +988,18 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
     }
   };
 
-  // Submit survey (FR-MTR-06)
+  // Submit Partner Satisfaction Survey
   const handleSubmitSurvey = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!mitraData) return;
+    if (!selectedAlumniId) {
+      triggerToast('error', 'Silakan pilih alumni/lulusan yang ingin dievaluasi.');
+      return;
+    }
 
-    const surveyId = `sv_${Date.now()}`;
     const newSurvey: SurveiLulusan = {
-      id: surveyId,
-      mitraId: mitraData.id,
-      namaInstansi: mitraData.namaInstansi,
+      id: `sv_${Date.now()}`,
+      mitraId: mitraData?.id || `mtr_${user.id}`,
+      namaInstansi: mitraData?.namaInstansi || user.name,
       alumniId: selectedAlumniId || undefined,
       kualitasLulusan,
       kemampuanTeknis,
@@ -787,14 +1023,22 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
       {message && (
         <div 
           id="mtr-toast"
-          className={`fixed top-4 right-4 z-50 p-4 rounded-xl shadow-lg border text-sm max-w-sm flex items-center gap-2.5 transition-all ${
+          className={`fixed top-4 right-4 z-50 p-4 rounded-2xl shadow-xl border text-sm max-w-md flex items-center gap-3 transition-all animate-fadeIn ${
             message.type === 'success' 
-              ? 'bg-[#10B981]/15 text-[#10B981] border-[#10B981]/30 bg-white font-semibold shadow-md' 
-              : 'bg-rose-50 text-rose-800 border-rose-200'
+              ? 'bg-emerald-50 text-emerald-900 border-emerald-300 font-semibold' 
+              : 'bg-rose-50 text-rose-900 border-rose-300 font-semibold'
           }`}
         >
-          {message.type === 'success' ? <CheckCircle className="w-5 h-5 flex-shrink-0 text-[#10B981]" /> : <AlertCircle className="w-5 h-5 flex-shrink-0 text-rose-600" />}
-          <div>{message.text}</div>
+          {message.type === 'success' ? (
+            <div className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+              <CheckCircle className="w-5 h-5" />
+            </div>
+          ) : (
+            <div className="w-8 h-8 rounded-xl bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+              <AlertCircle className="w-5 h-5" />
+            </div>
+          )}
+          <div className="text-xs sm:text-sm font-bold leading-snug">{message.text}</div>
         </div>
       )}
 
@@ -2135,7 +2379,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                                         <CheckCircle className="w-3.5 h-3.5" /> Interview
                                       </button>
                                       <button
-                                        onClick={() => handleUpdateApplicantStatus(appl.id, 'rejected', `Pelamar ${appl.namaMahasiswa} telah Ditolak.`)}
+                                        onClick={() => setConfirmModal({ type: 'reject', applicant: appl })}
                                         className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-3 py-1.5 rounded-lg font-bold text-xs transition cursor-pointer"
                                       >
                                         Tolak
@@ -2253,7 +2497,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                                           <CheckCircle className="w-3.5 h-3.5" /> Lolos ke Interview
                                         </button>
                                         <button
-                                          onClick={() => handleUpdateApplicantStatus(appl.id, 'rejected', `Pelamar ${appl.namaMahasiswa} telah Ditolak.`)}
+                                          onClick={() => setConfirmModal({ type: 'reject', applicant: appl })}
                                           className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-3 py-1.5 rounded-lg font-bold text-xs transition cursor-pointer"
                                         >
                                           Tolak
@@ -2937,44 +3181,13 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
                   <FileText className="w-4 h-4 text-[#0077C6]" /> DOKUMEN CURRICULUM VITAE (CV)
                 </h4>
-                        <div className="border-2 border-dashed border-emerald-300 bg-emerald-50/40 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-12 h-12 rounded-xl bg-[#0077C6] text-white flex items-center justify-center font-extrabold text-xs shrink-0 shadow-xs">
-                      PDF
-                    </div>
-                    <div className="space-y-0.5 min-w-0">
-                      <h4 className="font-extrabold text-slate-900 text-sm truncate">
-                        {selectedApplicantDoc.berkasNama || `CV_${selectedApplicantDoc.namaMahasiswa.replace(/\s+/g, '_')}.pdf`}
-                      </h4>
-                      <p className="text-[11px] text-emerald-700 font-medium flex items-center gap-1">
-                        <CheckCircle className="w-3.5 h-3.5 text-emerald-600" /> CV Pelamar Resmi
-                      </p>
-                    </div>
-                  </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
-                    <a
-                      href={selectedApplicantDoc.berkasUrl || '#'}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 px-4 py-2.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <ExternalLink className="w-3.5 h-3.5" /> Lihat CV
-                    </a>
-                    <a
-                      href={selectedApplicantDoc.berkasUrl || '#'}
-                      download={selectedApplicantDoc.berkasNama || `CV_${selectedApplicantDoc.namaMahasiswa.replace(/\s+/g, '_')}.pdf`}
-                      className="bg-[#0077C6] hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer"
-                    >
-                      <Download className="w-3.5 h-3.5" /> Download CV
-                    </a>
-                  </div>
-                </div>
-
-                {/* Frame Preview */}
+                {/* Unified PDF Preview */}
                 <PdfViewerPreview
                   berkasUrl={selectedApplicantDoc.berkasUrl}
                   fileName={selectedApplicantDoc.berkasNama || `CV_${selectedApplicantDoc.namaMahasiswa.replace(/\s+/g, '_')}.pdf`}
+                  studentName={selectedApplicantDoc.namaMahasiswa}
+                  prodi={selectedApplicantDoc.programStudi}
                 />
               </div>
 
@@ -3024,8 +3237,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                         <button
                           type="button"
                           onClick={() => {
-                            handleUpdateApplicantStatus(selectedApplicantDoc.id, 'rejected', `Pelamar ${selectedApplicantDoc.namaMahasiswa} telah Ditolak.`);
-                            setSelectedApplicantDoc(null);
+                            setConfirmModal({ type: 'reject', applicant: selectedApplicantDoc });
                           }}
                           className="bg-rose-50 hover:bg-rose-100 text-rose-700 px-4 py-2.5 rounded-xl text-xs font-bold transition border border-rose-200 cursor-pointer"
                         >
@@ -3146,6 +3358,53 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                   Ya, Tolak
                 </button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* POPUP MODAL DI TENGAH DENGAN TOMBOL OK */}
+      {alertPopup && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
+          <div className="bg-white max-w-sm w-full rounded-3xl border border-slate-200 shadow-2xl p-6 sm:p-7 space-y-4 text-center my-8 animate-scaleUp">
+            <div className={`w-16 h-16 rounded-2xl mx-auto flex items-center justify-center shadow-xs ${
+              alertPopup.type === 'success'
+                ? 'bg-emerald-100 text-emerald-600'
+                : alertPopup.type === 'error'
+                ? 'bg-rose-100 text-rose-600'
+                : 'bg-blue-100 text-blue-600'
+            }`}>
+              {alertPopup.type === 'success' ? (
+                <CheckCircle className="w-8 h-8" />
+              ) : alertPopup.type === 'error' ? (
+                <XCircle className="w-8 h-8" />
+              ) : (
+                <AlertCircle className="w-8 h-8" />
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <h3 className="font-extrabold text-slate-900 text-lg leading-tight">
+                {alertPopup.title}
+              </h3>
+              <p className="text-xs text-slate-600 font-medium leading-relaxed px-2">
+                {alertPopup.message}
+              </p>
+            </div>
+
+            <div className="pt-2">
+              <button
+                type="button"
+                autoFocus
+                onClick={() => setAlertPopup(null)}
+                className={`w-full py-3 px-5 rounded-xl text-white font-extrabold text-xs shadow-md transition-all cursor-pointer active:scale-95 ${
+                  alertPopup.type === 'error'
+                    ? 'bg-rose-600 hover:bg-rose-700'
+                    : 'bg-[#0077C6] hover:bg-blue-700'
+                }`}
+              >
+                OK
+              </button>
             </div>
           </div>
         </div>

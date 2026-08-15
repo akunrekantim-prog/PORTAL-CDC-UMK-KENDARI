@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  User as UserType, 
-  Mahasiswa, 
+import {
+  User as UserType,
+  Mahasiswa,
   Lowongan
 } from '../types';
-import { 
+import {
   getFromDB,
   applyForJob,
   updateUserProfile
 } from '../data';
-import { 
+import {
   Search,
   Briefcase,
   User as UserIcon,
@@ -35,12 +35,12 @@ interface MahasiswaDashboardProps {
 
 export default function MahasiswaDashboard({ user, onLogout, allLowongan }: MahasiswaDashboardProps) {
   const [activeTab, setActiveTab] = useState<'search' | 'applications' | 'profile'>('search');
-  
+
   // Data States
   const [mahasiswaData, setMahasiswaData] = useState<Mahasiswa | null>(null);
   const [applyingJob, setApplyingJob] = useState<Lowongan | null>(null);
   const [selectedJobForDetail, setSelectedJobForDetail] = useState<Lowongan | null>(null);
-  
+
   // Search States
   const [studyFieldSearch, setStudyFieldSearch] = useState('');
   const [keywordSearch, setKeywordSearch] = useState('');
@@ -48,7 +48,7 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
   const [remoteFilter, setRemoteFilter] = useState('');
   const [jobTypeFilter, setJobTypeFilter] = useState('');
   const [startDateFilter, setStartDateFilter] = useState('');
-  
+
   // Profile Form States
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -67,7 +67,7 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
   const loadStudentData = () => {
     const students = getFromDB<Mahasiswa>('mahasiswa');
     let stud = students.find(m => m.userId === user.id);
-    
+
     if (stud) {
       setMahasiswaData(stud);
       // Try to split name roughly for the form
@@ -112,9 +112,9 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
   };
 
   // Calculate my applications count & active interview alerts
-  const myApplications = getFromDB<PengajuanMagang>('pengajuan_magang').filter(a => 
-    a.userId === user.id || 
-    a.namaMahasiswa === user.name || 
+  const myApplications = getFromDB<PengajuanMagang>('pengajuan_magang').filter(a =>
+    a.userId === user.id ||
+    a.namaMahasiswa === user.name ||
     (mahasiswaData && a.nim === mahasiswaData.nim) ||
     a.mahasiswaId === `mhs_${user.id}` ||
     a.mahasiswaId === mahasiswaData?.id ||
@@ -135,7 +135,7 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
       opportunityType,
       preferredStartDate
     };
-    
+
     const updated = updateUserProfile(user.id, updatedProfile);
     setMahasiswaData(updated);
     triggerToast('Profile updated successfully!');
@@ -153,7 +153,7 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
   // Filter jobs
   const filteredJobs = allLowongan.filter(job => {
     if (job.status !== 'published') return false;
-    
+
     // Basic search
     if (keywordSearch && !job.judul.toLowerCase().includes(keywordSearch.toLowerCase()) && !job.namaInstansi.toLowerCase().includes(keywordSearch.toLowerCase())) {
       return false;
@@ -162,12 +162,12 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
     if (locationFilter && !job.lokasi.toLowerCase().includes(locationFilter.toLowerCase())) return false;
     // Job type filter
     if (jobTypeFilter && job.tipe !== jobTypeFilter) return false;
-    
+
     // Simplistic start date & remote handling for mock
     if (remoteFilter === 'remote' && !job.lokasi.toLowerCase().includes('remote')) return false;
     if (remoteFilter === 'hybrid' && !job.lokasi.toLowerCase().includes('hybrid')) return false;
     if (remoteFilter === 'onsite' && (job.lokasi.toLowerCase().includes('remote') || job.lokasi.toLowerCase().includes('hybrid'))) return false;
-    
+
     return true;
   });
 
@@ -185,49 +185,63 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
       {/* Header / Top Navigation (Matching Screenshot 1:1) */}
       <header className="bg-white text-slate-900 sticky top-0 z-40 border-b border-slate-200/80 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-8">
-            <div className="flex items-center gap-2.5">
-              <div className="bg-[#10B981] text-white p-2 rounded-xl shadow-xs">
-                <Briefcase className="w-5 h-5" />
-              </div>
-              <div className="font-extrabold text-lg sm:text-xl tracking-tight text-slate-900">Career Portal UMK</div>
-            </div>
-            
+          <div className="flex items-center gap-16 lg:gap-40">
+            <button
+              onClick={() => {
+                setSelectedJobForDetail(null);
+                setActiveTab('search');
+              }}
+              className="flex items-center cursor-pointer group focus:outline-none shrink-0"
+              aria-label="Kembali ke Lowongan"
+            >
+              <img
+                src="/logo besar cdc.png"
+                alt="Logo CDC UMK"
+                className="h-10 sm:h-11 w-auto object-contain group-hover:scale-105 transition-transform"
+              />
+            </button>
+
             <nav className="hidden md:flex items-center gap-2">
               <button
-                onClick={() => setActiveTab('search')}
-                className={`px-3.5 py-5 border-b-2 font-extrabold text-sm transition-all flex items-center gap-1.5 ${
-                  activeTab === 'search'
-                    ? 'border-[#0055D4] text-[#0055D4]'
-                    : 'border-transparent text-slate-600 hover:text-slate-900'
-                }`}
+                onClick={() => {
+                  setSelectedJobForDetail(null);
+                  setActiveTab('search');
+                }}
+                className={`px-3.5 py-5 border-b-2 font-extrabold text-sm transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'search' && !selectedJobForDetail
+                  ? 'border-[#0055D4] text-[#0055D4]'
+                  : 'border-transparent text-slate-600 hover:text-slate-900'
+                  }`}
               >
                 Lowongan
               </button>
 
               <button
-                onClick={() => setActiveTab('applications')}
-                className={`px-3.5 py-5 border-b-2 font-extrabold text-sm transition-all flex items-center gap-1.5 ${
-                  activeTab === 'applications'
-                    ? 'border-[#0055D4] text-[#0055D4]'
-                    : 'border-transparent text-slate-600 hover:text-slate-900'
-                }`}
+                onClick={() => {
+                  setSelectedJobForDetail(null);
+                  setActiveTab('applications');
+                }}
+                className={`px-3.5 py-5 border-b-2 font-extrabold text-sm transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'applications' && !selectedJobForDetail
+                  ? 'border-[#0055D4] text-[#0055D4]'
+                  : 'border-transparent text-slate-600 hover:text-slate-900'
+                  }`}
               >
                 <span>Lamaran Saya</span>
                 {interviewAlertCount > 0 && (
-                  <span className="bg-amber-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full animate-pulse">
+                  <span className="bg-amber-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full">
                     {interviewAlertCount}
                   </span>
                 )}
               </button>
 
               <button
-                onClick={() => setActiveTab('profile')}
-                className={`px-3.5 py-5 border-b-2 font-extrabold text-sm transition-all flex items-center gap-1.5 ${
-                  activeTab === 'profile'
-                    ? 'border-[#0055D4] text-[#0055D4]'
-                    : 'border-transparent text-slate-600 hover:text-slate-900'
-                }`}
+                onClick={() => {
+                  setSelectedJobForDetail(null);
+                  setActiveTab('profile');
+                }}
+                className={`px-3.5 py-5 border-b-2 font-extrabold text-sm transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'profile' && !selectedJobForDetail
+                  ? 'border-[#0055D4] text-[#0055D4]'
+                  : 'border-transparent text-slate-600 hover:text-slate-900'
+                  }`}
               >
                 Profil Saya
               </button>
@@ -235,13 +249,18 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="text-right hidden sm:flex items-center gap-1 cursor-pointer group">
+            <div
+              onClick={() => {
+                setSelectedJobForDetail(null);
+                setActiveTab('profile');
+              }}
+              className="text-right hidden sm:flex items-center cursor-pointer group"
+            >
               <span className="font-extrabold text-sm text-slate-800 group-hover:text-blue-600 transition">{user.name}</span>
-              <ChevronDown className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition" />
             </div>
-            <button 
+            <button
               onClick={onLogout}
-              className="flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3.5 py-1.5 rounded-lg text-xs font-bold transition shadow-2xs"
+              className="flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3.5 py-1.5 rounded-lg text-xs font-bold transition shadow-2xs cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" /> Keluar
             </button>
@@ -252,26 +271,32 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
       {/* Mobile Nav */}
       <div className="md:hidden bg-white border-t border-slate-200 px-2 py-2 flex gap-2">
         <button
-          onClick={() => setActiveTab('search')}
-          className={`flex-1 py-2 rounded-lg font-bold text-xs transition ${
-            activeTab === 'search' ? 'bg-[#0055D4] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-          }`}
+          onClick={() => {
+            setSelectedJobForDetail(null);
+            setActiveTab('search');
+          }}
+          className={`flex-1 py-2 rounded-lg font-bold text-xs transition ${activeTab === 'search' && !selectedJobForDetail ? 'bg-[#0055D4] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
         >
           Lowongan
         </button>
         <button
-          onClick={() => setActiveTab('applications')}
-          className={`flex-1 py-2 rounded-lg font-bold text-xs transition flex items-center justify-center gap-1 ${
-            activeTab === 'applications' ? 'bg-[#0055D4] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-          }`}
+          onClick={() => {
+            setSelectedJobForDetail(null);
+            setActiveTab('applications');
+          }}
+          className={`flex-1 py-2 rounded-lg font-bold text-xs transition flex items-center justify-center gap-1 ${activeTab === 'applications' && !selectedJobForDetail ? 'bg-[#0055D4] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
         >
           <span>Lamaran Saya</span>
         </button>
         <button
-          onClick={() => setActiveTab('profile')}
-          className={`flex-1 py-2 rounded-lg font-bold text-xs transition ${
-            activeTab === 'profile' ? 'bg-[#0055D4] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-          }`}
+          onClick={() => {
+            setSelectedJobForDetail(null);
+            setActiveTab('profile');
+          }}
+          className={`flex-1 py-2 rounded-lg font-bold text-xs transition ${activeTab === 'profile' && !selectedJobForDetail ? 'bg-[#0055D4] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
         >
           Profil Saya
         </button>
