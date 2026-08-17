@@ -184,56 +184,8 @@ export default function PublicLayout({
               </div>
             </div>
 
-
-            {/* ══ JOB SEARCH ENGINE ═══════════════════════════════════════ */}
-            <section id="job-search-engine" className="py-14 bg-white">
-
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-
-                {/* Section header */}
-                <div className="text-center space-y-2">
-                  <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100
-                                  text-[#1E3A8A] px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-                    <Briefcase className="w-3.5 h-3.5" /> Portal Karir
-                  </div>
-                  <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1E3A8A]">
-                    UM Kendari <span className="text-[#10B981]">CAREER FAIR</span>
-                  </h2>
-                  <p className="text-slate-500 text-sm font-medium">
-                  </p>
-                </div>
-
-                {/* Search bar */}
-                <div className="max-w-3xl mx-auto">
-                  <div className="relative group shadow-lg rounded-2xl bg-white border-2 border-slate-200
-                                  focus-within:border-[#1E3A8A] transition-all">
-                    <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none
-                                    text-slate-400 group-focus-within:text-[#1E3A8A] transition-colors">
-                      <Search className="w-5 h-5" />
-                    </div>
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={e => setSearchQuery(e.target.value)}
-                      placeholder="Mesin Pencari..."
-                      className="w-full pl-14 pr-4 py-4 rounded-2xl bg-transparent text-base
-                                 font-medium focus:outline-none text-slate-800 placeholder:text-slate-400"
-                    />
-                    <button
-                      onClick={() => setTab('lowongan')}
-                      className="absolute inset-y-2 right-2 bg-[#1E3A8A] hover:bg-blue-800
-                                 text-white px-6 rounded-xl font-bold text-sm transition-colors"
-                    >
-                      Cari
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-
             {/* ══ MAIN CONTENT + SIDEBAR ══════════════════════════════════ */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-20
                             grid grid-cols-1 lg:grid-cols-12 gap-10">
 
               {/* ── LEFT / MAIN COLUMN ────────────────────────────────── */}

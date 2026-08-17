@@ -248,20 +248,43 @@ export default function Register({
 
       <div className="bg-white max-w-xl w-full rounded-3xl border border-slate-200/80 shadow-xl overflow-hidden relative" id="register-card-container">
 
-        {/* Card Header Banner */}
-        <div className="bg-[#0F1F4B] p-8 text-white relative overflow-hidden" id="register-header-banner">
-          <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none"></div>
+        {/* Card Header Banner (Dynamic for User vs Mitra) */}
+        <div
+          className={`p-8 text-white relative overflow-hidden transition-colors duration-300 ${
+            activeTab === 'alumni' ? 'bg-[#0F1F4B]' : 'bg-[#0A1638]'
+          }`}
+          id="register-header-banner"
+        >
+          <div
+            className={`absolute top-0 right-0 w-48 h-48 rounded-full blur-3xl pointer-events-none ${
+              activeTab === 'alumni' ? 'bg-emerald-500/20' : 'bg-blue-500/25'
+            }`}
+          ></div>
           <div className="absolute -bottom-6 -left-6 w-36 h-36 bg-blue-500/20 rounded-full blur-2xl pointer-events-none"></div>
 
           <div className="relative z-10 space-y-2 text-center sm:text-left">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-white/10 backdrop-blur-md text-emerald-400 text-[11px] font-bold tracking-wider uppercase border border-white/10">
-              <Sparkles className="w-3.5 h-3.5" /> Pendaftaran Akun Baru
+            <div
+              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-white/10 backdrop-blur-md text-[11px] font-bold tracking-wider uppercase border border-white/10 ${
+                activeTab === 'alumni' ? 'text-emerald-400' : 'text-blue-300'
+              }`}
+            >
+              {activeTab === 'alumni' ? (
+                <>
+                  <GraduationCap className="w-3.5 h-3.5" /> Pendaftaran Akun User (Mahasiswa & Alumni)
+                </>
+              ) : (
+                <>
+                  <Building2 className="w-3.5 h-3.5" /> Pendaftaran Mitra Perusahaan & HRD
+                </>
+              )}
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight">
-              Sistem Registrasi CDC
+              {activeTab === 'alumni' ? 'Registrasi Akun User' : 'Registrasi Mitra Perusahaan'}
             </h2>
             <p className="text-slate-300 text-xs sm:text-sm max-w-md leading-relaxed">
-              Bergabunglah dengan ekosistem karir & user Universitas Muhammadiyah Kendari untuk akses lowongan kerja, magang, dan tracer study.
+              {activeTab === 'alumni'
+                ? 'Daftarkan akun mahasiswa aktif atau lulusan Universitas Muhammadiyah Kendari untuk mengakses bursa kerja, magang, bimbingan karir, dan tracer study.'
+                : 'Daftarkan akun perusahaan, instansi, atau recruiter Anda untuk mempublikasikan informasi lowongan kerja & menemukan talenta lulusan terbaik.'}
             </p>
           </div>
         </div>
@@ -331,36 +354,6 @@ export default function Register({
               exit={{ opacity: 0 }}
               className="p-6 sm:p-8 space-y-6"
             >
-              {/* Tab Selector Switcher */}
-              <div className="bg-slate-100 p-1.5 rounded-2xl grid grid-cols-2 gap-1.5 border border-slate-200/70" id="register-tab-switcher">
-                <button
-                  type="button"
-                  onClick={() => { setActiveTab('alumni'); setErrorMsg(''); }}
-                  className={[
-                    'flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-bold transition-all',
-                    activeTab === 'alumni'
-                      ? 'bg-white text-slate-900 shadow-sm border border-slate-200/60'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
-                  ].join(' ')}
-                >
-                  <GraduationCap className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>Register User</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setActiveTab('perusahaan'); setErrorMsg(''); }}
-                  className={[
-                    'flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-bold transition-all',
-                    activeTab === 'perusahaan'
-                      ? 'bg-white text-slate-900 shadow-sm border border-slate-200/60'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
-                  ].join(' ')}
-                >
-                  <Building2 className="w-4 h-4 text-blue-600 shrink-0" />
-                  <span>Register Perusahaan</span>
-                </button>
-              </div>
-
               {/* Error Alert Box */}
               {errorMsg && (
                 <div className="bg-rose-50 text-rose-800 p-4 rounded-2xl border border-rose-200 text-xs flex items-start gap-2.5 shadow-2xs animate-shake" id="register-error-msg">
@@ -738,16 +731,44 @@ export default function Register({
                 </form>
               )}
 
-              {/* Footer navigation link */}
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                <span>Sudah memiliki akun di Portal?</span>
-                <button
-                  type="button"
-                  onClick={onNavigateToLogin}
-                  className="font-bold text-emerald-600 hover:text-emerald-700 hover:underline flex items-center gap-1"
-                >
-                  Masuk (Login) Sekarang →
-                </button>
+              {/* Footer navigation link & Cross-Linking */}
+              <div className="pt-4 border-t border-slate-100 space-y-2 text-xs">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-slate-500">
+                  {activeTab === 'alumni' ? (
+                    <>
+                      <span>Perusahaan / HRD yang ingin pasang loker?</span>
+                      <button
+                        type="button"
+                        onClick={() => { setActiveTab('perusahaan'); setErrorMsg(''); }}
+                        className="font-bold text-blue-600 hover:text-blue-700 hover:underline flex items-center gap-1"
+                      >
+                        <Building2 className="w-3.5 h-3.5" /> Daftar Mitra Perusahaan →
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <span>Mahasiswa / Alumni UM Kendari?</span>
+                      <button
+                        type="button"
+                        onClick={() => { setActiveTab('alumni'); setErrorMsg(''); }}
+                        className="font-bold text-emerald-600 hover:text-emerald-700 hover:underline flex items-center gap-1"
+                      >
+                        <GraduationCap className="w-3.5 h-3.5" /> Daftar Akun User →
+                      </button>
+                    </>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100/70 text-slate-500">
+                  <span>Sudah memiliki akun di Portal?</span>
+                  <button
+                    type="button"
+                    onClick={onNavigateToLogin}
+                    className="font-bold text-slate-800 hover:text-slate-900 hover:underline flex items-center gap-1"
+                  >
+                    Masuk (Login) Sekarang →
+                  </button>
+                </div>
               </div>
             </motion.div>
           )}
