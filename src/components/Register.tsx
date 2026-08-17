@@ -4,31 +4,27 @@
  *
  * Register Component — Portal CDC UM Kendari
  * ─────────────────────────────────────────────────────────────────
- * Modern, responsive registration module supporting two account types:
- *   1. User (Mahasiswa / Lulusan UM Kendari)
- *   2. Perusahaan / Mitra (Employer / Recruiter)
+ * Clean, professional, institutional registration page matching
+ * top-tier university portal standards.
  */
 
 import React, { useState, useEffect } from 'react';
 import {
-  GraduationCap,
-  Building2,
   Mail,
   Lock,
   User,
   Phone,
-  Briefcase,
-  Award,
-  CheckCircle2,
-  AlertCircle,
-  ArrowLeft,
-  ArrowRight,
-  Sparkles,
-  ShieldCheck,
-  BookOpen,
+  Building2,
   MapPin,
   Globe,
-  Loader2
+  Loader2,
+  Eye,
+  EyeOff,
+  CheckCircle2,
+  AlertCircle,
+  Info,
+  HelpCircle,
+  ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { registerUser, RegisterAlumniPayload, RegisterMitraPayload } from '../data';
@@ -47,31 +43,89 @@ const FAKULTAS_LIST = [
   'Fakultas Hukum',
   'Fakultas Ilmu Sosial dan Ilmu Politik',
   'Fakultas Pertanian',
+  'Fakultas Perikanan dan Ilmu Kelautan',
   'Fakultas Agama Islam',
+  'Program Pascasarjana (S2)',
   'Lainnya'
 ];
 
 const PRODI_MAP: Record<string, string[]> = {
-  'Fakultas Teknik': ['Teknik Informatika', 'Sistem Informasi', 'Teknik Sipil', 'Teknik Arsitektur', 'Lainnya'],
-  'Fakultas Ekonomi dan Bisnis Islam': ['Manajemen', 'Akuntansi', 'Bisnis Digital', 'Lainnya'],
-  'Fakultas Keguruan dan Ilmu Pendidikan': ['Pendidikan Bahasa Inggris', 'Administrasi Pendidikan', 'Pendidikan Masyarakat', 'Lainnya'],
-  'Fakultas Hukum': ['Ilmu Hukum', 'Lainnya'],
-  'Fakultas Ilmu Sosial dan Ilmu Politik': ['Ilmu Pemerintahan', 'Lainnya'],
-  'Fakultas Pertanian': ['Agribisnis', 'Kehutanan', 'Lainnya'],
-  'Fakultas Agama Islam': ['Pendidikan Agama Islam', 'Hukum Ekonomi Syariah', 'Lainnya'],
-  'Lainnya': ['Program Studi Lainnya']
+  'Fakultas Teknik': [
+    'Teknik Informatika',
+    'Sistem Informasi',
+    'Teknik Sipil',
+    'Teknik Arsitektur',
+    'Teknik Lingkungan',
+    'Lainnya'
+  ],
+  'Fakultas Ekonomi dan Bisnis Islam': [
+    'Manajemen',
+    'Akuntansi',
+    'Bisnis Digital',
+    'Perbankan Syariah',
+    'Ekonomi Islam',
+    'Lainnya'
+  ],
+  'Fakultas Keguruan dan Ilmu Pendidikan': [
+    'Pendidikan Bahasa Inggris',
+    'Pendidikan Guru Pendidikan Anak Usia Dini (PG-PAUD)',
+    'Pendidikan Guru Sekolah Dasar (PGSD)',
+    'Pendidikan Teknologi Informasi',
+    'Administrasi Pendidikan',
+    'Pendidikan Luar Sekolah (Pendidikan Masyarakat)',
+    'Lainnya'
+  ],
+  'Fakultas Hukum': [
+    'Ilmu Hukum',
+    'Lainnya'
+  ],
+  'Fakultas Ilmu Sosial dan Ilmu Politik': [
+    'Ilmu Pemerintahan',
+    'Ilmu Komunikasi',
+    'Lainnya'
+  ],
+  'Fakultas Pertanian': [
+    'Agribisnis',
+    'Kehutanan',
+    'Teknologi Hasil Pertanian',
+    'Lainnya'
+  ],
+  'Fakultas Perikanan dan Ilmu Kelautan': [
+    'Pemanfaatan Sumberdaya Perikanan',
+    'Akuakultur',
+    'Lainnya'
+  ],
+  'Fakultas Agama Islam': [
+    'Pendidikan Agama Islam',
+    'Hukum Ekonomi Syariah (Muamalah)',
+    'Pendidikan Islam Anak Usia Dini',
+    'Komunikasi dan Penyiaran Islam',
+    'Lainnya'
+  ],
+  'Program Pascasarjana (S2)': [
+    'Magister Manajemen (MM)',
+    'Magister Pendidikan Agama Islam',
+    'Magister Hukum',
+    'Lainnya'
+  ],
+  'Lainnya': [
+    'Program Studi Lainnya'
+  ]
 };
 
 const INDUSTRI_LIST = [
-  'Teknologi Informasi & Komunikasi (TIK / Software)',
+  'Teknologi Informasi, Software & Telekomunikasi',
   'Perbankan, Keuangan & Asuransi',
-  'Pertambangan, Energi & Sumber Daya Alam',
-  'Pendidikan, Riset & Pelatihan',
+  'Pertambangan, Energi & Sumber Daya Mineral',
+  'Pendidikan, Riset, Akademi & Pelatihan',
   'Kesehatan, Rumah Sakit & Farmasi',
-  'Retail, Perdagangan & E-Commerce',
-  'Manufaktur, Transportasi & Logistik',
-  'Pemerintahan / BUMN / BUMD / Instansi Publik',
-  'NGO / Yayasan / Nirlaba',
+  'Retail, FMCG, Perdagangan & E-Commerce',
+  'Manufaktur, Otomotif, Logistik & Distribusi',
+  'Konstruksi, Properti & Real Estate',
+  'Pertanian, Kehutanan & Perikanan',
+  'Media, Kreatif, Advertising & Broadcasting',
+  'Pemerintahan / BUMN / BUMD / Lembaga Publik',
+  'Lembaga Nirlaba, NGO & Yayasan Sosial',
   'Lainnya'
 ];
 
@@ -86,6 +140,13 @@ export default function Register({
   const [errorMsg, setErrorMsg] = useState('');
   const [successUser, setSuccessUser] = useState<any | null>(null);
 
+  // Password Visibility States
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Terms Agreement State
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+
   // Sync state if initialTab changes
   useEffect(() => {
     setActiveTab(initialTab);
@@ -97,12 +158,12 @@ export default function Register({
   const [alumniForm, setAlumniForm] = useState({
     name: '',
     nim: '',
+    fakultas: '',
+    programStudi: '',
+    tahunLulus: '',
+    statusPekerjaan: '',
     email: '',
     phone: '',
-    fakultas: 'Fakultas Teknik',
-    programStudi: 'Teknik Informatika',
-    tahunLulus: new Date().getFullYear().toString(),
-    statusPekerjaan: 'belum_bekerja' as 'bekerja' | 'wirausaha' | 'lanjut_studi' | 'belum_bekerja',
     password: '',
     confirmPassword: ''
   });
@@ -111,60 +172,87 @@ export default function Register({
   const [mitraForm, setMitraForm] = useState({
     namaInstansi: '',
     kontakPerson: '',
+    bidangIndustri: '',
+    jabatanKontak: '',
     email: '',
     phone: '',
-    bidangIndustri: 'Teknologi Informasi & Komunikasi (TIK / Software)',
-    alamat: '',
     website: '',
+    alamat: '',
     password: '',
     confirmPassword: ''
   });
 
-  // Handle Faculty change to reset prodi to first item
+  // Handle Faculty change to reset prodi
   const handleFakultasChange = (fakultas: string) => {
-    const prodis = PRODI_MAP[fakultas] || ['Lainnya'];
     setAlumniForm(prev => ({
       ...prev,
       fakultas,
-      programStudi: prodis[0]
+      programStudi: ''
     }));
   };
 
   const validateAlumni = (): boolean => {
-    if (!alumniForm.name.trim() || !alumniForm.nim.trim() || !alumniForm.email.trim() || !alumniForm.password) {
-      setErrorMsg('Harap lengkapi seluruh kolom wajib (*).');
+    if (
+      !alumniForm.name.trim() ||
+      !alumniForm.nim.trim() ||
+      !alumniForm.fakultas ||
+      !alumniForm.programStudi ||
+      !alumniForm.tahunLulus ||
+      !alumniForm.statusPekerjaan ||
+      !alumniForm.email.trim() ||
+      !alumniForm.phone.trim() ||
+      !alumniForm.password
+    ) {
+      setErrorMsg('Harap lengkapi seluruh kolom yang bertanda bintang (*).');
       return false;
     }
     if (!alumniForm.email.includes('@') || !alumniForm.email.includes('.')) {
-      setErrorMsg('Format email tidak valid.');
-      return false;
-    }
-    if (alumniForm.password !== alumniForm.confirmPassword) {
-      setErrorMsg('Konfirmasi password tidak cocok dengan password yang dimasukkan.');
+      setErrorMsg('Format alamat email tidak valid.');
       return false;
     }
     if (alumniForm.password.length < 6) {
-      setErrorMsg('Password minimal terdiri dari 6 karakter.');
+      setErrorMsg('Kata sandi minimal terdiri dari 6 karakter.');
+      return false;
+    }
+    if (alumniForm.password !== alumniForm.confirmPassword) {
+      setErrorMsg('Konfirmasi kata sandi tidak cocok dengan kata sandi yang dimasukkan.');
+      return false;
+    }
+    if (!agreedToTerms) {
+      setErrorMsg('Anda wajib menyetujui Ketentuan Layanan dan Kebijakan Privasi sebelum mendaftar.');
       return false;
     }
     return true;
   };
 
   const validateMitra = (): boolean => {
-    if (!mitraForm.namaInstansi.trim() || !mitraForm.kontakPerson.trim() || !mitraForm.email.trim() || !mitraForm.password) {
-      setErrorMsg('Harap lengkapi seluruh kolom wajib (*).');
+    if (
+      !mitraForm.namaInstansi.trim() ||
+      !mitraForm.kontakPerson.trim() ||
+      !mitraForm.bidangIndustri ||
+      !mitraForm.jabatanKontak.trim() ||
+      !mitraForm.email.trim() ||
+      !mitraForm.phone.trim() ||
+      !mitraForm.alamat.trim() ||
+      !mitraForm.password
+    ) {
+      setErrorMsg('Harap lengkapi seluruh kolom yang bertanda bintang (*).');
       return false;
     }
     if (!mitraForm.email.includes('@') || !mitraForm.email.includes('.')) {
-      setErrorMsg('Format email perusahaan tidak valid.');
-      return false;
-    }
-    if (mitraForm.password !== mitraForm.confirmPassword) {
-      setErrorMsg('Konfirmasi password tidak cocok dengan password yang dimasukkan.');
+      setErrorMsg('Format email instansi/perusahaan tidak valid.');
       return false;
     }
     if (mitraForm.password.length < 6) {
-      setErrorMsg('Password minimal terdiri dari 6 karakter.');
+      setErrorMsg('Kata sandi minimal terdiri dari 6 karakter.');
+      return false;
+    }
+    if (mitraForm.password !== mitraForm.confirmPassword) {
+      setErrorMsg('Konfirmasi kata sandi tidak cocok dengan kata sandi yang dimasukkan.');
+      return false;
+    }
+    if (!agreedToTerms) {
+      setErrorMsg('Anda wajib menyetujui Ketentuan Layanan dan Kebijakan Privasi sebelum mendaftar.');
       return false;
     }
     return true;
@@ -177,18 +265,17 @@ export default function Register({
 
     setIsLoading(true);
     try {
-      // Simulate slight network delay for realistic UX animation
       await new Promise(r => setTimeout(r, 600));
 
       const payload: RegisterAlumniPayload = {
         name: alumniForm.name.trim(),
-        nim: alumniForm.nim.trim(),
+        nim: alumniForm.nim.trim().toUpperCase(),
         email: alumniForm.email.trim(),
         phone: alumniForm.phone.trim(),
         fakultas: alumniForm.fakultas,
         programStudi: alumniForm.programStudi,
         tahunLulus: alumniForm.tahunLulus,
-        statusPekerjaan: alumniForm.statusPekerjaan
+        statusPekerjaan: alumniForm.statusPekerjaan as any
       };
 
       const user = registerUser('alumni', payload);
@@ -212,7 +299,9 @@ export default function Register({
 
       const payload: RegisterMitraPayload = {
         namaInstansi: mitraForm.namaInstansi.trim(),
-        kontakPerson: mitraForm.kontakPerson.trim(),
+        kontakPerson: mitraForm.jabatanKontak
+          ? `${mitraForm.kontakPerson.trim()} (${mitraForm.jabatanKontak.trim()})`
+          : mitraForm.kontakPerson.trim(),
         email: mitraForm.email.trim(),
         phone: mitraForm.phone.trim(),
         bidangIndustri: mitraForm.bidangIndustri,
@@ -231,555 +320,705 @@ export default function Register({
   };
 
   return (
-    <div className="min-h-[85vh] py-12 px-4 sm:px-6 lg:px-8 bg-slate-50 flex flex-col justify-center items-center font-sans" id="register-module-root">
+    <div className="min-h-screen bg-[#F8F9FC] text-slate-800 font-sans flex flex-col justify-between" id="register-page-root">
+      
+      {/* ─────────────────────────────────────────────────────────────
+          1. TOP NAVBAR
+      ───────────────────────────────────────────────────────────── */}
+      <header className="bg-white border-b border-slate-200/80 sticky top-0 z-30 shadow-2xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+          
+          {/* Official CDC Brand Logo */}
+          <button
+            onClick={onNavigateHome}
+            className="flex items-center gap-3 text-left group focus:outline-none cursor-pointer"
+            aria-label="Beranda CDC UM Kendari"
+          >
+            <img
+              src="/logo-cdc-branding-transparent.png"
+              alt="Career Development Center - Universitas Muhammadiyah Kendari"
+              className="h-10 sm:h-11 w-auto object-contain"
+            />
+          </button>
 
-      {/* Top Breadcrumb / Home Button */}
-      <div className="max-w-xl w-full mb-4 flex items-center justify-between">
-        <button
-          onClick={onNavigateHome}
-          className="inline-flex items-center gap-1.5 text-slate-600 hover:text-slate-900 font-bold text-xs bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs transition hover:border-slate-300"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" /> Kembali ke Beranda
-        </button>
-        <div className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-          <ShieldCheck className="w-3.5 h-3.5" /> Portal Terintegrasi CDC
-        </div>
-      </div>
-
-      <div className="bg-white max-w-xl w-full rounded-3xl border border-slate-200/80 shadow-xl overflow-hidden relative" id="register-card-container">
-
-        {/* Card Header Banner (Dynamic for User vs Mitra) */}
-        <div
-          className={`p-8 text-white relative overflow-hidden transition-colors duration-300 ${
-            activeTab === 'alumni' ? 'bg-[#0F1F4B]' : 'bg-[#0A1638]'
-          }`}
-          id="register-header-banner"
-        >
-          <div
-            className={`absolute top-0 right-0 w-48 h-48 rounded-full blur-3xl pointer-events-none ${
-              activeTab === 'alumni' ? 'bg-emerald-500/20' : 'bg-blue-500/25'
-            }`}
-          ></div>
-          <div className="absolute -bottom-6 -left-6 w-36 h-36 bg-blue-500/20 rounded-full blur-2xl pointer-events-none"></div>
-
-          <div className="relative z-10 space-y-2 text-center sm:text-left">
-            <div
-              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-white/10 backdrop-blur-md text-[11px] font-bold tracking-wider uppercase border border-white/10 ${
-                activeTab === 'alumni' ? 'text-emerald-400' : 'text-blue-300'
-              }`}
+          {/* Right link: Login */}
+          <div className="flex items-center gap-4">
+            <button
+              onClick={onNavigateToLogin}
+              className="text-sm font-bold text-[#00186B] hover:text-[#000E3D] hover:underline transition cursor-pointer"
             >
-              {activeTab === 'alumni' ? (
-                <>
-                  <GraduationCap className="w-3.5 h-3.5" /> Pendaftaran Akun User (Mahasiswa & Alumni)
-                </>
-              ) : (
-                <>
-                  <Building2 className="w-3.5 h-3.5" /> Pendaftaran Mitra Perusahaan & HRD
-                </>
-              )}
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight">
-              {activeTab === 'alumni' ? 'Registrasi Akun User' : 'Registrasi Mitra Perusahaan'}
-            </h2>
-            <p className="text-slate-300 text-xs sm:text-sm max-w-md leading-relaxed">
-              {activeTab === 'alumni'
-                ? 'Daftarkan akun mahasiswa aktif atau lulusan Universitas Muhammadiyah Kendari untuk mengakses bursa kerja, magang, bimbingan karir, dan tracer study.'
-                : 'Daftarkan akun perusahaan, instansi, atau recruiter Anda untuk mempublikasikan informasi lowongan kerja & menemukan talenta lulusan terbaik.'}
-            </p>
+              Login
+            </button>
           </div>
         </div>
+      </header>
 
-        {/* Success Screen (Rendered when registration succeeds) */}
-        <AnimatePresence mode="wait">
-          {successUser ? (
-            <motion.div
-              key="success-screen"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              className="p-8 sm:p-10 text-center space-y-6"
-              id="register-success-view"
-            >
-              <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
-                <CheckCircle2 className="w-10 h-10" />
-              </div>
+      {/* ─────────────────────────────────────────────────────────────
+          2. MAIN CONTENT CONTAINER
+      ───────────────────────────────────────────────────────────── */}
+      <main className="flex-1 py-10 sm:py-14 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center">
+        <div className="max-w-4xl w-full mx-auto space-y-6">
 
-              <div className="space-y-2">
-                <h3 className="text-2xl font-extrabold text-slate-900">
-                  Registrasi Berhasil!
-                </h3>
-                <p className="text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
-                  Selamat datang di Portal CDC UM Kendari, <strong className="text-slate-900 font-bold">{successUser.name}</strong>.
-                  Akun Anda telah terdaftar sebagai <span className="uppercase font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">{successUser.role}</span>.
-                </p>
-              </div>
 
-              <div className="bg-slate-50 border border-slate-150 rounded-2xl p-4 text-xs text-slate-500 space-y-1.5 text-left max-w-md mx-auto">
-                <div className="flex justify-between border-b border-slate-200/60 pb-1.5 font-mono">
-                  <span>ID Pengguna:</span>
-                  <span className="font-bold text-slate-800">{successUser.id}</span>
-                </div>
-                <div className="flex justify-between border-b border-slate-200/60 py-1.5 font-mono">
-                  <span>Email Terdaftar:</span>
-                  <span className="font-bold text-slate-800">{successUser.email}</span>
-                </div>
-                <div className="flex justify-between pt-1.5 font-mono">
-                  <span>Status Akun:</span>
-                  <span className="font-bold text-emerald-600">AKTIF (Siap Login)</span>
-                </div>
-              </div>
 
-              <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
-                <button
-                  type="button"
-                  onClick={onNavigateToLogin}
-                  className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white px-8 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition shadow-md active:scale-95 flex items-center justify-center gap-2"
-                >
-                  Masuk (Login) Ke Portal Now <ArrowRight className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={onNavigateHome}
-                  className="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition"
-                >
-                  Kembali Ke Beranda
-                </button>
-              </div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="form-screen"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="p-6 sm:p-8 space-y-6"
-            >
-              {/* Error Alert Box */}
-              {errorMsg && (
-                <div className="bg-rose-50 text-rose-800 p-4 rounded-2xl border border-rose-200 text-xs flex items-start gap-2.5 shadow-2xs animate-shake" id="register-error-msg">
-                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-                  <div className="flex-1 font-medium">{errorMsg}</div>
-                </div>
-              )}
-
-              {/* ══════════════════════════════════════════════════════════
-                  FORM A: REGISTER USER
-              ══════════════════════════════════════════════════════════ */}
-              {activeTab === 'alumni' && (
-                <form onSubmit={handleSubmitAlumni} className="space-y-4" id="form-register-user">
-                  <div className="bg-emerald-50/60 border border-emerald-100 p-3.5 rounded-2xl text-xs text-emerald-800 flex items-center gap-2">
-                    <Award className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Diperuntukkan bagi mahasiswa aktif tingkat akhir atau lulusan (user) UM Kendari.</span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Full Name */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Nama Lengkap & Gelar *</label>
-                      <div className="relative">
-                        <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><User className="w-4 h-4" /></span>
-                        <input
-                          type="text"
-                          required
-                          value={alumniForm.name}
-                          onChange={(e) => setAlumniForm({ ...alumniForm, name: e.target.value })}
-                          placeholder="Contoh: Muhammad Fadly, S.Kom."
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white"
-                        />
-                      </div>
-                    </div>
-
-                    {/* NIM */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">NIM (Nomor Induk Mahasiswa) *</label>
-                      <div className="relative">
-                        <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><BookOpen className="w-4 h-4" /></span>
-                        <input
-                          type="text"
-                          required
-                          value={alumniForm.nim}
-                          onChange={(e) => setAlumniForm({ ...alumniForm, nim: e.target.value })}
-                          placeholder="Contoh: 202101001"
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-mono bg-white"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Fakultas */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Fakultas *</label>
-                      <select
-                        value={alumniForm.fakultas}
-                        onChange={(e) => handleFakultasChange(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white"
-                      >
-                        {FAKULTAS_LIST.map(f => (
-                          <option key={f} value={f}>{f}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Program Studi */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Program Studi *</label>
-                      <select
-                        value={alumniForm.programStudi}
-                        onChange={(e) => setAlumniForm({ ...alumniForm, programStudi: e.target.value })}
-                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white"
-                      >
-                        {(PRODI_MAP[alumniForm.fakultas] || ['Lainnya']).map(prodi => (
-                          <option key={prodi} value={prodi}>{prodi}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Tahun Lulus */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Tahun Lulus / Angkatan *</label>
-                      <select
-                        value={alumniForm.tahunLulus}
-                        onChange={(e) => setAlumniForm({ ...alumniForm, tahunLulus: e.target.value })}
-                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white"
-                      >
-                        {Array.from({ length: 12 }, (_, i) => new Date().getFullYear() + 1 - i).map(year => (
-                          <option key={year} value={year.toString()}>{year}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Status Pekerjaan Awal */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Status Karir Saat Ini *</label>
-                      <select
-                        value={alumniForm.statusPekerjaan}
-                        onChange={(e) => setAlumniForm({ ...alumniForm, statusPekerjaan: e.target.value as any })}
-                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white"
-                      >
-                        <option value="belum_bekerja">Belum Bekerja / Mencari Kerja</option>
-                        <option value="bekerja">Bekerja (Karyawan/PNS/Swasta)</option>
-                        <option value="wirausaha">Wirausaha / Entrepreneur</option>
-                        <option value="lanjut_studi">Lanjut Studi (S2/Profesi)</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Email */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Email Aktif *</label>
-                      <div className="relative">
-                        <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><Mail className="w-4 h-4" /></span>
-                        <input
-                          type="email"
-                          required
-                          value={alumniForm.email}
-                          onChange={(e) => setAlumniForm({ ...alumniForm, email: e.target.value })}
-                          placeholder="mhs@umkendari.ac.id"
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Phone / WhatsApp */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">No. WhatsApp / HP</label>
-                      <div className="relative">
-                        <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><Phone className="w-4 h-4" /></span>
-                        <input
-                          type="tel"
-                          value={alumniForm.phone}
-                          onChange={(e) => setAlumniForm({ ...alumniForm, phone: e.target.value })}
-                          placeholder="08524100XXXX"
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white font-mono"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
-                    {/* Password */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Kata Sandi (Password) *</label>
-                      <div className="relative">
-                        <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><Lock className="w-4 h-4" /></span>
-                        <input
-                          type="password"
-                          required
-                          value={alumniForm.password}
-                          onChange={(e) => setAlumniForm({ ...alumniForm, password: e.target.value })}
-                          placeholder="Minimal 6 karakter"
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Confirm Password */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Konfirmasi Password *</label>
-                      <div className="relative">
-                        <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><Lock className="w-4 h-4" /></span>
-                        <input
-                          type="password"
-                          required
-                          value={alumniForm.confirmPassword}
-                          onChange={(e) => setAlumniForm({ ...alumniForm, confirmPassword: e.target.value })}
-                          placeholder="Ulangi password di atas"
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-4">
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      className="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white font-bold py-3.5 rounded-xl text-xs uppercase tracking-wider transition shadow-md active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" /> Memproses Registrasi User...
-                        </>
-                      ) : (
-                        <>
-                          Daftarkan Akun User Sekarang <ArrowRight className="w-4 h-4" />
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </form>
-              )}
-
-              {/* ══════════════════════════════════════════════════════════
-                  FORM B: REGISTER PERUSAHAAN / MITRA
-              ══════════════════════════════════════════════════════════ */}
-              {activeTab === 'perusahaan' && (
-                <form onSubmit={handleSubmitMitra} className="space-y-4" id="form-register-mitra">
-                  <div className="bg-blue-50/60 border border-blue-100 p-3.5 rounded-2xl text-xs text-blue-800 flex items-center gap-2">
-                    <Briefcase className="w-4 h-4 text-blue-600 shrink-0" />
-                    <span>Diperuntukkan bagi HRD, Recruiter, atau Perusahaan yang ingin memasang lowongan di UM Kendari.</span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Company Name */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Nama Perusahaan / Instansi *</label>
-                      <div className="relative">
-                        <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><Building2 className="w-4 h-4" /></span>
-                        <input
-                          type="text"
-                          required
-                          value={mitraForm.namaInstansi}
-                          onChange={(e) => setMitraForm({ ...mitraForm, namaInstansi: e.target.value })}
-                          placeholder="PT Go Digital Indonesia"
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white"
-                        />
-                      </div>
-                    </div>
-
-                    {/* HR Contact Name */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Nama HR / Penanggung Jawab *</label>
-                      <div className="relative">
-                        <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><User className="w-4 h-4" /></span>
-                        <input
-                          type="text"
-                          required
-                          value={mitraForm.kontakPerson}
-                          onChange={(e) => setMitraForm({ ...mitraForm, kontakPerson: e.target.value })}
-                          placeholder="Budi Setiawan (HR Manager)"
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Bidang Industri */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Sektor Industri *</label>
-                      <select
-                        value={mitraForm.bidangIndustri}
-                        onChange={(e) => setMitraForm({ ...mitraForm, bidangIndustri: e.target.value })}
-                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white"
-                      >
-                        {INDUSTRI_LIST.map(ind => (
-                          <option key={ind} value={ind}>{ind}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Corporate Phone / WA */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">No. WhatsApp / Telepon HR</label>
-                      <div className="relative">
-                        <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><Phone className="w-4 h-4" /></span>
-                        <input
-                          type="tel"
-                          value={mitraForm.phone}
-                          onChange={(e) => setMitraForm({ ...mitraForm, phone: e.target.value })}
-                          placeholder="08129999XXXX / (0401) XXXX"
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white font-mono"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Corporate Email */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Email Perusahaan / HR *</label>
-                      <div className="relative">
-                        <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><Mail className="w-4 h-4" /></span>
-                        <input
-                          type="email"
-                          required
-                          value={mitraForm.email}
-                          onChange={(e) => setMitraForm({ ...mitraForm, email: e.target.value })}
-                          placeholder="hrd@perusahaan.co.id"
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Website */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Website Perusahaan (Opsional)</label>
-                      <div className="relative">
-                        <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><Globe className="w-4 h-4" /></span>
-                        <input
-                          type="text"
-                          value={mitraForm.website}
-                          onChange={(e) => setMitraForm({ ...mitraForm, website: e.target.value })}
-                          placeholder="https://www.perusahaan.com"
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Alamat */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700">Alamat Kantor Perusahaan / Cabang</label>
-                    <div className="relative">
-                      <span className="absolute top-3 left-0 pl-3.5 flex items-center text-slate-400"><MapPin className="w-4 h-4" /></span>
-                      <textarea
-                        rows={2}
-                        value={mitraForm.alamat}
-                        onChange={(e) => setMitraForm({ ...mitraForm, alamat: e.target.value })}
-                        placeholder="Jl. Jenderal Sudirman No. X, Kendari, Sultra"
-                        className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white resize-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
-                    {/* Password */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Kata Sandi (Password) *</label>
-                      <div className="relative">
-                        <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><Lock className="w-4 h-4" /></span>
-                        <input
-                          type="password"
-                          required
-                          value={mitraForm.password}
-                          onChange={(e) => setMitraForm({ ...mitraForm, password: e.target.value })}
-                          placeholder="Minimal 6 karakter"
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Confirm Password */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Konfirmasi Password *</label>
-                      <div className="relative">
-                        <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><Lock className="w-4 h-4" /></span>
-                        <input
-                          type="password"
-                          required
-                          value={mitraForm.confirmPassword}
-                          onChange={(e) => setMitraForm({ ...mitraForm, confirmPassword: e.target.value })}
-                          placeholder="Ulangi password di atas"
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-4">
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      className="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white font-bold py-3.5 rounded-xl text-xs uppercase tracking-wider transition shadow-md active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" /> Memproses Registrasi Mitra...
-                        </>
-                      ) : (
-                        <>
-                          Daftarkan Akun Mitra Karir <ArrowRight className="w-4 h-4" />
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </form>
-              )}
-
-              {/* Footer navigation link & Cross-Linking */}
-              <div className="pt-4 border-t border-slate-100 space-y-2 text-xs">
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-slate-500">
-                  {activeTab === 'alumni' ? (
-                    <>
-                      <span>Perusahaan / HRD yang ingin pasang loker?</span>
-                      <button
-                        type="button"
-                        onClick={() => { setActiveTab('perusahaan'); setErrorMsg(''); }}
-                        className="font-bold text-blue-600 hover:text-blue-700 hover:underline flex items-center gap-1"
-                      >
-                        <Building2 className="w-3.5 h-3.5" /> Daftar Mitra Perusahaan →
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <span>Mahasiswa / Alumni UM Kendari?</span>
-                      <button
-                        type="button"
-                        onClick={() => { setActiveTab('alumni'); setErrorMsg(''); }}
-                        className="font-bold text-emerald-600 hover:text-emerald-700 hover:underline flex items-center gap-1"
-                      >
-                        <GraduationCap className="w-3.5 h-3.5" /> Daftar Akun User →
-                      </button>
-                    </>
-                  )}
+          <AnimatePresence mode="wait">
+            {/* ═════════════════════════════════════════════════════════
+                VIEW STATE: REGISTRATION SUCCESS
+            ═════════════════════════════════════════════════════════ */}
+            {successUser ? (
+              <motion.div
+                key="success-card"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-8 sm:p-12 text-center space-y-6 max-w-xl mx-auto"
+                id="register-success-view"
+              >
+                <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto border border-emerald-200">
+                  <CheckCircle2 className="w-9 h-9" />
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-slate-100/70 text-slate-500">
-                  <span>Sudah memiliki akun di Portal?</span>
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-extrabold text-slate-900">
+                    Registrasi Berhasil!
+                  </h2>
+                  <p className="text-sm text-slate-600 leading-relaxed max-w-md mx-auto">
+                    Selamat datang di Portal CDC UM Kendari, <strong className="text-slate-900 font-bold">{successUser.name}</strong>.
+                    Akun Anda telah terdaftar dan siap digunakan.
+                  </p>
+                </div>
+
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs text-slate-600 divide-y divide-slate-100 text-left">
+                  <div className="py-2 flex justify-between">
+                    <span className="text-slate-500">Email Akun:</span>
+                    <span className="font-bold text-slate-900 font-mono">{successUser.email}</span>
+                  </div>
+                  <div className="py-2 flex justify-between">
+                    <span className="text-slate-500">Tipe Akun:</span>
+                    <span className="font-bold text-blue-900 uppercase">
+                      {successUser.role === 'alumni' ? 'Mahasiswa / Alumni' : 'Mitra Perusahaan'}
+                    </span>
+                  </div>
+                  <div className="py-2 flex justify-between">
+                    <span className="text-slate-500">Status Akun:</span>
+                    <span className="font-bold text-emerald-600">AKTIF (Siap Digunakan)</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
                   <button
                     type="button"
                     onClick={onNavigateToLogin}
-                    className="font-bold text-slate-800 hover:text-slate-900 hover:underline flex items-center gap-1"
+                    className="flex-1 bg-[#00186B] hover:bg-[#000E3D] text-white font-bold py-3.5 px-6 rounded-lg text-sm transition flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    Masuk (Login) Sekarang →
+                    Login Sekarang <ArrowRight className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onNavigateHome}
+                    className="bg-white hover:bg-slate-50 text-slate-700 font-bold py-3.5 px-6 rounded-lg text-sm border border-slate-200 transition text-center cursor-pointer"
+                  >
+                    Kembali ke Beranda
                   </button>
                 </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              </motion.div>
+            ) : (
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                className="space-y-6"
+              >
+                {/* Title & Subtitle */}
+                <div className="space-y-1">
+                  <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                    {activeTab === 'alumni' ? 'Daftar Akun' : 'Registrasi Mitra Perusahaan'}
+                  </h1>
+                  <p className="text-sm text-slate-500">
+                    {activeTab === 'alumni'
+                      ? 'Lengkapi data berikut untuk membuat akun Portal CDC Universitas Muhammadiyah Kendari.'
+                      : 'Daftarkan akun perusahaan, instansi, atau recruiter Anda untuk mempublikasikan informasi lowongan kerja dan menemukan talenta lulusan terbaik.'}
+                  </p>
+                </div>
 
-      </div>
+                {/* Main White Card */}
+                <div className="bg-white rounded-2xl border border-slate-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-6 sm:p-10 space-y-6">
 
-      {/* Footer copyright note */}
-      <div className="mt-6 text-center text-[11px] text-slate-400 font-mono">
-        CDC UM Kendari · Hak Cipta Dilindungi Undang-Undang © 2026
-      </div>
+                  {/* Error Alert Box */}
+                  {errorMsg && (
+                    <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl text-xs flex items-start gap-3">
+                      <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                      <div className="flex-1 font-medium">{errorMsg}</div>
+                    </div>
+                  )}
+
+                  {/* ───────────────────────────────────────────────────
+                      FORM 1: MAHASISWA & ALUMNI
+                  ─────────────────────────────────────────────────── */}
+                  {activeTab === 'alumni' && (
+                    <form onSubmit={handleSubmitAlumni} className="space-y-5" id="form-register-user">
+                      
+                      {/* Row 1: Nama Lengkap & NIM */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div className="space-y-1.5">
+                          <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
+                            Nama Lengkap (beserta gelar jika ada) <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={alumniForm.name}
+                            onChange={(e) => setAlumniForm({ ...alumniForm, name: e.target.value })}
+                            placeholder="Contoh: Muhammad Fadly, S.Kom."
+                            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
+                            NIM <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={alumniForm.nim}
+                            onChange={(e) => setAlumniForm({ ...alumniForm, nim: e.target.value })}
+                            placeholder="Contoh: 202101001"
+                            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] font-mono transition"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Row 2: Fakultas, Program Studi, Tahun Angkatan */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                        <div className="space-y-1.5">
+                          <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
+                            Fakultas <span className="text-red-500">*</span>
+                          </label>
+                          <select
+                            value={alumniForm.fakultas}
+                            onChange={(e) => handleFakultasChange(e.target.value)}
+                            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 text-sm text-slate-800 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition cursor-pointer"
+                          >
+                            <option value="" disabled>Pilih Fakultas</option>
+                            {FAKULTAS_LIST.map(f => (
+                              <option key={f} value={f}>{f}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
+                            Program Studi <span className="text-red-500">*</span>
+                          </label>
+                          <select
+                            value={alumniForm.programStudi}
+                            onChange={(e) => setAlumniForm({ ...alumniForm, programStudi: e.target.value })}
+                            disabled={!alumniForm.fakultas}
+                            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 text-sm text-slate-800 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition disabled:bg-slate-50 disabled:text-slate-400 cursor-pointer"
+                          >
+                            <option value="" disabled>Pilih Program Studi</option>
+                            {(PRODI_MAP[alumniForm.fakultas] || ['Lainnya']).map(prodi => (
+                              <option key={prodi} value={prodi}>{prodi}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
+                            Tahun Angkatan / Kelulusan <span className="text-red-500">*</span>
+                          </label>
+                          <select
+                            value={alumniForm.tahunLulus}
+                            onChange={(e) => setAlumniForm({ ...alumniForm, tahunLulus: e.target.value })}
+                            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 text-sm text-slate-800 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition cursor-pointer"
+                          >
+                            <option value="" disabled>Pilih Tahun</option>
+                            {Array.from({ length: 15 }, (_, i) => new Date().getFullYear() + 1 - i).map(year => (
+                              <option key={year} value={year.toString()}>{year}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Row 3: Status Karir Saat Ini */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                        <div className="space-y-1.5">
+                          <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
+                            Status Karir Saat Ini <span className="text-red-500">*</span>
+                          </label>
+                          <select
+                            value={alumniForm.statusPekerjaan}
+                            onChange={(e) => setAlumniForm({ ...alumniForm, statusPekerjaan: e.target.value })}
+                            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 text-sm text-slate-800 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition cursor-pointer"
+                          >
+                            <option value="" disabled>Pilih Status</option>
+                            <option value="belum_bekerja">Belum Bekerja / Sedang Mencari Kerja</option>
+                            <option value="bekerja">Bekerja (Karyawan Swasta / BUMN / PNS)</option>
+                            <option value="wirausaha">Wirausaha / Membuka Usaha Mandiri</option>
+                            <option value="lanjut_studi">Melanjutkan Studi (S2 / Profesi)</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="border-t border-slate-100 pt-2"></div>
+
+                      {/* Row 4: Email Aktif & Nomor WhatsApp */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div className="space-y-1.5">
+                          <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
+                            Email Aktif <span className="text-red-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
+                              <Mail className="w-4 h-4" />
+                            </span>
+                            <input
+                              type="email"
+                              required
+                              value={alumniForm.email}
+                              onChange={(e) => setAlumniForm({ ...alumniForm, email: e.target.value })}
+                              placeholder="nama@umkendari.ac.id"
+                              className="w-full pl-10 pr-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
+                            Nomor WhatsApp / Telepon <span className="text-red-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
+                              <Phone className="w-4 h-4" />
+                            </span>
+                            <input
+                              type="tel"
+                              required
+                              value={alumniForm.phone}
+                              onChange={(e) => setAlumniForm({ ...alumniForm, phone: e.target.value })}
+                              placeholder="0852-XXXX-XXXX"
+                              className="w-full pl-10 pr-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] font-mono transition"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Row 5: Kata Sandi & Konfirmasi Kata Sandi */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div className="space-y-1.5">
+                          <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
+                            Kata Sandi <span className="text-red-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
+                              <Lock className="w-4 h-4" />
+                            </span>
+                            <input
+                              type={showPassword ? 'text' : 'password'}
+                              required
+                              value={alumniForm.password}
+                              onChange={(e) => setAlumniForm({ ...alumniForm, password: e.target.value })}
+                              placeholder="Minimal 6 karakter"
+                              className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-700 transition cursor-pointer"
+                            >
+                              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
+                            Konfirmasi Kata Sandi <span className="text-red-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
+                              <Lock className="w-4 h-4" />
+                            </span>
+                            <input
+                              type={showConfirmPassword ? 'text' : 'password'}
+                              required
+                              value={alumniForm.confirmPassword}
+                              onChange={(e) => setAlumniForm({ ...alumniForm, confirmPassword: e.target.value })}
+                              placeholder="Ulangi kata sandi"
+                              className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-700 transition cursor-pointer"
+                            >
+                              {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Agreement Checkbox */}
+                      <div className="pt-2">
+                        <label className="flex items-start gap-2.5 text-xs text-slate-600 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={agreedToTerms}
+                            onChange={(e) => setAgreedToTerms(e.target.checked)}
+                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#00186B] focus:ring-[#00186B] cursor-pointer"
+                          />
+                          <span>
+                            Saya menyetujui <span className="text-blue-600 hover:underline font-medium">Ketentuan Layanan</span> dan <span className="text-blue-600 hover:underline font-medium">Kebijakan Privasi</span> Portal CDC Universitas Muhammadiyah Kendari.
+                          </span>
+                        </label>
+                      </div>
+
+                      {/* Submit Button */}
+                      <div className="pt-2">
+                        <button
+                          type="submit"
+                          disabled={isLoading}
+                          className="w-full bg-[#00186B] hover:bg-[#000E3D] disabled:bg-slate-400 text-white font-bold py-3.5 px-6 rounded-lg text-sm transition duration-150 shadow-sm flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                        >
+                          {isLoading ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" /> Memproses Pendaftaran...
+                            </>
+                          ) : (
+                            'Daftar Akun'
+                          )}
+                        </button>
+                      </div>
+
+                      {/* Under-Card Link */}
+                      <div className="pt-2 text-center text-xs text-slate-600">
+                        Sudah memiliki akun?{' '}
+                        <button
+                          type="button"
+                          onClick={onNavigateToLogin}
+                          className="font-bold text-[#00186B] hover:underline cursor-pointer"
+                        >
+                          Login
+                        </button>
+                      </div>
+
+                    </form>
+                  )}
+
+                  {/* ───────────────────────────────────────────────────
+                      FORM 2: MITRA PERUSAHAAN
+                  ─────────────────────────────────────────────────── */}
+                  {activeTab === 'perusahaan' && (
+                    <form onSubmit={handleSubmitMitra} className="space-y-5" id="form-register-mitra">
+                      
+                      {/* Top Info Banner */}
+                      <div className="bg-[#EFF6FF] border border-blue-100 rounded-xl p-3.5 text-xs text-blue-900 flex items-center gap-2.5">
+                        <Info className="w-4 h-4 text-blue-600 shrink-0" />
+                        <span>Diperuntukkan bagi HRD, Recruiter, atau Perusahaan yang ingin memasang lowongan di UM Kendari.</span>
+                      </div>
+
+                      {/* Row 1: Nama Perusahaan & Nama HR */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div className="space-y-1.5">
+                          <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
+                            Nama Perusahaan / Instansi <span className="text-red-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
+                              <Building2 className="w-4 h-4" />
+                            </span>
+                            <input
+                              type="text"
+                              required
+                              value={mitraForm.namaInstansi}
+                              onChange={(e) => setMitraForm({ ...mitraForm, namaInstansi: e.target.value })}
+                              placeholder="Contoh: PT Go Digital Indonesia"
+                              className="w-full pl-10 pr-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
+                            Nama HR / Penanggung Jawab <span className="text-red-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
+                              <User className="w-4 h-4" />
+                            </span>
+                            <input
+                              type="text"
+                              required
+                              value={mitraForm.kontakPerson}
+                              onChange={(e) => setMitraForm({ ...mitraForm, kontakPerson: e.target.value })}
+                              placeholder="Contoh: Budi Setiawan (HR Manager)"
+                              className="w-full pl-10 pr-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Row 2: Sektor Industri & Jabatan */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div className="space-y-1.5">
+                          <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
+                            Sektor Industri <span className="text-red-500">*</span>
+                          </label>
+                          <select
+                            value={mitraForm.bidangIndustri}
+                            onChange={(e) => setMitraForm({ ...mitraForm, bidangIndustri: e.target.value })}
+                            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 text-sm text-slate-800 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition cursor-pointer"
+                          >
+                            <option value="" disabled>Pilih Sektor Industri</option>
+                            {INDUSTRI_LIST.map(ind => (
+                              <option key={ind} value={ind}>{ind}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
+                            Jabatan <span className="text-red-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
+                              <User className="w-4 h-4" />
+                            </span>
+                            <input
+                              type="text"
+                              required
+                              value={mitraForm.jabatanKontak}
+                              onChange={(e) => setMitraForm({ ...mitraForm, jabatanKontak: e.target.value })}
+                              placeholder="Contoh: HR Manager / Talent Acquisition"
+                              className="w-full pl-10 pr-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Row 3: Email Perusahaan & No. WhatsApp / Telepon */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div className="space-y-1.5">
+                          <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
+                            Email Perusahaan / HR <span className="text-red-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
+                              <Mail className="w-4 h-4" />
+                            </span>
+                            <input
+                              type="email"
+                              required
+                              value={mitraForm.email}
+                              onChange={(e) => setMitraForm({ ...mitraForm, email: e.target.value })}
+                              placeholder="Contoh: hrd@perusahaan.co.id"
+                              className="w-full pl-10 pr-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
+                            No. WhatsApp / Telepon HR <span className="text-red-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
+                              <Phone className="w-4 h-4" />
+                            </span>
+                            <input
+                              type="tel"
+                              required
+                              value={mitraForm.phone}
+                              onChange={(e) => setMitraForm({ ...mitraForm, phone: e.target.value })}
+                              placeholder="Contoh: 0812 9999 XXXX"
+                              className="w-full pl-10 pr-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] font-mono transition"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Row 4: Website & Alamat */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div className="space-y-1.5">
+                          <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
+                            Website Perusahaan (Opsional)
+                          </label>
+                          <div className="relative">
+                            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
+                              <Globe className="w-4 h-4" />
+                            </span>
+                            <input
+                              type="text"
+                              value={mitraForm.website}
+                              onChange={(e) => setMitraForm({ ...mitraForm, website: e.target.value })}
+                              placeholder="Contoh: https://www.perusahaan.com"
+                              className="w-full pl-10 pr-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
+                            Alamat Kantor Perusahaan / Cabang <span className="text-red-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
+                              <MapPin className="w-4 h-4" />
+                            </span>
+                            <input
+                              type="text"
+                              required
+                              value={mitraForm.alamat}
+                              onChange={(e) => setMitraForm({ ...mitraForm, alamat: e.target.value })}
+                              placeholder="Contoh: Jl. Jenderal Sudirman No. X, Kendari, Sultra"
+                              className="w-full pl-10 pr-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Row 5: Kata Sandi & Konfirmasi Kata Sandi for Mitra */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div className="space-y-1.5">
+                          <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
+                            Kata Sandi <span className="text-red-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
+                              <Lock className="w-4 h-4" />
+                            </span>
+                            <input
+                              type={showPassword ? 'text' : 'password'}
+                              required
+                              value={mitraForm.password}
+                              onChange={(e) => setMitraForm({ ...mitraForm, password: e.target.value })}
+                              placeholder="Minimal 6 karakter"
+                              className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-700 transition cursor-pointer"
+                            >
+                              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
+                            Konfirmasi Kata Sandi <span className="text-red-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
+                              <Lock className="w-4 h-4" />
+                            </span>
+                            <input
+                              type={showConfirmPassword ? 'text' : 'password'}
+                              required
+                              value={mitraForm.confirmPassword}
+                              onChange={(e) => setMitraForm({ ...mitraForm, confirmPassword: e.target.value })}
+                              placeholder="Ulangi kata sandi"
+                              className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-700 transition cursor-pointer"
+                            >
+                              {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Agreement Checkbox */}
+                      <div className="pt-2">
+                        <label className="flex items-start gap-2.5 text-xs text-slate-600 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={agreedToTerms}
+                            onChange={(e) => setAgreedToTerms(e.target.checked)}
+                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#00186B] focus:ring-[#00186B] cursor-pointer"
+                          />
+                          <span>
+                            Saya menyetujui <span className="text-blue-600 hover:underline font-medium">Ketentuan Layanan</span> dan <span className="text-blue-600 hover:underline font-medium">Kebijakan Privasi</span> Portal CDC Universitas Muhammadiyah Kendari.
+                          </span>
+                        </label>
+                      </div>
+
+                      {/* Submit Button */}
+                      <div className="pt-2">
+                        <button
+                          type="submit"
+                          disabled={isLoading}
+                          className="w-full bg-[#00186B] hover:bg-[#000E3D] disabled:bg-slate-400 text-white font-bold py-3.5 px-6 rounded-lg text-sm transition duration-150 shadow-sm flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                        >
+                          {isLoading ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" /> Memproses Pendaftaran Mitra...
+                            </>
+                          ) : (
+                            'Daftar Akun Mitra'
+                          )}
+                        </button>
+                      </div>
+
+                      {/* Under-Card Link */}
+                      <div className="pt-2 text-center text-xs text-slate-600">
+                        Sudah memiliki akun?{' '}
+                        <button
+                          type="button"
+                          onClick={onNavigateToLogin}
+                          className="font-bold text-[#00186B] hover:underline cursor-pointer"
+                        >
+                          Login
+                        </button>
+                      </div>
+
+                    </form>
+                  )}
+
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+        </div>
+      </main>
+
+      {/* ─────────────────────────────────────────────────────────────
+          3. INSTITUTIONAL FOOTER
+      ───────────────────────────────────────────────────────────── */}
+      <footer className="bg-white border-t border-slate-200/80 py-5 text-slate-500 text-xs mt-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            © {new Date().getFullYear()} Career Development Center — Universitas Muhammadiyah Kendari
+          </div>
+
+          <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
+            <span className="flex items-center gap-1.5">
+              <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
+              Butuh bantuan?
+            </span>
+            <a
+              href="mailto:helpdesk@umkendari.ac.id"
+              className="flex items-center gap-1.5 text-slate-600 hover:text-slate-900 transition"
+            >
+              <Mail className="w-3.5 h-3.5 text-slate-400" />
+              helpdesk@umkendari.ac.id
+            </a>
+            <span className="text-slate-300 hidden sm:inline">|</span>
+            <span className="flex items-center gap-1.5 text-slate-600">
+              <Phone className="w-3.5 h-3.5 text-slate-400" />
+              0852-XXXX-XXXX
+            </span>
+          </div>
+        </div>
+      </footer>
+
     </div>
   );
 }

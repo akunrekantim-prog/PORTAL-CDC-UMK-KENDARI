@@ -1385,22 +1385,10 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 
 ---
 
-### 📋 Checklist Selesai Sesi Ini
-- [x] Perbaikan simpan berkas PDF CV saat pelamar submit lamaran
-- [x] Implementasi PDF.js canvas renderer mengatasi error "Can't open this file" di Edge
-- [x] Perubahan label aksi modal pelamar menjadi "Lihat"
-- [x] Konfigurasi pagination lowongan & info karir 9 card per halaman
-- [x] Konfigurasi pagination pelamar & seleksi 10 orang per halaman dengan auto-reset
-- [x] Implementasi modal pop-up tengah (Center Dialog) dengan tombol OK saat status Diterima / Ditolak / Interview
-- [x] Verifikasi `npx tsc --noEmit` PASSED (0 Error)
+- **[MODIFY]** `src/App.tsx` — Integrasi komponen `Login.tsx`
+- **[MODIFY]** `progres.md` — Pencatatan progres pengerjaan
 
 ---
 
 ### 💡 Rekomendasi Judul Commit Git
-- `feat(mitra & applicants): implement PDF preview canvas, 10-item applicant pagination, and center alert popup with OK button`
-
-
-
-
-
-
+- `feat(auth): add clean university-style Login page and refine Register navigation`
