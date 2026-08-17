@@ -54,6 +54,7 @@ import {
   XCircle
 } from 'lucide-react';
 import { JOB_SPECIALIZATIONS, getCompanyBadgeColor, getCompanyInitials } from './JobSearchMasterDetail';
+import Dropdown from './Dropdown';
 
 interface MitraDashboardProps {
   user: UserType;
@@ -1481,26 +1482,26 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                   </button>
                 </div>
 
-                {/* SEARCH & FILTER CONTROLS BAR (MATCHING SCREENSHOT 1:1) */}
+                {/* SEARCH & FILTER CONTROLS BAR (MODERN ADMIN STYLE) */}
                 {!showAddJob && (
                   <div className="bg-white relative">
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3 items-center">
                       
                       {/* 1. SEARCH BOX */}
-                      <div className="md:col-span-6 bg-white text-slate-900 rounded-xl flex items-center px-3.5 py-2 border border-slate-200 focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-600 transition shadow-2xs">
-                        <Search className="w-4 h-4 text-slate-400 shrink-0 mr-2.5" />
+                      <div className="sm:col-span-2 md:col-span-6 relative">
+                        <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
                           type="text"
-                          placeholder="Cari judul lowongan, posisi, atau kata kunci"
+                          placeholder="Cari judul lowongan, posisi, atau kata kunci..."
                           value={jobSearchKeyword}
                           onChange={(e) => {
                             setJobSearchKeyword(e.target.value);
                             setJobCurrentPage(1);
                           }}
-                          className="w-full bg-transparent border-none focus:outline-none text-xs md:text-sm font-medium text-slate-800 placeholder:text-slate-400"
+                          className="w-full pl-10 pr-9 py-2 rounded-xl border border-slate-300 bg-white text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 hover:border-blue-300 transition"
                         />
                         {jobSearchKeyword && (
-                          <button onClick={() => setJobSearchKeyword('')} className="text-slate-400 hover:text-slate-600 ml-1">
+                          <button onClick={() => setJobSearchKeyword('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
                             <X className="w-3.5 h-3.5" />
                           </button>
                         )}
@@ -1508,50 +1509,53 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
                       {/* 2. TYPE FILTER */}
                       <div className="md:col-span-2">
-                        <select
+                        <Dropdown
                           value={jobTipeFilter}
-                          onChange={(e) => {
-                            setJobTipeFilter(e.target.value as any);
+                          onChange={(v) => {
+                            setJobTipeFilter(v as any);
                             setJobCurrentPage(1);
                           }}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-2xs cursor-pointer"
-                        >
-                          <option value="all">Semua Jenis</option>
-                          <option value="magang">Program Magang</option>
-                          <option value="kerja">Lowongan Kerja</option>
-                        </select>
+                          className="w-full"
+                          options={[
+                            { value: 'all', label: 'Semua Jenis' },
+                            { value: 'magang', label: 'Program Magang' },
+                            { value: 'kerja', label: 'Lowongan Kerja' }
+                          ]}
+                        />
                       </div>
 
                       {/* 3. STATUS FILTER */}
                       <div className="md:col-span-2">
-                        <select
+                        <Dropdown
                           value={jobStatusFilter}
-                          onChange={(e) => {
-                            setJobStatusFilter(e.target.value as any);
+                          onChange={(v) => {
+                            setJobStatusFilter(v as any);
                             setJobCurrentPage(1);
                           }}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-2xs cursor-pointer"
-                        >
-                          <option value="all">Semua Status</option>
-                          <option value="published">Aktif</option>
-                          <option value="closed">Tutup</option>
-                        </select>
+                          className="w-full"
+                          options={[
+                            { value: 'all', label: 'Semua Status' },
+                            { value: 'published', label: 'Aktif' },
+                            { value: 'closed', label: 'Tutup' }
+                          ]}
+                        />
                       </div>
 
                       {/* 4. SORT ORDER */}
                       <div className="md:col-span-2">
-                        <select
+                        <Dropdown
                           value={jobSortOrder}
-                          onChange={(e) => {
-                            setJobSortOrder(e.target.value as any);
+                          onChange={(v) => {
+                            setJobSortOrder(v as any);
                             setJobCurrentPage(1);
                           }}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-2xs cursor-pointer"
-                        >
-                          <option value="newest">Terbaru</option>
-                          <option value="oldest">Terlama</option>
-                          <option value="alphabetical">Abjad (A-Z)</option>
-                        </select>
+                          className="w-full"
+                          options={[
+                            { value: 'newest', label: 'Terbaru' },
+                            { value: 'oldest', label: 'Terlama' },
+                            { value: 'alphabetical', label: 'Abjad (A-Z)' }
+                          ]}
+                        />
                       </div>
 
                     </div>
@@ -2214,63 +2218,57 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                   </div>
                 </div>
 
-                {/* AREA FILTER DAN SEARCH */}
+                {/* AREA FILTER DAN SEARCH (MODERN ADMIN STYLE) */}
                 <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5 items-end">
                     {/* Filter Lowongan Dropdown */}
                     <div className="md:col-span-4 relative">
                       <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Filter Lowongan</label>
-                      <div className="relative">
-                        <select
-                          value={selectedJobFilter}
-                          onChange={(e) => setSelectedJobFilter(e.target.value)}
-                          className="w-full pl-3.5 pr-8 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] appearance-none cursor-pointer"
-                        >
-                          <option value="all">Semua Lowongan</option>
-                          {myJobs.map((job) => (
-                            <option key={job.id} value={job.id}>{job.judul}</option>
-                          ))}
-                        </select>
-                        <Filter className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-3.5 pointer-events-none" />
-                      </div>
+                      <Dropdown
+                        value={selectedJobFilter}
+                        onChange={(v) => setSelectedJobFilter(v)}
+                        className="w-full"
+                        options={[
+                          { value: 'all', label: 'Semua Lowongan' },
+                          ...myJobs.map((job) => ({ value: job.id, label: job.judul }))
+                        ]}
+                      />
                     </div>
 
                     {/* Filter Status Dropdown */}
                     <div className="md:col-span-4 relative">
                       <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Filter Status Seleksi</label>
-                      <div className="relative">
-                        <select
-                          value={selectedStatusFilter}
-                          onChange={(e) => setSelectedStatusFilter(e.target.value)}
-                          className="w-full pl-3.5 pr-8 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] appearance-none cursor-pointer"
-                        >
-                          <option value="all">Semua Status</option>
-                          <option value="menunggu_review">Menunggu Review</option>
-                          <option value="seleksi_administrasi">Seleksi Administrasi</option>
-                          <option value="interview">Interview</option>
-                          <option value="diterima">Diterima</option>
-                          <option value="ditolak">Ditolak</option>
-                        </select>
-                        <Filter className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-3.5 pointer-events-none" />
-                      </div>
+                      <Dropdown
+                        value={selectedStatusFilter}
+                        onChange={(v) => setSelectedStatusFilter(v)}
+                        className="w-full"
+                        options={[
+                          { value: 'all', label: 'Semua Status' },
+                          { value: 'menunggu_review', label: 'Menunggu Review' },
+                          { value: 'seleksi_administrasi', label: 'Seleksi Administrasi' },
+                          { value: 'interview', label: 'Interview' },
+                          { value: 'diterima', label: 'Diterima' },
+                          { value: 'ditolak', label: 'Ditolak' }
+                        ]}
+                      />
                     </div>
 
                     {/* Search Input (Nama / NIM) */}
                     <div className="md:col-span-4 relative">
                       <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Pencarian Pelamar</label>
                       <div className="relative">
+                        <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
                           type="text"
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
                           placeholder="Search nama / NIM..."
-                          className="w-full pl-9 pr-8 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981]"
+                          className="w-full pl-10 pr-9 py-2 rounded-xl border border-slate-300 bg-white text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 hover:border-blue-300 transition"
                         />
-                        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
                         {searchQuery && (
                           <button
                             onClick={() => setSearchQuery('')}
-                            className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                           >
                             <X className="w-3.5 h-3.5" />
                           </button>
