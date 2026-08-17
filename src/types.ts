@@ -124,6 +124,7 @@ export interface KontenKarir {
   tahun?: string;
   peringkat?: string; // misal "Juara 1", "Gold Medal", "Best Presenter"
   terverifikasi?: boolean;
+  isPinned?: boolean; // Penanda sematan (Pin) ke Popular Info
 }
 
 export interface Alumni {
@@ -171,6 +172,7 @@ export interface Lowongan {
   jenisPekerjaan?: 'full-time' | 'part-time'; // jenis pekerjaan: full-time / part-time
   ctaEnabled?: boolean; // khusus admin: tampilkan tombol CTA utama di detail?
   ctaLabel?: string; // khusus admin: teks tombol CTA (default 'Daftar Sekarang')
+  isPinned?: boolean; // Penanda sematan (Pin) ke Popular Info
   lokasi: string;
   deskripsi: string;
   kualifikasi: string[]; // parsed from JSON array

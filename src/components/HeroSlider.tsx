@@ -149,9 +149,9 @@ export default function HeroSlider({ setTab }: HeroSliderProps) {
         <button
           onClick={prevSlide}
           aria-label="Previous Slide"
-          className="carousel-control-prev absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-20 p-2.5 sm:p-3.5 rounded-full bg-slate-900/70 hover:bg-slate-900/90 border border-white/20 text-white backdrop-blur-md transition-all hover:scale-110 active:scale-95 shadow-2xl"
+          className="carousel-control-prev absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-20 p-2.5 sm:p-3.5 rounded-full bg-transparent hover:bg-white/20 text-white transition-all hover:scale-110 active:scale-95 drop-shadow-lg"
         >
-          <ChevronLeft className="w-5 h-5 sm:w-7 sm:h-7" />
+          <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8 drop-shadow-md" />
           <span className="sr-only">Previous</span>
         </button>
 
@@ -159,9 +159,9 @@ export default function HeroSlider({ setTab }: HeroSliderProps) {
         <button
           onClick={nextSlide}
           aria-label="Next Slide"
-          className="carousel-control-next absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-20 p-2.5 sm:p-3.5 rounded-full bg-slate-900/70 hover:bg-slate-900/90 border border-white/20 text-white backdrop-blur-md transition-all hover:scale-110 active:scale-95 shadow-2xl"
+          className="carousel-control-next absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-20 p-2.5 sm:p-3.5 rounded-full bg-transparent hover:bg-white/20 text-white transition-all hover:scale-110 active:scale-95 drop-shadow-lg"
         >
-          <ChevronRight className="w-5 h-5 sm:w-7 sm:h-7" />
+          <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8 drop-shadow-md" />
           <span className="sr-only">Next</span>
         </button>
 

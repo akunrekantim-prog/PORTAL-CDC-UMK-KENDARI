@@ -89,7 +89,8 @@ import {
   Save,
   ExternalLink,
   MousePointerClick,
-  Award
+  Award,
+  Pin
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -246,7 +247,7 @@ async function saveLowonganWithQuota(item: Lowongan, isEdit: boolean): Promise<n
   }
 }
 
-export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
+export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState<AdminTab>('ringkasan');
   const [kontenSub, setKontenSub] = useState<KontenSubTab>('riwayat');
   const [mitraSub, setMitraSub] = useState<MitraSubTab>('approval');
@@ -526,6 +527,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   const [eTahunPres, setETahunPres] = useState(new Date().getFullYear().toString());
   const [ePeringkat, setEPeringkat] = useState('Juara 1');
   const [eTerverifikasi, setETerverifikasi] = useState(true);
+  const [eIsPinned, setEIsPinned] = useState(false);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const beritaEditRef = useRef<HTMLDivElement>(null);
   const [beritaPop, setBeritaPop] = useState<null | 'bullets' | 'numbering'>(null);
@@ -619,6 +621,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       setETahunPres(item.tahun || new Date().getFullYear().toString());
       setEPeringkat(item.peringkat || 'Juara 1');
       setETerverifikasi(item.terverifikasi !== false);
+      setEIsPinned(item.isPinned === true);
     } else {
       setEditId(null);
       setEJenis(jenis || 'berita');
@@ -629,6 +632,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       setELinkDaftar(''); setEStatusEvent('buka');
       setESubKategori('akademik'); setENamaMahasiswa(''); setEProdi('');
       setETahunPres(new Date().getFullYear().toString()); setEPeringkat('Juara 1'); setETerverifikasi(true);
+      setEIsPinned(false);
     }
     setSaveError(null);
     setKontenSub('pembuatan');
@@ -667,6 +671,23 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   const [lCtaLabel, setLCtaLabel] = useState('Daftar Sekarang');
   const [lJenisPekerjaan, setLJenisPekerjaan] = useState<'full-time' | 'part-time'>('full-time');
   const [lStatus, setLStatus] = useState<'published' | 'draft'>('draft');
+  const [lIsPinned, setLIsPinned] = useState(false);
+
+  const handleTogglePinKonten = (k: KontenKarir) => {
+    const updated = { ...k, isPinned: !k.isPinned };
+    updateInDB<KontenKarir>('konten_karir', updated);
+    reloadAll();
+    if (onReloadData) onReloadData();
+    triggerToast('success', updated.isPinned ? `Konten "${k.judul}" disematkan ke Popular Info.` : `Sematkan konten "${k.judul}" dibatalkan.`);
+  };
+
+  const handleTogglePinLowongan = (l: Lowongan) => {
+    const updated = { ...l, isPinned: !l.isPinned };
+    updateInDB<Lowongan>('lowongan', updated);
+    reloadAll();
+    if (onReloadData) onReloadData();
+    triggerToast('success', updated.isPinned ? `Lowongan "${l.judul}" disematkan ke Popular Info.` : `Sematkan lowongan "${l.judul}" dibatalkan.`);
+  };
 
   const openLowonganForm = (item?: Lowongan) => {
     if (item) {
@@ -691,12 +712,14 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       setLCtaLabel(item.ctaLabel && item.ctaLabel.trim() ? item.ctaLabel : 'Daftar Sekarang');
       setLJenisPekerjaan(item.jenisPekerjaan || 'full-time');
       setLStatus(item.status === 'draft' ? 'draft' : (item.status === 'closed' ? 'closed' : 'published'));
+      setLIsPinned(item.isPinned === true);
     } else {
       setEditLowonganId(null);
       setLJudul(''); setLTipe('magang'); setLNamaInstansi(''); setLKategori('');
       setLLokasi(''); setLGaji('Kompetitif'); setLKuota(''); setLDeadline('');
       setLDeskripsi(''); setLTanggungJawab(''); setLKualifikasi(''); setLKeahlian(''); setLBenefit('');
       setLLogoUrl(''); setLPosterUrl(''); setLLinkEksternal(''); setLCtaEnabled(false); setLCtaLabel('Daftar Sekarang'); setLJenisPekerjaan('full-time'); setLStatus('draft');
+      setLIsPinned(false);
     }
     setLLogoUploadType('file');
     setLPosterUploadType('file');
@@ -760,6 +783,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       ctaEnabled: lCtaEnabled,
       ctaLabel: lCtaEnabled ? (lCtaLabel.trim() || 'Daftar Sekarang') : undefined,
       jenisPekerjaan: lJenisPekerjaan,
+      isPinned: lIsPinned,
       lokasi: lLokasi.trim(),
       kategori: lKategori.trim() || undefined,
       gaji: lGaji.trim() || 'Kompetitif',
@@ -791,6 +815,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     }
     resetLowonganForm();
     reloadAll();
+    if (onReloadData) onReloadData();
   };
 
   const handleDeleteLowonganAdmin = (l: Lowongan) => {
@@ -1021,7 +1046,8 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       kuotaEvent: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') && eKuotaEvent ? Number(eKuotaEvent) : undefined,
       terdaftar: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') && eTerdaftar ? Number(eTerdaftar) : undefined,
       linkDaftar: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? eLinkDaftar.trim() : undefined,
-      statusEvent: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? eStatusEvent : undefined
+      statusEvent: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? eStatusEvent : undefined,
+      isPinned: eIsPinned
     };
     try {
       const pruned = await saveKontenKarirWithQuota(base, !!editId);
@@ -1043,6 +1069,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     setEditorOpen(false);
     setKontenJenisBaru(null);
     reloadAll();
+    if (onReloadData) onReloadData();
   };
 
   const handleDeleteKonten = (k: KontenKarir) => {
@@ -1494,11 +1521,31 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                             <div className="flex items-center gap-2 mb-0.5">
                               {statusBadge(k.status, { draft: { bg: 'bg-slate-100', text: 'text-slate-600', label: 'Draft' }, published: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Published' } })}
                               <span className="text-[11px] text-slate-400 flex items-center gap-1">{JENIS_ICON[k.jenis]} {JENIS_LABEL[k.jenis]}</span>
+                              {k.isPinned && k.jenis !== 'lowongan' && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300">
+                                  <Pin className="w-3 h-3 fill-amber-600 text-amber-600" /> Ter-Pin
+                                </span>
+                              )}
                             </div>
                             <div className="font-bold text-slate-800 truncate">{k.judul}</div>
                             <div className="text-[11px] text-slate-400">{formatTanggal(k.createdAt)}{k.penulis ? ' · ' + k.penulis : ''}</div>
                           </div>
                           <div className="flex gap-1.5 flex-shrink-0">
+                            {k.jenis !== 'lowongan' && (
+                              <button
+                                type="button"
+                                title={k.isPinned ? "Lepas Sematan (Unpin)" : "Sematkan ke Popular Info (Pin)"}
+                                onClick={() => handleTogglePinKonten(k)}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${
+                                  k.isPinned
+                                    ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                                    : 'bg-slate-100 hover:bg-amber-50 text-slate-600 hover:text-amber-700'
+                                }`}
+                              >
+                                <Pin className={`w-3.5 h-3.5 ${k.isPinned ? 'fill-amber-600 text-amber-600' : ''}`} />
+                                <span>{k.isPinned ? 'Ter-Pin' : 'Pin'}</span>
+                              </button>
+                            )}
                             <button onClick={() => openEditor(k)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Edit3 className="w-3.5 h-3.5" /> Edit</button>
                             <button onClick={() => handleDeleteKonten(k)} className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Trash2 className="w-3.5 h-3.5" /> Hapus</button>
                           </div>
@@ -1690,7 +1737,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                     </div>
 
                     {/* Aksi */}
-                    <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+                    <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3 flex-wrap">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-slate-600">Status:</span>
                         <Dropdown
@@ -1972,10 +2019,24 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                   </div>
                   </>)}
 
-                  <div className="flex items-center justify-between gap-3 pt-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-600">Status:</span>
-                      <Dropdown value={eStatus} onChange={(v) => setEStatus(v as any)} size="sm" className="w-full" options={[{ value: 'draft', label: 'Draft' }, { value: 'published', label: 'Published' }]} />
+                  <div className="flex items-center justify-between gap-3 pt-2 flex-wrap">
+                    <div className="flex items-center gap-4 flex-wrap">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-600">Status:</span>
+                        <Dropdown value={eStatus} onChange={(v) => setEStatus(v as any)} size="sm" className="w-full" options={[{ value: 'draft', label: 'Draft' }, { value: 'published', label: 'Published' }]} />
+                      </div>
+                      {eJenis !== 'lowongan' && (
+                        <label className="flex items-center gap-2 cursor-pointer select-none text-xs font-bold text-slate-700 bg-slate-100 hover:bg-amber-50 px-3 py-1.5 rounded-lg border border-slate-200 transition">
+                          <input
+                            type="checkbox"
+                            checked={eIsPinned}
+                            onChange={(e) => setEIsPinned(e.target.checked)}
+                            className="w-4 h-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+                          />
+                          <Pin className={`w-3.5 h-3.5 ${eIsPinned ? 'text-amber-500 fill-amber-500' : 'text-slate-400'}`} />
+                          <span>Sematkan ke Popular Info (Pin)</span>
+                        </label>
+                      )}
                     </div>
                     <div className="flex gap-2">
                       <button onClick={() => { setEditorOpen(false); setKontenSub('riwayat'); }} className="px-4 py-2 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100">Batal</button>

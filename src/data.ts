@@ -1500,3 +1500,29 @@ export function isJobDeadlinePassed(deadlineStr?: string): boolean {
   return false;
 }
 
+/* ─────────────────────────────────────────────────────────────────
+   VISITOR COUNTER HELPER
+───────────────────────────────────────────────────────────────── */
+export function trackAndGetVisitorCount(): string {
+  const BASE_VISITOR_COUNT = 2580;
+  const STORAGE_KEY = 'cdc_umk_visitor_count';
+  const SESSION_KEY = 'cdc_umk_session_tracked';
+
+  let currentCount = BASE_VISITOR_COUNT;
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    const parsed = parseInt(saved, 10);
+    if (!isNaN(parsed)) {
+      currentCount = Math.max(BASE_VISITOR_COUNT, parsed);
+    }
+  }
+
+  if (!sessionStorage.getItem(SESSION_KEY)) {
+    currentCount += 1;
+    localStorage.setItem(STORAGE_KEY, currentCount.toString());
+    sessionStorage.setItem(SESSION_KEY, 'true');
+  }
+
+  return `${currentCount.toLocaleString('id-ID')}+`;
+}
+

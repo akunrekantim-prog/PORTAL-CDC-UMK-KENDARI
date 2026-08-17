@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 
 import { Lowongan, Berita, Pengumuman, KontenKarir } from '../types';
-import { sortJobsByNewest, formatDateDisplay, isJobDeadlinePassed, getFromDB } from '../data';
+import { sortJobsByNewest, formatDateDisplay, isJobDeadlinePassed, getFromDB, trackAndGetVisitorCount } from '../data';
 import { motion } from 'motion/react';
 import Header from './Header';
 import { Footer } from './Footer';
@@ -81,11 +81,14 @@ const CRED_BADGES = [
 ];
 
 /* ─── Stat counters ───────────────────────────── */
+const START_YEAR_CDC = 2016; // Tahun acuan dasar CDC (2026 -> 10+, 2027 -> 11+, dst)
+const expYears = Math.max(10, new Date().getFullYear() - START_YEAR_CDC);
+
 const STATS = [
   { value: '20.000+', label: 'Alumni' },
-  { value: '5', label: 'Mitra Perusahaan' },
-  { value: '98%', label: 'Tingkat Penempatan' },
-  { value: '10+', label: 'Tahun Pengalaman' },
+  { value: '10', label: 'Mitra Perusahaan' },
+  { value: trackAndGetVisitorCount(), label: 'Total Pengunjung' },
+  { value: `${expYears}+`, label: 'Tahun Pengalaman' },
 ];
 
 /* ─── Popular links ───────────────────────────── */
@@ -119,8 +122,8 @@ export default function PublicLayout({
   const [jobInfoPage, setJobInfoPage] = useState(1);
   const itemsPerPage = 9;
 
-  /* Data helpers: Lowongan kerja terbaru (newest created) selalu di atas */
-  const publishedLowongan = sortJobsByNewest(lowongan.filter(l => l.status === 'published' && l.tipe !== 'magang'));
+  /* Data helpers: Lowongan kerja & magang terbaru (newest created) selalu di atas */
+  const publishedLowongan = sortJobsByNewest(lowongan.filter(l => l.status === 'published'));
   const publishedBerita = berita.filter(b => b.status === 'published');
   const publishedPengumuman = pengumuman.filter(p => p.status === 'published');
 
@@ -199,13 +202,6 @@ export default function PublicLayout({
                                    before:rounded-full before:bg-[#10B981]">
                       INFO KARIR CDC TERKINI
                     </h3>
-                    <button
-                      onClick={() => setTab('lowongan')}
-                      className="text-[#10B981] hover:text-emerald-700 font-bold text-sm
-                                 flex items-center gap-1 transition-colors"
-                    >
-                      Lihat Semua <ChevronRight className="w-4 h-4" />
-                    </button>
                   </div>
 
                   {filteredLowongan.length === 0 ? (
@@ -241,11 +237,15 @@ export default function PublicLayout({
                                 </div>
                               )}
                               <div className="absolute top-3 left-3 flex items-center gap-2">
-                                {item.jenisPekerjaan && (
+                                {item.tipe === 'magang' ? (
+                                  <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-emerald-600 text-white uppercase tracking-wider">
+                                    INTERNSHIP
+                                  </span>
+                                ) : item.jenisPekerjaan ? (
                                   <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-slate-700 text-white">
                                     {item.jenisPekerjaan === 'full-time' ? 'Full-Time' : 'Part-Time'}
                                   </span>
-                                )}
+                                ) : null}
                               </div>
                             </div>
 
@@ -661,31 +661,69 @@ export default function PublicLayout({
                   </div>
                 </div>
 
-                {/* Popular Info widget */}
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                  <div className="bg-[#1E3A8A] px-5 py-3.5">
-                    <h4 className="font-extrabold text-sm text-white uppercase tracking-wider
-                                   flex items-center gap-2">
-                      <Star className="w-4 h-4 text-amber-400" /> Popular Info
-                    </h4>
-                  </div>
-                  <ul className="divide-y divide-slate-100">
-                    {POPULAR_LINKS.map(link => (
-                      <li key={link}>
-                        <button
-                          onClick={() => setTab('lowongan')}
-                          className="w-full text-left px-5 py-3 text-sm font-medium text-slate-700
-                                     hover:bg-blue-50 hover:text-[#1E3A8A] transition-colors
-                                     flex items-start gap-2 group"
-                        >
-                          <ChevronRight className="w-4 h-4 text-[#10B981] shrink-0 mt-0.5
-                                                   group-hover:translate-x-0.5 transition-transform" />
-                          {link}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                {/* Popular Info widget (Dinamis dari info terpin & terpublikasi, KHUSUS non-lowongan/non-internship) */}
+                {(() => {
+                  const pinnedKonten = getFromDB<KontenKarir>('konten_karir').filter(k => k.status === 'published' && k.isPinned && k.jenis !== 'lowongan');
+                  const publishedNonLowonganKonten = getFromDB<KontenKarir>('konten_karir').filter(k => k.status === 'published' && k.jenis !== 'lowongan');
+
+                  const dynamicPopularItems: { label: string; action: () => void }[] = [
+                    ...pinnedKonten.map(k => ({
+                      label: `📌 ${k.judul}`,
+                      action: () => {
+                        if (k.jenis === 'berita') setTab('berita');
+                        else if (k.jenis === 'presentasi') setTab('presentasi-internasional-akademik');
+                        else setTab('beranda');
+                      }
+                    })),
+                    ...publishedBerita.slice(0, 3).map(b => ({
+                      label: b.title,
+                      action: () => onSelectBerita(b.slug)
+                    })),
+                    ...publishedPengumuman.slice(0, 2).map(p => ({
+                      label: p.title,
+                      action: () => setTab('beranda')
+                    })),
+                    ...publishedNonLowonganKonten.filter(k => !k.isPinned).slice(0, 3).map(k => ({
+                      label: k.judul,
+                      action: () => {
+                        if (k.jenis === 'berita') setTab('berita');
+                        else if (k.jenis === 'presentasi') setTab('presentasi-internasional-akademik');
+                        else setTab('beranda');
+                      }
+                    }))
+                  ];
+
+                  const popularDisplayList = dynamicPopularItems.length > 0
+                    ? dynamicPopularItems.slice(0, 7)
+                    : POPULAR_LINKS.map(link => ({ label: link, action: () => setTab('lowongan') }));
+
+                  return (
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                      <div className="bg-[#1E3A8A] px-5 py-3.5">
+                        <h4 className="font-extrabold text-sm text-white uppercase tracking-wider
+                                       flex items-center gap-2">
+                          <Star className="w-4 h-4 text-amber-400" /> Popular Info
+                        </h4>
+                      </div>
+                      <ul className="divide-y divide-slate-100">
+                        {popularDisplayList.map((item, idx) => (
+                          <li key={idx}>
+                            <button
+                              onClick={item.action}
+                              className="w-full text-left px-5 py-3 text-sm font-medium text-slate-700
+                                         hover:bg-blue-50 hover:text-[#1E3A8A] transition-colors
+                                         flex items-start gap-2 group"
+                            >
+                              <ChevronRight className="w-4 h-4 text-[#10B981] shrink-0 mt-0.5
+                                                       group-hover:translate-x-0.5 transition-transform" />
+                              <span className="line-clamp-2">{item.label}</span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })()}
 
                 {/* Info Terkini Loker widget */}
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -730,14 +768,12 @@ export default function PublicLayout({
                   </div>
                 </div>
 
-                {/* Quick CTA box */}
+                {/* Quick CTA box (Khusus Konseling Karir) */}
                 <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3 shadow-sm">
 
                   <h4 className="font-extrabold text-sm text-[#1E3A8A] uppercase tracking-wider">Layanan Cepat</h4>
                   {[
-                    { label: 'Konseling Karier', tab: 'konseling' },
-                    { label: 'CV Review', tab: 'cv-review' },
-                    { label: 'Mock Interview', tab: 'mock-interview' },
+                    { label: 'Konseling Karir', tab: 'konseling' },
                   ].map(s => (
                     <button
                       key={s.label}
@@ -919,11 +955,10 @@ export default function PublicLayout({
                       <button
                         key={pageNum}
                         onClick={() => setJobInfoPage(pageNum)}
-                        className={`px-3.5 py-1.5 rounded-lg font-bold text-xs transition ${
-                          pageNum === jobInfoPage
+                        className={`px-3.5 py-1.5 rounded-lg font-bold text-xs transition ${pageNum === jobInfoPage
                             ? 'bg-[#1B365D] text-white shadow-xs'
                             : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                        }`}
+                          }`}
                       >
                         {pageNum}
                       </button>
@@ -965,12 +1000,12 @@ export default function PublicLayout({
                   <div className="p-6 md:w-3/5 flex flex-col justify-between space-y-4">
                     <div className="space-y-2">
                       <div className="text-xs text-[#10B981] font-bold flex items-center gap-1">
-                          <Calendar className="w-3.5 h-3.5" /> {item.scope || 'LOKAL'}
-                        </div>
-                        <h4 className="font-bold text-slate-900 text-base leading-snug line-clamp-2 hover:text-[#10B981] transition-colors">{item.title}</h4>
-                        <p className="text-slate-500 text-sm line-clamp-3 leading-relaxed">{item.excerpt}</p>
+                        <Calendar className="w-3.5 h-3.5" /> {item.scope || 'LOKAL'}
                       </div>
-                      <div className="text-xs text-slate-400 font-medium">Oleh {item.penulis || 'Admin CDC'} · {formatDateDisplay(item.createdAt)}</div>
+                      <h4 className="font-bold text-slate-900 text-base leading-snug line-clamp-2 hover:text-[#10B981] transition-colors">{item.title}</h4>
+                      <p className="text-slate-500 text-sm line-clamp-3 leading-relaxed">{item.excerpt}</p>
+                    </div>
+                    <div className="text-xs text-slate-400 font-medium">Oleh {item.penulis || 'Admin CDC'} · {formatDateDisplay(item.createdAt)}</div>
                   </div>
                 </div>
               ))}
@@ -1040,8 +1075,8 @@ export default function PublicLayout({
           const currentScope = currentTab.includes('internasional')
             ? 'internasional'
             : currentTab.includes('nasional')
-            ? 'nasional'
-            : 'wilayah';
+              ? 'nasional'
+              : 'wilayah';
           const currentKategori = currentTab.includes('non-akademik') ? 'non-akademik' : 'akademik';
 
           const allPresentasi = getFromDB<KontenKarir>('konten_karir').filter(
