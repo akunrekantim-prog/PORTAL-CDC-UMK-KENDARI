@@ -1266,6 +1266,35 @@ export function registerUser(
       statusPekerjaan: almPayload.statusPekerjaan || 'belum_bekerja'
     };
     insertToDB<Alumni>('alumni', newAlumni);
+
+    // Create fresh clean Mahasiswa profile with reset/empty resume fields for self-configuration
+    const newMahasiswa: Mahasiswa = {
+      id: `mhs_${userId}`,
+      userId: userId,
+      nim: almPayload.nim,
+      nama: almPayload.name,
+      email: almPayload.email,
+      phone: almPayload.phone || '',
+      fakultas: almPayload.fakultas,
+      programStudi: almPayload.programStudi,
+      angkatan: almPayload.tahunLulus,
+      graduationYear: almPayload.tahunLulus,
+      semester: 8,
+      userStatusType: 'Alumni',
+      alamat: '',
+      photoUrl: newUser.photoUrl,
+      aboutMe: '',
+      ipk: '',
+      nationality: 'Indonesia',
+      workRights: 'WNI (Hak Kerja Penuh)',
+      opportunityType: '',
+      preferredStartDate: '',
+      skills: [],
+      experiences: [],
+      certificates: [],
+      qualifications: []
+    };
+    insertToDB<Mahasiswa>('mahasiswa', newMahasiswa);
   } else if (role === 'mitra') {
     const mtrPayload = payload as RegisterMitraPayload;
     const newMitra: Mitra = {

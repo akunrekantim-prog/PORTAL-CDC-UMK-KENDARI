@@ -21,6 +21,7 @@ import EventDetailView from './components/layanan/EventDetailView';
 // ...
 import PublicLayout from './components/PublicLayout';
 import Register from './components/Register';
+import Login from './components/Login';
 import { JobDetail } from './components/JobDetail';
 import MahasiswaDashboard from './components/MahasiswaDashboard';
 import MitraDashboard from './components/MitraDashboard';
@@ -402,93 +403,18 @@ export default function App() {
 
         {/* VIEW 4: LOGIN FORM ROUTE */}
         {currentView === 'login' && (
-          <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 relative overflow-hidden" id="login-screen">
-            {/* Ambient Lighting FX */}
-            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
-
-            <div className="bg-white max-w-md w-full rounded-3xl border border-slate-200 shadow-2xl overflow-hidden z-10 animate-fadeIn">
-              <div className="bg-slate-900 text-white p-8 relative border-b border-slate-800">
-                <button
-                  onClick={() => setCurrentView('public')}
-                  className="absolute top-5 right-5 p-2 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-blue-500/30">
-                  <Shield className="w-6 h-6" />
-                </div>
-                <h2 className="text-2xl font-extrabold text-white">Masuk Ke Sistem Portal</h2>
-                <p className="text-slate-400 text-xs mt-1">Sistem Otentikasi Terpadu CDC Universitas Muhammadiyah Kendari</p>
-              </div>
-
-              <form onSubmit={handleLoginSubmit} className="p-8 space-y-5" id="login-form">
-                {loginError && (
-                  <div className="bg-rose-50 text-rose-800 p-3.5 rounded-xl border border-rose-200 text-xs flex items-center gap-2" id="login-error-msg">
-                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                    <span>{loginError}</span>
-                  </div>
-                )}
-
-                <div className="space-y-1.5" id="login-email-box">
-                  <label className="text-xs font-bold text-slate-700">Alamat Surat Elektronik (Email)</label>
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><Mail className="w-4 h-4" /></span>
-                    <input
-                      type="email"
-                      required
-                      value={loginEmail}
-                      onChange={(e) => setLoginEmail(e.target.value)}
-                      placeholder="Contoh: mhs@umkendari.ac.id"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-205 text-sm focus:outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5" id="login-pass-box">
-                  <label className="text-xs font-bold text-slate-700">Kata Sandi (Password)</label>
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><Lock className="w-4 h-4" /></span>
-                    <input
-                      type="password"
-                      required
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      placeholder="Masukkan password Anda"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-205 text-sm focus:outline-none"
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl text-xs uppercase tracking-wider transition shadow-md active:scale-95"
-                  id="login-btn-start"
-                >
-                  Masuk Ke Database Portal
-                </button>
-
-                <div className="pt-4 border-t border-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500" id="login-footer">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCurrentView('public');
-                      reloadDatabase();
-                    }}
-                    className="hover:underline font-bold text-slate-750"
-                  >
-                    ← Kembali ke Beranda
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleNavigateToRegister('alumni')}
-                    className="font-bold text-emerald-600 hover:text-emerald-700 hover:underline flex items-center gap-1"
-                  >
-                    Belum punya akun? Daftar Sekarang →
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
+          <Login
+            onLoginSuccess={(user) => {
+              setCurrentUser(user);
+              setCurrentView('dashboard');
+              reloadDatabase();
+            }}
+            onNavigateToRegister={handleNavigateToRegister}
+            onNavigateHome={() => {
+              setCurrentView('public');
+              reloadDatabase();
+            }}
+          />
         )}
 
         {/* VIEW 4.5: REGISTER FORM ROUTE */}

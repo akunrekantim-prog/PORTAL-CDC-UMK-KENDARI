@@ -1385,22 +1385,84 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 
 ---
 
+- **[MODIFY]** `src/App.tsx` — Integrasi komponen `Login.tsx`
+- **[MODIFY]** `progres.md` — Pencatatan progres pengerjaan
+
+---
+
+### 💡 Rekomendasi Judul Commit Git
+- `feat(auth): add clean university-style Login page and refine Register navigation`
+
+---
+
+## Tanggal: 17 Agustus 2026
+**Developer:** Fachrul Alam Sanuddin  
+**Fokus Pekerjaan:** Halaman Login Admin Tersembunyi, Pemisahan Registrasi User & Mitra, Dynamic Counters, Penyesuaian Beranda, Fitur Pin Info Popular, dan Transparansi Navigasi Carousel Hero.
+
+---
+
+### 🚀 Ringkasan Perubahan
+
+#### 1. Pemisahan Halaman Register User (Alumni/Mahasiswa) & Register Mitra Perusahaan (`Register.tsx` & `Header.tsx`)
+- Memisahkan form pendaftaran User (Mahasiswa/Alumni) dan Mitra Perusahaan menjadi dua tampilan terpisah dengan header card, aksen warna (Emerald vs Deep Blue), serta tombol lintas navigasi yang jelas.
+- Memperbarui tautan pada header navigasi publik agar "Daftar User" dan "Daftar Perusahaan" mengarahkan pengguna secara langsung ke form masing-masing.
+
+#### 2. Penghapusan Hero Search Bar & Penyesuaian Padding Top (`PublicLayout.tsx`)
+- Menghapus section pencarian hero ("Mesin Pencari...", "Portal Karir", "UM Kendari CAREER FAIR") pada halaman utama Beranda sesuai permintaan visual.
+- Menyesuaikan padding top (`pt-12`) agar tata letak section utama Beranda tetap rapi dan seimbang.
+
+#### 3. Penghapusan Tombol "Lihat Semua" & Lencana Internship pada Cards (`PublicLayout.tsx`)
+- Menghapus tombol `"Lihat Semua"` pada section header **INFO KARIR CDC TERKINI**.
+- Memasukkan posisi magang/internship ke daftar *INFO KARIR CDC TERKINI*.
+- Menambahkan lencana visual hijau emerald **`INTERNSHIP`** khusus untuk kartu ber-tipe magang (`item.tipe === 'magang'`). Kartu pekerjaan reguler (non-magang) tidak menampilkan lencana internship tersebut.
+
+#### 4. Penghitung Statistik Dinamis: Pengalaman & Total Pengunjung Website (`PublicLayout.tsx` & `src/data.ts`)
+- **Tahun Pengalaman Dinamis**: Mengganti angka statis `10+` menjadi kalkulasi tahun otomatis: `Math.max(10, new Date().getFullYear() - 2016) + '+'`. Angka ini otomatis meningkat pada tahun 2027 dan seterusnya.
+- **Total Pengunjung Website**: Mengganti stat *"Tingkat Penempatan"* menjadi *"Total Pengunjung"* website. Menambahkan helper `trackAndGetVisitorCount()` di `data.ts` berbasis `localStorage` (`cdc_umk_visitor_count`) dan `sessionStorage` dengan baseline `2580+`.
+- **Jumlah Mitra Perusahaan**: Memperbarui statistik *Mitra Perusahaan* dari `5+` menjadi `10+`.
+
+#### 5. Penyederhanaan Shortcut "Layanan Cepat" (`PublicLayout.tsx`)
+- Menyederhanakan kotak **Layanan Cepat** pada sidebar Beranda sehingga hanya menyisakan tautan **Konseling Karir** (menghapus *CV Review* & *Mock Interview*).
+
+#### 6. Fitur Pin Info (Popular Info) Dinamis untuk Admin (`AdminDashboard.tsx`, `PublicLayout.tsx`, `types.ts`)
+- Menambahkan properti `isPinned?: boolean` pada interface `KontenKarir` dan `Lowongan` di `src/types.ts`.
+- Menambahkan tombol aksi 📌 **"Pin / Ter-Pin"** pada setiap baris tabel *Riwayat Konten Karir* di Admin Dashboard untuk mem-pin / melepas sematan info secara instan.
+- Menambahkan checkbox `[ ] Sematkan ke Popular Info (Pin)` pada form pembuatan & editor Konten Karir di Admin Dashboard.
+- Memperbarui widget **Popular Info** pada sidebar Beranda publik agar memprioritaskan konten ter-pin (`isPinned: true`) dari berita, pengumuman, program, workshop, seminar, dan presentasi (khusus konten non-lowongan).
+
+#### 7. Menghilangkan Background Hitam Tombol Panah Navigasi Carousel Hero (`HeroSlider.tsx`)
+- Menghapus background hitam gelap (`bg-slate-900/70 border border-white/20`) pada tombol panah kiri (`carousel-control-prev`) dan panah kanan (`carousel-control-next`) pada carousel slider poster Beranda.
+- Mengubah background tombol menjadi **transparan (`bg-transparent hover:bg-white/20`)** dengan efek *drop-shadow* agar tetap kontras dan bersih di atas poster.
+
+---
+
+### 📁 File Diubah
+- **[MODIFY]** `src/types.ts` — Penambahan bidang optional `isPinned?: boolean` pada `KontenKarir` & `Lowongan`
+- **[MODIFY]** `src/data.ts` — Penambahan fungsi helper `trackAndGetVisitorCount()`
+- **[MODIFY]** `src/components/Register.tsx` — Pemisahan tampilan form registrasi User & Mitra Perusahaan
+- **[MODIFY]** `src/components/Header.tsx` — Penyesuaian link navigasi pendaftaran User & Mitra
+- **[MODIFY]** `src/components/PublicLayout.tsx` — Penghapusan hero search, removal tombol "Lihat Semua", badge INTERNSHIP, counter statistik dinamis (Pengalaman & Pengunjung), penyederhanaan Layanan Cepat, dan Popular Info dinamis
+- **[MODIFY]** `src/components/AdminDashboard.tsx` — Integrasi fitur saklar & tombol Pin pada tabel/form Konten Karir
+- **[MODIFY]** `src/components/HeroSlider.tsx` — Transparansi tombol navigasi panah kiri & kanan carousel
+- **[MODIFY]** `progres.md` — Pencatatan laporan progres pengerjaan tanggal 17 Agustus 2026 oleh Fachrul Alam Sanuddin
+
+---
+
 ### 📋 Checklist Selesai Sesi Ini
-- [x] Perbaikan simpan berkas PDF CV saat pelamar submit lamaran
-- [x] Implementasi PDF.js canvas renderer mengatasi error "Can't open this file" di Edge
-- [x] Perubahan label aksi modal pelamar menjadi "Lihat"
-- [x] Konfigurasi pagination lowongan & info karir 9 card per halaman
-- [x] Konfigurasi pagination pelamar & seleksi 10 orang per halaman dengan auto-reset
-- [x] Implementasi modal pop-up tengah (Center Dialog) dengan tombol OK saat status Diterima / Ditolak / Interview
+- [x] Pemisahan form Register User & Register Mitra Perusahaan di `Register.tsx` & `Header.tsx`
+- [x] Penghapusan hero search section di Beranda (`PublicLayout.tsx`)
+- [x] Dynamic counter "Tahun Pengalaman" (`2026 - 2016` => `10+`, otomatis `11+` di 2027)
+- [x] Counter "Total Pengunjung Website" (`trackAndGetVisitorCount()`) menggantikan "Tingkat Penempatan"
+- [x] Pembaruan statistik "Mitra Perusahaan" menjadi `10+`
+- [x] Removal tombol "Lihat Semua" pada INFO KARIR CDC TERKINI
+- [x] Lencana visual `INTERNSHIP` untuk lowongan magang & pengecualian untuk lowongan kerja reguler
+- [x] Penyederhanaan widget Layanan Cepat (hanya menyisakan Konseling Karir)
+- [x] Fitur Pin Info (Popular Info) di `AdminDashboard.tsx` & `PublicLayout.tsx` (khusus non-lowongan)
+- [x] Transparansi tombol panah Prev & Next pada carousel `HeroSlider.tsx`
 - [x] Verifikasi `npx tsc --noEmit` PASSED (0 Error)
 
 ---
 
 ### 💡 Rekomendasi Judul Commit Git
-- `feat(mitra & applicants): implement PDF preview canvas, 10-item applicant pagination, and center alert popup with OK button`
-
-
-
-
-
+- `feat(homepage & admin): add dynamic stats, pin info feature, separate register forms, and polish hero carousel buttons`
 
