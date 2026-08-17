@@ -1,8 +1,5 @@
 import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { SEED_EVENT_LAYANAN } from '../../data';
 import { ChevronLeft, Calendar, MapPin, User, Clock, ExternalLink, ShieldCheck } from 'lucide-react';
-import Header from '../Header';
 import { Footer } from '../Footer';
 
 // Komponen ini akan dipanggil sebagai halaman terpisah
@@ -12,7 +9,6 @@ export default function EventDetailView({ event, onBack }: { event: any, onBack:
 
   return (
     <div className="bg-slate-50 min-h-screen">
-      <Header />
       <main className="max-w-5xl mx-auto px-4 py-12">
         <button 
           onClick={onBack}

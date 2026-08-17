@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Calendar, Clock, MapPin, User, Users, ExternalLink, Filter, X, ChevronRight, CheckCircle, AlertCircle } from 'lucide-react';
 import { EventLayananItem, KontenKarir } from '../../../types';
+import Dropdown from '../../Dropdown';
 
 interface EventCardLayoutProps {
   category: 'workshop' | 'softskill' | 'seminar';
@@ -183,18 +184,19 @@ export default function EventCardLayout({
             )}
           </div>
 
-          {/* Status Dropdown */}
+          {/* Status Dropdown with Animated Dropdown Component */}
           <div className="md:col-span-3">
-            <select
+            <Dropdown
               value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="w-full px-3 py-2.5 bg-slate-50 hover:bg-slate-100/80 focus:bg-white text-slate-800 text-sm rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none cursor-pointer"
-            >
-              <option value="semua">Semua Status</option>
-              <option value="buka">Pendaftaran Dibuka</option>
-              <option value="segera">Segera Hadir</option>
-              <option value="selesai">Selesai</option>
-            </select>
+              onChange={(v) => setSelectedStatus(v)}
+              className="w-full"
+              options={[
+                { value: 'semua', label: 'Semua Status' },
+                { value: 'buka', label: 'Pendaftaran Dibuka' },
+                { value: 'segera', label: 'Segera Hadir' },
+                { value: 'selesai', label: 'Selesai' }
+              ]}
+            />
           </div>
 
           {/* Date Filter Range */}

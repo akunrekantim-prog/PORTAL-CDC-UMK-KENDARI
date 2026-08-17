@@ -646,7 +646,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
     });
     saveToDB('lowongan', recalculatedJobs);
 
-    triggerToast('success', 'Profil mitra berhasil disimpan ke database SQL server kampus.');
+    triggerAlert('success', 'Profil Berhasil Disimpan', 'Identitas dan informasi profil instansi mitra berhasil diperbarui dan disimpan ke sistem.');
   };
 
   // Upload Logo Perusahaan (Tampil di Kartu Job Info)
@@ -1351,7 +1351,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                       value={namaInstansi}
                       onChange={(e) => setNamaInstansi(e.target.value)}
                       placeholder="Contoh: PT Go Digital Kendari"
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] transition font-normal"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 focus:border-[#0077C6] transition font-normal"
                     />
                   </div>
 
@@ -1362,7 +1362,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                       value={bidangIndustri}
                       onChange={(e) => setBidangIndustri(e.target.value)}
                       placeholder="Contoh: Teknologi Informasi & Software"
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] transition font-normal"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 focus:border-[#0077C6] transition font-normal"
                     />
                   </div>
 
@@ -1373,7 +1373,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                       required
                       value={kontakPerson}
                       onChange={(e) => setKontakPerson(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] transition font-normal"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 focus:border-[#0077C6] transition font-normal"
                     />
                   </div>
 
@@ -1384,7 +1384,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                       required
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] transition font-normal"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 focus:border-[#0077C6] transition font-normal"
                     />
                   </div>
 
@@ -1395,7 +1395,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                       value={website}
                       onChange={(e) => setWebsite(e.target.value)}
                       placeholder="https://example.com"
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] transition font-normal"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 focus:border-[#0077C6] transition font-normal"
                     />
                   </div>
                 </div>
@@ -1407,14 +1407,14 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                     onChange={(e) => setAlamat(e.target.value)}
                     rows={3}
                     placeholder="Contoh: Jl. Ahmad Dahlan, Kendari"
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] transition font-normal"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 focus:border-[#0077C6] transition font-normal"
                   ></textarea>
                 </div>
 
                 <div className="pt-5 border-t border-slate-100 flex justify-end">
                   <button 
                     type="submit"
-                    className="bg-[#10B981] hover:bg-emerald-600 text-white px-6 py-3 rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-2"
+                    className="bg-[#0077C6] hover:bg-blue-700 text-white px-6 py-3 rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-2 cursor-pointer active:scale-95"
                   >
                     <CheckCircle className="w-4 h-4" /> Simpan Perubahan Profil
                   </button>
@@ -3365,17 +3365,23 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
       {/* POPUP MODAL DI TENGAH DENGAN TOMBOL OK */}
       {alertPopup && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
-          <div className="bg-white max-w-sm w-full rounded-3xl border border-slate-200 shadow-2xl p-6 sm:p-7 space-y-4 text-center my-8 animate-scaleUp">
+        <div 
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn"
+          onClick={() => setAlertPopup(null)}
+        >
+          <div 
+            className="bg-white max-w-sm w-full rounded-3xl border border-slate-200 shadow-2xl p-6 sm:p-7 space-y-4 text-center my-8 animate-scaleUp"
+            onClick={e => e.stopPropagation()}
+          >
             <div className={`w-16 h-16 rounded-2xl mx-auto flex items-center justify-center shadow-xs ${
               alertPopup.type === 'success'
-                ? 'bg-emerald-100 text-emerald-600'
+                ? 'bg-blue-50 text-[#0077C6]'
                 : alertPopup.type === 'error'
                 ? 'bg-rose-100 text-rose-600'
                 : 'bg-blue-100 text-blue-600'
             }`}>
               {alertPopup.type === 'success' ? (
-                <CheckCircle className="w-8 h-8" />
+                <CheckCircle className="w-8 h-8 text-[#0077C6]" />
               ) : alertPopup.type === 'error' ? (
                 <XCircle className="w-8 h-8" />
               ) : (

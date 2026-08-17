@@ -1459,8 +1459,8 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                 <label className="font-bold text-slate-700 block mb-1">Lokasi Kerja Impian</label>
               </div>
               <div className="pt-2 flex items-center justify-end gap-2">
-                <button type="button" onClick={() => setEditingSection(null)} className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold">Batal</button>
-                <button type="submit" className="bg-[#10B981] text-white font-bold px-6 py-2 rounded-xl">Simpan</button>
+                <button type="button" onClick={() => setEditingSection(null)} className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition cursor-pointer">Batal</button>
+                <button type="submit" className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2 rounded-xl text-xs transition shadow-xs cursor-pointer active:scale-95">Simpan Perubahan</button>
               </div>
             </form>
           </div>

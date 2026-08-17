@@ -19,6 +19,8 @@ import { Lowongan } from '../types';
 import { getSavedJobIds, toggleSaveJob, sortJobsByNewest, formatDateDisplay, isJobDeadlinePassed } from '../data';
 import { JobDetail } from './JobDetail';
 import { Footer } from './Footer';
+import { motion, AnimatePresence } from 'motion/react';
+import Dropdown from './Dropdown';
 
 // Full list of Indonesian Provinces & Cities
 export interface ProvinceLocation {
@@ -366,7 +368,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
           <div className="flex flex-col md:flex-row items-stretch gap-2.5 md:gap-3">
             
             {/* TEXTBOX 1: Kata kunci, jabatan, atau perusahaan */}
-            <div className="flex-1 bg-white text-slate-900 rounded-xl flex items-center px-3.5 py-2.5 border border-slate-200 focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-600 transition shadow-2xs">
+            <div className="flex-1 bg-white text-slate-900 rounded-xl flex items-center px-3.5 py-2.5 border border-slate-300 focus-within:ring-2 focus-within:ring-blue-500/30 focus-within:border-blue-400 hover:border-blue-300 transition shadow-2xs">
               <Search className="w-4 h-4 text-slate-400 shrink-0 mr-2.5" />
               <input
                 type="text"
@@ -387,45 +389,68 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
               <button
                 type="button"
                 onClick={() => setOpenPopup(openPopup === 'location' ? null : 'location')}
-                className="w-full bg-white text-slate-800 rounded-xl flex items-center justify-between px-3.5 py-2.5 border border-slate-200 hover:border-slate-300 transition text-xs md:text-sm font-medium text-left shadow-2xs"
+                className={`w-full bg-white rounded-xl flex items-center justify-between px-3.5 py-2.5 border transition text-xs md:text-sm font-medium text-left shadow-2xs cursor-pointer ${
+                  openPopup === 'location' || selectedLocations.length > 0
+                    ? 'border-blue-400 bg-blue-50/40 text-blue-900 ring-2 ring-blue-500/30'
+                    : 'border-slate-300 text-slate-700 hover:border-blue-300 hover:bg-blue-50/40'
+                }`}
               >
                 <div className="flex items-center min-w-0 pr-2">
-                  <MapPin className="w-4 h-4 text-slate-400 shrink-0 mr-2.5" />
-                  <span className="truncate">
+                  <MapPin className={`w-4 h-4 shrink-0 mr-2.5 transition-colors ${
+                    selectedLocations.length > 0 ? 'text-blue-600' : 'text-slate-400'
+                  }`} />
+                  <span className={`truncate ${selectedLocations.length > 0 ? 'font-bold text-slate-800' : 'text-slate-600'}`}>
                     {selectedLocations.length === 0
                       ? 'Semua Lokasi'
                       : `${selectedLocations.length} Lokasi Terpilih (${selectedLocations.slice(0, 2).join(', ')}${selectedLocations.length > 2 ? '...' : ''})`}
                   </span>
                 </div>
-                <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform ${openPopup === 'location' ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${openPopup === 'location' ? 'rotate-180 text-blue-600' : ''}`} />
               </button>
 
-              {/* POPOVER MENU FOR LOCATION CHECKBOXES */}
-              {openPopup === 'location' && (
-                <div className="absolute top-full left-0 mt-1.5 z-50 w-80 max-w-[90vw] bg-white border border-slate-300 shadow-2xl rounded-xl overflow-hidden text-slate-800 text-xs animate-fadeIn">
-                  <div className="bg-slate-50 border-b border-slate-200 px-3.5 py-2 font-bold text-slate-700 flex items-center justify-between">
-                    <span>Lokasi Pekerjaan</span>
-                    {selectedLocations.length > 0 && (
-                      <button 
-                        onClick={() => setSelectedLocations([])}
-                        className="text-[11px] font-semibold text-red-600 hover:underline"
-                      >
-                        Reset ({selectedLocations.length})
-                      </button>
-                    )}
-                  </div>
+              {/* POPOVER MENU FOR LOCATION CHECKBOXES WITH ANIMATION */}
+              <AnimatePresence>
+                {openPopup === 'location' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                    transition={{ duration: 0.16, ease: 'easeOut' }}
+                    className="absolute top-full left-0 mt-1.5 z-50 w-80 sm:w-96 max-w-[92vw] bg-white border border-slate-100 shadow-xl shadow-slate-900/10 rounded-2xl overflow-hidden text-slate-800 text-xs"
+                  >
+                    <div className="bg-slate-50/90 backdrop-blur-xs border-b border-slate-100 px-4 py-2.5 font-bold text-slate-700 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 text-slate-800 font-extrabold text-xs">
+                        <MapPin className="w-3.5 h-3.5 text-[#0077C6]" /> Lokasi Pekerjaan
+                      </span>
+                      {selectedLocations.length > 0 && (
+                        <button 
+                          onClick={() => setSelectedLocations([])}
+                          className="text-[11px] font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-0.5 rounded-lg transition"
+                        >
+                          Reset ({selectedLocations.length})
+                        </button>
+                      )}
+                    </div>
 
-                  <div className="p-2 border-b border-slate-100 bg-white">
-                    <input
-                      type="text"
-                      placeholder="Cari provinsi, kota, atau luar negeri..."
-                      value={locationSearch}
-                      onChange={(e) => setLocationSearch(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
+                    <div className="p-2.5 border-b border-slate-100 bg-white">
+                      <div className="relative">
+                        <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <input
+                          type="text"
+                          placeholder="Cari provinsi, kota, atau luar negeri..."
+                          value={locationSearch}
+                          onChange={(e) => setLocationSearch(e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-7 py-1.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition"
+                        />
+                        {locationSearch && (
+                          <button onClick={() => setLocationSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
 
-                  <div className="max-h-72 overflow-y-auto p-2.5 space-y-3">
+                    <div className="max-h-72 overflow-y-auto nice-scrollbar p-2.5 space-y-2.5">
                     {(!locationSearch || 'lainnya (luar negeri)'.includes(locationSearch.toLowerCase()) || 'luar negeri'.includes(locationSearch.toLowerCase()) || 'lainnya'.includes(locationSearch.toLowerCase())) && (
                       <div className="pb-2.5 border-b border-slate-200 mb-2">
                         <label className="flex items-center gap-2 font-bold text-slate-900 cursor-pointer hover:bg-slate-50 p-1.5 rounded transition">
@@ -486,9 +511,10 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
                         </div>
                       );
                     })}
-                  </div>
-                </div>
-              )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* CHECKBOX 2: Semua Spesialisasi */}
@@ -496,71 +522,95 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
               <button
                 type="button"
                 onClick={() => setOpenPopup(openPopup === 'specialization' ? null : 'specialization')}
-                className="w-full bg-white text-slate-800 rounded-xl flex items-center justify-between px-3.5 py-2.5 border border-slate-200 hover:border-slate-300 transition text-xs md:text-sm font-medium text-left shadow-2xs"
+                className={`w-full bg-white rounded-xl flex items-center justify-between px-3.5 py-2.5 border transition text-xs md:text-sm font-medium text-left shadow-2xs cursor-pointer ${
+                  openPopup === 'specialization' || selectedSpecializations.length > 0
+                    ? 'border-blue-400 bg-blue-50/40 text-blue-900 ring-2 ring-blue-500/30'
+                    : 'border-slate-300 text-slate-700 hover:border-blue-300 hover:bg-blue-50/40'
+                }`}
               >
                 <div className="flex items-center min-w-0 pr-2">
-                  <Users className="w-4 h-4 text-slate-400 shrink-0 mr-2.5" />
-                  <span className="truncate">
+                  <Users className={`w-4 h-4 shrink-0 mr-2.5 transition-colors ${
+                    selectedSpecializations.length > 0 ? 'text-blue-600' : 'text-slate-400'
+                  }`} />
+                  <span className={`truncate ${selectedSpecializations.length > 0 ? 'font-bold text-slate-800' : 'text-slate-600'}`}>
                     {selectedSpecializations.length === 0
                       ? 'Semua Spesialisasi'
                       : `${selectedSpecializations.length} Spesialisasi Terpilih`}
                   </span>
                 </div>
-                <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform ${openPopup === 'specialization' ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${openPopup === 'specialization' ? 'rotate-180 text-blue-600' : ''}`} />
               </button>
 
-              {/* POPOVER MENU FOR SPECIALIZATION CHECKBOXES */}
-              {openPopup === 'specialization' && (
-                <div className="absolute top-full left-0 mt-1.5 z-50 w-80 max-w-[90vw] bg-white border border-slate-300 shadow-2xl rounded-xl overflow-hidden text-slate-800 text-xs animate-fadeIn">
-                  <div className="bg-slate-50 border-b border-slate-200 px-3.5 py-2 font-bold text-slate-700 flex items-center justify-between">
-                    <span>Spesialisasi Pekerjaan</span>
-                    {selectedSpecializations.length > 0 && (
-                      <button 
-                        onClick={() => setSelectedSpecializations([])}
-                        className="text-[11px] font-semibold text-red-600 hover:underline"
-                      >
-                        Reset ({selectedSpecializations.length})
-                      </button>
-                    )}
-                  </div>
+              {/* POPOVER MENU FOR SPECIALIZATION CHECKBOXES WITH ANIMATION */}
+              <AnimatePresence>
+                {openPopup === 'specialization' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                    transition={{ duration: 0.16, ease: 'easeOut' }}
+                    className="absolute top-full left-0 mt-1.5 z-50 w-80 sm:w-96 max-w-[92vw] bg-white border border-slate-100 shadow-xl shadow-slate-900/10 rounded-2xl overflow-hidden text-slate-800 text-xs"
+                  >
+                    <div className="bg-slate-50/90 backdrop-blur-xs border-b border-slate-100 px-4 py-2.5 font-bold text-slate-700 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 text-slate-800 font-extrabold text-xs">
+                        <Briefcase className="w-3.5 h-3.5 text-[#0077C6]" /> Spesialisasi Pekerjaan
+                      </span>
+                      {selectedSpecializations.length > 0 && (
+                        <button 
+                          onClick={() => setSelectedSpecializations([])}
+                          className="text-[11px] font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-0.5 rounded-lg transition"
+                        >
+                          Reset ({selectedSpecializations.length})
+                        </button>
+                      )}
+                    </div>
 
-                  <div className="p-2 border-b border-slate-100 bg-white">
-                    <input
-                      type="text"
-                      placeholder="Cari bidang spesialisasi..."
-                      value={specializationSearch}
-                      onChange={(e) => setSpecializationSearch(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
+                    <div className="p-2.5 border-b border-slate-100 bg-white">
+                      <div className="relative">
+                        <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <input
+                          type="text"
+                          placeholder="Cari bidang spesialisasi..."
+                          value={specializationSearch}
+                          onChange={(e) => setSpecializationSearch(e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-7 py-1.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition"
+                        />
+                        {specializationSearch && (
+                          <button onClick={() => setSpecializationSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
 
-                  <div className="max-h-72 overflow-y-auto p-2.5 space-y-1">
-                    {JOB_SPECIALIZATIONS.filter(spec => 
-                      spec.toLowerCase().includes(specializationSearch.toLowerCase())
-                    ).map((spec) => {
-                      const isChecked = selectedSpecializations.includes(spec);
-                      return (
-                        <label key={spec} className="flex items-center gap-2.5 font-medium text-slate-700 cursor-pointer hover:bg-slate-50 p-1.5 rounded transition">
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={() => toggleCheckboxOption(setSelectedSpecializations, spec)}
-                            className="rounded text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
-                          />
-                          <span>{spec}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+                    <div className="max-h-72 overflow-y-auto nice-scrollbar p-2.5 space-y-1">
+                      {JOB_SPECIALIZATIONS.filter(spec => 
+                        spec.toLowerCase().includes(specializationSearch.toLowerCase())
+                      ).map((spec) => {
+                        const isChecked = selectedSpecializations.includes(spec);
+                        return (
+                          <label key={spec} className="flex items-center gap-2.5 font-medium text-slate-700 cursor-pointer hover:bg-blue-50/60 hover:text-blue-700 p-2 rounded-xl transition">
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => toggleCheckboxOption(setSelectedSpecializations, spec)}
+                              className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4"
+                            />
+                            <span className="truncate">{spec}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* BUTTON: Cari */}
             <button
               type="button"
               onClick={() => setOpenPopup(null)}
-              className="bg-[#0B1E48] hover:bg-[#071533] text-white px-7 py-2.5 rounded-xl font-bold text-xs md:text-sm transition shrink-0 shadow-sm"
+              className="bg-[#0B1E48] hover:bg-[#071533] active:scale-95 text-white px-7 py-2.5 rounded-xl font-bold text-xs md:text-sm transition shrink-0 shadow-sm cursor-pointer"
             >
               Cari
             </button>
@@ -583,18 +633,20 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
             )}
           </div>
 
-          {/* Sorting Select Dropdown */}
+          {/* Sorting Select Dropdown with Dropdown component */}
           <div className="flex items-center gap-2 self-end sm:self-auto">
             <span className="text-slate-500 font-medium text-xs">Urutkan:</span>
-            <select
+            <Dropdown
               value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value as any)}
-              className="bg-white border border-slate-200 rounded-xl px-3.5 py-1.5 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-2xs cursor-pointer"
-            >
-              <option value="newest">Terbaru</option>
-              <option value="oldest">Terlama</option>
-              <option value="alphabetical">Abjad (A-Z)</option>
-            </select>
+              onChange={(v) => setSortOrder(v as any)}
+              size="sm"
+              className="w-36"
+              options={[
+                { value: 'newest', label: 'Terbaru' },
+                { value: 'oldest', label: 'Terlama' },
+                { value: 'alphabetical', label: 'Abjad (A-Z)' }
+              ]}
+            />
           </div>
         </div>
 
