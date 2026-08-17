@@ -159,7 +159,7 @@ const TOP_LINKS = [
   { label: 'ICCN', href: 'https://indonesiacareercenter.id/' },
   { label: 'Website UM Kendari', href: 'https://umkendari.ac.id/' },
   { label: 'SIMBELMAWA', href: 'https://simbelmawa.kemdiktisaintek.go.id/' },
-  { label: 'SIMKATMAWA', href: 'https://simkatmawa.kemdiktisaintek.go.id/' },
+  { label: 'MAWAR', href: 'https://simkatmawa.kemdiktisaintek.go.id/' },
   { label: 'MTQMN', href: 'https://mtqmn.kemdikbud.go.id/' },
 ];
 

@@ -93,7 +93,7 @@ export default function App() {
   }, []);
 
   const reloadDatabase = () => {
-    setAllLowongan(sortJobsByNewest(getFromDB<Lowongan>('lowongan')));
+    setAllLowongan(sortJobsByNewest(getFromDB<Lowongan>('lowongan').filter(l => l.status === 'published')));
     // Gabungkan seed berita lama + berita hasil input admin (konten_karir)
     const beritaSeed = getFromDB<Berita>('berita');
     const kontenBerita = getFromDB<KontenKarir>('konten_karir')

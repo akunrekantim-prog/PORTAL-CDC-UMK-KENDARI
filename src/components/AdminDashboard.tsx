@@ -145,11 +145,13 @@ const readFileAsDataUrl = (file: File): Promise<string> =>
   });
 
 // Kompresi gambar (thumbnail/poster) agar tidak membanjiri localStorage.
-// Resize maksimal maxW px + quality, hasil selalu data URL JPEG/PNG kecil (~100-250KB).
-const compressImage = (file: File, maxW = 1280, quality = 0.82): Promise<string> =>
+// PENTING: SELALU output JPEG (bukan PNG). PNG itu lossless sehingga file 1280px
+// bisa mencapai 2MB+, dan dengan cepat melewati kuota ~5MB localStorage browser
+// (penyebab pesan "storage penuh"). JPEG q0.75 @1000px hanya ~90KB.
+const compressImage = (file: File, maxW = 1000, quality = 0.75): Promise<string> =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onerror = reject;
+    reader.onerror = () => reject(new Error('Gagal membaca file'));
     reader.onload = () => {
       const img = new Image();
       img.onerror = () => reject(new Error('Gagal memuat gambar'));
@@ -162,15 +164,87 @@ const compressImage = (file: File, maxW = 1280, quality = 0.82): Promise<string>
         canvas.height = h;
         const ctx = canvas.getContext('2d');
         if (!ctx) { reject(new Error('Canvas tidak didukung')); return; }
+        // Isi background putih supaya PNG transparan tidak jadi hitam saat di-JPEG.
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
         ctx.drawImage(img, 0, 0, w, h);
-        // PNG transparan tetap PNG; lainnya JPEG untuk ukuran kecil
-        const isPng = (file.type === 'image/png');
-        resolve(canvas.toDataURL(isPng ? 'image/png' : 'image/jpeg', quality));
+        resolve(canvas.toDataURL('image/jpeg', quality));
       };
       img.src = reader.result as string;
     };
     reader.readAsDataURL(file);
   });
+
+// Kompres beruntun: mulai kualitas tinggi, turunkan resolusi & quality kalau
+// hasil masih terlalu besar, agar tidak mudah memicu QuotaExceededError.
+async function compressImageAdaptive(file: File): Promise<string> {
+  const steps = [
+    { maxW: 1000, q: 0.72 },
+    { maxW: 900, q: 0.62 },
+    { maxW: 800, q: 0.5 },
+    { maxW: 700, q: 0.4 },
+  ];
+  for (const s of steps) {
+    const url = await compressImage(file, s.maxW, s.q);
+    // Hentikan kalau hasil di bawah ~120KB (base64 ~ char count)
+    if (url.length < 160_000) return url;
+  }
+  return compressImage(file, 640, 0.35);
+}
+
+// Simpan ke konten_karir dengan penanganan kuota: kalau localStorage penuh,
+// hapus draft (konten belum dipublikasikan) tertua satu per satu dulu sebelum
+// benar-benar gagal. Mengembalikan 'pruned' = jumlah draft yang dibuang.
+async function saveKontenKarirWithQuota(item: KontenKarir, isEdit: boolean): Promise<number> {
+  const tryWrite = () => {
+    if (isEdit) updateInDB<KontenKarir>('konten_karir', item);
+    else insertToDB<KontenKarir>('konten_karir', item);
+  };
+  try {
+    tryWrite();
+    return 0;
+  } catch (err: any) {
+    if (err && err.name === 'QuotaExceededError') {
+      const all = getFromDB<KontenKarir>('konten_karir');
+      const drafts = all
+        .filter((k) => k.status !== 'published')
+        .sort((a, b) => +new Date(a.createdAt) - +new Date(b.createdAt));
+      let pruned = 0;
+      for (const d of drafts) {
+        deleteInDB('konten_karir', d.id);
+        pruned++;
+        try { tryWrite(); return pruned; } catch { /* coba lagi dengan draft lebih sedikit */ }
+      }
+      throw err; // masih penuh → biarkan caller tampilkan pesan
+    }
+    throw err;
+  }
+}
+
+// Sama seperti di atas tapi untuk tabel 'lowongan' (poster/flyer cukup besar).
+async function saveLowonganWithQuota(item: Lowongan, isEdit: boolean): Promise<number> {
+  const tryWrite = () => {
+    if (isEdit) updateInDB<Lowongan>('lowongan', item);
+    else insertToDB<Lowongan>('lowongan', item);
+  };
+  try {
+    tryWrite();
+    return 0;
+  } catch (err: any) {
+    if (err && err.name === 'QuotaExceededError') {
+      const all = getFromDB<Lowongan>('lowongan');
+      const oldest = [...all].sort((a, b) => +new Date(a.createdAt) - +new Date(b.createdAt));
+      let pruned = 0;
+      for (const d of oldest) {
+        deleteInDB('lowongan', d.id);
+        pruned++;
+        try { tryWrite(); return pruned; } catch { /* coba lagi */ }
+      }
+      throw err;
+    }
+    throw err;
+  }
+}
 
 export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState<AdminTab>('ringkasan');
@@ -592,7 +666,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   const [lCtaEnabled, setLCtaEnabled] = useState(false);
   const [lCtaLabel, setLCtaLabel] = useState('Daftar Sekarang');
   const [lJenisPekerjaan, setLJenisPekerjaan] = useState<'full-time' | 'part-time'>('full-time');
-  const [lStatus, setLStatus] = useState<'published' | 'closed'>('published');
+  const [lStatus, setLStatus] = useState<'published' | 'draft'>('draft');
 
   const openLowonganForm = (item?: Lowongan) => {
     if (item) {
@@ -616,13 +690,13 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       setLCtaEnabled(item.ctaEnabled === true);
       setLCtaLabel(item.ctaLabel && item.ctaLabel.trim() ? item.ctaLabel : 'Daftar Sekarang');
       setLJenisPekerjaan(item.jenisPekerjaan || 'full-time');
-      setLStatus(item.status === 'closed' ? 'closed' : 'published');
+      setLStatus(item.status === 'draft' ? 'draft' : (item.status === 'closed' ? 'closed' : 'published'));
     } else {
       setEditLowonganId(null);
       setLJudul(''); setLTipe('magang'); setLNamaInstansi(''); setLKategori('');
       setLLokasi(''); setLGaji('Kompetitif'); setLKuota(''); setLDeadline('');
       setLDeskripsi(''); setLTanggungJawab(''); setLKualifikasi(''); setLKeahlian(''); setLBenefit('');
-      setLLogoUrl(''); setLPosterUrl(''); setLLinkEksternal(''); setLCtaEnabled(false); setLCtaLabel('Daftar Sekarang'); setLJenisPekerjaan('full-time'); setLStatus('published');
+      setLLogoUrl(''); setLPosterUrl(''); setLLinkEksternal(''); setLCtaEnabled(false); setLCtaLabel('Daftar Sekarang'); setLJenisPekerjaan('full-time'); setLStatus('draft');
     }
     setLLogoUploadType('file');
     setLPosterUploadType('file');
@@ -643,10 +717,18 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   };
   const handleLowonganPoster = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) setLPosterUrl(await readFileAsDataUrl(file));
+    if (file) {
+      try {
+        // Poster lowongan bisa sedikit lebih besar dari thumbnail konten.
+        const url = await compressImageAdaptive(file);
+        setLPosterUrl(url);
+      } catch {
+        triggerToast('error', 'Gagal memproses poster lowongan.');
+      }
+    }
   };
 
-  const handleSaveLowongan = () => {
+  const handleSaveLowongan = async () => {
     if (!lJudul.trim() || !lNamaInstansi.trim() || !lLokasi.trim() || !lDeadline.trim() || !lDeskripsi.trim()) {
       triggerToast('error', 'Field bertanda * wajib diisi (Judul, Instansi, Lokasi, Deadline, Deskripsi).');
       return;
@@ -692,12 +774,20 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       createdAt: existing?.createdAt || new Date().toISOString()
     };
 
-    if (editLowonganId) {
-      updateInDB<Lowongan>('lowongan', newLow);
-      triggerToast('success', 'Lowongan By Admin diperbarui.');
-    } else {
-      insertToDB<Lowongan>('lowongan', newLow);
-      triggerToast('success', 'Lowongan By Admin diposting ke Info Karir.');
+    try {
+      const pruned = await saveLowonganWithQuota(newLow, !!editLowonganId);
+      if (pruned > 0) {
+        triggerToast('success', `Lowongan disimpan. ${pruned} lowongan lama dibuang otomatis untuk menghemat storage.`);
+      } else {
+        triggerToast('success', editLowonganId ? 'Lowongan By Admin diperbarui.' : 'Lowongan By Admin diposting ke Info Karir.');
+      }
+    } catch (err: any) {
+      console.error('SAVE_LOWONGAN_FAIL', err);
+      const msg = (err && err.name === 'QuotaExceededError')
+        ? 'Gagal menyimpan: storage penyimpanan lokal penuh. Hapus beberapa lowongan lama atau gunakan poster lebih kecil.'
+        : 'Gagal menyimpan lowongan ke penyimpanan lokal.';
+      triggerToast('error', msg);
+      return;
     }
     resetLowonganForm();
     reloadAll();
@@ -863,7 +953,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const url = await compressImage(file);
+        const url = await compressImageAdaptive(file);
         setEThumbnail(url);
       } catch (err) {
         triggerToast('error', 'Gagal memproses gambar thumbnail.');
@@ -871,7 +961,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     }
   };
 
-  const handleSaveKonten = () => {
+  const handleSaveKonten = async () => {
     setSaveError(null);
     if (!eJudul.trim()) {
       setSaveError('Judul wajib diisi.');
@@ -934,17 +1024,16 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       statusEvent: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? eStatusEvent : undefined
     };
     try {
-      if (editId) {
-        updateInDB<KontenKarir>('konten_karir', base);
-        triggerToast('success', 'Konten diperbarui.');
+      const pruned = await saveKontenKarirWithQuota(base, !!editId);
+      if (pruned > 0) {
+        triggerToast('success', `Konten disimpan. ${pruned} draft lama dibuang otomatis untuk menghemat storage.`);
       } else {
-        insertToDB<KontenKarir>('konten_karir', base);
-        triggerToast('success', 'Konten diterbitkan.');
+        triggerToast('success', editId ? 'Konten diperbarui.' : 'Konten diterbitkan.');
       }
     } catch (err: any) {
       console.error('SAVE_KONTEN_FAIL', err);
       const msg = (err && err.name === 'QuotaExceededError')
-        ? 'Gagal menyimpan: storage penuh. Coba thumbnail lebih kecil atau hapus beberapa konten lama.'
+        ? 'Gagal menyimpan: storage penyimpanan lokal penuh. Hapus beberapa konten lama (terutama yang ber-thumbnail besar) lalu coba lagi.'
         : 'Gagal menyimpan konten ke penyimpanan lokal.';
       setSaveError(msg);
       triggerToast('error', msg);
@@ -1419,7 +1508,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                 </div>
               )}
 
-              {kontenSub === 'pembuatan' && !editorOpen && (
+              {kontenSub === 'pembuatan' && !editorOpen && !showLowonganForm && (
                 <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5" id="adm-konten-pilih">
                   <h2 className="font-bold text-slate-900 tracking-tight mb-1">Pilih Jenis Konten</h2>
                   <p className="text-xs text-slate-400 mb-4">Klik salah satu untuk mulai membuat.</p>
@@ -1604,7 +1693,17 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                     <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-slate-600">Status:</span>
-                        <Dropdown value={lStatus} onChange={(v) => setLStatus(v as any)} size="sm" className="w-full" options={[{ value: 'published', label: 'Published' }, { value: 'closed', label: 'Closed' }]} />
+                        <Dropdown
+                          value={lStatus}
+                          onChange={(v) => setLStatus(v as any)}
+                          size="sm"
+                          className="w-full"
+                          options={[
+                            { value: 'published', label: 'Published' },
+                            { value: 'draft', label: 'Draft' },
+                            ...(editLowonganId && lStatus === 'closed' ? [{ value: 'closed', label: 'Closed' }] : []),
+                          ]}
+                        />
                       </div>
                       <div className="flex gap-2">
                         <button type="button" onClick={resetLowonganForm} className="px-4 py-2 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100">Batal</button>
