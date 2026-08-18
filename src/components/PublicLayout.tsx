@@ -10,10 +10,11 @@ import {
   Info, GraduationCap, ChevronRight, Facebook, Instagram, Youtube,
   Users, Building, Shield, Award, Star, TrendingUp, Zap, Target,
   ExternalLink, Calendar, ShieldCheck, Trophy,
+  MessageCircle, Send, Linkedin, Copy
 } from 'lucide-react';
 
 import { Lowongan, Berita, Pengumuman, KontenKarir } from '../types';
-import { sortJobsByNewest, formatDateDisplay, isJobDeadlinePassed, getFromDB, trackAndGetVisitorCount } from '../data';
+import { sortJobsByNewest, formatDateDisplay, isJobDeadlinePassed, getFromDB, trackAndGetVisitorCount, getAdminWaPrestasi } from '../data';
 import { motion } from 'motion/react';
 import Header from './Header';
 import { Footer } from './Footer';
@@ -25,9 +26,15 @@ import Seminar from './layanan/Seminar';
 import CareerFair from './layanan/CareerFair';
 import CampusHiring from './layanan/CampusHiring';
 import Magang from './layanan/Magang';
+import SuratKeputusanView from './layanan/SuratKeputusanView';
+import KalenderKegiatanView from './layanan/KalenderKegiatanView';
+import LaporanKinerjaView from './layanan/LaporanKinerjaView';
+import MouStakeholderView from './layanan/MouStakeholderView';
+import GaleriView from './layanan/GaleriView';
 import LayananContainer from './layanan/LayananContainer';
 import HeroSlider from './HeroSlider';
 import { JobSearchMasterDetail } from './JobSearchMasterDetail';
+import SocialShareBar from './ui/SocialShareBar';
 
 /* ─── Types ─────────────────────────────────── */
 interface PublicLayoutProps {
@@ -565,7 +572,7 @@ export default function PublicLayout({
                         <h3 className="text-xl sm:text-2xl font-extrabold text-[#1E3A8A]
                                        flex items-center gap-2 before:block before:w-1.5 before:h-6
                                        before:rounded-full before:bg-amber-400">
-                          PRESENTASI MAHASISWA
+                          PRESTASI MAHASISWA
                         </h3>
                         <button
                           onClick={() => setTab('presentasi-internasional-akademik')}
@@ -1056,6 +1063,21 @@ export default function PublicLayout({
           </div>
         )}
 
+        {/* ─── SURAT KEPUTUSAN CDC TAB ────────────────────────────── */}
+        {currentTab === 'sk-cdc' && <SuratKeputusanView setTab={setTab} />}
+
+        {/* ─── KALENDER KEGIATAN CDC TAB ──────────────────────────── */}
+        {currentTab === 'kalender' && <KalenderKegiatanView setTab={setTab} />}
+
+        {/* ─── LAPORAN KINERJA & TRACER STUDY TAB ─────────────────── */}
+        {currentTab === 'laporan' && <LaporanKinerjaView setTab={setTab} />}
+
+        {/* ─── MOU DENGAN STAKEHOLDER TAB ──────────────────────────── */}
+        {currentTab === 'mou' && <MouStakeholderView setTab={setTab} />}
+
+        {/* ─── GALERI KEGIATAN CDC TAB ────────────────────────────── */}
+        {currentTab === 'galeri' && <GaleriView setTab={setTab} />}
+
         {/* ─── LAYANAN SUB-TABS ───────────────────────────────────── */}
         {['konseling', 'tes-minat', 'workshop', 'softskill', 'seminar', 'career-fair', 'campus-hiring', 'magang'].includes(currentTab) && (
           <LayananContainer currentTab={currentTab} setTab={setTab}>
@@ -1092,48 +1114,63 @@ export default function PublicLayout({
             return matchQ;
           });
 
+          const pageTitle = `Prestasi ${currentScope.charAt(0).toUpperCase() + currentScope.slice(1)} (${currentKategori === 'non-akademik' ? 'Non-Akademik' : 'Akademik'})`;
+
           return (
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10" id="tab-presentasi">
-              {/* Header Banner */}
-              <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 rounded-3xl p-8 sm:p-12 text-white shadow-xl relative overflow-hidden">
-                <div className="absolute right-0 top-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-                <div className="relative z-10 space-y-4 max-w-3xl">
-                  <div className="inline-flex items-center gap-2 bg-amber-400/20 border border-amber-300/30 text-amber-300 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-                    <Award className="w-4 h-4 text-amber-400" />
-                    Tingkat {currentScope.toUpperCase()} • {currentKategori === 'non-akademik' ? 'NON-AKADEMIK' : 'AKADEMIK'}
-                  </div>
+            <div className="bg-white min-h-screen font-sans text-slate-800 pb-20" id="tab-presentasi">
+              {/* ── BREADCRUMB ── */}
+              <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-3">
+                <nav className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                  <button
+                    onClick={() => setTab('beranda')}
+                    className="hover:text-[#F26522] transition-colors font-semibold"
+                  >
+                    Beranda
+                  </button>
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                  <span className="text-slate-600 font-semibold">{pageTitle}</span>
+                </nav>
+              </div>
 
-                  <h1 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight capitalize">
-                    Presentasi {currentScope} ({currentKategori})
-                  </h1>
+              {/* ── MAIN TITLE ── */}
+              <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
+                  {pageTitle}
+                </h1>
+              </div>
 
-                  <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-                    Pusat Rekapitulasi &amp; Dokumentasi Capaian Mahasiswa Universitas Muhammadiyah Kendari di Bidang {currentKategori === 'non-akademik' ? 'Non-Akademik' : 'Akademik'} Tingkat {currentScope.charAt(0).toUpperCase() + currentScope.slice(1)}.
-                  </p>
-                </div>
+              {/* ── DYNAMIC SOCIAL SHARE BAR ── */}
+              <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+                <SocialShareBar title={pageTitle} />
               </div>
 
               {/* Content Section */}
-              <div className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-10 shadow-sm space-y-8">
-                {/* Section Header & CTA */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-6">
-                  <div>
-                    <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 flex items-center gap-2">
-                      <Star className="w-5 h-5 text-amber-500 fill-amber-400" />
-                      Daftar Capaian Presentasi Unggulan
-                    </h2>
-                    <p className="text-slate-500 text-xs sm:text-sm mt-1">
-                      Menampilkan data prestasi mahasiswa peraih kejuaraan di tingkat {currentScope} ({currentKategori}).
-                    </p>
-                  </div>
+              <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-10 shadow-sm space-y-8">
+                  {/* Section Header & CTA */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-6">
+                    <div>
+                      <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+                        <Star className="w-5 h-5 text-amber-500 fill-amber-400" />
+                        Daftar Capaian Prestasi Unggulan
+                      </h2>
+                      <p className="text-slate-500 text-xs sm:text-sm mt-1">
+                        Menampilkan data prestasi mahasiswa peraih kejuaraan di tingkat {currentScope} ({currentKategori}).
+                      </p>
+                    </div>
 
-                  <button
-                    onClick={() => (onNavigateToRegister ? onNavigateToRegister('alumni') : onNavigateToLogin())}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 shadow-md transition shrink-0"
-                  >
-                    <Award className="w-4 h-4" /> Laporkan Presentasi
-                  </button>
-                </div>
+                    <button
+                      onClick={() => {
+                        const waNum = getAdminWaPrestasi();
+                        const msg = encodeURIComponent(`Halo Admin CDC UM Kendari, saya ingin melaporkan pencapaian prestasi mahasiswa tingkat ${currentScope} (${currentKategori}).`);
+                        window.open(`https://wa.me/${waNum}?text=${msg}`, '_blank', 'noopener,noreferrer');
+                      }}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 shadow-md transition shrink-0 cursor-pointer"
+                      title="Laporkan Prestasi via WhatsApp Admin"
+                    >
+                      <Award className="w-4 h-4" /> Laporkan Prestasi
+                    </button>
+                  </div>
 
                 {/* Search Bar */}
                 <div className="relative max-w-xl">
@@ -1142,7 +1179,7 @@ export default function PublicLayout({
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Cari kata kunci presentasi, capaian, atau nama mahasiswa..."
+                    placeholder="Cari kata kunci prestasi, capaian, atau nama mahasiswa..."
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                   />
                 </div>
@@ -1151,9 +1188,9 @@ export default function PublicLayout({
                 {filteredItems.length === 0 ? (
                   <div className="text-center py-16 bg-slate-50/50 rounded-2xl border border-dashed border-slate-300 space-y-3">
                     <Award className="w-12 h-12 text-slate-300 mx-auto" />
-                    <h3 className="font-bold text-slate-700 text-base">Belum Ada Data Presentasi untuk Kategori Ini</h3>
+                    <h3 className="font-bold text-slate-700 text-base">Belum Ada Data Prestasi untuk Kategori Ini</h3>
                     <p className="text-slate-400 text-xs max-w-md mx-auto">
-                      Belum terdapat postingan presentasi terpublikasi untuk {currentScope} ({currentKategori}). Admin dapat memposting presentasi baru dari Admin Dashboard.
+                      Belum terdapat postingan prestasi terpublikasi untuk {currentScope} ({currentKategori}). Admin dapat memposting prestasi baru dari Admin Dashboard.
                     </p>
                   </div>
                 ) : (
@@ -1223,7 +1260,8 @@ export default function PublicLayout({
                 )}
               </div>
             </div>
-          );
+          </div>
+        );
         })()}
 
       </main>

@@ -148,24 +148,20 @@ export default function EventCardLayout({
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-      {/* Header Title Section */}
-      <div className="border-b border-slate-200 pb-6 flex items-start gap-3">
-        <div className="mt-1.5 w-1.5 h-10 rounded-full bg-[#0077C6] shrink-0"></div>
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-            {pageTitle}
-          </h1>
-          <p className="text-slate-600 mt-2 text-base leading-relaxed">
+      {/* Penjelasan Sub-Menu (Tanpa Judul & Tanpa Garis Biru) */}
+      {subtitle && (
+        <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 sm:p-5">
+          <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-normal">
             {subtitle}
           </p>
         </div>
-      </div>
+      )}
 
       {/* Control Panel: Search & Date Filters */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm p-4 sm:p-5 space-y-4">
+      <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm p-4 sm:p-5 space-y-4 overflow-hidden">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-4 items-center">
           {/* Main Search Input */}
-          <div className="md:col-span-6 relative">
+          <div className="md:col-span-4 lg:col-span-5 relative">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
               type="text"
@@ -185,7 +181,7 @@ export default function EventCardLayout({
           </div>
 
           {/* Status Dropdown with Animated Dropdown Component */}
-          <div className="md:col-span-3">
+          <div className="md:col-span-3 lg:col-span-3 min-w-0">
             <Dropdown
               value={selectedStatus}
               onChange={(v) => setSelectedStatus(v)}
@@ -199,26 +195,26 @@ export default function EventCardLayout({
             />
           </div>
 
-          {/* Date Filter Range */}
-          <div className="md:col-span-3 flex items-center gap-2">
-            <div className="relative w-full">
+          {/* Date Filter Range (No Overflow) */}
+          <div className="md:col-span-5 lg:col-span-4 flex items-center gap-1.5 min-w-0 w-full">
+            <div className="relative min-w-0 flex-1">
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 aria-label="Tanggal Mulai"
-                className="w-full px-2.5 py-2 bg-slate-50 text-slate-700 text-xs rounded-lg border border-slate-200 focus:border-blue-500 focus:bg-white outline-none"
+                className="w-full min-w-0 px-2 py-2 bg-slate-50 text-slate-700 text-xs rounded-lg border border-slate-200 focus:border-blue-500 focus:bg-white outline-none"
                 title="Tanggal Mulai"
               />
             </div>
-            <span className="text-slate-400 text-xs font-medium">s/d</span>
-            <div className="relative w-full">
+            <span className="text-slate-400 text-xs font-semibold shrink-0">s/d</span>
+            <div className="relative min-w-0 flex-1">
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 aria-label="Tanggal Akhir"
-                className="w-full px-2.5 py-2 bg-slate-50 text-slate-700 text-xs rounded-lg border border-slate-200 focus:border-blue-500 focus:bg-white outline-none"
+                className="w-full min-w-0 px-2 py-2 bg-slate-50 text-slate-700 text-xs rounded-lg border border-slate-200 focus:border-blue-500 focus:bg-white outline-none"
                 title="Tanggal Akhir"
               />
             </div>

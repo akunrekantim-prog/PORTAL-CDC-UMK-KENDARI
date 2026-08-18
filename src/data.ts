@@ -16,7 +16,12 @@ import {
   Pengumuman,
   SurveiLulusan,
   KontenKarir,
-  EventLayananItem
+  EventLayananItem,
+  SuratKeputusan,
+  KalenderKegiatan,
+  LaporanKinerja,
+  MouStakeholder,
+  GaleriItem
 } from './types';
 
 // Mock Password: all seeded accounts use "password"
@@ -1099,6 +1104,201 @@ export const SEED_KONTEN_KARIR_PRESENTASI: KontenKarir[] = [
   }
 ];
 
+export const SAMPLE_PDF_BASE64 = 'data:application/pdf;base64,JVBERi0xLjQKJSDi48vNCiAxIDAgb2JqCjw8L1R5cGUvQ2F0YWxvZy9QYWdlcyAyIDAgUj4+CmVuZG9iagoyIDAgb2JqCjw8L1R5cGUvUGFnZXMvQ291bnQgMS9LaWRzWzMgMCBSXT4+CmVuZG9iagozIDAgb2JqCjw8L1R5cGUvUGFnZS9QYXJlbnQgMiAwIFIvTWVkaWFCb3hbMCAwIDYxMiA3OTJdL0NvbnRlbnRzIDQgMCBSL1Jlc291cmNlczw8L0ZvbnQ8PC9GMSA1IDAgUj4+Pj4+CmVuZG9iago0IDAgb2JqCjw8L0xlbmd0aCA3Nz4+CnN0cmVhbQpCVAovRjEgMjQgVGYKNzAgNzIwIFRkCihTVVJBVCBLRVBVVFVTRUFOIENEQyBVTSBLRU5EQVJJKSBUagpFVAplbmRzdHJlYW0KZW5kb2JqCjUgMCBvYmoKPDwvVHlwZS9Gb250L1N1YnR5cGUvVHlwZTEvQmFzZUZvbnQvSGVsdmV0aWNhPj4KZW5kb2JqCnhyZWYKMCA2CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDA0MDAwMDAxNSAwMDAwMCBuIAowMDAwMDAwNjggMDAwMDAgbiAKMDA0MDAwMDEyNSAwMDAwMCBuIAowMDAwMDAyNDQgMDAwMDAgbiAKMDA0MDAwMDM3MiAwMDAwMCBuIAp0cmFpbGVyCjw8L1NpemUgNj4+CnN0YXJ0eHJlZgoxNzgKJSVFT0Y=';
+
+export const SEED_SURAT_KEPUTUSAN: SuratKeputusan[] = [
+  {
+    id: 'sk_1',
+    judul: 'SK CDC UMK 2026 – 2027',
+    kategori: 'SK CDC UMK',
+    tipe: 'pdf',
+    pdfUrl: SAMPLE_PDF_BASE64,
+    isFeatured: true,
+    createdAt: '2026-01-10T08:00:00Z'
+  },
+  {
+    id: 'sk_2',
+    judul: 'SK CDC 2025–2026',
+    kategori: 'SK CDC UMK',
+    tipe: 'pdf',
+    pdfUrl: SAMPLE_PDF_BASE64,
+    isFeatured: false,
+    createdAt: '2025-01-10T08:00:00Z'
+  },
+  {
+    id: 'sk_3',
+    judul: 'SK CDC 2024–2025',
+    kategori: 'SK CDC UMK',
+    tipe: 'pdf',
+    pdfUrl: SAMPLE_PDF_BASE64,
+    isFeatured: false,
+    createdAt: '2024-01-10T08:00:00Z'
+  },
+  {
+    id: 'sk_4',
+    judul: 'SK CDC 2022–2024',
+    kategori: 'SK CDC UMK',
+    tipe: 'pdf',
+    pdfUrl: SAMPLE_PDF_BASE64,
+    isFeatured: false,
+    createdAt: '2022-01-10T08:00:00Z'
+  },
+  {
+    id: 'sk_5',
+    judul: 'SK PJK UMK & Perubahan nama CDC',
+    kategori: 'SK PJK UMK 2017 & Perubahan Nama CDC',
+    tipe: 'pdf',
+    pdfUrl: SAMPLE_PDF_BASE64,
+    isFeatured: false,
+    createdAt: '2017-01-10T08:00:00Z'
+  },
+  {
+    id: 'sk_6',
+    judul: 'SK PJK UMK 2014',
+    kategori: 'SK PJK UMK 2014',
+    tipe: 'pdf',
+    pdfUrl: SAMPLE_PDF_BASE64,
+    isFeatured: false,
+    createdAt: '2014-01-10T08:00:00Z'
+  }
+];
+
+export const SEED_KALENDER_KEGIATAN: KalenderKegiatan[] = [
+  {
+    id: 'kal_1',
+    judul: 'Kalender Kegiatan Akademik & Karir CDC UMK 2026',
+    kategori: 'Kalender Utama CDC',
+    displayType: 'poster',
+    posterUrl: 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?q=80&w=1200&auto=format&fit=crop',
+    isFeatured: true,
+    createdAt: '2026-01-10T08:00:00Z'
+  },
+  {
+    id: 'kal_2',
+    judul: 'Jadwal Agenda Job Fair & Campus Hiring 2026',
+    kategori: 'Agenda Bursa Kerja',
+    displayType: 'pdf',
+    pdfUrl: SAMPLE_PDF_BASE64,
+    isFeatured: false,
+    createdAt: '2026-02-01T08:00:00Z'
+  },
+  {
+    id: 'kal_3',
+    judul: 'Jadwal Pelatihan Softskill & Workshop Karir Semester Genap',
+    kategori: 'Pelatihan & Workshop',
+    displayType: 'poster',
+    posterUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1200&auto=format&fit=crop',
+    isFeatured: false,
+    createdAt: '2026-03-01T08:00:00Z'
+  }
+];
+
+export const SEED_LAPORAN_KINERJA: LaporanKinerja[] = [
+  {
+    id: 'lap_1',
+    judul: 'Laporan Kinerja CDC UM Kendari Tahun 2025',
+    kategori: 'Laporan Kinerja CDC',
+    tipe: 'pdf',
+    pdfUrl: SAMPLE_PDF_BASE64,
+    isFeatured: true,
+    createdAt: '2026-01-10T08:00:00Z'
+  },
+  {
+    id: 'lap_2',
+    judul: 'Laporan Hasil Tracer Study Universitas Muhammadiyah Kendari 2025',
+    kategori: 'Laporan Tracer Study',
+    tipe: 'pdf',
+    pdfUrl: SAMPLE_PDF_BASE64,
+    isFeatured: false,
+    createdAt: '2025-12-20T08:00:00Z'
+  },
+  {
+    id: 'lap_3',
+    judul: 'Laporan Monev & Evaluasi Karir Alumni UMK 2024',
+    kategori: 'Laporan Kinerja CDC',
+    tipe: 'pdf',
+    pdfUrl: SAMPLE_PDF_BASE64,
+    isFeatured: false,
+    createdAt: '2024-12-15T08:00:00Z'
+  }
+];
+
+export const SEED_MOU_STAKEHOLDER: MouStakeholder[] = [
+  {
+    id: 'mou_1',
+    judul: 'MOU Kerjasama Industri & Rekrutmen CDC UMK dengan PT Pertamina (Persero)',
+    kategori: 'MOU Perusahaan BUMN & Swasta',
+    displayType: 'poster',
+    posterUrl: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?q=80&w=1200&auto=format&fit=crop',
+    isFeatured: true,
+    createdAt: '2026-01-15T08:00:00Z'
+  },
+  {
+    id: 'mou_2',
+    judul: 'Dokumen MOU Nota Kesepahaman UMK & Bank Syariah Indonesia (BSI)',
+    kategori: 'MOU Perusahaan BUMN & Swasta',
+    displayType: 'pdf',
+    pdfUrl: SAMPLE_PDF_BASE64,
+    isFeatured: false,
+    createdAt: '2025-11-10T08:00:00Z'
+  },
+  {
+    id: 'mou_3',
+    judul: 'MOU Kemitraan Magang Industri & Karir dengan Dinas Tenaga Kerja Kota Kendari',
+    kategori: 'MOU Instansi Pemerintah',
+    displayType: 'pdf',
+    pdfUrl: SAMPLE_PDF_BASE64,
+    isFeatured: false,
+    createdAt: '2025-08-20T08:00:00Z'
+  }
+];
+
+export const SEED_GALERI_ITEMS: GaleriItem[] = [
+  {
+    id: 'gal_1',
+    judul: 'Bimbingan Karir & Pembekalan Wisudawan UMK',
+    kategoriSection: 'Kegiatan Terkini 2026',
+    tipeMedia: 'youtube',
+    youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    linkUrl: 'https://tracerstudy.umkendari.ac.id',
+    deskripsi: 'Dokumentasi video sesi bimbingan karir dan mekanisme tracer study bagi calon wisudawan UMK.',
+    isFeatured: true,
+    createdAt: '2026-02-01T08:00:00Z'
+  },
+  {
+    id: 'gal_2',
+    judul: 'Poster 9th UMK Job Fair & Bursa Kerja Annual 2025',
+    kategoriSection: 'Kegiatan Terkini 2026',
+    tipeMedia: 'poster',
+    posterUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1200&auto=format&fit=crop',
+    linkUrl: 'https://jobfair.umkendari.ac.id',
+    deskripsi: 'Flyer resmi bursa kerja tahunan UMK mempertemukan alumni dengan 30+ perusahaan mitra.',
+    isFeatured: false,
+    createdAt: '2025-11-15T08:00:00Z'
+  },
+  {
+    id: 'gal_3',
+    judul: 'Bulan Perencanaan Karir Mahasiswa UMK - Seminar & Workshop',
+    kategoriSection: 'Galeri Kegiatan 2025',
+    tipeMedia: 'youtube',
+    youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    deskripsi: 'Rangkaian kegiatan webinar dan workshop pengembangan softskill mahasiswa UMK.',
+    isFeatured: false,
+    createdAt: '2025-10-10T08:00:00Z'
+  },
+  {
+    id: 'gal_4',
+    judul: 'Majalah Temu Alumni & Survei Pengguna Lulusan 2024/2025',
+    kategoriSection: 'Majalah & Survei Lulusan',
+    tipeMedia: 'pdf',
+    pdfUrl: SAMPLE_PDF_BASE64,
+    linkUrl: 'https://tracerstudy.umkendari.ac.id/survey',
+    deskripsi: 'E-Book Majalah Temu Alumni CDC UMK serta hasil rekapitulasi survei pengguna lulusan.',
+    isFeatured: false,
+    createdAt: '2025-07-20T08:00:00Z'
+  }
+];
+
 // Helper to safely access database keys
 export type DBKey =
   | 'users'
@@ -1112,7 +1312,12 @@ export type DBKey =
   | 'berita'
   | 'pengumuman'
   | 'survei_lulusan'
-  | 'konten_karir';
+  | 'konten_karir'
+  | 'surat_keputusan'
+  | 'kalender_kegiatan'
+  | 'laporan_kinerja'
+  | 'mou_stakeholder'
+  | 'galeri_items';
 
 const DEFAULT_SEEDS = {
   users: SEED_USERS,
@@ -1127,13 +1332,18 @@ const DEFAULT_SEEDS = {
   pengumuman: SEED_PENGUMUMAN,
   survei_lulusan: SEED_SURVEI_LULUSAN,
   konten_karir: [...SEED_KONTEN_KARIR, ...SEED_KONTEN_KARIR_PRESENTASI],
+  surat_keputusan: SEED_SURAT_KEPUTUSAN,
+  kalender_kegiatan: SEED_KALENDER_KEGIATAN,
+  laporan_kinerja: SEED_LAPORAN_KINERJA,
+  mou_stakeholder: SEED_MOU_STAKEHOLDER,
+  galeri_items: SEED_GALERI_ITEMS,
 };
 
 let _dbInitialized = false;
 
 // Initializer to make sure local storage has everything
 export function initializeDB() {
-  const CURRENT_SEED_VERSION = 'v6_all9lowongan';
+  const CURRENT_SEED_VERSION = 'v11_galeri_items';
   if (localStorage.getItem('cdc_seed_version') !== CURRENT_SEED_VERSION) {
     Object.entries(DEFAULT_SEEDS).forEach(([key, val]) => {
       const storageKey = `cdc_umk_${key}`;
@@ -1554,4 +1764,22 @@ export function trackAndGetVisitorCount(): string {
 
   return `${currentCount.toLocaleString('id-ID')}+`;
 }
+
+// Helper untuk nomor WhatsApp Admin (Lapor Prestasi)
+export function getAdminWaPrestasi(): string {
+  const saved = localStorage.getItem('cdc_umk_admin_wa_prestasi');
+  if (saved && saved.trim()) {
+    let clean = saved.replace(/\D/g, '');
+    if (clean.startsWith('0')) clean = '62' + clean.slice(1);
+    return clean;
+  }
+  return '6285299887766';
+}
+
+export function saveAdminWaPrestasi(phone: string) {
+  let clean = phone.replace(/\D/g, '');
+  if (clean.startsWith('0')) clean = '62' + clean.slice(1);
+  localStorage.setItem('cdc_umk_admin_wa_prestasi', clean);
+}
+
 

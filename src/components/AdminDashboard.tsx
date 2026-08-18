@@ -22,12 +22,20 @@ import {
   PengajuanMagang,
   KontenKarir,
   JenisKonten,
+  SuratKeputusan,
+  KalenderKegiatan,
+  LaporanKinerja,
+  MouStakeholder,
+  GaleriItem
 } from '../types';
 import {
   getFromDB,
+  saveToDB,
   insertToDB,
   updateInDB,
-  deleteInDB
+  deleteInDB,
+  getAdminWaPrestasi,
+  saveAdminWaPrestasi
 } from '../data';
 import {
   LayoutDashboard,
@@ -90,7 +98,9 @@ import {
   ExternalLink,
   MousePointerClick,
   Award,
-  Pin
+  Pin,
+  MessageCircle,
+  Film
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -99,7 +109,7 @@ interface AdminDashboardProps {
   onReloadData?: () => void;
 }
 
-type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin';
+type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri';
 type KontenSubTab = 'riwayat' | 'pembuatan';
 type MitraSubTab = 'approval' | 'list';
 
@@ -110,7 +120,7 @@ const JENIS_LABEL: Record<JenisKonten, string> = {
   workshop: 'Workshop & Pelatihan Karir',
   softskill: 'Pelatihan Softskill & Kewirausahaan',
   seminar: 'Seminar Sukses Berkarir',
-  presentasi: 'Presentasi'
+  presentasi: 'Prestasi'
 };
 
 const JENIS_ICON: Record<JenisKonten, React.ReactNode> = {
@@ -260,8 +270,71 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const [appls, setAppls] = useState<PengajuanMagang[]>([]);
   const [allUsers, setAllUsers] = useState<UserType[]>([]);
   const [konten, setKonten] = useState<KontenKarir[]>([]);
+  const [skItems, setSkItems] = useState<SuratKeputusan[]>([]);
+  const [kalItems, setKalItems] = useState<KalenderKegiatan[]>([]);
+  const [lapItems, setLapItems] = useState<LaporanKinerja[]>([]);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [zoomImage, setZoomImage] = useState<string | null>(null);
+
+  // Form states SK CDC
+  const [showSkForm, setShowSkForm] = useState(false);
+  const [editSkId, setEditSkId] = useState<string | null>(null);
+  const [skJudul, setSkJudul] = useState('');
+  const [skKategori, setSkKategori] = useState('SK CDC UMK');
+  const [skTipe, setSkTipe] = useState<'pdf' | 'link'>('pdf');
+  const [skPdfUrl, setSkPdfUrl] = useState('');
+  const [skLinkUrl, setSkLinkUrl] = useState('');
+  const [skIsFeatured, setSkIsFeatured] = useState(false);
+
+  // Form states Kalender Kegiatan
+  const [showKalForm, setShowKalForm] = useState(false);
+  const [editKalId, setEditKalId] = useState<string | null>(null);
+  const [kalJudul, setKalJudul] = useState('');
+  const [kalKategori, setKalKategori] = useState('Kalender Utama CDC');
+  const [kalDisplayType, setKalDisplayType] = useState<'poster' | 'pdf'>('poster');
+  const [kalPosterUrl, setKalPosterUrl] = useState('');
+  const [kalPdfUrl, setKalPdfUrl] = useState('');
+  const [kalLinkUrl, setKalLinkUrl] = useState('');
+  const [kalIsFeatured, setKalIsFeatured] = useState(false);
+
+  // Form states Laporan Kinerja & Tracer Study
+  const [showLapForm, setShowLapForm] = useState(false);
+  const [editLapId, setEditLapId] = useState<string | null>(null);
+  const [lapJudul, setLapJudul] = useState('');
+  const [lapKategori, setLapKategori] = useState('Laporan Kinerja CDC');
+  const [lapTipe, setLapTipe] = useState<'pdf' | 'link'>('pdf');
+  const [lapPdfUrl, setLapPdfUrl] = useState('');
+  const [lapLinkUrl, setLapLinkUrl] = useState('');
+  const [lapIsFeatured, setLapIsFeatured] = useState(false);
+
+  // Form states MOU Dengan Stakeholder
+  const [mouItems, setMouItems] = useState<MouStakeholder[]>([]);
+  const [showMouForm, setShowMouForm] = useState(false);
+  const [editMouId, setEditMouId] = useState<string | null>(null);
+  const [mouJudul, setMouJudul] = useState('');
+  const [mouKategori, setMouKategori] = useState('MOU Perusahaan BUMN & Swasta');
+  const [mouDisplayType, setMouDisplayType] = useState<'poster' | 'pdf' | 'link'>('poster');
+  const [mouPosterUrl, setMouPosterUrl] = useState('');
+  const [mouPdfUrl, setMouPdfUrl] = useState('');
+  const [mouLinkUrl, setMouLinkUrl] = useState('');
+  const [mouIsFeatured, setMouIsFeatured] = useState(false);
+
+  // Form states Galeri Kegiatan
+  const [galeriItems, setGaleriItems] = useState<GaleriItem[]>([]);
+  const [showGalForm, setShowGalForm] = useState(false);
+  const [editGalId, setEditGalId] = useState<string | null>(null);
+  const [galJudul, setGalJudul] = useState('');
+  const [galSection, setGalSection] = useState('Kegiatan Terkini 2026');
+  const [galTipeMedia, setGalTipeMedia] = useState<'youtube' | 'poster' | 'pdf'>('youtube');
+  const [galYoutubeUrl, setGalYoutubeUrl] = useState('');
+  const [galPosterUrl, setGalPosterUrl] = useState('');
+  const [galPdfUrl, setGalPdfUrl] = useState('');
+  const [galLinkUrl, setGalLinkUrl] = useState('');
+  const [galDeskripsi, setGalDeskripsi] = useState('');
+  const [galIsFeatured, setGalIsFeatured] = useState(false);
+
+  // State Nomor WA Admin Lapor Prestasi
+  const [adminWaNum, setAdminWaNum] = useState(getAdminWaPrestasi());
 
   const reloadAll = () => {
     setStudents(getFromDB<Mahasiswa>('mahasiswa'));
@@ -271,6 +344,12 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
     setAppls(getFromDB<PengajuanMagang>('pengajuan_magang'));
     setAllUsers(getFromDB<UserType>('users'));
     setKonten(getFromDB<KontenKarir>('konten_karir'));
+    setSkItems(getFromDB<SuratKeputusan>('surat_keputusan'));
+    setKalItems(getFromDB<KalenderKegiatan>('kalender_kegiatan'));
+    setLapItems(getFromDB<LaporanKinerja>('laporan_kinerja'));
+    setMouItems(getFromDB<MouStakeholder>('mou_stakeholder'));
+    setGaleriItems(getFromDB<GaleriItem>('galeri_items'));
+    setAdminWaNum(getAdminWaPrestasi());
   };
 
   useEffect(() => {
@@ -293,6 +372,16 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       group: 'MANAJEMEN MITRA',
       items: [
         { id: 'mitra', label: 'Approval & List Mitra', icon: <Building2 className="w-4 h-4" /> }
+      ]
+    },
+    {
+      group: 'DOKUMEN & KALENDER',
+      items: [
+        { id: 'sk-cdc', label: 'Kelola SK CDC', icon: <FileText className="w-4 h-4" /> },
+        { id: 'kalender', label: 'Kelola Kalender Kegiatan', icon: <Calendar className="w-4 h-4" /> },
+        { id: 'laporan', label: 'Kelola Laporan Kinerja', icon: <FileText className="w-4 h-4" /> },
+        { id: 'mou', label: 'Kelola MOU Stakeholder', icon: <FileText className="w-4 h-4" /> },
+        { id: 'galeri', label: 'Kelola Galeri Kegiatan', icon: <Film className="w-4 h-4" /> }
       ]
     },
     {
@@ -1462,6 +1551,37 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
 
               {kontenSub === 'riwayat' && (
                 <div className="space-y-4" id="adm-konten-riwayat">
+                  
+                  {/* Pengaturan Nomor WA Admin untuk Lapor Prestasi */}
+                  <div className="bg-emerald-50/60 border border-emerald-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <h4 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                        <MessageCircle className="w-4 h-4 text-emerald-600" />
+                        Nomor WhatsApp Admin (Lapor Prestasi)
+                      </h4>
+                      <p className="text-slate-500 text-xs mt-0.5">
+                        Nomor ini akan langsung dibuka saat pengunjung/mahasiswa menekan tombol "Laporkan Prestasi".
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <input
+                        type="text"
+                        value={adminWaNum}
+                        onChange={(e) => setAdminWaNum(e.target.value)}
+                        placeholder="081234567890 atau 6281234567890"
+                        className="px-3.5 py-2 rounded-xl border border-slate-300 text-xs bg-white font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 w-48 sm:w-56"
+                      />
+                      <button
+                        onClick={() => {
+                          saveAdminWaPrestasi(adminWaNum);
+                          triggerToast('success', 'Nomor WA Admin berhasil disimpan!');
+                        }}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-xs"
+                      >
+                        Simpan
+                      </button>
+                    </div>
+                  </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <div className="relative flex-1 min-w-[200px]">
                       <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -1892,7 +2012,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                     {eJenis === 'presentasi' && (
                       <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
                         <div className="space-y-1.5">
-                          <label className="text-xs font-medium text-slate-500">Tingkat Presentasi *</label>
+                          <label className="text-xs font-medium text-slate-500">Tingkat Prestasi *</label>
                           <Dropdown value={eKategori as any} onChange={(v) => setEKategori(v as string)} className="w-full" options={[
                             { value: 'internasional', label: 'Internasional' },
                             { value: 'nasional', label: 'Nasional' },
@@ -2261,6 +2381,1626 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
               </div>
             </div>
           )}
+
+          {/* ============== MANAJEMEN SURAT KEPUTUSAN CDC ============== */}
+          {activeTab === 'sk-cdc' && (() => {
+            const openSkFormModal = (item?: SuratKeputusan) => {
+              if (item) {
+                setEditSkId(item.id);
+                setSkJudul(item.judul);
+                setSkKategori(item.kategori);
+                setSkTipe(item.tipe);
+                setSkPdfUrl(item.pdfUrl || '');
+                setSkLinkUrl(item.linkUrl || '');
+                setSkIsFeatured(item.isFeatured === true);
+              } else {
+                setEditSkId(null);
+                setSkJudul('');
+                setSkKategori('SK CDC UMK');
+                setSkTipe('pdf');
+                setSkPdfUrl('');
+                setSkLinkUrl('');
+                setSkIsFeatured(false);
+              }
+              setShowSkForm(true);
+            };
+
+            const handleSkPdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+                  triggerToast('error', 'File harus berformat PDF (.pdf)');
+                  return;
+                }
+                const reader = new FileReader();
+                reader.onload = () => {
+                  setSkPdfUrl(reader.result as string);
+                };
+                reader.readAsDataURL(file);
+              }
+            };
+
+            const handleSaveSk = (e: React.FormEvent) => {
+              e.preventDefault();
+              if (!skJudul.trim() || !skKategori.trim()) {
+                triggerToast('error', 'Judul Dokumen dan Kategori wajib diisi.');
+                return;
+              }
+              if (skTipe === 'pdf' && !skPdfUrl) {
+                triggerToast('error', 'Harap unggah file PDF untuk dokumen ini.');
+                return;
+              }
+              if (skTipe === 'link' && !skLinkUrl.trim()) {
+                triggerToast('error', 'Harap masukkan Tautan Link URL.');
+                return;
+              }
+
+              // If isFeatured is true, unset isFeatured on all existing items
+              let currentList = getFromDB<SuratKeputusan>('surat_keputusan');
+              if (skIsFeatured) {
+                currentList = currentList.map((item) => ({ ...item, isFeatured: false }));
+              }
+
+              const existing = editSkId ? currentList.find((i) => i.id === editSkId) : null;
+              const newItem: SuratKeputusan = {
+                id: editSkId || `sk_${Date.now()}`,
+                judul: skJudul.trim(),
+                kategori: skKategori.trim(),
+                tipe: skTipe,
+                pdfUrl: skTipe === 'pdf' ? skPdfUrl : undefined,
+                linkUrl: skTipe === 'link' ? skLinkUrl.trim() : undefined,
+                isFeatured: skIsFeatured,
+                createdAt: existing?.createdAt || new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+              };
+
+              if (editSkId) {
+                const idx = currentList.findIndex((i) => i.id === editSkId);
+                if (idx !== -1) currentList[idx] = newItem;
+                else currentList.push(newItem);
+              } else {
+                currentList.unshift(newItem);
+              }
+
+              saveToDB('surat_keputusan', currentList);
+              reloadAll();
+              if (onReloadData) onReloadData();
+              setShowSkForm(false);
+              triggerToast('success', editSkId ? 'Surat Keputusan diperbarui.' : 'Surat Keputusan baru berhasil disimpan.');
+            };
+
+            const handleDeleteSk = (item: SuratKeputusan) => {
+              if (confirm(`Hapus Surat Keputusan "${item.judul}"?`)) {
+                deleteInDB('surat_keputusan', item.id);
+                reloadAll();
+                if (onReloadData) onReloadData();
+                triggerToast('success', 'Dokumen berhasil dihapus.');
+              }
+            };
+
+            const handleSetFeatured = (item: SuratKeputusan) => {
+              const currentList = getFromDB<SuratKeputusan>('surat_keputusan').map((i) => ({
+                ...i,
+                isFeatured: i.id === item.id
+              }));
+              saveToDB('surat_keputusan', currentList);
+              reloadAll();
+              if (onReloadData) onReloadData();
+              triggerToast('success', `"${item.judul}" diset sebagai Featured Preview utama.`);
+            };
+
+            return (
+              <div className="space-y-6" id="adm-sk-cdc">
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <div>
+                    <h1 className="text-2xl font-extrabold text-slate-900">Kelola Surat Keputusan CDC</h1>
+                    <p className="text-xs text-slate-500 mt-0.5">Upload PDF (dengan preview scrollable) atau input tautan link eksternal.</p>
+                  </div>
+                  <button
+                    onClick={() => openSkFormModal()}
+                    className="bg-[#F26522] hover:bg-[#d95316] text-white px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-1.5 shadow-sm transition"
+                  >
+                    <Plus className="w-4 h-4" /> Tambah SK CDC
+                  </button>
+                </div>
+
+                {/* Form Modal / Panel */}
+                {showSkForm && (
+                  <form onSubmit={handleSaveSk} className="bg-white rounded-2xl border border-slate-200 shadow-md p-6 space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <h3 className="font-extrabold text-slate-800 text-lg">
+                        {editSkId ? 'Edit Surat Keputusan' : 'Tambah Surat Keputusan Baru'}
+                      </h3>
+                      <button type="button" onClick={() => setShowSkForm(false)} className="text-slate-400 hover:text-slate-600">
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700">Judul Dokumen / SK *</label>
+                        <input
+                          type="text"
+                          value={skJudul}
+                          onChange={(e) => setSkJudul(e.target.value)}
+                          placeholder="misal: SK CDC UMK 2026 – 2027"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#F26522]/20 focus:border-[#F26522]"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700">Kategori / Grup *</label>
+                        <input
+                          type="text"
+                          value={skKategori}
+                          onChange={(e) => setSkKategori(e.target.value)}
+                          placeholder="misal: SK CDC UMK"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#F26522]/20 focus:border-[#F26522]"
+                          list="kategori-presets"
+                        />
+                        <datalist id="kategori-presets">
+                          <option value="SK CDC UMK" />
+                          <option value="SK PJK UMK 2017 & Perubahan Nama CDC" />
+                          <option value="SK PJK UMK 2014" />
+                        </datalist>
+                      </div>
+                    </div>
+
+                    {/* Tipe Selector: PDF vs Link */}
+                    <div className="space-y-2 pt-2">
+                      <label className="text-xs font-bold text-slate-700 block">Tipe Dokumen & Unggahan *</label>
+                      <div className="flex gap-4">
+                        <label className="flex items-center gap-2 cursor-pointer text-sm font-semibold text-slate-800">
+                          <input
+                            type="radio"
+                            name="skTipe"
+                            value="pdf"
+                            checked={skTipe === 'pdf'}
+                            onChange={() => setSkTipe('pdf')}
+                            className="text-[#F26522] focus:ring-[#F26522]"
+                          />
+                          Upload File PDF (Tampil Preview Scrollable)
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer text-sm font-semibold text-slate-800">
+                          <input
+                            type="radio"
+                            name="skTipe"
+                            value="link"
+                            checked={skTipe === 'link'}
+                            onChange={() => setSkTipe('link')}
+                            className="text-[#F26522] focus:ring-[#F26522]"
+                          />
+                          Input Link URL Eksternal
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Dynamic Field: File Upload PDF vs Link Input */}
+                    {skTipe === 'pdf' ? (
+                      <div className="bg-slate-50 p-4 rounded-xl border border-dashed border-slate-300 space-y-2">
+                        <label className="text-xs font-bold text-slate-700 block">Pilih File PDF (.pdf)</label>
+                        <input
+                          type="file"
+                          accept=".pdf,application/pdf"
+                          onChange={handleSkPdfUpload}
+                          className="block w-full text-xs text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#F26522] file:text-white hover:file:bg-[#d95316] cursor-pointer"
+                        />
+                        {skPdfUrl && (
+                          <div className="text-xs text-emerald-600 font-bold flex items-center gap-1.5 pt-1">
+                            <Check className="w-4 h-4" /> File PDF berhasil diunggah / tersedia.
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700">Tautan / URL Eksternal *</label>
+                        <input
+                          type="url"
+                          value={skLinkUrl}
+                          onChange={(e) => setSkLinkUrl(e.target.value)}
+                          placeholder="https://..."
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#F26522]/20 focus:border-[#F26522]"
+                        />
+                      </div>
+                    )}
+
+                    {/* Featured Checkbox */}
+                    <div className="pt-2">
+                      <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-800">
+                        <input
+                          type="checkbox"
+                          checked={skIsFeatured}
+                          onChange={(e) => setSkIsFeatured(e.target.checked)}
+                          className="rounded text-[#F26522] focus:ring-[#F26522]"
+                        />
+                        Jadikan Dokumen Utama (Tampil Pertama di Box Preview Scrollable Top)
+                      </label>
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-3">
+                      <button
+                        type="submit"
+                        className="bg-[#F26522] hover:bg-[#d95316] text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-md transition"
+                      >
+                        Simpan SK CDC
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowSkForm(false)}
+                        className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition"
+                      >
+                        Batal
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {/* Table of SK Items */}
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="grid grid-cols-12 gap-2 px-5 py-3.5 bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                    <div className="col-span-4">Judul Dokumen</div>
+                    <div className="col-span-3">Kategori</div>
+                    <div className="col-span-2">Tipe</div>
+                    <div className="col-span-3 text-right">Aksi</div>
+                  </div>
+
+                  {skItems.length === 0 ? (
+                    <div className="p-10 text-center text-slate-400 font-medium">
+                      Belum ada Surat Keputusan CDC yang diunggah.
+                    </div>
+                  ) : (
+                    skItems.map((item) => (
+                      <div key={item.id} className="grid grid-cols-12 gap-2 px-5 py-4 border-t border-slate-100 items-center hover:bg-slate-50/60 transition">
+                        <div className="col-span-4 min-w-0">
+                          <div className="font-bold text-slate-900 text-sm truncate flex items-center gap-2">
+                            {item.judul}
+                            {item.isFeatured && (
+                              <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded-full shrink-0 uppercase tracking-wider">
+                                Featured
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="col-span-3 text-xs font-semibold text-slate-600 truncate">
+                          {item.kategori}
+                        </div>
+
+                        <div className="col-span-2">
+                          <span className={`px-2.5 py-1 rounded-md text-xs font-extrabold uppercase tracking-wider ${item.tipe === 'pdf' ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+                            {item.tipe.toUpperCase()}
+                          </span>
+                        </div>
+
+                        <div className="col-span-3 flex items-center justify-end gap-2">
+                          {!item.isFeatured && (
+                            <button
+                              onClick={() => handleSetFeatured(item)}
+                              className="text-xs text-emerald-600 hover:text-emerald-800 font-bold px-2 py-1 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition"
+                              title="Set sebagai Featured Preview Utama"
+                            >
+                              Featured
+                            </button>
+                          )}
+                          <button
+                            onClick={() => openSkFormModal(item)}
+                            className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition"
+                            title="Edit"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteSk(item)}
+                            className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition"
+                            title="Hapus"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* ============== MANAJEMEN KALENDER KEGIATAN CDC ============== */}
+          {activeTab === 'kalender' && (() => {
+            const openKalFormModal = (item?: KalenderKegiatan) => {
+              if (item) {
+                setEditKalId(item.id);
+                setKalJudul(item.judul);
+                setKalKategori(item.kategori);
+                setKalDisplayType(item.displayType || 'poster');
+                setKalPosterUrl(item.posterUrl || '');
+                setKalPdfUrl(item.pdfUrl || '');
+                setKalLinkUrl(item.linkUrl || '');
+                setKalIsFeatured(item.isFeatured === true);
+              } else {
+                setEditKalId(null);
+                setKalJudul('');
+                setKalKategori('Kalender Utama CDC');
+                setKalDisplayType('poster');
+                setKalPosterUrl('');
+                setKalPdfUrl('');
+                setKalLinkUrl('');
+                setKalIsFeatured(false);
+              }
+              setShowKalForm(true);
+            };
+
+            const handleKalPosterUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                try {
+                  const dataUrl = await compressImageAdaptive(file);
+                  setKalPosterUrl(dataUrl);
+                } catch {
+                  triggerToast('error', 'Gagal memproses file poster gambar.');
+                }
+              }
+            };
+
+            const handleKalPdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+                  triggerToast('error', 'File harus berformat PDF (.pdf)');
+                  return;
+                }
+                const reader = new FileReader();
+                reader.onload = () => {
+                  setKalPdfUrl(reader.result as string);
+                };
+                reader.readAsDataURL(file);
+              }
+            };
+
+            const handleSaveKal = (e: React.FormEvent) => {
+              e.preventDefault();
+              if (!kalJudul.trim() || !kalKategori.trim()) {
+                triggerToast('error', 'Judul Agenda dan Kategori wajib diisi.');
+                return;
+              }
+              if (kalDisplayType === 'poster' && !kalPosterUrl.trim()) {
+                triggerToast('error', 'Harap unggah atau masukkan URL Gambar Poster.');
+                return;
+              }
+              if (kalDisplayType === 'pdf' && !kalPdfUrl) {
+                triggerToast('error', 'Harap unggah file PDF untuk agenda ini.');
+                return;
+              }
+
+              let currentList = getFromDB<KalenderKegiatan>('kalender_kegiatan');
+              if (kalIsFeatured) {
+                currentList = currentList.map((item) => ({ ...item, isFeatured: false }));
+              }
+
+              const existing = editKalId ? currentList.find((i) => i.id === editKalId) : null;
+              const newItem: KalenderKegiatan = {
+                id: editKalId || `kal_${Date.now()}`,
+                judul: kalJudul.trim(),
+                kategori: kalKategori.trim(),
+                displayType: kalDisplayType,
+                posterUrl: kalDisplayType === 'poster' ? kalPosterUrl : undefined,
+                pdfUrl: kalDisplayType === 'pdf' ? kalPdfUrl : undefined,
+                linkUrl: kalLinkUrl.trim() || undefined,
+                isFeatured: kalIsFeatured,
+                createdAt: existing?.createdAt || new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+              };
+
+              if (editKalId) {
+                const idx = currentList.findIndex((i) => i.id === editKalId);
+                if (idx !== -1) currentList[idx] = newItem;
+                else currentList.push(newItem);
+              } else {
+                currentList.unshift(newItem);
+              }
+
+              saveToDB('kalender_kegiatan', currentList);
+              reloadAll();
+              if (onReloadData) onReloadData();
+              setShowKalForm(false);
+              triggerToast('success', editKalId ? 'Kalender Kegiatan diperbarui.' : 'Agenda Kalender Kegiatan baru berhasil disimpan.');
+            };
+
+            const handleDeleteKal = (item: KalenderKegiatan) => {
+              if (confirm(`Hapus agenda Kalender Kegiatan "${item.judul}"?`)) {
+                deleteInDB('kalender_kegiatan', item.id);
+                reloadAll();
+                if (onReloadData) onReloadData();
+                triggerToast('success', 'Agenda berhasil dihapus.');
+              }
+            };
+
+            const handleSetFeaturedKal = (item: KalenderKegiatan) => {
+              const currentList = getFromDB<KalenderKegiatan>('kalender_kegiatan').map((i) => ({
+                ...i,
+                isFeatured: i.id === item.id
+              }));
+              saveToDB('kalender_kegiatan', currentList);
+              reloadAll();
+              if (onReloadData) onReloadData();
+              triggerToast('success', `"${item.judul}" diset sebagai Featured Preview utama.`);
+            };
+
+            return (
+              <div className="space-y-6" id="adm-kalender">
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <div>
+                    <h1 className="text-2xl font-extrabold text-slate-900">Kelola Kalender Kegiatan CDC</h1>
+                    <p className="text-xs text-slate-500 mt-0.5">Pilih tampilan: Upload Poster Gambar (JPG/PNG) atau Upload File PDF.</p>
+                  </div>
+                  <button
+                    onClick={() => openKalFormModal()}
+                    className="bg-[#F26522] hover:bg-[#d95316] text-white px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-1.5 shadow-sm transition"
+                  >
+                    <Plus className="w-4 h-4" /> Tambah Agenda Kalender
+                  </button>
+                </div>
+
+                {/* Form Modal / Panel */}
+                {showKalForm && (
+                  <form onSubmit={handleSaveKal} className="bg-white rounded-2xl border border-slate-200 shadow-md p-6 space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <h3 className="font-extrabold text-slate-800 text-lg">
+                        {editKalId ? 'Edit Agenda Kalender Kegiatan' : 'Tambah Agenda Kalender Kegiatan Baru'}
+                      </h3>
+                      <button type="button" onClick={() => setShowKalForm(false)} className="text-slate-400 hover:text-slate-600">
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700">Judul Agenda / Kegiatan *</label>
+                        <input
+                          type="text"
+                          value={kalJudul}
+                          onChange={(e) => setKalJudul(e.target.value)}
+                          placeholder="misal: Kalender Kegiatan Akademik & Karir CDC UMK 2026"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#F26522]/20 focus:border-[#F26522]"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700">Kategori / Klasifikasi *</label>
+                        <input
+                          type="text"
+                          value={kalKategori}
+                          onChange={(e) => setKalKategori(e.target.value)}
+                          placeholder="misal: Kalender Utama CDC"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#F26522]/20 focus:border-[#F26522]"
+                          list="kategori-kalender-presets"
+                        />
+                        <datalist id="kategori-kalender-presets">
+                          <option value="Kalender Utama CDC" />
+                          <option value="Agenda Bursa Kerja" />
+                          <option value="Pelatihan & Workshop" />
+                        </datalist>
+                      </div>
+                    </div>
+
+                    {/* 2 PILIHAN TAMPILAN ADMIN: POSTER GAMBAR VS PDF */}
+                    <div className="space-y-2 pt-2">
+                      <label className="text-xs font-bold text-slate-700 block">Pilihan Tampilan Utama di Web *</label>
+                      <div className="flex flex-wrap gap-4 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-slate-800">
+                          <input
+                            type="radio"
+                            name="kalDisplayType"
+                            value="poster"
+                            checked={kalDisplayType === 'poster'}
+                            onChange={() => setKalDisplayType('poster')}
+                            className="text-[#F26522] focus:ring-[#F26522]"
+                          />
+                          Mode 1: Tampilan Poster / Gambar (JPG / PNG)
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-slate-800">
+                          <input
+                            type="radio"
+                            name="kalDisplayType"
+                            value="pdf"
+                            checked={kalDisplayType === 'pdf'}
+                            onChange={() => setKalDisplayType('pdf')}
+                            className="text-[#F26522] focus:ring-[#F26522]"
+                          />
+                          Mode 2: Tampilan File PDF (Preview Scrollable)
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* DYNAMIC FILE UPLOAD INPUT */}
+                    {kalDisplayType === 'poster' ? (
+                      <div className="bg-slate-50 p-4 rounded-xl border border-dashed border-slate-300 space-y-2">
+                        <label className="text-xs font-bold text-slate-700 block">Unggah Gambar Poster (JPG / PNG / WEBP)</label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleKalPosterUpload}
+                          className="block w-full text-xs text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#F26522] file:text-white hover:file:bg-[#d95316] cursor-pointer"
+                        />
+                        <div className="text-[11px] text-slate-400">Atau masukkan URL Gambar Poster:</div>
+                        <input
+                          type="url"
+                          value={kalPosterUrl}
+                          onChange={(e) => setKalPosterUrl(e.target.value)}
+                          placeholder="https://images.unsplash.com/..."
+                          className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs bg-white"
+                        />
+                        {kalPosterUrl && (
+                          <div className="mt-2 flex items-center gap-3 bg-white p-2 rounded-lg border border-slate-200">
+                            <img src={kalPosterUrl} alt="Preview" className="h-16 w-24 object-cover rounded-md" />
+                            <span className="text-xs text-emerald-600 font-bold flex items-center gap-1">
+                              <Check className="w-4 h-4" /> Poster Gambar Siap Ditampilkan
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="bg-slate-50 p-4 rounded-xl border border-dashed border-slate-300 space-y-2">
+                        <label className="text-xs font-bold text-slate-700 block">Unggah File PDF (.pdf)</label>
+                        <input
+                          type="file"
+                          accept=".pdf,application/pdf"
+                          onChange={handleKalPdfUpload}
+                          className="block w-full text-xs text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#F26522] file:text-white hover:file:bg-[#d95316] cursor-pointer"
+                        />
+                        {kalPdfUrl && (
+                          <div className="text-xs text-emerald-600 font-bold flex items-center gap-1.5 pt-1">
+                            <Check className="w-4 h-4" /> File PDF berhasil diunggah / tersedia.
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Featured Checkbox */}
+                    <div className="pt-2">
+                      <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-800">
+                        <input
+                          type="checkbox"
+                          checked={kalIsFeatured}
+                          onChange={(e) => setKalIsFeatured(e.target.checked)}
+                          className="rounded text-[#F26522] focus:ring-[#F26522]"
+                        />
+                        Jadikan Agenda Utama (Tampil Pertama di Viewer Halaman Kalender)
+                      </label>
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-3">
+                      <button
+                        type="submit"
+                        className="bg-[#F26522] hover:bg-[#d95316] text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-md transition"
+                      >
+                        Simpan Agenda Kalender
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowKalForm(false)}
+                        className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition"
+                      >
+                        Batal
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {/* Table of Kalender Items */}
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="grid grid-cols-12 gap-2 px-5 py-3.5 bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                    <div className="col-span-4">Judul Agenda</div>
+                    <div className="col-span-3">Kategori</div>
+                    <div className="col-span-2">Mode Tampilan</div>
+                    <div className="col-span-3 text-right">Aksi</div>
+                  </div>
+
+                  {kalItems.length === 0 ? (
+                    <div className="p-10 text-center text-slate-400 font-medium">
+                      Belum ada Kalender Kegiatan yang diunggah.
+                    </div>
+                  ) : (
+                    kalItems.map((item) => (
+                      <div key={item.id} className="grid grid-cols-12 gap-2 px-5 py-4 border-t border-slate-100 items-center hover:bg-slate-50/60 transition">
+                        <div className="col-span-4 min-w-0">
+                          <div className="font-bold text-slate-900 text-sm truncate flex items-center gap-2">
+                            {item.judul}
+                            {item.isFeatured && (
+                              <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded-full shrink-0 uppercase tracking-wider">
+                                Featured
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="col-span-3 text-xs font-semibold text-slate-600 truncate">
+                          {item.kategori}
+                        </div>
+
+                        <div className="col-span-2">
+                          <span className={`px-2.5 py-1 rounded-md text-xs font-extrabold uppercase tracking-wider ${item.displayType === 'poster' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-blue-50 text-blue-700 border border-blue-200'}`}>
+                            {item.displayType === 'poster' ? 'POSTER' : 'PDF'}
+                          </span>
+                        </div>
+
+                        <div className="col-span-3 flex items-center justify-end gap-2">
+                          {!item.isFeatured && (
+                            <button
+                              onClick={() => handleSetFeaturedKal(item)}
+                              className="text-xs text-emerald-600 hover:text-emerald-800 font-bold px-2 py-1 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition"
+                              title="Set sebagai Featured Preview Utama"
+                            >
+                              Featured
+                            </button>
+                          )}
+                          <button
+                            onClick={() => openKalFormModal(item)}
+                            className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition"
+                            title="Edit"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteKal(item)}
+                            className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition"
+                            title="Hapus"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* ============== MANAJEMEN LAPORAN KINERJA & TRACER STUDY ============== */}
+          {activeTab === 'laporan' && (() => {
+            const openLapFormModal = (item?: LaporanKinerja) => {
+              if (item) {
+                setEditLapId(item.id);
+                setLapJudul(item.judul);
+                setLapKategori(item.kategori);
+                setLapTipe(item.tipe);
+                setLapPdfUrl(item.pdfUrl || '');
+                setLapLinkUrl(item.linkUrl || '');
+                setLapIsFeatured(item.isFeatured === true);
+              } else {
+                setEditLapId(null);
+                setLapJudul('');
+                setLapKategori('Laporan Kinerja CDC');
+                setLapTipe('pdf');
+                setLapPdfUrl('');
+                setLapLinkUrl('');
+                setLapIsFeatured(false);
+              }
+              setShowLapForm(true);
+            };
+
+            const handleLapPdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+                  triggerToast('error', 'File harus berformat PDF (.pdf)');
+                  return;
+                }
+                const reader = new FileReader();
+                reader.onload = () => {
+                  setLapPdfUrl(reader.result as string);
+                };
+                reader.readAsDataURL(file);
+              }
+            };
+
+            const handleSaveLap = (e: React.FormEvent) => {
+              e.preventDefault();
+              if (!lapJudul.trim() || !lapKategori.trim()) {
+                triggerToast('error', 'Judul Laporan dan Kategori wajib diisi.');
+                return;
+              }
+              if (lapTipe === 'pdf' && !lapPdfUrl) {
+                triggerToast('error', 'Harap unggah file PDF Laporan.');
+                return;
+              }
+              if (lapTipe === 'link' && !lapLinkUrl.trim()) {
+                triggerToast('error', 'Harap masukkan Tautan Link URL Laporan.');
+                return;
+              }
+
+              let currentList = getFromDB<LaporanKinerja>('laporan_kinerja');
+              if (lapIsFeatured) {
+                currentList = currentList.map((item) => ({ ...item, isFeatured: false }));
+              }
+
+              const existing = editLapId ? currentList.find((i) => i.id === editLapId) : null;
+              const newItem: LaporanKinerja = {
+                id: editLapId || `lap_${Date.now()}`,
+                judul: lapJudul.trim(),
+                kategori: lapKategori.trim(),
+                tipe: lapTipe,
+                pdfUrl: lapTipe === 'pdf' ? lapPdfUrl : undefined,
+                linkUrl: lapTipe === 'link' ? lapLinkUrl.trim() : undefined,
+                isFeatured: lapIsFeatured,
+                createdAt: existing?.createdAt || new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+              };
+
+              if (editLapId) {
+                const idx = currentList.findIndex((i) => i.id === editLapId);
+                if (idx !== -1) currentList[idx] = newItem;
+                else currentList.push(newItem);
+              } else {
+                currentList.unshift(newItem);
+              }
+
+              saveToDB('laporan_kinerja', currentList);
+              reloadAll();
+              if (onReloadData) onReloadData();
+              setShowLapForm(false);
+              triggerToast('success', editLapId ? 'Laporan Kinerja diperbarui.' : 'Laporan Kinerja baru berhasil disimpan.');
+            };
+
+            const handleDeleteLap = (item: LaporanKinerja) => {
+              if (confirm(`Hapus dokumen Laporan Kinerja "${item.judul}"?`)) {
+                deleteInDB('laporan_kinerja', item.id);
+                reloadAll();
+                if (onReloadData) onReloadData();
+                triggerToast('success', 'Dokumen laporan berhasil dihapus.');
+              }
+            };
+
+            const handleSetFeaturedLap = (item: LaporanKinerja) => {
+              const currentList = getFromDB<LaporanKinerja>('laporan_kinerja').map((i) => ({
+                ...i,
+                isFeatured: i.id === item.id
+              }));
+              saveToDB('laporan_kinerja', currentList);
+              reloadAll();
+              if (onReloadData) onReloadData();
+              triggerToast('success', `"${item.judul}" diset sebagai Featured Preview utama.`);
+            };
+
+            return (
+              <div className="space-y-6" id="adm-laporan">
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <div>
+                    <h1 className="text-2xl font-extrabold text-slate-900">Kelola Laporan Kinerja &amp; Tracer Study</h1>
+                    <p className="text-xs text-slate-500 mt-0.5">Kelola dokumen Laporan Kinerja CDC &amp; Laporan Tracer Study Universitas Muhammadiyah Kendari.</p>
+                  </div>
+                  <button
+                    onClick={() => openLapFormModal()}
+                    className="bg-[#F26522] hover:bg-[#d95316] text-white px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-1.5 shadow-sm transition"
+                  >
+                    <Plus className="w-4 h-4" /> Tambah Laporan Kinerja
+                  </button>
+                </div>
+
+                {/* Form Modal / Panel */}
+                {showLapForm && (
+                  <form onSubmit={handleSaveLap} className="bg-white rounded-2xl border border-slate-200 shadow-md p-6 space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <h3 className="font-extrabold text-slate-800 text-lg">
+                        {editLapId ? 'Edit Laporan Kinerja / Tracer Study' : 'Tambah Laporan Kinerja Baru'}
+                      </h3>
+                      <button type="button" onClick={() => setShowLapForm(false)} className="text-slate-400 hover:text-slate-600">
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700">Judul Dokumen Laporan *</label>
+                        <input
+                          type="text"
+                          value={lapJudul}
+                          onChange={(e) => setLapJudul(e.target.value)}
+                          placeholder="misal: Laporan Kinerja CDC UM Kendari Tahun 2025"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#F26522]/20 focus:border-[#F26522]"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700">Kategori / Klasifikasi *</label>
+                        <input
+                          type="text"
+                          value={lapKategori}
+                          onChange={(e) => setLapKategori(e.target.value)}
+                          placeholder="misal: Laporan Kinerja CDC"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#F26522]/20 focus:border-[#F26522]"
+                          list="kategori-laporan-presets"
+                        />
+                        <datalist id="kategori-laporan-presets">
+                          <option value="Laporan Kinerja CDC" />
+                          <option value="Laporan Tracer Study" />
+                        </datalist>
+                      </div>
+                    </div>
+
+                    {/* Radio Tipe Input (PDF / Link) */}
+                    <div className="space-y-2 pt-2">
+                      <label className="text-xs font-bold text-slate-700 block">Tipe Dokumen Laporan *</label>
+                      <div className="flex items-center gap-6 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-slate-800">
+                          <input
+                            type="radio"
+                            name="lapTipe"
+                            value="pdf"
+                            checked={lapTipe === 'pdf'}
+                            onChange={() => setLapTipe('pdf')}
+                            className="text-[#F26522] focus:ring-[#F26522]"
+                          />
+                          Upload File PDF (Tampil Preview Scrollable)
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-slate-800">
+                          <input
+                            type="radio"
+                            name="lapTipe"
+                            value="link"
+                            checked={lapTipe === 'link'}
+                            onChange={() => setLapTipe('link')}
+                            className="text-[#F26522] focus:ring-[#F26522]"
+                          />
+                          Tautan Link URL Eksternal
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Dynamic Inputs based on tipe */}
+                    {lapTipe === 'pdf' ? (
+                      <div className="bg-slate-50 p-4 rounded-xl border border-dashed border-slate-300 space-y-2">
+                        <label className="text-xs font-bold text-slate-700 block">Unggah File PDF Laporan (.pdf)</label>
+                        <input
+                          type="file"
+                          accept=".pdf,application/pdf"
+                          onChange={handleLapPdfUpload}
+                          className="block w-full text-xs text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#F26522] file:text-white hover:file:bg-[#d95316] cursor-pointer"
+                        />
+                        {lapPdfUrl && (
+                          <div className="text-xs text-emerald-600 font-bold flex items-center gap-1.5 pt-1">
+                            <Check className="w-4 h-4" /> File PDF Laporan berhasil diunggah / tersedia.
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700">Tautan Link URL Eksternal *</label>
+                        <input
+                          type="url"
+                          value={lapLinkUrl}
+                          onChange={(e) => setLapLinkUrl(e.target.value)}
+                          placeholder="https://drive.google.com/... atau https://..."
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#F26522]/20 focus:border-[#F26522]"
+                        />
+                      </div>
+                    )}
+
+                    {/* Featured Checkbox */}
+                    <div className="pt-2">
+                      <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-800">
+                        <input
+                          type="checkbox"
+                          checked={lapIsFeatured}
+                          onChange={(e) => setLapIsFeatured(e.target.checked)}
+                          className="rounded text-[#F26522] focus:ring-[#F26522]"
+                        />
+                        Jadikan Dokumen Utama (Tampil Pertama di Viewer Halaman Laporan Kinerja)
+                      </label>
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-3">
+                      <button
+                        type="submit"
+                        className="bg-[#F26522] hover:bg-[#d95316] text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-md transition"
+                      >
+                        Simpan Dokumen Laporan
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowLapForm(false)}
+                        className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition"
+                      >
+                        Batal
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {/* Table of Laporan Items */}
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="grid grid-cols-12 gap-2 px-5 py-3.5 bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                    <div className="col-span-5">Judul Dokumen Laporan</div>
+                    <div className="col-span-3">Kategori</div>
+                    <div className="col-span-1">Tipe</div>
+                    <div className="col-span-3 text-right">Aksi</div>
+                  </div>
+
+                  {lapItems.length === 0 ? (
+                    <div className="p-10 text-center text-slate-400 font-medium">
+                      Belum ada dokumen Laporan Kinerja yang diunggah.
+                    </div>
+                  ) : (
+                    lapItems.map((item) => (
+                      <div key={item.id} className="grid grid-cols-12 gap-2 px-5 py-4 border-t border-slate-100 items-center hover:bg-slate-50/60 transition">
+                        <div className="col-span-5 min-w-0">
+                          <div className="font-bold text-slate-900 text-sm truncate flex items-center gap-2">
+                            {item.judul}
+                            {item.isFeatured && (
+                              <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded-full shrink-0 uppercase tracking-wider">
+                                Featured
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="col-span-3 text-xs font-semibold text-slate-600 truncate">
+                          {item.kategori}
+                        </div>
+
+                        <div className="col-span-1">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${item.tipe === 'pdf' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
+                            {item.tipe}
+                          </span>
+                        </div>
+
+                        <div className="col-span-3 flex items-center justify-end gap-2">
+                          {!item.isFeatured && (
+                            <button
+                              onClick={() => handleSetFeaturedLap(item)}
+                              className="text-xs text-emerald-600 hover:text-emerald-800 font-bold px-2 py-1 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition"
+                              title="Set sebagai Featured Preview Utama"
+                            >
+                              Featured
+                            </button>
+                          )}
+                          <button
+                            onClick={() => openLapFormModal(item)}
+                            className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition"
+                            title="Edit"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteLap(item)}
+                            className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition"
+                            title="Hapus"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* =========================================================
+           *  TAB: KELOLA MOU STAKEHOLDER
+           * =======================================================*/}
+          {activeTab === 'mou' && (() => {
+            const openMouFormModal = (item?: MouStakeholder) => {
+              if (item) {
+                setEditMouId(item.id);
+                setMouJudul(item.judul);
+                setMouKategori(item.kategori);
+                setMouDisplayType(item.displayType || 'poster');
+                setMouPosterUrl(item.posterUrl || '');
+                setMouPdfUrl(item.pdfUrl || '');
+                setMouLinkUrl(item.linkUrl || '');
+                setMouIsFeatured(!!item.isFeatured);
+              } else {
+                setEditMouId(null);
+                setMouJudul('');
+                setMouKategori('MOU Perusahaan BUMN & Swasta');
+                setMouDisplayType('poster');
+                setMouPosterUrl('');
+                setMouPdfUrl('');
+                setMouLinkUrl('');
+                setMouIsFeatured(false);
+              }
+              setShowMouForm(true);
+            };
+
+            const handleSaveMou = (e: React.FormEvent) => {
+              e.preventDefault();
+              if (!mouJudul.trim()) {
+                triggerToast('error', 'Judul MOU wajib diisi!');
+                return;
+              }
+
+              let currentList = getFromDB<MouStakeholder>('mou_stakeholder');
+
+              if (mouIsFeatured) {
+                currentList = currentList.map((i) => ({ ...i, isFeatured: false }));
+              }
+
+              if (editMouId) {
+                const updatedItem: MouStakeholder = {
+                  id: editMouId,
+                  judul: mouJudul.trim(),
+                  kategori: mouKategori.trim(),
+                  displayType: mouDisplayType,
+                  posterUrl: mouPosterUrl.trim() || undefined,
+                  pdfUrl: mouPdfUrl.trim() || undefined,
+                  linkUrl: mouLinkUrl.trim() || undefined,
+                  isFeatured: mouIsFeatured,
+                  createdAt: new Date().toISOString()
+                };
+                currentList = currentList.map((i) => (i.id === editMouId ? updatedItem : i));
+                triggerToast('success', 'Dokumen MOU berhasil diperbarui!');
+              } else {
+                const newItem: MouStakeholder = {
+                  id: `mou_${Date.now()}`,
+                  judul: mouJudul.trim(),
+                  kategori: mouKategori.trim(),
+                  displayType: mouDisplayType,
+                  posterUrl: mouPosterUrl.trim() || undefined,
+                  pdfUrl: mouPdfUrl.trim() || undefined,
+                  linkUrl: mouLinkUrl.trim() || undefined,
+                  isFeatured: mouIsFeatured,
+                  createdAt: new Date().toISOString()
+                };
+                currentList.unshift(newItem);
+                triggerToast('success', 'Dokumen MOU baru berhasil ditambahkan!');
+              }
+
+              saveToDB('mou_stakeholder', currentList);
+              setMouItems(currentList);
+              setShowMouForm(false);
+            };
+
+            const handleDeleteMou = (item: MouStakeholder) => {
+              if (window.confirm(`Hapus dokumen MOU "${item.judul}"?`)) {
+                deleteInDB('mou_stakeholder', item.id);
+                setMouItems(getFromDB<MouStakeholder>('mou_stakeholder'));
+                triggerToast('success', 'Dokumen MOU berhasil dihapus!');
+              }
+            };
+
+            const handleSetFeaturedMou = (item: MouStakeholder) => {
+              const currentList = getFromDB<MouStakeholder>('mou_stakeholder').map((i) => ({
+                ...i,
+                isFeatured: i.id === item.id
+              }));
+              saveToDB('mou_stakeholder', currentList);
+              setMouItems(currentList);
+              triggerToast('success', `"${item.judul}" dijadikan tampilan featured utama!`);
+            };
+
+            return (
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-900">Kelola MOU Dengan Stakeholder</h2>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Unggah dokumen MOU & Nota Kesepahaman UMK dengan perusahaan mitra, instansi pemerintah, dan perguruan tinggi.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => openMouFormModal()}
+                    className="flex items-center gap-2 bg-[#F26522] hover:bg-[#d95316] text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow-md transition shrink-0"
+                  >
+                    <Plus className="w-4 h-4" /> Tambah MOU Stakeholder
+                  </button>
+                </div>
+
+                {/* Form Input / Edit Modal Container */}
+                {showMouForm && (
+                  <form onSubmit={handleSaveMou} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-md space-y-4 animate-fade-in">
+                    <h3 className="font-bold text-slate-900 text-base border-b border-slate-100 pb-2">
+                      {editMouId ? 'Edit Dokumen MOU Stakeholder' : 'Tambah Dokumen MOU Stakeholder Baru'}
+                    </h3>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="md:col-span-2">
+                        <label className="block text-xs font-bold text-slate-700 mb-1">Judul MOU / Perjanjian *</label>
+                        <input
+                          type="text"
+                          required
+                          value={mouJudul}
+                          onChange={(e) => setMouJudul(e.target.value)}
+                          placeholder="Misal: MOU Kerjasama Industri & Rekrutmen UMK dengan PT Pertamina"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#F26522]/20 focus:border-[#F26522]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">Kategori Stakeholder *</label>
+                        <select
+                          value={mouKategori}
+                          onChange={(e) => setMouKategori(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#F26522]/20 focus:border-[#F26522]"
+                        >
+                          <option value="MOU Perusahaan BUMN & Swasta">MOU Perusahaan BUMN & Swasta</option>
+                          <option value="MOU Instansi Pemerintah">MOU Instansi Pemerintah</option>
+                          <option value="MOU Perguruan Tinggi & Akademi">MOU Perguruan Tinggi & Akademi</option>
+                          <option value="MOU Organisasi & Yayasan">MOU Organisasi & Yayasan</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">Pilihan Mode Tampilan Halaman *</label>
+                        <div className="flex items-center gap-4 pt-1">
+                          <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-800">
+                            <input
+                              type="radio"
+                              name="mouDisplayType"
+                              value="poster"
+                              checked={mouDisplayType === 'poster'}
+                              onChange={() => setMouDisplayType('poster')}
+                              className="text-[#F26522] focus:ring-[#F26522]"
+                            />
+                            Upload Poster / Gambar (JPG/PNG)
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-800">
+                            <input
+                              type="radio"
+                              name="mouDisplayType"
+                              value="pdf"
+                              checked={mouDisplayType === 'pdf'}
+                              onChange={() => setMouDisplayType('pdf')}
+                              className="text-[#F26522] focus:ring-[#F26522]"
+                            />
+                            Upload File PDF (Preview Scrollable)
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Conditional Input based on displayType */}
+                    {mouDisplayType === 'poster' ? (
+                      <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                        <label className="block text-xs font-bold text-slate-700">Upload Poster / File Gambar MOU *</label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onloadend = () => setMouPosterUrl(reader.result as string);
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                          className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#F26522] file:text-white hover:file:bg-[#d95316] cursor-pointer"
+                        />
+                        {mouPosterUrl && (
+                          <div className="mt-2 text-xs font-bold text-emerald-600 flex items-center gap-1.5">
+                            <Check className="w-4 h-4" /> Poster Gambar berhasil dipilih!
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                        <label className="block text-xs font-bold text-slate-700">Upload File PDF MOU *</label>
+                        <input
+                          type="file"
+                          accept="application/pdf"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onloadend = () => setMouPdfUrl(reader.result as string);
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                          className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#F26522] file:text-white hover:file:bg-[#d95316] cursor-pointer"
+                        />
+                        {mouPdfUrl && (
+                          <div className="mt-2 text-xs font-bold text-emerald-600 flex items-center gap-1.5">
+                            <Check className="w-4 h-4" /> Berkas PDF berhasil diunggah!
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Featured Checkbox */}
+                    <div className="pt-2">
+                      <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-800">
+                        <input
+                          type="checkbox"
+                          checked={mouIsFeatured}
+                          onChange={(e) => setMouIsFeatured(e.target.checked)}
+                          className="rounded text-[#F26522] focus:ring-[#F26522]"
+                        />
+                        Jadikan Dokumen Utama (Tampil Pertama di Viewer Halaman MOU Stakeholder)
+                      </label>
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-3">
+                      <button
+                        type="submit"
+                        className="bg-[#F26522] hover:bg-[#d95316] text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-md transition"
+                      >
+                        Simpan Dokumen MOU
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowMouForm(false)}
+                        className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition"
+                      >
+                        Batal
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {/* Table of MOU Items */}
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="grid grid-cols-12 gap-2 px-5 py-3.5 bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                    <div className="col-span-5">Judul Dokumen MOU</div>
+                    <div className="col-span-3">Kategori</div>
+                    <div className="col-span-1">Mode Tampilan</div>
+                    <div className="col-span-3 text-right">Aksi</div>
+                  </div>
+
+                  {mouItems.length === 0 ? (
+                    <div className="p-10 text-center text-slate-400 font-medium">
+                      Belum ada dokumen MOU Dengan Stakeholder yang diunggah.
+                    </div>
+                  ) : (
+                    mouItems.map((item) => (
+                      <div key={item.id} className="grid grid-cols-12 gap-2 px-5 py-4 border-t border-slate-100 items-center hover:bg-slate-50/60 transition">
+                        <div className="col-span-5 min-w-0">
+                          <div className="font-bold text-slate-900 text-sm truncate flex items-center gap-2">
+                            {item.judul}
+                            {item.isFeatured && (
+                              <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded-full shrink-0 uppercase tracking-wider">
+                                Featured
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="col-span-3 text-xs font-semibold text-slate-600 truncate">
+                          {item.kategori}
+                        </div>
+
+                        <div className="col-span-1">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${item.displayType === 'poster' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'}`}>
+                            {item.displayType === 'poster' ? 'Poster' : 'PDF'}
+                          </span>
+                        </div>
+
+                        <div className="col-span-3 flex items-center justify-end gap-2">
+                          {!item.isFeatured && (
+                            <button
+                              onClick={() => handleSetFeaturedMou(item)}
+                              className="text-xs text-emerald-600 hover:text-emerald-800 font-bold px-2 py-1 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition"
+                              title="Set sebagai Featured Preview Utama"
+                            >
+                              Featured
+                            </button>
+                          )}
+                          <button
+                            onClick={() => openMouFormModal(item)}
+                            className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition"
+                            title="Edit"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteMou(item)}
+                            className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition"
+                            title="Hapus"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* ============== MANAJEMEN GALERI KEGIATAN ============== */}
+          {activeTab === 'galeri' && (() => {
+            const openGalFormModal = (item?: GaleriItem) => {
+              if (item) {
+                setEditGalId(item.id);
+                setGalJudul(item.judul);
+                setGalSection(item.kategoriSection || 'Kegiatan Terkini 2026');
+                setGalTipeMedia(item.tipeMedia || 'youtube');
+                setGalYoutubeUrl(item.youtubeUrl || '');
+                setGalPosterUrl(item.posterUrl || '');
+                setGalPdfUrl(item.pdfUrl || '');
+                setGalLinkUrl(item.linkUrl || '');
+                setGalDeskripsi(item.deskripsi || '');
+                setGalIsFeatured(!!item.isFeatured);
+              } else {
+                setEditGalId(null);
+                setGalJudul('');
+                setGalSection('Kegiatan Terkini 2026');
+                setGalTipeMedia('youtube');
+                setGalYoutubeUrl('');
+                setGalPosterUrl('');
+                setGalPdfUrl('');
+                setGalLinkUrl('');
+                setGalDeskripsi('');
+                setGalIsFeatured(false);
+              }
+              setShowGalForm(true);
+            };
+
+            const handleSaveGaleri = (e: React.FormEvent) => {
+              e.preventDefault();
+              if (!galJudul.trim()) {
+                triggerToast('error', 'Judul galeri kegiatan wajib diisi.');
+                return;
+              }
+
+              const newItem: GaleriItem = {
+                id: editGalId || `gal_${Date.now()}`,
+                judul: galJudul.trim(),
+                kategoriSection: galSection.trim() || 'Kegiatan Terkini 2026',
+                tipeMedia: galTipeMedia,
+                youtubeUrl: galYoutubeUrl.trim() || undefined,
+                posterUrl: galPosterUrl || undefined,
+                pdfUrl: galPdfUrl || undefined,
+                linkUrl: galLinkUrl.trim() || undefined,
+                deskripsi: galDeskripsi.trim() || undefined,
+                isFeatured: galIsFeatured,
+                createdAt: editGalId ? (galeriItems.find((g) => g.id === editGalId)?.createdAt || new Date().toISOString()) : new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+              };
+
+              if (editGalId) {
+                updateInDB<GaleriItem>('galeri_items', newItem);
+                triggerToast('success', 'Galeri Kegiatan berhasil diperbarui!');
+              } else {
+                insertToDB<GaleriItem>('galeri_items', newItem);
+                triggerToast('success', 'Galeri Kegiatan baru berhasil ditambahkan!');
+              }
+
+              setShowGalForm(false);
+              reloadAll();
+              if (onReloadData) onReloadData();
+            };
+
+            const handleDeleteGaleri = (item: GaleriItem) => {
+              if (confirm(`Apakah Anda yakin ingin menghapus "${item.judul}"?`)) {
+                deleteInDB('galeri_items', item.id);
+                triggerToast('success', 'Item galeri kegiatan berhasil dihapus.');
+                reloadAll();
+                if (onReloadData) onReloadData();
+              }
+            };
+
+            return (
+              <div className="space-y-6" id="adm-galeri">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                  <div>
+                    <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2.5">
+                      <Film className="w-6 h-6 text-[#F26522]" />
+                      Kelola Galeri Kegiatan CDC
+                    </h1>
+                    <p className="text-slate-500 text-xs sm:text-sm mt-1">
+                      Atur postingan galeri kegiatan publik dengan 3 pilihan tampilan media: Video Youtube, Poster Gambar, dan File PDF / Tautan Dokumen.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => openGalFormModal()}
+                    className="bg-[#F26522] hover:bg-[#d95316] text-white px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 shadow-md transition shrink-0"
+                  >
+                    <Plus className="w-4 h-4" /> Tambah Galeri Kegiatan
+                  </button>
+                </div>
+
+                {/* Form Modal / Inline Form */}
+                {showGalForm && (
+                  <form onSubmit={handleSaveGaleri} className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-md space-y-6 animate-fade-in">
+                    <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">
+                      {editGalId ? 'Edit Galeri Kegiatan' : 'Tambah Galeri Kegiatan Baru'}
+                    </h3>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Judul */}
+                      <div className="space-y-1.5 sm:col-span-2">
+                        <label className="text-xs font-bold text-slate-700">Judul Kegiatan *</label>
+                        <input
+                          type="text"
+                          value={galJudul}
+                          onChange={(e) => setGalJudul(e.target.value)}
+                          placeholder="misal: Bimbingan Karir Alumni 2025"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold"
+                          required
+                        />
+                      </div>
+
+                      {/* Kategori Seksi */}
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700">Seksi / Kelompok Kegiatan *</label>
+                        <input
+                          type="text"
+                          value={galSection}
+                          onChange={(e) => setGalSection(e.target.value)}
+                          placeholder="misal: Kegiatan Terkini 2026, Galeri 2025, Majalah Alumni"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold"
+                          required
+                        />
+                      </div>
+
+                      {/* Tipe Media Radio */}
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700">Tipe Media Tampilan *</label>
+                        <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+                          {(['youtube', 'poster', 'pdf'] as const).map((t) => (
+                            <button
+                              key={t}
+                              type="button"
+                              onClick={() => setGalTipeMedia(t)}
+                              className={`flex-1 py-1.5 rounded-lg text-xs font-extrabold capitalize transition ${galTipeMedia === t ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'}`}
+                            >
+                              {t === 'youtube' ? 'Video Youtube' : t === 'poster' ? 'Poster Gambar' : 'Dokumen PDF'}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Dynamic Media Input */}
+                      {galTipeMedia === 'youtube' && (
+                        <div className="space-y-1.5 sm:col-span-2">
+                          <label className="text-xs font-bold text-slate-700">URL Link Youtube *</label>
+                          <input
+                            type="url"
+                            value={galYoutubeUrl}
+                            onChange={(e) => setGalYoutubeUrl(e.target.value)}
+                            placeholder="https://www.youtube.com/watch?v=... atau https://youtu.be/..."
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs"
+                          />
+                        </div>
+                      )}
+
+                      {galTipeMedia === 'poster' && (
+                        <div className="space-y-1.5 sm:col-span-2">
+                          <label className="text-xs font-bold text-slate-700">Upload Poster / Gambar Flyer</label>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={async (e) => {
+                              const f = e.target.files?.[0];
+                              if (f) {
+                                const url = await compressImageAdaptive(f);
+                                setGalPosterUrl(url);
+                              }
+                            }}
+                            className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-amber-50 file:text-amber-800 cursor-pointer"
+                          />
+                          {galPosterUrl && (
+                            <img src={galPosterUrl} alt="Preview Poster" className="w-24 h-24 object-cover rounded-xl border border-slate-200 mt-2" />
+                          )}
+                        </div>
+                      )}
+
+                      {galTipeMedia === 'pdf' && (
+                        <div className="space-y-1.5 sm:col-span-2">
+                          <label className="text-xs font-bold text-slate-700">Upload File PDF Dokumen</label>
+                          <input
+                            type="file"
+                            accept="application/pdf"
+                            onChange={async (e) => {
+                              const f = e.target.files?.[0];
+                              if (f) {
+                                const url = await readFileAsDataUrl(f);
+                                setGalPdfUrl(url);
+                              }
+                            }}
+                            className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-800 cursor-pointer"
+                          />
+                          {galPdfUrl && (
+                            <span className="text-xs font-bold text-emerald-600 block mt-1">File PDF Siap Diunggah</span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Link External Optional */}
+                      <div className="space-y-1.5 sm:col-span-2">
+                        <label className="text-xs font-bold text-slate-700">Tautan Opsional ("Cek di SINI")</label>
+                        <input
+                          type="url"
+                          value={galLinkUrl}
+                          onChange={(e) => setGalLinkUrl(e.target.value)}
+                          placeholder="https://..."
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs"
+                        />
+                      </div>
+
+                      {/* Deskripsi */}
+                      <div className="space-y-1.5 sm:col-span-2">
+                        <label className="text-xs font-bold text-slate-700">Deskripsi Singkat</label>
+                        <textarea
+                          rows={2}
+                          value={galDeskripsi}
+                          onChange={(e) => setGalDeskripsi(e.target.value)}
+                          placeholder="Keterangan singkat tentang kegiatan galeri..."
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-2">
+                      <button
+                        type="submit"
+                        className="bg-[#F26522] hover:bg-[#d95316] text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition"
+                      >
+                        Simpan Galeri Kegiatan
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowGalForm(false)}
+                        className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition"
+                      >
+                        Batal
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {/* Table of Galeri Items */}
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="grid grid-cols-12 gap-2 px-5 py-3.5 bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                    <div className="col-span-5">Judul Galeri Kegiatan</div>
+                    <div className="col-span-3">Seksi / Kelompok</div>
+                    <div className="col-span-2">Tipe Media</div>
+                    <div className="col-span-2 text-right">Aksi</div>
+                  </div>
+
+                  {galeriItems.length === 0 ? (
+                    <div className="p-10 text-center text-slate-400 font-medium">
+                      Belum ada galeri kegiatan yang diunggah.
+                    </div>
+                  ) : (
+                    galeriItems.map((item) => (
+                      <div key={item.id} className="grid grid-cols-12 gap-2 px-5 py-4 border-t border-slate-100 items-center hover:bg-slate-50/60 transition">
+                        <div className="col-span-5 min-w-0">
+                          <div className="font-bold text-slate-900 text-sm truncate flex items-center gap-2">
+                            {item.judul}
+                          </div>
+                        </div>
+
+                        <div className="col-span-3 text-xs font-semibold text-slate-600 truncate">
+                          {item.kategoriSection}
+                        </div>
+
+                        <div className="col-span-2">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${
+                            item.tipeMedia === 'youtube' ? 'bg-red-100 text-red-700' :
+                            item.tipeMedia === 'poster' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'
+                          }`}>
+                            {item.tipeMedia === 'youtube' ? 'Youtube' : item.tipeMedia === 'poster' ? 'Poster' : 'PDF'}
+                          </span>
+                        </div>
+
+                        <div className="col-span-2 flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => openGalFormModal(item)}
+                            className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition"
+                            title="Edit"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteGaleri(item)}
+                            className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition"
+                            title="Hapus"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            );
+          })()}
 
 
         </main>

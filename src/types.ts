@@ -340,3 +340,73 @@ export interface Prestasi {
   createdBy?: string;
 }
 
+export interface SuratKeputusan {
+  id: string;
+  judul: string;
+  kategori: string;
+  tipe: 'pdf' | 'link';
+  pdfUrl?: string;
+  linkUrl?: string;
+  isFeatured?: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface KalenderKegiatan {
+  id: string;
+  judul: string;
+  kategori: string;
+  displayType: 'poster' | 'pdf'; // 2 pilihan tampilan admin
+  posterUrl?: string; // Data URL / URL gambar poster
+  pdfUrl?: string;    // Data URL / URL file PDF
+  linkUrl?: string;   // URL eksternal opsional
+  isFeatured?: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface LaporanKinerja {
+  id: string;
+  judul: string;
+  kategori: string;
+  tipe: 'pdf' | 'link';
+  pdfUrl?: string;
+  linkUrl?: string;
+  isFeatured?: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface MouStakeholder {
+  id: string;
+  judul: string;
+  kategori: string;
+  displayType: 'poster' | 'pdf' | 'link'; // Tampilan Poster Gambar, PDF, atau Link
+  posterUrl?: string;
+  pdfUrl?: string;
+  linkUrl?: string;
+  isFeatured?: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface GaleriItem {
+  id: string;
+  judul: string;
+  kategoriSection: string; // e.g. 'Kegiatan Terkini 2026', 'Galeri Kegiatan 2025', 'Majalah & Survei'
+  tipeMedia: 'youtube' | 'poster' | 'pdf'; // 3 pilihan media
+  youtubeUrl?: string;
+  posterUrl?: string;
+  pdfUrl?: string;
+  linkUrl?: string;
+  deskripsi?: string;
+  isFeatured?: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+
+
+
+
+

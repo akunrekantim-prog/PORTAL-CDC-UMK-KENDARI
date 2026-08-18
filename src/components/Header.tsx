@@ -65,7 +65,7 @@ const NAV_ITEMS: NavItem[] = [
       },
       { label: 'Surat Keputusan CDC', tab: 'sk-cdc' },
       { label: 'Kalender Kegiatan', tab: 'kalender' },
-      { label: 'Laporan Kinerja', tab: 'laporan' },
+      { label: 'Laporan Kinerja & Tracer Study', tab: 'laporan' },
       { label: 'MOU Dengan Stakeholder', tab: 'mou' },
       { label: 'Galeri', tab: 'galeri' },
     ],
@@ -108,7 +108,7 @@ const NAV_ITEMS: NavItem[] = [
   },
   {
     id: 'presentasi',
-    label: 'Presentasi',
+    label: 'Prestasi',
     children: [
       {
         label: 'Internasional',
