@@ -79,7 +79,7 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Workshop Pengembangan Karir', tab: 'workshop' },
       { label: 'Pelatihan Softskill & Kewirausahaan', tab: 'softskill' },
       { label: 'Seminar Sukses Berkarir', tab: 'seminar' },
-      { label: 'Job Fair & Bursa Kerja', tab: 'career-fair' },
+      { label: 'Job Fair', tab: 'career-fair' },
       { label: 'Campus Hiring - Recruitment', tab: 'campus-hiring' },
       { label: 'Internship', tab: 'magang' },
     ],
@@ -353,14 +353,13 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                   {/* ── DROPDOWN PANEL ── */}
                   {item.children && openDropdown === item.id && (
                     <div
-                      className="absolute top-full left-0 z-[100] flex bg-white border border-gray-200/80
-                                 shadow-xl rounded-b-lg overflow-hidden min-w-max"
+                      className="absolute top-full left-0 z-[100] flex items-start bg-transparent min-w-max"
                       onMouseEnter={cancelClose}
                       onMouseLeave={handleMouseLeave}
                       role="menu"
                     >
                       {/* Left Column: Main Dropdown List */}
-                      <div className="min-w-[220px] bg-white py-1 divide-y divide-gray-100">
+                      <div className="min-w-[220px] bg-white py-1 divide-y divide-gray-100 border border-gray-200/80 shadow-xl rounded-b-lg overflow-hidden">
                         {item.children.map((child) => {
                           const hasSub = !!(child.children && child.children.length > 0);
                           const isSubActive = hasSub && activeSubMenu === child.label;
@@ -383,7 +382,7 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                               }}
                               role="menuitem"
                               className={[
-                                'w-full text-left px-5 py-3 text-sm font-medium flex items-center justify-between gap-4 transition-colors duration-150',
+                                'group w-full text-left px-5 py-3 text-sm font-medium flex items-center justify-between gap-4 transition-colors duration-150',
                                 isSubActive
                                   ? 'bg-gray-100/90 text-gray-900 font-semibold'
                                   : child.tab && currentTab === child.tab
@@ -395,15 +394,17 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                               {hasSub && (
                                 <svg
                                   className={[
-                                    'w-3.5 h-3.5 transition-colors',
-                                    isSubActive ? 'text-gray-800' : 'text-gray-400',
+                                    'w-3.5 h-3.5 transition-all duration-300 ease-in-out shrink-0',
+                                    isSubActive
+                                      ? '-rotate-90 text-[#F26522] scale-110 translate-x-0.5'
+                                      : 'rotate-0 text-gray-400 group-hover:-rotate-90 group-hover:text-[#F26522] group-hover:translate-x-0.5',
                                   ].join(' ')}
                                   fill="none"
                                   viewBox="0 0 24 24"
                                   stroke="currentColor"
-                                  strokeWidth={2}
+                                  strokeWidth={2.5}
                                 >
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                                 </svg>
                               )}
                             </button>
@@ -413,7 +414,7 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
 
                       {/* Right Column: Attached Side Sub-Menu (e.g. Visi - Misi & Keanggotaan) */}
                       {item.children.some(c => c.children && c.label === activeSubMenu) && (
-                        <div className="min-w-[200px] bg-white py-1 divide-y divide-gray-100 border-l border-gray-100">
+                        <div className="min-w-[200px] bg-white py-1 divide-y divide-gray-100 border border-gray-200/80 shadow-xl rounded-r-lg rounded-b-lg overflow-hidden self-start ml-0.5">
                           {item.children
                             .find(c => c.label === activeSubMenu)
                             ?.children?.map((subChild) => (
@@ -540,13 +541,24 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                               }
                             }}
                             className={[
-                              'w-full text-left px-10 py-2.5 text-sm font-semibold transition-colors duration-100 flex items-center justify-between',
+                              'group w-full text-left px-10 py-2.5 text-sm font-semibold transition-colors duration-100 flex items-center justify-between',
                               child.tab && currentTab === child.tab
                                 ? 'text-[#F26522]'
                                 : 'text-gray-700 hover:text-[#F26522]',
                             ].join(' ')}
                           >
                             <span>{child.label}</span>
+                            {child.children && (
+                              <svg
+                                className="w-3.5 h-3.5 transition-all duration-300 ease-in-out text-gray-400 group-hover:text-[#F26522] group-hover:-rotate-90 group-hover:translate-x-0.5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth={2.5}
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                              </svg>
+                            )}
                           </button>
 
                           {child.children && (

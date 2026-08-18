@@ -21,7 +21,11 @@ import {
   KalenderKegiatan,
   LaporanKinerja,
   MouStakeholder,
-  GaleriItem
+  GaleriItem,
+  KonselingConfig,
+  KonselingInfoItem,
+  KonselingJadwalItem,
+  AnggotaTim
 } from './types';
 
 // Mock Password: all seeded accounts use "password"
@@ -1781,5 +1785,195 @@ export function saveAdminWaPrestasi(phone: string) {
   if (clean.startsWith('0')) clean = '62' + clean.slice(1);
   localStorage.setItem('cdc_umk_admin_wa_prestasi', clean);
 }
+
+/* ─────────────────────────────────────────────────────────────────
+   KONSELING KARIR CONFIG & HELPER
+───────────────────────────────────────────────────────────────── */
+export const DEFAULT_KONSELING_CONFIG: KonselingConfig = {
+  id: 'konseling_config_default',
+  title: 'Layanan Konseling Karir UPT CDC UM Kendari',
+  subtitle: 'Sesi konsultasi karir personal & pendampingan profesional untuk mahasiswa dan alumni Universitas Muhammadiyah Kendari',
+  posterUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=1200&q=80',
+  posterAlt: 'Poster Layanan Konseling Karir CDC UM Kendari',
+  infoItems: [
+    {
+      id: 'info-1',
+      judul: 'Konseling Perencanaan & Pengembangan Karir',
+      deskripsi: 'Diskusi tatap muka maupun daring mengenai pemetaan minat, potensi diri, perencanaan karir jangka panjang, serta strategi menghadapi dunia kerja pasca kelulusan.',
+      linkLabel: 'Panduan Konseling Karir',
+      linkUrl: 'https://umkendari.ac.id'
+    },
+    {
+      id: 'info-2',
+      judul: 'Review CV, Cover Letter & Portofolio',
+      deskripsi: 'Sesi penelaahan dan perbaikan dokumen lamaran kerja (CV, Surat Lamaran, & Portofolio) bersama konselor CDC agar sesuai standar industri profesional.',
+      linkLabel: 'Template CV Standar CDC',
+      linkUrl: 'https://umkendari.ac.id'
+    },
+    {
+      id: 'info-3',
+      judul: 'Simulasi & Konsultasi Persiapan Wawancara (Interview)',
+      deskripsi: 'Simulasi wawancara kerja (mock interview), latihan menjawab pertanyaan teknis & HRD, serta tips percaya diri saat menghadapi proses rekrutmen.',
+      linkLabel: 'Tips & Trik Wawancara Kerja',
+      linkUrl: 'https://umkendari.ac.id'
+    }
+  ],
+  jadwalItems: [
+    {
+      id: 'jdw-1',
+      hari: 'Senin - Kamis',
+      jam: '09.00 - 15.00 WITA',
+      lokasi: 'Ruang Konseling CDC UM Kendari, Gedung Rektorat Lt. 2',
+      kuotaPerHari: '5 Sesi / Hari',
+      status: 'buka'
+    },
+    {
+      id: 'jdw-2',
+      hari: 'Jumat',
+      jam: '09.00 - 11.30 WITA',
+      lokasi: 'Ruang Konseling CDC UM Kendari / Daring via Zoom',
+      kuotaPerHari: '3 Sesi / Hari',
+      status: 'buka'
+    }
+  ],
+  narasiWa: 'Ingin menjadwalkan sesi konseling karir atau mengajukan pertanyaan lebih lanjut? Silakan hubungi Admin Konseling Karir CDC UM Kendari melalui WhatsApp di bawah ini.',
+  adminWaNumber: '6285299887766',
+  adminWaDefaultMessage: 'Halo Admin CDC UM Kendari, saya ingin berkonsultasi mengenai Layanan Konseling Karir.'
+};
+
+export function getKonselingConfig(): KonselingConfig {
+  const saved = localStorage.getItem('cdc_umk_konseling_config');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed && typeof parsed === 'object') {
+        return {
+          ...DEFAULT_KONSELING_CONFIG,
+          ...parsed,
+          infoItems: Array.isArray(parsed.infoItems) ? parsed.infoItems : DEFAULT_KONSELING_CONFIG.infoItems,
+          jadwalItems: Array.isArray(parsed.jadwalItems) ? parsed.jadwalItems : DEFAULT_KONSELING_CONFIG.jadwalItems,
+        };
+      }
+    } catch (e) {
+      console.error('Error parsing konseling config:', e);
+    }
+  }
+  return DEFAULT_KONSELING_CONFIG;
+}
+
+export function saveKonselingConfig(config: KonselingConfig): void {
+  const updated = {
+    ...config,
+    updatedAt: new Date().toISOString()
+  };
+  localStorage.setItem('cdc_umk_konseling_config', JSON.stringify(updated));
+}
+
+export const DEFAULT_ANGGOTA_TIM: AnggotaTim[] = [
+  {
+    id: 'tim_1',
+    nama: 'drh. Retno Murwanti, M.P., Ph.D.',
+    jabatan: 'Kepala Kantor Alumni',
+    fotoUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=600&auto=format&fit=crop',
+    urutan: 1
+  },
+  {
+    id: 'tim_2',
+    nama: 'Ariani Ratna Budiati, S.S., M.A.',
+    jabatan: 'Ketua Tim Kerja Program & Hubungan Alumni',
+    fotoUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=600&auto=format&fit=crop',
+    urutan: 2
+  },
+  {
+    id: 'tim_3',
+    nama: 'Merryta Andriani, S.E., Akt.',
+    jabatan: 'Ketua Tim Kerja Pengembangan Karier Lulusan',
+    fotoUrl: 'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?q=80&w=600&auto=format&fit=crop',
+    urutan: 3
+  },
+  {
+    id: 'tim_4',
+    nama: 'Nindi Mabruri Asnan, S.I.P., M.A.',
+    jabatan: 'Pengelola Alumni',
+    fotoUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=600&auto=format&fit=crop',
+    urutan: 4
+  },
+  {
+    id: 'tim_5',
+    nama: 'Lusiawati Dewi Nurvitasari, S.Pd.',
+    jabatan: 'Pengelola Alumni',
+    fotoUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=600&auto=format&fit=crop',
+    urutan: 5
+  },
+  {
+    id: 'tim_6',
+    nama: 'Dewi Novyantari, S.Ant.',
+    jabatan: 'Pengelola Alumni',
+    fotoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=600&auto=format&fit=crop',
+    urutan: 6
+  },
+  {
+    id: 'tim_7',
+    nama: 'Saputro Eko Rahmatulloh, S.Kom.',
+    jabatan: 'Pengolah Layanan Teknologi Informasi dan Komputer',
+    fotoUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=600&auto=format&fit=crop',
+    urutan: 7
+  },
+  {
+    id: 'tim_8',
+    nama: 'Ira Shavilla Sudjono',
+    jabatan: 'Asisten Program',
+    fotoUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=600&auto=format&fit=crop',
+    urutan: 8
+  },
+  {
+    id: 'tim_9',
+    nama: 'Shafna Puspita Prastya',
+    jabatan: 'Asisten Program',
+    fotoUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=600&auto=format&fit=crop',
+    urutan: 9
+  },
+  {
+    id: 'tim_10',
+    nama: 'Andreas Hanches Parlindungan S',
+    jabatan: 'Asisten Program',
+    fotoUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=600&auto=format&fit=crop',
+    urutan: 10
+  },
+  {
+    id: 'tim_11',
+    nama: 'Ni Luh Putu Swandewi',
+    jabatan: 'Asisten Program',
+    fotoUrl: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=600&auto=format&fit=crop',
+    urutan: 11
+  },
+  {
+    id: 'tim_12',
+    nama: 'Ahmad Lutfi Alfajar',
+    jabatan: 'Asisten Program',
+    fotoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop',
+    urutan: 12
+  }
+];
+
+export function getAnggotaTim(): AnggotaTim[] {
+  const saved = localStorage.getItem('cdc_umk_keanggotaan_tim');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    } catch (e) {
+      console.error('Error parsing anggota tim:', e);
+    }
+  }
+  return DEFAULT_ANGGOTA_TIM;
+}
+
+export function saveAnggotaTim(items: AnggotaTim[]): void {
+  localStorage.setItem('cdc_umk_keanggotaan_tim', JSON.stringify(items));
+}
+
 
 

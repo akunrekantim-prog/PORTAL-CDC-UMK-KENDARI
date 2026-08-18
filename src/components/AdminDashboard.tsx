@@ -26,7 +26,11 @@ import {
   KalenderKegiatan,
   LaporanKinerja,
   MouStakeholder,
-  GaleriItem
+  GaleriItem,
+  KonselingConfig,
+  KonselingInfoItem,
+  KonselingJadwalItem,
+  AnggotaTim
 } from '../types';
 import {
   getFromDB,
@@ -35,7 +39,11 @@ import {
   updateInDB,
   deleteInDB,
   getAdminWaPrestasi,
-  saveAdminWaPrestasi
+  saveAdminWaPrestasi,
+  getKonselingConfig,
+  saveKonselingConfig,
+  getAnggotaTim,
+  saveAnggotaTim
 } from '../data';
 import {
   LayoutDashboard,
@@ -100,7 +108,10 @@ import {
   Award,
   Pin,
   MessageCircle,
-  Film
+  Film,
+  HeartHandshake,
+  Info,
+  UserCheck
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -109,7 +120,7 @@ interface AdminDashboardProps {
   onReloadData?: () => void;
 }
 
-type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri';
+type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'konseling' | 'keanggotaan';
 type KontenSubTab = 'riwayat' | 'pembuatan';
 type MitraSubTab = 'approval' | 'list';
 
@@ -333,8 +344,42 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const [galDeskripsi, setGalDeskripsi] = useState('');
   const [galIsFeatured, setGalIsFeatured] = useState(false);
 
+  // Form states Kelola Konseling Karir
+  const [konselingCfg, setKonselingCfg] = useState<KonselingConfig>(getKonselingConfig());
+  const [kPosterUrl, setKPosterUrl] = useState(konselingCfg.posterUrl || '');
+  const [kTitle, setKTitle] = useState(konselingCfg.title || '');
+  const [kSubtitle, setKSubtitle] = useState(konselingCfg.subtitle || '');
+  const [kNarasiWa, setKNarasiWa] = useState(konselingCfg.narasiWa || '');
+  const [kAdminWaNum, setKAdminWaNum] = useState(konselingCfg.adminWaNumber || '');
+  const [kAdminWaMsg, setKAdminWaMsg] = useState(konselingCfg.adminWaDefaultMessage || '');
+
+  // Form states Info Items
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  const [editInfoId, setEditInfoId] = useState<string | null>(null);
+  const [infoJudul, setInfoJudul] = useState('');
+  const [infoDeskripsi, setInfoDeskripsi] = useState('');
+  const [infoLinkUrl, setInfoLinkUrl] = useState('');
+  const [infoLinkLabel, setInfoLinkLabel] = useState('');
+
+  // Form states Jadwal Items
+  const [showJadwalModal, setShowJadwalModal] = useState(false);
+  const [editJadwalId, setEditJadwalId] = useState<string | null>(null);
+  const [jdwHari, setJdwHari] = useState('');
+  const [jdwJam, setJdwJam] = useState('');
+  const [jdwLokasi, setJdwLokasi] = useState('');
+  const [jdwKuota, setJdwKuota] = useState('');
+  const [jdwStatus, setJdwStatus] = useState<'buka' | 'penuh' | 'tutup'>('buka');
+
   // State Nomor WA Admin Lapor Prestasi
   const [adminWaNum, setAdminWaNum] = useState(getAdminWaPrestasi());
+
+  // Form states Keanggotaan & Tim CDC
+  const [anggotaList, setAnggotaList] = useState<AnggotaTim[]>([]);
+  const [showAnggotaModal, setShowAnggotaModal] = useState(false);
+  const [editAnggotaId, setEditAnggotaId] = useState<string | null>(null);
+  const [angNama, setAngNama] = useState('');
+  const [angJabatan, setAngJabatan] = useState('');
+  const [angFotoUrl, setAngFotoUrl] = useState('');
 
   const reloadAll = () => {
     setStudents(getFromDB<Mahasiswa>('mahasiswa'));
@@ -350,6 +395,16 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
     setMouItems(getFromDB<MouStakeholder>('mou_stakeholder'));
     setGaleriItems(getFromDB<GaleriItem>('galeri_items'));
     setAdminWaNum(getAdminWaPrestasi());
+    setAnggotaList(getAnggotaTim());
+
+    const cfg = getKonselingConfig();
+    setKonselingCfg(cfg);
+    setKPosterUrl(cfg.posterUrl || '');
+    setKTitle(cfg.title || '');
+    setKSubtitle(cfg.subtitle || '');
+    setKNarasiWa(cfg.narasiWa || '');
+    setKAdminWaNum(cfg.adminWaNumber || '');
+    setKAdminWaMsg(cfg.adminWaDefaultMessage || '');
   };
 
   useEffect(() => {
@@ -381,7 +436,9 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
         { id: 'kalender', label: 'Kelola Kalender Kegiatan', icon: <Calendar className="w-4 h-4" /> },
         { id: 'laporan', label: 'Kelola Laporan Kinerja', icon: <FileText className="w-4 h-4" /> },
         { id: 'mou', label: 'Kelola MOU Stakeholder', icon: <FileText className="w-4 h-4" /> },
-        { id: 'galeri', label: 'Kelola Galeri Kegiatan', icon: <Film className="w-4 h-4" /> }
+        { id: 'galeri', label: 'Kelola Galeri Kegiatan', icon: <Film className="w-4 h-4" /> },
+        { id: 'konseling', label: 'Kelola Konseling Karir', icon: <HeartHandshake className="w-4 h-4" /> },
+        { id: 'keanggotaan', label: 'Kelola Keanggotaan & Tim', icon: <UserCheck className="w-4 h-4" /> }
       ]
     },
     {
@@ -3998,6 +4055,837 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                     ))
                   )}
                 </div>
+              </div>
+            );
+          })()}
+
+          {/* ══════════════════════════════════════════
+              KELOLA KONSELING KARIR
+          ══════════════════════════════════════════ */}
+          {activeTab === 'konseling' && (() => {
+            const handleSaveGeneralConfig = () => {
+              const updated: KonselingConfig = {
+                ...konselingCfg,
+                title: kTitle,
+                subtitle: kSubtitle,
+                posterUrl: kPosterUrl,
+                narasiWa: kNarasiWa,
+                adminWaNumber: kAdminWaNum,
+                adminWaDefaultMessage: kAdminWaMsg
+              };
+              saveKonselingConfig(updated);
+              setKonselingCfg(updated);
+              triggerToast('success', 'Pengaturan Konseling Karir berhasil disimpan!');
+            };
+
+            const handleSaveInfoItem = (e: React.FormEvent) => {
+              e.preventDefault();
+              if (!infoJudul.trim()) {
+                triggerToast('error', 'Judul penjelasan wajib diisi.');
+                return;
+              }
+
+              let updatedItems = [...(konselingCfg.infoItems || [])];
+              if (editInfoId) {
+                updatedItems = updatedItems.map((item) =>
+                  item.id === editInfoId
+                    ? { ...item, judul: infoJudul, deskripsi: infoDeskripsi, linkUrl: infoLinkUrl, linkLabel: infoLinkLabel }
+                    : item
+                );
+              } else {
+                const newItem: KonselingInfoItem = {
+                  id: `info_${Date.now()}`,
+                  judul: infoJudul,
+                  deskripsi: infoDeskripsi,
+                  linkUrl: infoLinkUrl,
+                  linkLabel: infoLinkLabel
+                };
+                updatedItems.push(newItem);
+              }
+
+              const updatedConfig = { ...konselingCfg, infoItems: updatedItems };
+              saveKonselingConfig(updatedConfig);
+              setKonselingCfg(updatedConfig);
+              setShowInfoModal(false);
+              triggerToast('success', editInfoId ? 'Penjelasan topik berhasil diperbarui.' : 'Penjelasan topik baru ditambahkan.');
+            };
+
+            const handleDeleteInfoItem = (id: string) => {
+              if (confirm('Hapus item penjelasan topik ini?')) {
+                const updatedItems = (konselingCfg.infoItems || []).filter((item) => item.id !== id);
+                const updatedConfig = { ...konselingCfg, infoItems: updatedItems };
+                saveKonselingConfig(updatedConfig);
+                setKonselingCfg(updatedConfig);
+                triggerToast('success', 'Penjelasan topik telah dihapus.');
+              }
+            };
+
+            const openAddInfoModal = () => {
+              setEditInfoId(null);
+              setInfoJudul('');
+              setInfoDeskripsi('');
+              setInfoLinkUrl('');
+              setInfoLinkLabel('');
+              setShowInfoModal(true);
+            };
+
+            const openEditInfoModal = (item: KonselingInfoItem) => {
+              setEditInfoId(item.id);
+              setInfoJudul(item.judul);
+              setInfoDeskripsi(item.deskripsi);
+              setInfoLinkUrl(item.linkUrl || '');
+              setInfoLinkLabel(item.linkLabel || '');
+              setShowInfoModal(true);
+            };
+
+            const handleSaveJadwalItem = (e: React.FormEvent) => {
+              e.preventDefault();
+              if (!jdwHari.trim() || !jdwJam.trim()) {
+                triggerToast('error', 'Hari dan Jam wajib diisi.');
+                return;
+              }
+
+              let updatedItems = [...(konselingCfg.jadwalItems || [])];
+              if (editJadwalId) {
+                updatedItems = updatedItems.map((item) =>
+                  item.id === editJadwalId
+                    ? { ...item, hari: jdwHari, jam: jdwJam, lokasi: jdwLokasi, kuotaPerHari: jdwKuota, status: jdwStatus }
+                    : item
+                );
+              } else {
+                const newItem: KonselingJadwalItem = {
+                  id: `jdw_${Date.now()}`,
+                  hari: jdwHari,
+                  jam: jdwJam,
+                  lokasi: jdwLokasi,
+                  kuotaPerHari: jdwKuota,
+                  status: jdwStatus
+                };
+                updatedItems.push(newItem);
+              }
+
+              const updatedConfig = { ...konselingCfg, jadwalItems: updatedItems };
+              saveKonselingConfig(updatedConfig);
+              setKonselingCfg(updatedConfig);
+              setShowJadwalModal(false);
+              triggerToast('success', editJadwalId ? 'Jadwal konseling berhasil diperbarui.' : 'Jadwal konseling baru ditambahkan.');
+            };
+
+            const handleDeleteJadwalItem = (id: string) => {
+              if (confirm('Hapus entri jadwal konseling ini?')) {
+                const updatedItems = (konselingCfg.jadwalItems || []).filter((item) => item.id !== id);
+                const updatedConfig = { ...konselingCfg, jadwalItems: updatedItems };
+                saveKonselingConfig(updatedConfig);
+                setKonselingCfg(updatedConfig);
+                triggerToast('success', 'Jadwal konseling telah dihapus.');
+              }
+            };
+
+            const openAddJadwalModal = () => {
+              setEditJadwalId(null);
+              setJdwHari('');
+              setJdwJam('');
+              setJdwLokasi('');
+              setJdwKuota('');
+              setJdwStatus('buka');
+              setShowJadwalModal(true);
+            };
+
+            const openEditJadwalModal = (item: KonselingJadwalItem) => {
+              setEditJadwalId(item.id);
+              setJdwHari(item.hari);
+              setJdwJam(item.jam);
+              setJdwLokasi(item.lokasi);
+              setJdwKuota(item.kuotaPerHari || '');
+              setJdwStatus(item.status);
+              setShowJadwalModal(true);
+            };
+
+            const handlePosterFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              try {
+                const compressed = await compressImageAdaptive(file);
+                setKPosterUrl(compressed);
+                triggerToast('success', 'Gambar poster berhasil diunggah & dikompres!');
+              } catch (err: any) {
+                triggerToast('error', 'Gagal memuat gambar poster.');
+              }
+            };
+
+            return (
+              <div className="space-y-8">
+                {/* Header Title */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                      <HeartHandshake className="w-5 h-5 text-emerald-600" />
+                      Kelola Layanan Konseling Karir
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Atur poster template, penjelasan topik, jadwal operasional, dan tautan WhatsApp Admin CDC
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={handleSaveGeneralConfig}
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#000066] hover:bg-blue-900 text-white rounded-xl font-bold text-xs shadow-md transition"
+                  >
+                    <Save className="w-4 h-4" /> Simpan Semua Pengaturan
+                  </button>
+                </div>
+
+                {/* 1. POSTER TEMPLATE & BANNER TITLE */}
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+                  <div className="border-b border-slate-100 pb-3">
+                    <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                      <ImageIcon className="w-4 h-4 text-emerald-600" /> 1. Poster Template & Banner Utama
+                    </h3>
+                    <p className="text-xs text-slate-500">Atur gambar poster template yang akan ditampilkan di halaman Konseling Karir</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Left: Input fields */}
+                    <div className="lg:col-span-2 space-y-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">Judul Banner Utama</label>
+                        <input
+                          type="text"
+                          value={kTitle}
+                          onChange={(e) => setKTitle(e.target.value)}
+                          className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 font-semibold"
+                          placeholder="Layanan Konseling Karir UPT CDC UM Kendari"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">Subjudul / Deskripsi Banner</label>
+                        <textarea
+                          rows={2}
+                          value={kSubtitle}
+                          onChange={(e) => setKSubtitle(e.target.value)}
+                          className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                          placeholder="Sesi konsultasi karir personal & pendampingan profesional..."
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="block text-xs font-bold text-slate-700">Unggah Gambar Poster (Berkas / URL)</label>
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handlePosterFileChange}
+                            className="text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer"
+                          />
+                        </div>
+                        <input
+                          type="text"
+                          value={kPosterUrl}
+                          onChange={(e) => setKPosterUrl(e.target.value)}
+                          className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                          placeholder="Atau masukkan URL Gambar Poster (https://...)"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Right: Poster Preview */}
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold text-slate-700">Pratinjau Poster</label>
+                      <div className="border border-slate-200 rounded-2xl overflow-hidden bg-slate-900 min-h-[180px] max-h-[220px] flex items-center justify-center p-2">
+                        {kPosterUrl ? (
+                          <img src={kPosterUrl} alt="Poster Pratinjau" className="max-h-[200px] w-auto object-contain rounded-lg" />
+                        ) : (
+                          <span className="text-xs text-slate-400">Belum ada gambar poster</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. KELOLA PENJELASAN & TOPIK KONSELING */}
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-3">
+                    <div>
+                      <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                        <Info className="w-4 h-4 text-emerald-600" /> 2. Penjelasan & Topik Konseling (Dynamic List)
+                      </h3>
+                      <p className="text-xs text-slate-500">Tambah, edit, atau hapus penjelasan topik layanan yang tersedia untuk mahasiswa</p>
+                    </div>
+                    <button
+                      onClick={openAddInfoModal}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition"
+                    >
+                      <Plus className="w-4 h-4" /> Tambah Penjelasan Topik
+                    </button>
+                  </div>
+
+                  <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden">
+                    {(!konselingCfg.infoItems || konselingCfg.infoItems.length === 0) ? (
+                      <div className="p-8 text-center text-xs text-slate-400 font-medium">
+                        Belum ada topik penjelasan yang dibuat. Klik tombol di atas untuk menambah.
+                      </div>
+                    ) : (
+                      konselingCfg.infoItems.map((item, idx) => (
+                        <div key={item.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/60 transition">
+                          <div className="space-y-1 min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="w-5 h-5 rounded-full bg-orange-100 text-[#F26522] font-bold text-[10px] flex items-center justify-center shrink-0">
+                                {idx + 1}
+                              </span>
+                              <h4 className="text-sm font-bold text-slate-900 truncate">{item.judul}</h4>
+                            </div>
+                            <p className="text-xs text-slate-600 line-clamp-2 pl-7">{item.deskripsi}</p>
+                            {item.linkUrl && (
+                              <p className="text-[11px] text-[#F26522] font-semibold pl-7 flex items-center gap-1">
+                                <LinkIcon className="w-3 h-3" /> {item.linkLabel || item.linkUrl}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                            <button
+                              onClick={() => openEditInfoModal(item)}
+                              className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition"
+                              title="Edit Penjelasan"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteInfoItem(item.id)}
+                              className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition"
+                              title="Hapus Penjelasan"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* 3. KELOLA JADWAL KONSELING */}
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-3">
+                    <div>
+                      <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-emerald-600" /> 3. Jadwal Operasional Konseling Karir
+                      </h3>
+                      <p className="text-xs text-slate-500">Atur hari, jam, lokasi, dan status kuota layanan konseling</p>
+                    </div>
+                    <button
+                      onClick={openAddJadwalModal}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition"
+                    >
+                      <Plus className="w-4 h-4" /> Tambah Entri Jadwal
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {(!konselingCfg.jadwalItems || konselingCfg.jadwalItems.length === 0) ? (
+                      <div className="col-span-2 p-8 text-center text-xs text-slate-400 font-medium border border-slate-200 rounded-xl">
+                        Belum ada jadwal operasional. Klik "+ Tambah Entri Jadwal".
+                      </div>
+                    ) : (
+                      konselingCfg.jadwalItems.map((jdw) => (
+                        <div key={jdw.id} className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2 flex flex-col justify-between">
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-slate-900 text-sm">{jdw.hari}</span>
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${
+                                jdw.status === 'buka' ? 'bg-emerald-100 text-emerald-700' : jdw.status === 'penuh' ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-700'
+                              }`}>
+                                {jdw.status}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-600"><strong>Jam:</strong> {jdw.jam}</p>
+                            <p className="text-xs text-slate-600"><strong>Lokasi:</strong> {jdw.lokasi}</p>
+                            {jdw.kuotaPerHari && <p className="text-xs text-slate-600"><strong>Kuota:</strong> {jdw.kuotaPerHari}</p>}
+                          </div>
+
+                          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
+                            <button
+                              onClick={() => openEditJadwalModal(jdw)}
+                              className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-200 rounded-lg transition"
+                              title="Edit Jadwal"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteJadwalItem(jdw.id)}
+                              className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-100 rounded-lg transition"
+                              title="Hapus Jadwal"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* 4. PENGATURAN WA ADMIN & NARASI */}
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+                  <div className="border-b border-slate-100 pb-3">
+                    <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                      <MessageCircle className="w-4 h-4 text-emerald-600" /> 4. Pengaturan Kontak WhatsApp Admin & Narasi
+                    </h3>
+                    <p className="text-xs text-slate-500">Tentukan teks narasi ajakan serta nomor WA tujuan pendaftaran konseling</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Teks Narasi Hubungi Admin</label>
+                      <textarea
+                        rows={2}
+                        value={kNarasiWa}
+                        onChange={(e) => setKNarasiWa(e.target.value)}
+                        className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                        placeholder="Ingin menjadwalkan sesi konseling karir? Silakan hubungi Admin..."
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">Nomor WhatsApp Admin (mis. 6285299887766)</label>
+                        <input
+                          type="text"
+                          value={kAdminWaNum}
+                          onChange={(e) => setKAdminWaNum(e.target.value)}
+                          className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 font-semibold"
+                          placeholder="6285299887766"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">Template Pesan Pembuka WA</label>
+                        <input
+                          type="text"
+                          value={kAdminWaMsg}
+                          onChange={(e) => setKAdminWaMsg(e.target.value)}
+                          className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                          placeholder="Halo Admin CDC UM Kendari, saya ingin berkonsultasi..."
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pt-2 flex justify-end">
+                      <button
+                        onClick={handleSaveGeneralConfig}
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-md transition"
+                      >
+                        <Save className="w-4 h-4" /> Simpan Kontak & Narasi WA
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ── MODAL ADD / EDIT INFO ITEM ── */}
+                {showInfoModal && (
+                  <div className="fixed inset-0 z-[250] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <h3 className="text-base font-bold text-slate-900">
+                          {editInfoId ? 'Edit Penjelasan Topik' : 'Tambah Penjelasan Topik Baru'}
+                        </h3>
+                        <button onClick={() => setShowInfoModal(false)} className="p-1 text-slate-400 hover:text-slate-700 rounded-lg">
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+
+                      <form onSubmit={handleSaveInfoItem} className="space-y-4">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Judul Topik / Penjelasan <span className="text-rose-500">*</span></label>
+                          <input
+                            type="text"
+                            required
+                            value={infoJudul}
+                            onChange={(e) => setInfoJudul(e.target.value)}
+                            className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 font-semibold"
+                            placeholder="Contoh: Review CV & Portofolio"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Deskripsi Penjelasan</label>
+                          <textarea
+                            rows={4}
+                            value={infoDeskripsi}
+                            onChange={(e) => setInfoDeskripsi(e.target.value)}
+                            className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                            placeholder="Uraian detail mengenai topik konseling..."
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1">Tautan Terkait (Opsional)</label>
+                            <input
+                              type="text"
+                              value={infoLinkUrl}
+                              onChange={(e) => setInfoLinkUrl(e.target.value)}
+                              className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                              placeholder="https://..."
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1">Label Tombol Tautan</label>
+                            <input
+                              type="text"
+                              value={infoLinkLabel}
+                              onChange={(e) => setInfoLinkLabel(e.target.value)}
+                              className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                              placeholder="Contoh: Buka Panduan CV"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
+                          <button
+                            type="button"
+                            onClick={() => setShowInfoModal(false)}
+                            className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                          >
+                            Batal
+                          </button>
+                          <button
+                            type="submit"
+                            className="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md"
+                          >
+                            Simpan Topik
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── MODAL ADD / EDIT JADWAL ITEM ── */}
+                {showJadwalModal && (
+                  <div className="fixed inset-0 z-[250] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <h3 className="text-base font-bold text-slate-900">
+                          {editJadwalId ? 'Edit Entri Jadwal' : 'Tambah Entri Jadwal Baru'}
+                        </h3>
+                        <button onClick={() => setShowJadwalModal(false)} className="p-1 text-slate-400 hover:text-slate-700 rounded-lg">
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+
+                      <form onSubmit={handleSaveJadwalItem} className="space-y-4">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Hari Pelaksanaan <span className="text-rose-500">*</span></label>
+                          <input
+                            type="text"
+                            required
+                            value={jdwHari}
+                            onChange={(e) => setJdwHari(e.target.value)}
+                            className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 font-semibold"
+                            placeholder="Contoh: Senin - Kamis"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Jam Pelaksanaan <span className="text-rose-500">*</span></label>
+                          <input
+                            type="text"
+                            required
+                            value={jdwJam}
+                            onChange={(e) => setJdwJam(e.target.value)}
+                            className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                            placeholder="Contoh: 09.00 - 15.00 WITA"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Lokasi Konseling</label>
+                          <input
+                            type="text"
+                            value={jdwLokasi}
+                            onChange={(e) => setJdwLokasi(e.target.value)}
+                            className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                            placeholder="Ruang Konseling CDC UMK, Gedung Rektorat Lt. 2"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1">Kuota Per Hari</label>
+                            <input
+                              type="text"
+                              value={jdwKuota}
+                              onChange={(e) => setJdwKuota(e.target.value)}
+                              className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                              placeholder="Contoh: 5 Sesi / Hari"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1">Status Sesi</label>
+                            <select
+                              value={jdwStatus}
+                              onChange={(e) => setJdwStatus(e.target.value as any)}
+                              className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 font-bold"
+                            >
+                              <option value="buka">Buka (Tersedia)</option>
+                              <option value="penuh">Penuh</option>
+                              <option value="tutup">Tutup</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
+                          <button
+                            type="button"
+                            onClick={() => setShowJadwalModal(false)}
+                            className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                          >
+                            Batal
+                          </button>
+                          <button
+                            type="submit"
+                            className="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md"
+                          >
+                            Simpan Jadwal
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* ══════════════════════════════════════════
+              KELOLA KEANGGOTAAN & TIM CDC
+          ══════════════════════════════════════════ */}
+          {activeTab === 'keanggotaan' && (() => {
+            const handleSaveAnggota = (e: React.FormEvent) => {
+              e.preventDefault();
+              if (!angNama.trim() || !angJabatan.trim()) {
+                triggerToast('error', 'Nama lengkap dan Jabatan/Posisi wajib diisi.');
+                return;
+              }
+
+              let updatedList = [...anggotaList];
+              if (editAnggotaId) {
+                updatedList = updatedList.map((item) =>
+                  item.id === editAnggotaId
+                    ? { ...item, nama: angNama, jabatan: angJabatan, fotoUrl: angFotoUrl }
+                    : item
+                );
+              } else {
+                const newMember: AnggotaTim = {
+                  id: `tim_${Date.now()}`,
+                  nama: angNama,
+                  jabatan: angJabatan,
+                  fotoUrl: angFotoUrl,
+                  urutan: updatedList.length + 1
+                };
+                updatedList.push(newMember);
+              }
+
+              saveAnggotaTim(updatedList);
+              setAnggotaList(updatedList);
+              setShowAnggotaModal(false);
+              triggerToast('success', editAnggotaId ? 'Data anggota tim berhasil diperbarui.' : 'Anggota tim baru berhasil ditambahkan.');
+            };
+
+            const handleDeleteAnggota = (id: string) => {
+              if (confirm('Hapus anggota tim ini dari struktur keanggotaan CDC?')) {
+                const updatedList = anggotaList.filter((item) => item.id !== id);
+                saveAnggotaTim(updatedList);
+                setAnggotaList(updatedList);
+                triggerToast('success', 'Anggota tim berhasil dihapus.');
+              }
+            };
+
+            const openAddAnggotaModal = () => {
+              setEditAnggotaId(null);
+              setAngNama('');
+              setAngJabatan('');
+              setAngFotoUrl('');
+              setShowAnggotaModal(true);
+            };
+
+            const openEditAnggotaModal = (item: AnggotaTim) => {
+              setEditAnggotaId(item.id);
+              setAngNama(item.nama);
+              setAngJabatan(item.jabatan);
+              setAngFotoUrl(item.fotoUrl || '');
+              setShowAnggotaModal(true);
+            };
+
+            const handleAnggotaFotoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              try {
+                const compressed = await compressImageAdaptive(file);
+                setAngFotoUrl(compressed);
+                triggerToast('success', 'Foto profil berhasil diunggah & dikompres!');
+              } catch (err: any) {
+                triggerToast('error', 'Gagal memuat foto profil.');
+              }
+            };
+
+            return (
+              <div className="space-y-8">
+                {/* Header Title */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                      <UserCheck className="w-5 h-5 text-[#1E3A8A]" />
+                      Kelola Keanggotaan &amp; Struktur Tim CDC
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Atur nama, jabatan/posisi, dan foto profil pengelola &amp; tim CDC UM Kendari
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={openAddAnggotaModal}
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-xl font-bold text-xs shadow-md transition"
+                  >
+                    <Plus className="w-4 h-4" /> Tambah Anggota Tim Baru
+                  </button>
+                </div>
+
+                {/* Grid list of members */}
+                {anggotaList.length === 0 ? (
+                  <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center text-xs text-slate-400 font-medium">
+                    Belum ada anggota tim. Klik tombol "+ Tambah Anggota Tim Baru" di atas.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {anggotaList.map((item) => (
+                      <div
+                        key={item.id}
+                        className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3 flex flex-col justify-between hover:shadow-md transition"
+                      >
+                        <div className="space-y-3 text-center flex flex-col items-center">
+                          <div className="w-full aspect-square relative rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
+                            {item.fotoUrl ? (
+                              <img src={item.fotoUrl} alt={item.nama} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-slate-300">
+                                <Users className="w-12 h-12" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="space-y-0.5">
+                            <h3 className="font-bold text-slate-900 text-sm leading-snug line-clamp-2">{item.nama}</h3>
+                            <p className="text-xs text-slate-500 font-medium line-clamp-2">{item.jabatan}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-center gap-2 pt-2 border-t border-slate-100">
+                          <button
+                            onClick={() => openEditAnggotaModal(item)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" /> Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteAnggota(item.id)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg transition"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" /> Hapus
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* ── MODAL ADD / EDIT ANGGOTA TIM ── */}
+                {showAnggotaModal && (
+                  <div className="fixed inset-0 z-[250] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <h3 className="text-base font-bold text-slate-900">
+                          {editAnggotaId ? 'Edit Anggota Tim CDC' : 'Tambah Anggota Tim CDC Baru'}
+                        </h3>
+                        <button onClick={() => setShowAnggotaModal(false)} className="p-1 text-slate-400 hover:text-slate-700 rounded-lg">
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+
+                      <form onSubmit={handleSaveAnggota} className="space-y-4">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap &amp; Gelar <span className="text-rose-500">*</span></label>
+                          <input
+                            type="text"
+                            required
+                            value={angNama}
+                            onChange={(e) => setAngNama(e.target.value)}
+                            className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 font-semibold"
+                            placeholder="Contoh: drh. Retno Murwanti, M.P., Ph.D."
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Jabatan / Posisi <span className="text-rose-500">*</span></label>
+                          <input
+                            type="text"
+                            required
+                            value={angJabatan}
+                            onChange={(e) => setAngJabatan(e.target.value)}
+                            className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500"
+                            placeholder="Contoh: Kepala Kantor Alumni / Asisten Program"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="block text-xs font-bold text-slate-700">Foto Profil (Berkas / URL)</label>
+                          <div className="flex flex-col sm:flex-row gap-3">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleAnggotaFotoFileChange}
+                              className="text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                            />
+                          </div>
+                          <input
+                            type="text"
+                            value={angFotoUrl}
+                            onChange={(e) => setAngFotoUrl(e.target.value)}
+                            className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500"
+                            placeholder="Atau masukkan URL foto (https://...)"
+                          />
+                        </div>
+
+                        {/* Foto Preview */}
+                        {angFotoUrl && (
+                          <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                            <img src={angFotoUrl} alt="Pratinjau Foto" className="w-12 h-12 rounded-lg object-cover border border-slate-300" />
+                            <span className="text-xs text-slate-600 font-medium">Pratinjau foto profil anggota tim</span>
+                          </div>
+                        )}
+
+                        <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
+                          <button
+                            type="button"
+                            onClick={() => setShowAnggotaModal(false)}
+                            className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                          >
+                            Batal
+                          </button>
+                          <button
+                            type="submit"
+                            className="px-5 py-2 rounded-xl text-xs font-bold bg-[#1E3A8A] hover:bg-blue-900 text-white shadow-md"
+                          >
+                            Simpan Anggota
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })()}

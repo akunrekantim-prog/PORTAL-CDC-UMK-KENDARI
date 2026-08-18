@@ -405,8 +405,41 @@ export interface GaleriItem {
   updatedAt?: string;
 }
 
+export interface KonselingInfoItem {
+  id: string;
+  judul: string;
+  deskripsi: string;
+  linkUrl?: string;
+  linkLabel?: string;
+}
 
+export interface KonselingJadwalItem {
+  id: string;
+  hari: string;
+  jam: string;
+  lokasi: string;
+  kuotaPerHari?: string;
+  status: 'buka' | 'penuh' | 'tutup';
+}
 
+export interface KonselingConfig {
+  id: string;
+  title: string;
+  subtitle: string;
+  posterUrl: string;
+  posterAlt?: string;
+  infoItems: KonselingInfoItem[];
+  jadwalItems: KonselingJadwalItem[];
+  narasiWa: string;
+  adminWaNumber: string;
+  adminWaDefaultMessage: string;
+  updatedAt?: string;
+}
 
-
-
+export interface AnggotaTim {
+  id: string;
+  nama: string;
+  jabatan: string;
+  fotoUrl: string;
+  urutan?: number;
+}

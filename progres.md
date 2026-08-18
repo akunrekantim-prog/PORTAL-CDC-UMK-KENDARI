@@ -1572,11 +1572,62 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 - [x] Perbaikan layout input tanggal kalender `s/d` agar tidak lewati border
 - [x] Pembuatan komponen terpusat `SocialShareBar.tsx` (7 tombol: Facebook, Twitter/X, WhatsApp, Telegram, LinkedIn, Native Share, Salin Tautan)
 - [x] Standarisasi SocialShareBar di seluruh halaman publik aplikasi
-- [x] Verifikasi typecheck TypeScript (`npx tsc --noEmit` PASSED 0 Error)
+---
+
+## Tanggal: 19 Agustus 2026
+**Developer:** Fachrul Alam Sanuddin  
+**Fokus Pekerjaan:** Animasi Chevron Sub-Menu, Fix Layout Sub-Menu Nested, Revamp Layanan Konseling Karir (Public & Admin CRUD), Penyederhanaan Header, & Fitur Keanggotaan Tim CDC (4-Kolom & Admin CRUD)
 
 ---
 
-### 💡 Rekomendasi Judul Commit Git
-- `feat(share & galeri): add SocialShareBar component, Galeri view with 3 media types, WA admin for Prestasi, and update progres.md`
+### 🚀 Ringkasan Perubahan
 
+#### 1. Animasi Rotasi Chevron Sub-Menu (`Header.tsx`)
+- Menambahkan animasi rotasi CSS yang mulus (`-rotate-90 text-[#F26522] scale-110 translate-x-0.5`) pada ikon chevron sub-menu saat kursor diarahkan (*hover*) atau saat sub-menu aktif terbuka.
 
+#### 2. Perbaikan Layout Tinggi Sub-Menu Nested (`Header.tsx`)
+- Memperbaiki tata letak flexbox kontainer dropdown (`items-start self-start h-fit`) untuk menghilangkan area ruang putih (*empty white space*) di bawah sub-menu bertingkat seperti *Visi – Misi* dan *Keanggotaan*.
+
+#### 3. Pembaruan Layanan Konseling Karir & Admin Dashboard (`BimbinganKarir.tsx` & `AdminDashboard.tsx`)
+- **Template Poster Layanan**: Menampilkan poster resmi dengan modal perbesar (*zoom image*).
+- **Penjelasan & Topik Konseling**: Kartu dinamis berisi topik pembahasan (misal *Review CV*, *Simulasi Interview*, dll.).
+- **Jadwal Operasional**: Kartu jadwal konseling (Hari, Waktu, Lokasi, Kuota, Status Sesi Buka/Penuh/Tutup).
+- **Fitur Admin Dashboard**: Menambahkan tab menu **Kelola Konseling Karir** di sidebar Admin untuk mengelola poster, topik penjelasan, jadwal operasional, dan narasi/kontak WA Admin secara CRUD lengkap.
+
+#### 4. Penyederhanaan Header & Kondisional Seksi Kosong Konseling Karir (`BimbinganKarir.tsx`)
+- Menghapus banner *dark gradient* berukuran besar dan chip badge `LAYANAN RESMI UPT CDC`, menggantinya dengan header teks bersih (`text-[#1B365D]`) yang seragam dengan sub-menu Layanan lainnya.
+- Menyembunyikan seksi secara penuh (termasuk judul seksi dan kotak putus-putus) jika Admin tidak mengisi data poster, topik penjelasan, atau jadwal, sehingga tampilan publik tetap bersih tanpa kotak kosong.
+- Integrasi tombol WhatsApp Admin dengan **template pesan obrolan otomatis** yang sudah terisi (*pre-filled message*).
+
+#### 5. Fitur Struktur Organisasi & Keanggotaan Tim CDC (`Keanggotaan.tsx`, `PublicLayout.tsx`, & `AdminDashboard.tsx`)
+- **Public View 4-Kolom Grid (`Keanggotaan.tsx`)**: Merancang ulang halaman Keanggotaan dengan tampilan kartu grid 4 kolom berisi foto profil persegi, nama lengkap, dan jabatan/posisi terpusat sesuai 3 gambar rujukan.
+- **Integrasi Navigasi (`PublicLayout.tsx`)**: Mengatur penanganan tab `currentTab === 'keanggotaan'` sehingga menu **Profil** -> **Keanggotaan** langsung menampilkan data tim.
+- **Fitur Admin CRUD (`AdminDashboard.tsx`)**: Menambahkan menu **Kelola Keanggotaan & Tim CDC** pada sidebar Admin. Admin dapat **menambah anggota baru**, **mengedit/mengganti foto (berkas/URL dengan kompresi otomatis), nama, dan jabatan**, serta **menghapus anggota** saat terjadi pergantian kepengurusan.
+
+---
+
+### 📁 File Diubah & Ditambahkan
+- **[MODIFY]** `src/types.ts` — Penambahan interface `KonselingConfig`, `KonselingInfoItem`, `KonselingJadwalItem`, dan `AnggotaTim`
+- **[MODIFY]** `src/data.ts` — Seed data `DEFAULT_KONSELING_CONFIG`, `DEFAULT_ANGGOTA_TIM` (12 pengelola/tim CDC awal), serta helper getter/saver
+- **[MODIFY]** `src/components/Header.tsx` — Animasi rotasi chevron sub-menu & perbaikan layout flexbox `h-fit`
+- **[MODIFY]** `src/components/layanan/BimbinganKarir.tsx` — Rebuild Layanan Konseling Karir dengan header minimalis, kondisional seksi kosong, & template WA otomatis
+- **[MODIFY]** `src/components/layanan/Keanggotaan.tsx` — Rebuild Halaman Keanggotaan dengan grid 4 kolom foto/nama/jabatan
+- **[MODIFY]** `src/components/PublicLayout.tsx` — Integrasi tab `keanggotaan`
+- **[MODIFY]** `src/components/AdminDashboard.tsx` — Penambahan tab sidebar & form CRUD **Kelola Konseling Karir** dan **Kelola Keanggotaan & Tim CDC**
+- **[MODIFY]** `progres.md` — Pencatatan laporan progres pengerjaan tanggal 19 Agustus 2026 oleh Fachrul Alam Sanuddin
+
+---
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Animasi rotasi chevron sub-menu di Header.tsx
+- [x] Fix layout tinggi dropdown sub-menu nested (hilangkan empty white space)
+- [x] Rebuild Layanan Konseling Karir (Poster, Topik Penjelasan, Jadwal, WA CTA)
+- [x] Fitur Admin Dashboard Kelola Konseling Karir (CRUD lengkap)
+- [x] Penyederhanaan header Konseling Karir (penghapusan dark banner & badge)
+- [x] Kondisional penyembunyian seksi kosong pada Konseling Karir
+- [x] Integrasi template chat WhatsApp otomatis
+- [x] Rebuild Halaman Keanggotaan dengan grid 4-kolom foto/nama/jabatan
+- [x] Integrasi tab `keanggotaan` pada PublicLayout.tsx
+- [x] Fitur Admin Dashboard Kelola Keanggotaan & Tim CDC (CRUD lengkap)
+- [x] Verifikasi typecheck TypeScript (`npx tsc --noEmit` PASSED 0 Error)
+- [x] Update dokumentasi `progres.md`

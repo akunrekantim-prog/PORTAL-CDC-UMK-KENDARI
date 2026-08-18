@@ -31,6 +31,7 @@ import KalenderKegiatanView from './layanan/KalenderKegiatanView';
 import LaporanKinerjaView from './layanan/LaporanKinerjaView';
 import MouStakeholderView from './layanan/MouStakeholderView';
 import GaleriView from './layanan/GaleriView';
+import Keanggotaan from './layanan/Keanggotaan';
 import LayananContainer from './layanan/LayananContainer';
 import HeroSlider from './HeroSlider';
 import { JobSearchMasterDetail } from './JobSearchMasterDetail';
@@ -842,6 +843,9 @@ export default function PublicLayout({
             </div>
           </div>
         )}
+
+        {/* ─── KEANGGOTAAN TIM CDC TAB ──────────────────────────────────── */}
+        {currentTab === 'keanggotaan' && <Keanggotaan />}
 
         {/* ─── LOWONGAN TAB (JOB INFO - GOOGLE STITCH REPLICA) ──────────────── */}
         {currentTab === 'lowongan' && (
