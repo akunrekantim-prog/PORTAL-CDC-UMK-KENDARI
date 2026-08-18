@@ -1466,3 +1466,47 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 ### 💡 Rekomendasi Judul Commit Git
 - `feat(homepage & admin): add dynamic stats, pin info feature, separate register forms, and polish hero carousel buttons`
 
+---
+
+## Tanggal: 18 Agustus 2026
+**Developer:** Hermes Agent (AI Assistant)
+**Fokus Pekerjaan:** Penyederhanaan Card Layout Sub-menu Layanan (Workshop / Softskill / Seminar) — kartu hanya judul + tanggal, klik kartu membuka modal detail, dan hapus tombol "Daftar Sekarang" di modal.
+
+---
+
+### 🚀 Ringkasan Perubahan
+
+#### 1. Penyederhanaan Konten Kartu Event (`EventCardLayout.tsx`)
+- Menghapus dari tampilan kartu: deskripsi singkat, **lokasi** (ikon MapPin), **pembicara/orang** (ikon User), **kuota peserta** (ikon Users), dan **waktu/jam** kegiatan. Kartu sekarang hanya menampilkan **judul + tanggal pelaksanaan**.
+- Menghapus tombol "Detail Kegiatan" di bawah kartu. Seluruh area kartu dijadikan dapat diklik (`role="button"`, `tabIndex`, `onClick` + `onKeyDown` Enter/Space) sehingga detail kegiatan cukup dibuka dengan mengklik kartu.
+
+#### 2. Penghapusan Tombol "Daftar Sekarang" pada Modal Detail (`EventCardLayout.tsx`)
+- Menghapus anchor `registrationLink` ("Daftar Sekarang") di footer modal. Modal detail sekarang hanya memiliki tombol **"Tutup"**.
+- Informasi lengkap (Lokasi, Pembicara/Narasumber, Kuota Peserta, Waktu, Deskripsi Kegiatan) tetap tersedia di dalam modal detail.
+
+#### 3. Pembersihan Import yang Tidak Terpakai
+- Menghapus `ChevronRight` (setelah hapus tombol "Detail Kegiatan") dan `ExternalLink` (setelah hapus tombol "Daftar Sekarang") dari impor `lucide-react`. `Clock` tetap dipakai pada badge status "Segera Hadir".
+
+### 📁 File Diubah
+- **[MODIFY]** `src/components/layanan/ui/EventCardLayout.tsx` — Penyederhanaan kartu (hapus lokasi/orang/kuota/deskripsi/jam + tombol "Detail Kegiatan", kartu klikable) dan hapus tombol "Daftar Sekarang" di modal + cleanup import.
+- **[MODIFY]** `progres.md` — Pencatatan progres pengerjaan tanggal 18 Agustus 2026.
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Kartu event hanya tampil judul + tanggal (tanpa lokasi, pembicara, kuota, deskripsi, dan jam)
+- [x] Kartu event dapat diklik penuh untuk membuka modal detail (aksesibel via keyboard Enter/Space)
+- [x] Tombol "Detail Kegiatan" dihapus dari kartu
+- [x] Tombol "Daftar Sekarang" dihapus dari modal detail (sisa "Tutup")
+- [x] Informasi lengkap tetap utuh di modal detail (Lokasi, Pembicara, Kuota, Waktu, Deskripsi)
+- [x] Cleanup import `ChevronRight` & `ExternalLink` (tidak terpakai)
+- [x] Verifikasi `npx tsc --noEmit` PASSED (0 Error)
+- [x] Verifikasi `npm run build` PASSED
+- [x] Verifikasi runtime via browser (dev :3000): kartu + klik → modal terbukti sesuai
+
+### ✅ Status Verifikasi Runtime
+- **Lint (`tsc --noEmit`):** 0 error.
+- **Build (`vite build`):** SUCCESS (warning chunk >500 kB sama seperti sesi sebelumnya — bukan error).
+- **Browser (`http://localhost:3000`):** Navigasi Layanan → Workshop. Snapshot kartu menunjukkan tiap kartu hanya berisi judul + tanggal (mis. "25 Agustus 2026") tanpa jam dan tanpa tombol. Klik kartu membuka modal; pengecekan via `console` JS memastikan tombol modal = ["Tutup"] saja (`hasDaftar = false`), sementara Lokasi / Pembicara / Kuota / Waktu / Deskripsi masih tampil di dalam modal. Perubahan berlaku otomatis untuk Seminar & Softskill karena satu komponen `EventCardLayout`.
+
+### 💡 Rekomendasi Judul Commit Git
+- `refactor(layanan): simplify event card — title+date only, clickable card opens detail modal, remove Daftar Sekarang button`
+

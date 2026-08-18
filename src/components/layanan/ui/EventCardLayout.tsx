@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Calendar, Clock, MapPin, User, Users, ExternalLink, Filter, X, ChevronRight, CheckCircle, AlertCircle } from 'lucide-react';
+import { Search, Calendar, Clock, MapPin, User, Users, Filter, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { EventLayananItem, KontenKarir } from '../../../types';
 import Dropdown from '../../Dropdown';
 
@@ -247,7 +247,11 @@ export default function EventCardLayout({
           {filteredEvents.map((item) => (
             <div
               key={item.id}
-              className="group bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-md hover:border-slate-300 transition-all flex flex-col h-full"
+              role="button"
+              tabIndex={0}
+              onClick={() => handleSelectEvent(item)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSelectEvent(item); } }}
+              className="group bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-md hover:border-slate-300 transition-all flex flex-col h-full cursor-pointer"
             >
               {/* Thumbnail Header Image */}
               <div className="relative aspect-[16/9] bg-slate-100 overflow-hidden">
@@ -273,51 +277,16 @@ export default function EventCardLayout({
                   <h3 className="font-semibold text-slate-900 text-base line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">
                     {item.title}
                   </h3>
-                  <p className="text-slate-600 text-xs line-clamp-2 leading-relaxed">
-                    {item.description}
-                  </p>
                 </div>
 
-                {/* Metadata List */}
+                {/* Metadata List — kartu hanya tampilkan tanggal.
+                    Waktu, lokasi, pembicara, kuota, dan deskripsi detail
+                    dipindah ke modal (klik kartu untuk membukanya). */}
                 <div className="pt-3 border-t border-slate-100 text-xs text-slate-600 space-y-1.5">
                   <div className="flex items-center gap-2 text-slate-700">
                     <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                     <span>{formatDateIndo(item.date)}</span>
-                    {item.time && (
-                      <>
-                        <Clock className="w-3.5 h-3.5 text-blue-600 shrink-0 ml-1" />
-                        <span>{item.time}</span>
-                      </>
-                    )}
                   </div>
-                  {item.location && item.location !== '-' && (
-                    <div className="flex items-center gap-2 text-slate-700">
-                      <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                      <span>{item.location}</span>
-                    </div>
-                  )}
-                  {item.speaker && (
-                    <div className="flex items-center gap-2 text-slate-700">
-                      <User className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                      <span>{item.speaker}</span>
-                    </div>
-                  )}
-                  {item.quota != null && (
-                    <div className="flex items-center gap-2 text-slate-700">
-                      <Users className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                      <span>Kuota: {item.quota}{item.registeredCount != null ? ` · Terdaftar ${item.registeredCount}` : ''}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Card Action Footer */}
-                <div className="pt-2">
-                  <button
-                    onClick={() => handleSelectEvent(item)}
-                    className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 text-xs font-semibold transition-colors cursor-pointer"
-                  >
-                    Detail Kegiatan <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
                 </div>
               </div>
             </div>
@@ -417,16 +386,6 @@ export default function EventCardLayout({
               </div>
               
               <div className="pt-6 mt-6 border-t border-slate-100 space-y-2">
-                {selectedEvent.registrationLink && (
-                  <a
-                    href={selectedEvent.registrationLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full inline-flex items-center justify-center gap-2 py-4 bg-[#0077C6] hover:bg-[#1E3A8A] text-white text-sm font-bold rounded-2xl transition-colors"
-                  >
-                    Daftar Sekarang <ExternalLink className="w-4 h-4" />
-                  </a>
-                )}
                 <button
                   onClick={() => setSelectedEvent(null)}
                   className="w-full inline-flex items-center justify-center gap-2 py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-2xl transition-colors cursor-pointer"
