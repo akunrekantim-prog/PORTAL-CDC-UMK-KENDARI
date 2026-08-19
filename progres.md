@@ -6,6 +6,34 @@ Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 
 ---
 
+## Tanggal: 20 Agustus 2026
+**Oleh: ARYA APRIAWAN**
+**Fokus Pekerjaan:** Revisi tampilan menu Layanan — **Konseling Karir** & **Internship (Magang)** disamakan dengan gaya menu **Job Fair & Bursa Kerja** (area placeholder pamphlet yang nantinya diunggah oleh Admin CDC)
+
+### Ringkasan Perubahan
+- **Menu Konseling Karir** (`src/components/layanan/BimbinganKarir.tsx`):
+  - Konten statis lama dihapus (seksi poster config, topik konseling, jadwal layanan, tombol CTA WhatsApp).
+  - Diganti area placeholder *dashed border*: **"Pamphlet/Konten Layanan Konseling Karir akan diunggah oleh Admin CDC."** — konsisten dengan menu Job Fair & Bursa Kerja.
+- **Menu Internship / Magang** (`src/components/layanan/Magang.tsx`):
+  - Grid daftar lowongan magang + search + pagination dihapus.
+  - Diganti area placeholder *dashed border*: **"Pamphlet/Konten Magang (Internship) akan diunggah oleh Admin CDC."**
+- **`src/components/PublicLayout.tsx`**: render `<Magang />` tanpa props (`lowongan` / `onSelectLowongan` tidak lagi dipakai).
+- Gaya placeholder mengikuti persis `CareerFair.tsx` (Job Fair & Bursa Kerja):
+  `bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center text-slate-400`.
+
+### File Diubah
+- `src/components/layanan/BimbinganKarir.tsx` (256 → 11 baris)
+- `src/components/layanan/Magang.tsx` (173 → 10 baris)
+- `src/components/PublicLayout.tsx` (1 baris)
+
+### Verifikasi
+- ✅ `npm run lint` — 0 error
+- ✅ `npm run build` — passed (built 13.22s)
+- ✅ Browser check (vite dev): menu Konseling Karir & Internship menampilkan kotak placeholder sesuai gaya Job Fair & Bursa Kerja
+- ✅ Perubahan di-commit & di-push ke GitHub (branch `main`)
+
+---
+
 ## Ringkasan
 Pada sesi ini fokusnya adalah **penyusunan ulang struktur sub-menu Layanan**, **perapihan konten layanan**, dan **standarisasi tampilan UI** agar tidak terlihat generik dan tetap profesional.
 
