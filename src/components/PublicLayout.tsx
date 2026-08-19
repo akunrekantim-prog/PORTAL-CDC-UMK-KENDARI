@@ -1092,7 +1092,7 @@ export default function PublicLayout({
             {currentTab === 'seminar' && <Seminar konten={konten} />}
             {currentTab === 'career-fair' && <CareerFair />}
             {currentTab === 'campus-hiring' && <CampusHiring />}
-            {currentTab === 'magang' && <Magang />}
+            {currentTab === 'magang' && <Magang lowongan={lowongan} onSelectLowongan={onSelectLowongan} />}
           </LayananContainer>
         )}
 
