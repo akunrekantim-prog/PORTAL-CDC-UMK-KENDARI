@@ -74,6 +74,7 @@ const NAV_ITEMS: NavItem[] = [
     id: 'layanan',
     label: 'Layanan',
     children: [
+      { label: 'Berita & Artikel', tab: 'berita' },
       { label: 'Konseling Karir', tab: 'konseling' },
       { label: 'Tes Potensi Minat Kerja', href: 'https://www.klob.id/klob-journey/klob-meter' },
       { label: 'Workshop Pengembangan Karir', tab: 'workshop' },

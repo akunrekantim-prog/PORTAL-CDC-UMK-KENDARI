@@ -130,10 +130,47 @@ export default function PublicLayout({
   const [jobInfoPage, setJobInfoPage] = useState(1);
   const itemsPerPage = 9;
 
+  // Berita & Artikel Filter & Pagination States
+  const [beritaSearchQuery, setBeritaSearchQuery] = useState('');
+  const [beritaScopeFilter, setBeritaScopeFilter] = useState<'Semua' | 'LOKAL' | 'REGIONAL' | 'NASIONAL' | 'GLOBAL'>('Semua');
+  const [beritaPage, setBeritaPage] = useState(1);
+  const beritaItemsPerPage = 6;
+
   /* Data helpers: Lowongan kerja & magang terbaru (newest created) selalu di atas */
   const publishedLowongan = sortJobsByNewest(lowongan.filter(l => l.status === 'published'));
   const publishedBerita = berita.filter(b => b.status === 'published');
   const publishedPengumuman = pengumuman.filter(p => p.status === 'published');
+
+  // Prestasi publikasi yang diberi opsi tampil di Beranda Utama
+  const homePrestasiItems = getFromDB<KontenKarir>('konten_karir').filter(
+    (k) => k.jenis === 'presentasi' && k.status !== 'draft' && k.showOnHome === true
+  );
+
+  // Gabungan Berita & Prestasi yang siap tampil di Section Berita Beranda (4 item terbaru)
+  const homeUnifiedNews = [
+    ...publishedBerita.map((b) => ({
+      id: b.id,
+      title: b.title,
+      excerpt: b.excerpt,
+      coverImageUrl: b.coverImageUrl,
+      badge: b.scope || 'LOKAL',
+      badgeBg: 'bg-[#1E3A8A] text-white',
+      penulis: b.penulis || 'Admin CDC',
+      createdAt: b.createdAt,
+      onClick: () => onSelectBerita(b.slug),
+    })),
+    ...homePrestasiItems.map((p) => ({
+      id: p.id,
+      title: p.judul,
+      excerpt: `${p.namaMahasiswa || ''} — ${p.peringkat || 'Prestasi'} (${p.prodi || 'UMK'})`,
+      coverImageUrl: p.thumbnail,
+      badge: p.peringkat || 'PRESTASI',
+      badgeBg: 'bg-amber-400 text-slate-950',
+      penulis: p.penulis || 'Admin CDC',
+      createdAt: p.createdAt,
+      onClick: () => setTab(`presentasi-${p.kategori || 'internasional'}-${p.subKategori || 'akademik'}`),
+    })),
+  ].sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
 
   const filteredLowongan = publishedLowongan.filter(item => {
     const q = searchQuery.toLowerCase();
@@ -148,6 +185,24 @@ export default function PublicLayout({
   const paginatedLowongan = filteredLowongan.slice(
     (jobInfoPage - 1) * itemsPerPage,
     jobInfoPage * itemsPerPage
+  );
+
+  // Filtered & Paginated Berita List
+  const filteredBeritaList = publishedBerita.filter((b) => {
+    const q = beritaSearchQuery.toLowerCase().trim();
+    const matchQ =
+      !q ||
+      b.title.toLowerCase().includes(q) ||
+      b.excerpt.toLowerCase().includes(q) ||
+      (b.penulis && b.penulis.toLowerCase().includes(q));
+    const matchScope = beritaScopeFilter === 'Semua' || (b.scope || 'LOKAL') === beritaScopeFilter;
+    return matchQ && matchScope;
+  });
+
+  const totalBeritaPages = Math.ceil(filteredBeritaList.length / beritaItemsPerPage);
+  const paginatedBeritaList = filteredBeritaList.slice(
+    (beritaPage - 1) * beritaItemsPerPage,
+    beritaPage * beritaItemsPerPage
   );
 
   return (
@@ -436,75 +491,11 @@ export default function PublicLayout({
                 </section>
 
 
-                {/* ── VISUAL BANNERS — ROW 2 ────────────────────────── */}
-                <section id="visual-banners">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
-                    {/* Certificate banner */}
-                    <div
-                      className="rounded-2xl overflow-hidden shadow-lg relative group cursor-pointer"
-                      style={{ minHeight: 200 }}
-                    >
-                      <img
-                        src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=800&auto=format&fit=crop"
-                        alt="Student Career Certificate"
-                        className="w-full h-full object-cover absolute inset-0 group-hover:scale-105 transition-transform duration-500"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#1E3A8A]/90 via-[#1E3A8A]/40 to-transparent" />
-                      <div className="relative z-10 p-6 flex flex-col justify-end h-full" style={{ minHeight: 200 }}>
-                        <span className="bg-[#10B981] text-white text-[10px] font-extrabold
-                                          px-2 py-0.5 rounded-sm uppercase tracking-wider inline-block mb-2">
-                          Certification
-                        </span>
-                        <h4 className="text-white font-extrabold text-lg leading-tight">
-                          Student Career Development<br />Certificate
-                        </h4>
-                        <p className="text-blue-200 text-xs mt-1">
-                          Universitas Muhammadiyah Kendari — Pintu Gerbang Sukses Berkarir
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* B2B Employer banner */}
-                    <motion.div
-                      whileHover={{ y: -3 }}
-                      onClick={() => (onNavigateToRegister ? onNavigateToRegister('perusahaan') : onNavigateToLogin())}
-                      className="bg-[#1E3A8A] rounded-2xl p-6 shadow-lg relative overflow-hidden cursor-pointer"
-                      style={{ minHeight: 200 }}
-                    >
-                      <div className="absolute right-0 top-0 w-32 h-32 bg-[#10B981]/20 rounded-full
-                                      blur-2xl pointer-events-none -translate-y-8 translate-x-8" />
-                      <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-600/20 rounded-full
-                                      blur-2xl pointer-events-none translate-y-8 -translate-x-6" />
-                      <div className="relative z-10 flex flex-col justify-between h-full space-y-4">
-                        <div>
-                          <span className="bg-amber-400 text-amber-900 text-[10px] font-extrabold
-                                            px-2 py-0.5 rounded-sm uppercase tracking-wider inline-block mb-3">
-                            Iklan Mitra
-                          </span>
-                          <h4 className="text-white font-extrabold text-xl leading-tight">
-                            PEMASANGAN INFO LOKER
-                          </h4>
-                          <p className="text-[#10B981] font-bold text-sm mt-1">
-                            Temukan Kandidat Terbaik Perusahaan Anda
-                          </p>
-                          <p className="text-blue-300 text-xs mt-2 leading-relaxed">
-                            Gratis pasang lowongan. Akses ribuan kandidat lulusan UM Kendari yang siap kerja.
-                          </p>
-                        </div>
-                        <button className="inline-flex items-center gap-1.5 bg-[#10B981] hover:bg-emerald-500
-                                           text-white text-xs font-extrabold px-4 py-2.5 rounded-lg
-                                           transition-colors w-fit">
-                          Daftar Sebagai Mitra <ArrowRight className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </motion.div>
-                  </div>
-                </section>
 
 
                 {/* ── BERITA / ARTIKEL ──────────────────────────────── */}
-                {publishedBerita.length > 0 && (
+                {homeUnifiedNews.length > 0 && (
                   <section id="berita-home">
                     <div className="flex items-center justify-between mb-7">
                       <h3 className="text-xl sm:text-2xl font-extrabold text-[#1E3A8A]
@@ -512,19 +503,13 @@ export default function PublicLayout({
                                      before:rounded-full before:bg-[#10B981]">
                         BERITA &amp; ARTIKEL TERKINI
                       </h3>
-                      <button
-                        onClick={() => setTab('berita')}
-                        className="text-[#10B981] hover:text-emerald-700 font-bold text-sm flex items-center gap-1"
-                      >
-                        Lihat Semua <ChevronRight className="w-4 h-4" />
-                      </button>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      {publishedBerita.slice(0, 2).map(item => (
+                      {homeUnifiedNews.slice(0, 4).map(item => (
                         <motion.div
                           key={item.id}
                           whileHover={{ y: -3 }}
-                          onClick={() => onSelectBerita(item.slug)}
+                          onClick={item.onClick}
                           className="bg-white rounded-2xl overflow-hidden border border-slate-200
                                      shadow-sm cursor-pointer group"
                         >
@@ -540,9 +525,8 @@ export default function PublicLayout({
                                 <BookOpen className="w-10 h-10 text-slate-300" />
                               </div>
                             )}
-                            <div className="absolute top-3 left-3 bg-[#1E3A8A] text-white
-                                            text-[10px] font-bold px-2 py-1 rounded">
-                              {item.scope || 'LOKAL'}
+                            <div className={`absolute top-3 left-3 text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-md shadow-xs ${item.badgeBg}`}>
+                              {item.badge}
                             </div>
                           </div>
                           <div className="p-5 space-y-2">
@@ -552,7 +536,7 @@ export default function PublicLayout({
                             </h4>
                             <p className="text-slate-500 text-xs line-clamp-2 leading-relaxed">{item.excerpt}</p>
                             <div className="text-xs text-slate-400 font-medium pt-1">
-                              Oleh {item.penulis || 'Admin CDC'} · {formatDateDisplay(item.createdAt)}
+                              Oleh {item.penulis} · {formatDateDisplay(item.createdAt)}
                             </div>
                           </div>
                         </motion.div>
@@ -560,64 +544,6 @@ export default function PublicLayout({
                     </div>
                   </section>
                 )}
-
-                {/* ── PRESENTASI ─────────────────────────────────────── */}
-                {(() => {
-                  const presentasiHome = getFromDB<KontenKarir>('konten_karir').filter(
-                    (k) => k.jenis === 'presentasi' && k.status !== 'draft'
-                  ).slice(0, 3);
-                  if (presentasiHome.length === 0) return null;
-                  return (
-                    <section id="presentasi-home">
-                      <div className="flex items-center justify-between mb-7">
-                        <h3 className="text-xl sm:text-2xl font-extrabold text-[#1E3A8A]
-                                       flex items-center gap-2 before:block before:w-1.5 before:h-6
-                                       before:rounded-full before:bg-amber-400">
-                          PRESTASI MAHASISWA
-                        </h3>
-                        <button
-                          onClick={() => setTab('presentasi-internasional-akademik')}
-                          className="text-amber-600 hover:text-amber-700 font-bold text-sm flex items-center gap-1"
-                        >
-                          Lihat Semua <ChevronRight className="w-4 h-4" />
-                        </button>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                        {presentasiHome.map(item => (
-                          <motion.div
-                            key={item.id}
-                            whileHover={{ y: -3 }}
-                            onClick={() => setTab(`presentasi-${item.kategori}-${item.subKategori}`)}
-                            className="bg-white rounded-2xl overflow-hidden border border-slate-200
-                                       shadow-sm cursor-pointer group"
-                          >
-                            <div className="aspect-[16/9] bg-slate-100 relative overflow-hidden">
-                              {item.thumbnail ? (
-                                <img src={item.thumbnail} alt={item.judul} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center">
-                                  <Trophy className="w-10 h-10 text-amber-300" />
-                                </div>
-                              )}
-                              <div className="absolute top-3 left-3 bg-amber-400 text-slate-950 text-[10px] font-bold px-2 py-1 rounded">
-                                {item.peringkat}
-                              </div>
-                            </div>
-                            <div className="p-4 space-y-2">
-                              <div className="text-[11px] font-extrabold text-amber-600 uppercase tracking-wide truncate">
-                                {item.prodi || 'UM KENDARI'} • {item.kategori}
-                              </div>
-                              <h4 className="font-bold text-slate-900 text-sm leading-snug line-clamp-2 group-hover:text-amber-600 transition-colors">
-                                {item.judul}
-                              </h4>
-                              <p className="text-slate-500 text-xs truncate">{item.namaMahasiswa}</p>
-                            </div>
-                          </motion.div>
-                        ))}
-                      </div>
-                    </section>
-                  );
-                })()}
 
                 {/* ── PENGUMUMAN ────────────────────────────────────── */}
                 {publishedPengumuman.length > 0 && (
@@ -994,32 +920,178 @@ export default function PublicLayout({
 
         {/* ─── BERITA TAB ──────────────────────────────────────────── */}
         {currentTab === 'berita' && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8" id="tab-berita">
-            <div>
-              <h2 className="text-3xl font-extrabold text-[#1E3A8A]">Berita, Publikasi &amp; Tips Karir</h2>
-              <p className="text-slate-500 text-sm mt-1">Informasi terkini mengenai agenda kampus, info bursa kerja, dan panduan karir alumni.</p>
+          <div className="bg-white min-h-screen font-sans text-slate-800 pb-20" id="tab-berita">
+            
+            {/* ── BREADCRUMB ── */}
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-3">
+              <nav className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                <button
+                  onClick={() => setTab('beranda')}
+                  className="hover:text-[#F26522] transition-colors font-semibold cursor-pointer"
+                >
+                  Beranda
+                </button>
+                <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                <span className="text-slate-600 font-semibold">Berita &amp; Artikel</span>
+              </nav>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {publishedBerita.map(item => (
-                <div key={item.id} onClick={() => onSelectBerita(item.slug)}
-                  className="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer flex flex-col md:flex-row">
-                  {item.coverImageUrl && (
-                    <div className="md:w-2/5 aspect-[4/3] md:aspect-auto">
-                      <img src={item.coverImageUrl} alt={item.title} className="w-full h-full object-cover" />
+
+            {/* ── MAIN TITLE ── */}
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
+                Berita &amp; Artikel
+              </h1>
+            </div>
+
+            {/* ── DYNAMIC SOCIAL SHARE BAR ── */}
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+              <SocialShareBar title="Berita & Artikel CDC UM Kendari" />
+            </div>
+
+            {/* ── CONTROLS BAR: SEARCH & SCOPE FILTER ── */}
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 space-y-4">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
+                
+                {/* Search Input */}
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type="text"
+                    value={beritaSearchQuery}
+                    onChange={(e) => {
+                      setBeritaSearchQuery(e.target.value);
+                      setBeritaPage(1);
+                    }}
+                    placeholder="Cari judul berita, topik, atau penulis..."
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 focus:border-[#0077C6] transition"
+                  />
+                </div>
+
+                {/* Scope Filter Tabs */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
+                  {(['Semua', 'LOKAL', 'REGIONAL', 'NASIONAL', 'GLOBAL'] as const).map((scope) => (
+                    <button
+                      key={scope}
+                      onClick={() => {
+                        setBeritaScopeFilter(scope);
+                        setBeritaPage(1);
+                      }}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                        beritaScopeFilter === scope
+                          ? 'bg-[#1E3A8A] text-white shadow-xs'
+                          : 'bg-white text-slate-600 hover:bg-slate-200/70 border border-slate-200'
+                      }`}
+                    >
+                      {scope === 'Semua' ? 'Semua Berita' : scope}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* ── ARTICLES GRID ── */}
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+              {filteredBeritaList.length === 0 ? (
+                <div className="text-center py-16 bg-slate-50 border border-slate-200 rounded-3xl space-y-3">
+                  <BookOpen className="w-12 h-12 text-slate-300 mx-auto" />
+                  <h3 className="font-bold text-slate-700 text-lg">Tidak Ada Berita Ditemukan</h3>
+                  <p className="text-slate-400 text-xs sm:text-sm max-w-sm mx-auto">
+                    Coba kata kunci pencarian lain atau ubah filter kategori scope berita.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-10">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
+                    {paginatedBeritaList.map((item) => (
+                      <motion.div
+                        key={item.id}
+                        whileHover={{ y: -4 }}
+                        onClick={() => onSelectBerita(item.slug)}
+                        className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+                      >
+                        <div>
+                          {/* Image Cover */}
+                          <div className="aspect-[16/9] bg-slate-100 relative overflow-hidden">
+                            {item.coverImageUrl ? (
+                              <img
+                                src={item.coverImageUrl}
+                                alt={item.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-slate-100">
+                                <BookOpen className="w-10 h-10 text-slate-300" />
+                              </div>
+                            )}
+                            <div className="absolute top-3 left-3 bg-[#1E3A8A] text-white text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-md shadow-xs">
+                              {item.scope || 'LOKAL'}
+                            </div>
+                          </div>
+
+                          {/* Content */}
+                          <div className="p-5 space-y-3">
+                            <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
+                              <Calendar className="w-3.5 h-3.5 text-[#10B981]" />
+                              <span>{formatDateDisplay(item.createdAt)}</span>
+                            </div>
+
+                            <h3 className="font-extrabold text-slate-900 text-lg leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2">
+                              {item.title}
+                            </h3>
+
+                            <p className="text-slate-500 text-xs leading-relaxed line-clamp-3">
+                              {item.excerpt}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Card Footer */}
+                        <div className="p-5 pt-0 flex items-center justify-between border-t border-slate-100 mt-2 text-xs text-slate-400 font-medium">
+                          <span>Oleh {item.penulis || 'Admin CDC'}</span>
+                          <span className="text-[#0077C6] font-bold inline-flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                            Baca <ChevronRight className="w-3.5 h-3.5" />
+                          </span>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+
+                  {/* Pagination */}
+                  {totalBeritaPages > 1 && (
+                    <div className="flex items-center justify-center gap-1.5 pt-4">
+                      <button
+                        onClick={() => setBeritaPage((p) => Math.max(1, p - 1))}
+                        disabled={beritaPage === 1}
+                        className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                      >
+                        &lt;
+                      </button>
+
+                      {Array.from({ length: totalBeritaPages }, (_, i) => i + 1).map((pageNum) => (
+                        <button
+                          key={pageNum}
+                          onClick={() => setBeritaPage(pageNum)}
+                          className={`px-3.5 py-1.5 rounded-lg font-bold text-xs transition cursor-pointer ${
+                            pageNum === beritaPage
+                              ? 'bg-[#1E3A8A] text-white shadow-xs'
+                              : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      ))}
+
+                      <button
+                        onClick={() => setBeritaPage((p) => Math.min(totalBeritaPages, p + 1))}
+                        disabled={beritaPage === totalBeritaPages}
+                        className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                      >
+                        &gt;
+                      </button>
                     </div>
                   )}
-                  <div className="p-6 md:w-3/5 flex flex-col justify-between space-y-4">
-                    <div className="space-y-2">
-                      <div className="text-xs text-[#10B981] font-bold flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5" /> {item.scope || 'LOKAL'}
-                      </div>
-                      <h4 className="font-bold text-slate-900 text-base leading-snug line-clamp-2 hover:text-[#10B981] transition-colors">{item.title}</h4>
-                      <p className="text-slate-500 text-sm line-clamp-3 leading-relaxed">{item.excerpt}</p>
-                    </div>
-                    <div className="text-xs text-slate-400 font-medium">Oleh {item.penulis || 'Admin CDC'} · {formatDateDisplay(item.createdAt)}</div>
-                  </div>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         )}

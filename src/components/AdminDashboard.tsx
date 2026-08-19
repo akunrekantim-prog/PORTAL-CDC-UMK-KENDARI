@@ -687,6 +687,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const [ePeringkat, setEPeringkat] = useState('Juara 1');
   const [eTerverifikasi, setETerverifikasi] = useState(true);
   const [eIsPinned, setEIsPinned] = useState(false);
+  const [eShowOnHome, setEShowOnHome] = useState(false);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const beritaEditRef = useRef<HTMLDivElement>(null);
   const [beritaPop, setBeritaPop] = useState<null | 'bullets' | 'numbering'>(null);
@@ -781,6 +782,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       setEPeringkat(item.peringkat || 'Juara 1');
       setETerverifikasi(item.terverifikasi !== false);
       setEIsPinned(item.isPinned === true);
+      setEShowOnHome(item.showOnHome === true);
     } else {
       setEditId(null);
       setEJenis(jenis || 'berita');
@@ -792,6 +794,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       setESubKategori('akademik'); setENamaMahasiswa(''); setEProdi('');
       setETahunPres(new Date().getFullYear().toString()); setEPeringkat('Juara 1'); setETerverifikasi(true);
       setEIsPinned(false);
+      setEShowOnHome(false);
     }
     setSaveError(null);
     setKontenSub('pembuatan');
@@ -1206,7 +1209,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       terdaftar: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') && eTerdaftar ? Number(eTerdaftar) : undefined,
       linkDaftar: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? eLinkDaftar.trim() : undefined,
       statusEvent: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? eStatusEvent : undefined,
-      isPinned: eIsPinned
+      isPinned: eIsPinned,
+      showOnHome: eJenis === 'presentasi' ? eShowOnHome : undefined
     };
     try {
       const pruned = await saveKontenKarirWithQuota(base, !!editId);
@@ -2112,9 +2116,15 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                           <label className="text-xs font-medium text-slate-500">Peringkat / Capaian</label>
                           <input value={ePeringkat} onChange={(e) => setEPeringkat(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="Juara 1 / Gold Medal" />
                         </div>
-                        <div className="space-y-1.5 sm:col-span-2 flex items-center gap-2">
-                          <input type="checkbox" checked={eTerverifikasi} onChange={(e) => setETerverifikasi(e.target.checked)} className="w-4 h-4" />
-                          <label className="text-xs font-medium text-slate-500">Terverifikasi CDC</label>
+                        <div className="space-y-1.5 sm:col-span-2 flex flex-col gap-2 pt-1 border-t border-slate-100">
+                          <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer select-none">
+                            <input type="checkbox" checked={eTerverifikasi} onChange={(e) => setETerverifikasi(e.target.checked)} className="w-4 h-4 text-[#1E3A8A] rounded border-slate-300 focus:ring-[#1E3A8A] cursor-pointer" />
+                            <span>Terverifikasi CDC</span>
+                          </label>
+                          <label className="flex items-center gap-2 text-xs font-bold text-[#1E3A8A] cursor-pointer select-none">
+                            <input type="checkbox" checked={eShowOnHome} onChange={(e) => setEShowOnHome(e.target.checked)} className="w-4 h-4 text-[#1E3A8A] rounded border-slate-300 focus:ring-[#1E3A8A] cursor-pointer" />
+                            <span>Tampilkan di Beranda Utama (Section Berita &amp; Artikel Terkini)</span>
+                          </label>
                         </div>
                       </div>
                     )}

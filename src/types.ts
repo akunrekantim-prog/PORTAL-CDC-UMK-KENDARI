@@ -125,6 +125,7 @@ export interface KontenKarir {
   peringkat?: string; // misal "Juara 1", "Gold Medal", "Best Presenter"
   terverifikasi?: boolean;
   isPinned?: boolean; // Penanda sematan (Pin) ke Popular Info
+  showOnHome?: boolean; // Pilihan tampilkan di Beranda Utama (Section Berita & Artikel)
 }
 
 export interface Alumni {
