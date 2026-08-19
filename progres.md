@@ -6,6 +6,29 @@ Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 
 ---
 
+## Tanggal: 20 Agustus 2026
+**Oleh: ARYA APRIAWAN**
+**Fokus Pekerjaan:** Redesign tampilan menu **Layanan Konseling Karir** — bersihkan gaya "AI slop" jadi clean & profesional, serta sinkronisasi remote GitHub
+
+### Ringkasan Perubahan
+1. **Revisi awal dibatalkan (revert):**
+   - Percobaan mengubah tampilan Konseling Karir & Internship menjadi placeholder pamphlet (gaya Job Fair & Bursa Kerja) ternyata bukan yang diminta → di-`git revert` (commit `1c32654`) dan di-push, tampilan awal dikembalikan.
+2. **Redesign `src/components/layanan/BimbinganKarir.tsx` (Konseling Karir):**
+   - **Dihapus (ciri AI slop):** gradient hero emerald→teal di CTA WhatsApp, chip nomor oranye `0X`, pill status berwarna (bg-emerald-100/amber-100 + border), badge shield "Layanan Bebas Biaya" + backdrop-blur, ikon emotif di tiap heading (HeartHandshake, Sparkles, Calendar, MessageCircle, CheckCircle2 dkk — 17 ikon → 5), animasi `hover:scale` / `active:scale`, `shadow-xl` berlebihan.
+   - **Gaya baru:** eyebrow kecil `LAYANAN CDC UM KENDARI` (small-caps), tipografi slate-900 tebal + slate-500 deskriptif, daftar topik bernomor `01 02 03` (tabular-nums) dengan hairline divider, jadwal memakai tabel asli (`<table>`: Hari/Waktu/Lokasi/Kuota/Status — status pakai dot kecil bukan pill), CTA WhatsApp band `bg-slate-900` polos dengan tombol putih solid.
+   - **Fungsionalitas dipertahankan:** semua konten tetap admin-driven via `getKonselingConfig()` (poster + zoom modal, infoItems topik, jadwalItems, WA auto-message), tanpa menambah dependency baru.
+
+### File Diubah
+- `src/components/layanan/BimbinganKarir.tsx` (redesign lengkap, 256 → 244 baris)
+
+### Verifikasi
+- ✅ `npm run lint` — 0 error
+- ✅ `npm run build` — passed (built 11.88s)
+- ✅ Browser check (localhost:3000): semua section render dari data admin real — header, Poster & Pamflet, Penjelasan & Topik Konseling, tabel Jadwal (Senin-Kamis, 09.00-15.00 WITA, Ruang Konseling Gedung Rektorat Lt.2, 5 Sesi/Hari, Sesi Buka), CTA WhatsApp. `gradientCount=0`, `hover:scale=0`
+- ✅ Perubahan di-commit & di-push ke GitHub (branch `main`)
+
+---
+
 ## Ringkasan
 Pada sesi ini fokusnya adalah **penyusunan ulang struktur sub-menu Layanan**, **perapihan konten layanan**, dan **standarisasi tampilan UI** agar tidak terlihat generik dan tetap profesional.
 
