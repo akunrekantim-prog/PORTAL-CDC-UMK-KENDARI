@@ -816,7 +816,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const [lCtaEnabled, setLCtaEnabled] = useState(false);
   const [lCtaLabel, setLCtaLabel] = useState('Daftar Sekarang');
   const [lJenisPekerjaan, setLJenisPekerjaan] = useState<'full-time' | 'part-time'>('full-time');
-  const [lStatus, setLStatus] = useState<'published' | 'draft'>('draft');
+  const [lStatus, setLStatus] = useState<'published' | 'draft' | 'closed'>('draft');
   const [lIsPinned, setLIsPinned] = useState(false);
 
   const handleTogglePinKonten = (k: KontenKarir) => {
@@ -1474,7 +1474,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" id="adm-stat-cards">
                 {[
-                  { label: 'Mitra', value: mitra.length, sub: 'terdaftar', color: 'text-blue-700', bg: 'bg-blue-50', ring: 'ring-blue-200', Icon: Users, goto: () => { setActiveTab('mitra'); setMitraSub('daftar'); } },
+                  { label: 'Mitra', value: mitra.length, sub: 'terdaftar', color: 'text-blue-700', bg: 'bg-blue-50', ring: 'ring-blue-200', Icon: Users, goto: () => { setActiveTab('mitra'); setMitraSub('list'); } },
                   { label: 'Pengajuan Mitra', value: totalMenunggu, sub: 'menunggu approval', color: 'text-amber-700', bg: 'bg-amber-50', ring: 'ring-amber-200', Icon: Clock, goto: () => { setActiveTab('mitra'); setMitraSub('approval'); } },
                   { label: 'Total Konten', value: konten.length, sub: 'postingan', color: 'text-blue-700', bg: 'bg-blue-50', ring: 'ring-blue-200', Icon: Layers, goto: () => { setActiveTab('konten'); setKontenSub('riwayat'); } }
                 ].map((s) => (

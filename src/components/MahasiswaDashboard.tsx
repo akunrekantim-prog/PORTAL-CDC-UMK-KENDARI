@@ -307,7 +307,7 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
           <JobDetail
             job={selectedJobForDetail}
             onBack={() => setSelectedJobForDetail(null)}
-            onApply={(job) => setApplyingJob(job)}
+            onApply={() => setApplyingJob(selectedJobForDetail)}
             isLoggedIn={true}
             hideHeader={true}
             hideFooter={true}

@@ -90,16 +90,16 @@ export default function HeroSlider({ setTab }: HeroSliderProps) {
       x: 0,
       opacity: 1,
       transition: {
-        x: { ease: [0.25, 1, 0.35, 1], duration: 0.6 },
-        opacity: { duration: 0.4, ease: 'easeInOut' },
+        x: { ease: [0.25, 1, 0.35, 1] as [number, number, number, number], duration: 0.6 },
+        opacity: { duration: 0.4, ease: 'easeInOut' as const },
       },
     },
     exit: (dir: number) => ({
       x: dir < 0 ? '100%' : '-100%',
       opacity: 0,
       transition: {
-        x: { ease: [0.25, 1, 0.35, 1], duration: 0.6 },
-        opacity: { duration: 0.4, ease: 'easeInOut' },
+        x: { ease: [0.25, 1, 0.35, 1] as [number, number, number, number], duration: 0.6 },
+        opacity: { duration: 0.4, ease: 'easeInOut' as const },
       },
     }),
   };

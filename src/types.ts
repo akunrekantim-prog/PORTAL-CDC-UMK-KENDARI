@@ -231,6 +231,9 @@ export interface PengajuanMagang {
 
   // Profile Snapshot Fields
   ipk?: string;
+  email?: string;
+  telepon?: string;
+  noHp?: string;
   skills?: string[];
   experiences?: Array<{
     id: string;
