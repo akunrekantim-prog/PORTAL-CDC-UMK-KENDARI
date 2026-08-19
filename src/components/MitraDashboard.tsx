@@ -2883,7 +2883,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                         return (
                           <div className="flex items-center justify-between">
                             <span className="text-slate-500 font-medium">NIM (Data Akademik):</span>
-                            <span className="font-mono font-semibold text-slate-800">{selectedApplicantDoc.nim}</span>
+                            <span className="font-semibold text-slate-800">{selectedApplicantDoc.nim}</span>
                           </div>
                         );
                       }
@@ -2903,7 +2903,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-slate-500 font-medium">Nomor HP / Whatsapp:</span>
-                      <span className="font-mono font-semibold text-slate-800">{selectedApplicantDoc.telepon || selectedApplicantDoc.noHp || '0821-9988-7711'}</span>
+                      <span className="font-semibold text-slate-800">{selectedApplicantDoc.telepon || selectedApplicantDoc.noHp || '0821-9988-7711'}</span>
                     </div>
                   </div>
                 </div>
@@ -2925,11 +2925,11 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-slate-500 font-medium">Periode Pelaksanaan:</span>
-                      <span className="font-mono text-slate-700">{selectedApplicantDoc.tanggalMulai || '10 Agt 2026'} s/d {selectedApplicantDoc.tanggalSelesai || '10 Feb 2027'}</span>
+                      <span className="font-medium text-slate-700">{selectedApplicantDoc.tanggalMulai || '10 Agt 2026'} s/d {selectedApplicantDoc.tanggalSelesai || '10 Feb 2027'}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-slate-500 font-medium">Tanggal Melamar:</span>
-                      <span className="font-mono text-slate-700">{selectedApplicantDoc.createdAt ? selectedApplicantDoc.createdAt.split('T')[0] : '10 Agustus 2026'}</span>
+                      <span className="font-medium text-slate-700">{selectedApplicantDoc.createdAt ? selectedApplicantDoc.createdAt.split('T')[0] : '10 Agustus 2026'}</span>
                     </div>
                   </div>
                 </div>
@@ -2977,7 +2977,9 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                     </button>
                   </div>
                 </div>
-                         {/* 3. PENDIDIKAN, SKILL, PENGALAMAN & SERTIFIKAT (Dinamis dari Profil Pelamar / Snapshot Lamaran) */}
+              </div>
+
+              {/* 3. PENDIDIKAN, SKILL, PENGALAMAN & SERTIFIKAT (Dinamis dari Profil Pelamar / Snapshot Lamaran) */}
               {(() => {
                 const students = getFromDB<Mahasiswa>('mahasiswa');
                 const applicantProfile = students.find(
@@ -3125,54 +3127,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                     </div>
                   </div>
                 );
-              })()}       </div>
-
-              {/* 6. RIWAYAT SELEKSI (TIMELINE) */}
-              <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-200/80 space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-200/70 pb-3">
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-[#0077C6]" />
-                    <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider">
-                      RIWAYAT SELEKSI
-                    </h4>
-                  </div>
-                  <span className="text-[11px] font-bold text-slate-500 font-mono bg-white px-2 py-0.5 rounded border border-slate-200">
-                    {getApplicantHistoryLogs(selectedApplicantDoc).length} Aktivitas
-                  </span>
-                </div>
-
-                <div className="relative pl-6 space-y-5 before:absolute before:left-2.5 before:top-2.5 before:bottom-2.5 before:w-0.5 before:bg-slate-200">
-                  {getApplicantHistoryLogs(selectedApplicantDoc).map((log, idx) => (
-                    <div key={idx} className="relative flex items-start justify-between gap-3">
-                      {/* Timeline Bullet */}
-                      <span className={`absolute -left-6 top-1 w-3 h-3 rounded-full border-2 bg-white transition-all ${
-                        log.status === 'accepted' || log.status === 'diterima'
-                          ? 'border-emerald-500 bg-emerald-500 ring-4 ring-emerald-100'
-                          : log.status === 'rejected' || log.status === 'ditolak'
-                          ? 'border-rose-500 bg-rose-500 ring-4 ring-rose-100'
-                          : log.status === 'interview'
-                          ? 'border-purple-500 bg-purple-500 ring-4 ring-purple-100'
-                          : 'border-blue-500 bg-blue-500 ring-4 ring-blue-100'
-                      }`} />
-
-                      <div className="space-y-0.5 min-w-0">
-                        <div className="font-bold text-slate-900 text-xs sm:text-sm">
-                          {log.label}
-                        </div>
-                        {log.note && (
-                          <p className="text-xs text-slate-500 italic mt-0.5 font-medium">
-                            "{log.note}"
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="text-[11px] font-mono text-slate-500 font-semibold shrink-0 whitespace-nowrap bg-white px-2.5 py-1 rounded-md border border-slate-200 shadow-2xs">
-                        {log.date}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              })()}
 
               {/* 5. DOKUMEN CURRICULUM VITAE (CV) */}
               <div className="space-y-3 pt-2">

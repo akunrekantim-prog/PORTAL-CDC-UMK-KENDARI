@@ -1631,3 +1631,57 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 - [x] Fitur Admin Dashboard Kelola Keanggotaan & Tim CDC (CRUD lengkap)
 - [x] Verifikasi typecheck TypeScript (`npx tsc --noEmit` PASSED 0 Error)
 - [x] Update dokumentasi `progres.md`
+
+---
+
+## Tanggal: 19 Agustus 2026
+**Developer:** Ikhsan  
+**Fokus Pekerjaan:** Redesain Modern Halaman Login & Register (50/50 Split SIMASTER Style), Konsistensi Tipografi & Font, Perapihan Widget Ringkasan Pekerjaan, & Penyederhanaan Modal Detail Pelamar
+
+---
+
+### 🚀 Ringkasan Perubahan
+
+#### 1. Redesain Halaman Login (`Login.tsx`)
+- **Layout Split 50/50 Full-Height**: Tampilan lurus dari atas ke bawah terbagi menjadi panel branding (kiri) dan panel aksi/kredensial (kanan).
+- **Background Gedung & Dark Overlay 75%**: Memasang foto Gedung Rektorat UM Kendari yang dilapisi dark overlay hitam transparan 75% (`bg-black/75`) untuk kontras tajam.
+- **Perapihan Branding Kiri**: Menghilangkan background blur box di belakang logo, meratakan teks dan logo ke kiri (*align-left*) di dalam kontainer yang proporsional di tengah, serta menghapus badge pill `SISTEM INFORMASI KARIR & TRACER STUDY`.
+- **Panel Aksi Kanan Bersih (*Clean Buttons*)**: Judul diperbarui menjadi `LOGIN`, tombol utama *"Masuk dengan Akun CDC"* dan *"Lupa Kata Sandi"* dibuat bersih tanpa ikon tambahan, serta transisi mulus ke form pengisian kredensial login.
+
+#### 2. Redesain Halaman Register (`Register.tsx`)
+- **Hero-First Interaction Model**: Membagi halaman register ke dalam 2 fase:
+  - **Fase 1 (Hero State)**: Split 50/50 identik dengan Login, menyajikan tombol pilihan akun bersih (*"Daftar Mahasiswa / Alumni"* dan *"Daftar Mitra Perusahaan"*) tanpa ikon atau subteks membingungkan.
+  - **Fase 2 (Full Form State)**: Form pendaftaran lengkap mahasiswa/alumni dan mitra perusahaan dengan tab switcher dan tombol kembali ke pilihan akun (`← Pilihan Akun`).
+- **Penghapusan Badge Pill**: Menghapus pill badge `PORTAL PENDAFTARAN AKUN BARU` pada panel branding kiri.
+
+#### 3. Penyelarasan Tipografi & Konsistensi Font (`JobDetail.tsx` & `MitraDashboard.tsx`)
+- **Widget Ringkasan Pekerjaan (`JobDetail.tsx`)**: Menghapus kelas `font-mono` pada baris **Gaji** (`Rp 4.500.000 - Rp 6.000.000`), **Batas Waktu** (`30 Jun 2026`), dan **Tanggal Diposting**, sehingga seluruh baris seragam menggunakan font utama aplikasi (**Inter / sans-serif**).
+- **Penghapusan Badge Posisi (`JobDetail.tsx`)**: Menghapus badge pil `DETAIL POSISI` di header widget Ringkasan Pekerjaan agar header lebih bersih dan fokus pada judul.
+- **Konsistensi Font Modal (`MitraDashboard.tsx`)**: Menghapus `font-mono` pada field NIM, nomor telepon/WA, dan tanggal pada modal detail pelamar.
+
+#### 4. Penyederhanaan Modal Detail Pelamar (`MitraDashboard.tsx`)
+- **Penghapusan Seksi Riwayat Seleksi**: Menghilangkan seksi **Riwayat Seleksi (Timeline)** dari modal **Detail Pelamar & Berkas CV** sesuai arahan, sehingga modal lebih ringkas dan fokus langsung pada informasi data diri, catatan internal, kualifikasi/sertifikat, berkas CV, dan tombol keputusan (Terima, Tolak, Interview).
+
+---
+
+### 📁 File Diubah & Ditambahkan
+- **[MODIFY]** `src/components/Login.tsx` — Redesain 50/50 split, dark overlay 75%, teks branding align-left, tombol login/lupa sandi tanpa ikon, & hapus badge pill
+- **[MODIFY]** `src/components/Register.tsx` — Alur 2-fase Hero & Full Form, clean buttons pilihan pendaftaran, & hapus badge pill
+- **[MODIFY]** `src/components/JobDetail.tsx` — Hapus `font-mono` pada gaji/deadline/tanggal, & hapus badge `DETAIL POSISI`
+- **[MODIFY]** `src/components/MitraDashboard.tsx` — Hapus bagian Riwayat Seleksi & standarisasi font modal pelamar
+- **[MODIFY]** `progres.md` — Pencatatan laporan progres pengerjaan tanggal 19 Agustus 2026 oleh Ikhsan
+
+---
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Redesain Halaman Login (50/50 split, dark overlay 75%, clean buttons tanpa ikon)
+- [x] Redesain Halaman Register (Hero Section 2-fase, clean buttons, form pendaftaran lengkap)
+- [x] Penghapusan background blur di belakang logo & pengaturan teks align-left di kontainer tengah
+- [x] Penghapusan badge pill `SISTEM INFORMASI KARIR & TRACER STUDY` & `PORTAL PENDAFTARAN AKUN BARU`
+- [x] Penghapusan ikon pada tombol Login dan Lupa Kata Sandi
+- [x] Perbaikan konsistensi font pada widget Ringkasan Pekerjaan (hapus `font-mono` pada gaji & batas waktu)
+- [x] Penghapusan badge `DETAIL POSISI` pada widget Ringkasan Pekerjaan di Job Detail
+- [x] Penghapusan bagian Riwayat Seleksi pada modal Detail Pelamar di Mitra Dashboard
+- [x] Verifikasi typecheck TypeScript (`npx tsc --noEmit` PASSED 0 Error)
+- [x] Update dokumentasi `progres.md`
+

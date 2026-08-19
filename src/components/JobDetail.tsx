@@ -224,7 +224,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
 
                       <div className="flex items-center gap-1.5 text-slate-500 font-medium">
                         <Clock className="w-4 h-4 text-slate-400 shrink-0" />
-                        <span>Diposting: <strong className="font-mono text-slate-700">{job.createdAt ? job.createdAt.split('T')[0] : '2026-08-04'}</strong></span>
+                        <span>Diposting: <strong className="font-semibold text-slate-700">{job.createdAt ? job.createdAt.split('T')[0] : '2026-08-04'}</strong></span>
                       </div>
 
                       {job.sumber === 'admin' && (
@@ -343,13 +343,10 @@ export const JobDetail: React.FC<JobDetailProps> = ({
               
               {/* Widget 1: Ringkasan Pekerjaan (Senior Programmer Grade Design) */}
               <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xs hover:border-slate-300 transition-all p-6 space-y-6">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="border-b border-slate-100 pb-3">
                   <h3 className="text-base font-extrabold text-slate-900">
                     Ringkasan Pekerjaan
                   </h3>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-100 px-2.5 py-0.5 rounded-full">
-                    Detail Posisi
-                  </span>
                 </div>
 
                 {/* Key-Value Rows */}
@@ -471,7 +468,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                       </div>
                       <span className="text-slate-600">Gaji</span>
                     </div>
-                    <span className="font-extrabold text-slate-900 text-right min-w-0 font-mono">
+                    <span className="font-extrabold text-slate-900 text-right min-w-0">
                       {job.gaji || 'Kompetitif'}
                     </span>
                   </div>
@@ -498,7 +495,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                       <span className="text-slate-600">Batas Waktu</span>
                     </div>
                     <div className="text-right">
-                      <span className={`font-extrabold font-mono text-xs ${isExpired ? 'text-rose-600' : 'text-slate-900'}`}>
+                      <span className={`font-extrabold text-xs sm:text-sm ${isExpired ? 'text-rose-600' : 'text-slate-900'}`}>
                         {formatDateDisplay(job.deadline)}
                       </span>
                     </div>

@@ -24,7 +24,9 @@ import {
   AlertCircle,
   Info,
   HelpCircle,
-  ArrowRight
+  ArrowRight,
+  ArrowLeft,
+  GraduationCap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { registerUser, RegisterAlumniPayload, RegisterMitraPayload } from '../data';
@@ -135,6 +137,7 @@ export default function Register({
   onNavigateHome,
   onRegisterSuccess
 }: RegisterProps) {
+  const [isEnteringForm, setIsEnteringForm] = useState(false);
   const [activeTab, setActiveTab] = useState<'alumni' | 'perusahaan'>(initialTab);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -319,6 +322,176 @@ export default function Register({
     }
   };
 
+  // ═════════════════════════════════════════════════════════════════════════
+  // 1. HERO VIEW (SPLIT 50/50 BEFORE USER CLICKS REGISTER BUTTON)
+  // ═════════════════════════════════════════════════════════════════════════
+  if (!isEnteringForm && !successUser) {
+    return (
+      <div
+        className="relative min-h-screen w-full flex flex-col lg:flex-row font-sans bg-slate-950 text-slate-800 overflow-x-hidden"
+        id="register-hero-root"
+      >
+        {/* Fullscreen Background Image with Dark Overlay */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          <img
+            src="/bg-gedung-umk.jpg"
+            alt="Gedung Rektorat Universitas Muhammadiyah Kendari"
+            className="w-full h-full object-cover object-center"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = '/bg-gedung-umk.png';
+            }}
+          />
+          <div className="absolute inset-0 bg-black/75 backdrop-blur-[0.5px]" />
+        </div>
+
+        {/* Left Column: Branding Section */}
+        <div className="relative z-10 flex-1 flex flex-col justify-between p-6 sm:p-10 lg:p-14 text-white min-h-[50vh] lg:min-h-screen">
+          <div className="flex items-center justify-between gap-4">
+            <button
+              onClick={onNavigateHome}
+              className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-white/90 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 px-4 py-2 rounded-xl backdrop-blur-md transition cursor-pointer shadow-xs"
+              id="register-back-home-btn"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Kembali ke Beranda</span>
+            </button>
+          </div>
+
+          {/* Main Branding Content (Left-aligned, positioned nicely towards the center) */}
+          <div className="my-auto py-8 space-y-6 max-w-xl mx-auto w-full px-2 sm:px-6 flex flex-col items-start text-left">
+            {/* Official Logos Group */}
+            <div className="flex items-center gap-3 sm:gap-4 w-fit">
+              <img
+                src="/logo-umk.png"
+                alt="Logo Universitas Muhammadiyah Kendari"
+                className="h-12 sm:h-14 w-auto object-contain drop-shadow-md"
+              />
+              <div className="h-8 w-px bg-white/40"></div>
+              <img
+                src="/logo-cdc-transparent.png"
+                alt="Logo Career Development Center UMK"
+                className="h-12 sm:h-14 w-auto object-contain drop-shadow-md"
+              />
+            </div>
+
+            <div className="space-y-3 text-left">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight drop-shadow-sm">
+                REGISTRASI <span className="text-amber-400">CDC UMK</span>
+              </h1>
+              <p className="text-sm sm:text-base text-slate-200/90 leading-relaxed font-normal">
+                Daftarkan diri Anda untuk mengakses <strong className="text-amber-300 font-semibold">Peluang Karir, Program Magang Bersertifikat, Pelatihan Karir, dan Pengisian Tracer Study</strong> Universitas Muhammadiyah Kendari.
+              </p>
+            </div>
+          </div>
+
+          <div className="pt-4 text-xs text-slate-300/80 space-y-2 border-t border-white/10 max-w-xl mx-auto w-full px-2 sm:px-6 text-left">
+            <p>
+              Made with ❤️ and ☕ by <span className="text-amber-300 font-semibold">Direktorat & Tim CDC Universitas Muhammadiyah Kendari</span>
+            </p>
+            <div className="flex flex-wrap items-center justify-start gap-4 text-slate-300 text-xs">
+              <a href="#terms" onClick={(e) => e.preventDefault()} className="hover:text-white underline transition">
+                Terms & Conditions
+              </a>
+              <span>•</span>
+              <a href="#privacy" onClick={(e) => e.preventDefault()} className="hover:text-white underline transition">
+                Privacy Policy
+              </a>
+              <span>•</span>
+              <a href="mailto:helpdesk@umkendari.ac.id" className="hover:text-white transition flex items-center gap-1">
+                <Mail className="w-3.5 h-3.5" /> helpdesk@umkendari.ac.id
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Full-Height Straight White Panel */}
+        <div className="relative z-10 w-full lg:w-[480px] xl:w-[540px] bg-white shadow-2xl flex flex-col justify-between p-6 sm:p-10 lg:p-12 min-h-screen lg:rounded-l-3xl border-l border-slate-100">
+          <div className="h-6"></div>
+
+          <div className="my-auto py-6 space-y-6">
+            <div className="text-center space-y-1.5">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                REGISTER
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500">
+                Pilih Tipe Pendaftaran Akun Portal CDC
+              </p>
+            </div>
+
+            <div className="space-y-3.5 pt-2">
+              {/* Option 1: Register Alumni / Mahasiswa */}
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('alumni');
+                  setIsEnteringForm(true);
+                }}
+                className="w-full bg-[#0077C6] hover:bg-[#005FA0] active:bg-[#004C80] text-white font-bold py-4 px-6 rounded-2xl text-sm sm:text-base transition duration-150 shadow-md hover:shadow-lg flex items-center justify-center cursor-pointer text-center"
+                id="register-hero-alumni-btn"
+              >
+                <span>Daftar Mahasiswa / Alumni</span>
+              </button>
+
+              {/* Option 2: Register Mitra Perusahaan */}
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('perusahaan');
+                  setIsEnteringForm(true);
+                }}
+                className="w-full py-4 px-6 rounded-2xl text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 font-bold text-sm sm:text-base transition duration-150 shadow-xs hover:shadow-md flex items-center justify-center cursor-pointer text-center"
+                id="register-hero-mitra-btn"
+              >
+                <span>Daftar Mitra Perusahaan</span>
+              </button>
+
+              {/* Divider: Atau */}
+              <div className="relative flex items-center justify-center py-2">
+                <div className="border-t border-slate-200 w-full"></div>
+                <span className="bg-white px-3 text-xs text-slate-400 font-medium uppercase tracking-wider">
+                  Atau
+                </span>
+                <div className="border-t border-slate-200 w-full"></div>
+              </div>
+
+              {/* Under-Action Login Link */}
+              <div className="text-center text-xs text-slate-600 space-y-3">
+                <div>
+                  Sudah memiliki akun?{' '}
+                  <button
+                    type="button"
+                    onClick={onNavigateToLogin}
+                    className="font-bold text-[#0077C6] hover:text-[#005FA0] hover:underline cursor-pointer"
+                    id="register-hero-goto-login-btn"
+                  >
+                    Login Sekarang
+                  </button>
+                </div>
+
+                <div>
+                  <button
+                    type="button"
+                    onClick={onNavigateHome}
+                    className="text-slate-400 hover:text-slate-700 hover:underline cursor-pointer transition text-[11px]"
+                  >
+                    &larr; Kembali ke Beranda Portal
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="text-center text-[11px] text-slate-400 pt-4 border-t border-slate-100">
+            © {new Date().getFullYear()} Career Development Center — Universitas Muhammadiyah Kendari
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ═════════════════════════════════════════════════════════════════════════
+  // 2. FULL REGISTRATION FORM VIEW (WHEN REGISTER BUTTON IS CLICKED)
+  // ═════════════════════════════════════════════════════════════════════════
   return (
     <div className="min-h-screen bg-[#F8F9FC] text-slate-800 font-sans flex flex-col justify-between" id="register-page-root">
       
@@ -329,20 +502,30 @@ export default function Register({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           
           {/* Official CDC Brand Logo */}
-          <button
-            onClick={onNavigateHome}
-            className="flex items-center gap-3 text-left group focus:outline-none cursor-pointer"
-            aria-label="Beranda CDC UM Kendari"
-          >
-            <img
-              src="/logo-cdc-branding-transparent.png"
-              alt="Career Development Center - Universitas Muhammadiyah Kendari"
-              className="h-10 sm:h-11 w-auto object-contain"
-            />
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onNavigateHome}
+              className="flex items-center gap-3 text-left group focus:outline-none cursor-pointer"
+              aria-label="Beranda CDC UM Kendari"
+            >
+              <img
+                src="/logo-cdc-branding-transparent.png"
+                alt="Career Development Center - Universitas Muhammadiyah Kendari"
+                className="h-10 sm:h-11 w-auto object-contain"
+              />
+            </button>
+          </div>
 
-          {/* Right link: Login */}
+          {/* Right link: Back to Hero / Login */}
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => setIsEnteringForm(false)}
+              className="text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 transition cursor-pointer flex items-center gap-1.5"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Pilihan Akun</span>
+            </button>
+            <span className="text-slate-200">|</span>
             <button
               onClick={onNavigateToLogin}
               className="text-sm font-bold text-[#00186B] hover:text-[#000E3D] hover:underline transition cursor-pointer"
