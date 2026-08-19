@@ -25,7 +25,8 @@ import {
   KonselingConfig,
   KonselingInfoItem,
   KonselingJadwalItem,
-  AnggotaTim
+  AnggotaTim,
+  SocialMediaItem
 } from './types';
 
 // Mock Password: all seeded accounts use "password"
@@ -1304,6 +1305,41 @@ export const SEED_GALERI_ITEMS: GaleriItem[] = [
 ];
 
 // Helper to safely access database keys
+export const SEED_SOCIAL_MEDIA: SocialMediaItem[] = [
+  {
+    id: 'soc_fb',
+    platform: 'facebook',
+    label: 'Facebook CDC UM Kendari',
+    url: 'https://facebook.com/umkendari',
+    isActive: true,
+    hoverColor: 'hover:bg-blue-600'
+  },
+  {
+    id: 'soc_ig',
+    platform: 'instagram',
+    label: 'Instagram CDC UM Kendari',
+    url: 'https://instagram.com/cdc_umkendari',
+    isActive: true,
+    hoverColor: 'hover:bg-pink-600'
+  },
+  {
+    id: 'soc_yt',
+    platform: 'youtube',
+    label: 'YouTube CDC UM Kendari',
+    url: 'https://youtube.com/@umkendari',
+    isActive: true,
+    hoverColor: 'hover:bg-red-600'
+  },
+  {
+    id: 'soc_web',
+    platform: 'website',
+    label: 'Website UM Kendari',
+    url: 'https://umkendari.ac.id',
+    isActive: true,
+    hoverColor: 'hover:bg-[#10B981]'
+  }
+];
+
 export type DBKey =
   | 'users'
   | 'mahasiswa'
@@ -1321,7 +1357,8 @@ export type DBKey =
   | 'kalender_kegiatan'
   | 'laporan_kinerja'
   | 'mou_stakeholder'
-  | 'galeri_items';
+  | 'galeri_items'
+  | 'social_media';
 
 const DEFAULT_SEEDS = {
   users: SEED_USERS,
@@ -1341,13 +1378,14 @@ const DEFAULT_SEEDS = {
   laporan_kinerja: SEED_LAPORAN_KINERJA,
   mou_stakeholder: SEED_MOU_STAKEHOLDER,
   galeri_items: SEED_GALERI_ITEMS,
+  social_media: SEED_SOCIAL_MEDIA,
 };
 
 let _dbInitialized = false;
 
 // Initializer to make sure local storage has everything
 export function initializeDB() {
-  const CURRENT_SEED_VERSION = 'v11_galeri_items';
+  const CURRENT_SEED_VERSION = 'v12_social_media';
   if (localStorage.getItem('cdc_seed_version') !== CURRENT_SEED_VERSION) {
     Object.entries(DEFAULT_SEEDS).forEach(([key, val]) => {
       const storageKey = `cdc_umk_${key}`;

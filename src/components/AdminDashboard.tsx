@@ -30,7 +30,8 @@ import {
   KonselingConfig,
   KonselingInfoItem,
   KonselingJadwalItem,
-  AnggotaTim
+  AnggotaTim,
+  SocialMediaItem
 } from '../types';
 import {
   getFromDB,
@@ -111,7 +112,8 @@ import {
   Film,
   HeartHandshake,
   Info,
-  UserCheck
+  UserCheck,
+  Globe
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -120,7 +122,7 @@ interface AdminDashboardProps {
   onReloadData?: () => void;
 }
 
-type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'konseling' | 'keanggotaan';
+type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'konseling' | 'keanggotaan' | 'media-sosial';
 type KontenSubTab = 'riwayat' | 'pembuatan';
 type MitraSubTab = 'approval' | 'list';
 
@@ -381,6 +383,15 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const [angJabatan, setAngJabatan] = useState('');
   const [angFotoUrl, setAngFotoUrl] = useState('');
 
+  // Form states Kelola Media Sosial
+  const [socMedList, setSocMedList] = useState<SocialMediaItem[]>([]);
+  const [showSocMedModal, setShowSocMedModal] = useState(false);
+  const [editSocMedId, setEditSocMedId] = useState<string | null>(null);
+  const [socPlatform, setSocPlatform] = useState<SocialMediaItem['platform']>('instagram');
+  const [socLabel, setSocLabel] = useState('');
+  const [socUrl, setSocUrl] = useState('');
+  const [socIsActive, setSocIsActive] = useState(true);
+
   const reloadAll = () => {
     setStudents(getFromDB<Mahasiswa>('mahasiswa'));
     setAlumni(getFromDB<Alumni>('alumni'));
@@ -396,6 +407,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
     setGaleriItems(getFromDB<GaleriItem>('galeri_items'));
     setAdminWaNum(getAdminWaPrestasi());
     setAnggotaList(getAnggotaTim());
+    setSocMedList(getFromDB<SocialMediaItem>('social_media'));
 
     const cfg = getKonselingConfig();
     setKonselingCfg(cfg);
@@ -438,7 +450,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
         { id: 'mou', label: 'Kelola MOU Stakeholder', icon: <FileText className="w-4 h-4" /> },
         { id: 'galeri', label: 'Kelola Galeri Kegiatan', icon: <Film className="w-4 h-4" /> },
         { id: 'konseling', label: 'Kelola Konseling Karir', icon: <HeartHandshake className="w-4 h-4" /> },
-        { id: 'keanggotaan', label: 'Kelola Keanggotaan & Tim', icon: <UserCheck className="w-4 h-4" /> }
+        { id: 'keanggotaan', label: 'Kelola Keanggotaan & Tim', icon: <UserCheck className="w-4 h-4" /> },
+        { id: 'media-sosial', label: 'Kelola Media Sosial', icon: <Globe className="w-4 h-4" /> }
       ]
     },
     {
@@ -4880,6 +4893,349 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                             className="px-5 py-2 rounded-xl text-xs font-bold bg-[#1E3A8A] hover:bg-blue-900 text-white shadow-md"
                           >
                             Simpan Anggota
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* ══════════════════════════════════════════
+              KELOLA MEDIA SOSIAL & TAUTAN FOOTER
+          ══════════════════════════════════════════ */}
+          {activeTab === 'media-sosial' && (() => {
+            const handleToggleStatus = (id: string) => {
+              const updatedList = socMedList.map((item) =>
+                item.id === id ? { ...item, isActive: !item.isActive } : item
+              );
+              saveToDB('social_media', updatedList);
+              setSocMedList(updatedList);
+              const target = updatedList.find((i) => i.id === id);
+              triggerToast(
+                'success',
+                target?.isActive
+                  ? `Ikon ${target.label} kini TAMPIL di footer website.`
+                  : `Ikon ${target.label} kini TERSEMBUNYI dari footer website.`
+              );
+            };
+
+            const handleSaveItemUrl = (id: string, newUrl: string) => {
+              const updatedList = socMedList.map((item) =>
+                item.id === id ? { ...item, url: newUrl } : item
+              );
+              saveToDB('social_media', updatedList);
+              setSocMedList(updatedList);
+              triggerToast('success', 'URL link media sosial berhasil diperbarui!');
+            };
+
+            const handleDeleteItem = (id: string) => {
+              const target = socMedList.find((i) => i.id === id);
+              if (confirm(`Hapus media sosial "${target?.label || 'ini'}"?`)) {
+                const updatedList = socMedList.filter((item) => item.id !== id);
+                saveToDB('social_media', updatedList);
+                setSocMedList(updatedList);
+                triggerToast('success', 'Media sosial berhasil dihapus.');
+              }
+            };
+
+            const openAddModal = () => {
+              setEditSocMedId(null);
+              setSocPlatform('instagram');
+              setSocLabel('');
+              setSocUrl('');
+              setSocIsActive(true);
+              setShowSocMedModal(true);
+            };
+
+            const openEditModal = (item: SocialMediaItem) => {
+              setEditSocMedId(item.id);
+              setSocPlatform(item.platform);
+              setSocLabel(item.label);
+              setSocUrl(item.url);
+              setSocIsActive(item.isActive);
+              setShowSocMedModal(true);
+            };
+
+            const handleSaveModalForm = (e: React.FormEvent) => {
+              e.preventDefault();
+              if (!socLabel.trim() || !socUrl.trim()) {
+                triggerToast('error', 'Label dan Link URL wajib diisi.');
+                return;
+              }
+
+              let hoverColor = 'hover:bg-blue-600';
+              if (socPlatform === 'instagram') hoverColor = 'hover:bg-pink-600';
+              if (socPlatform === 'youtube') hoverColor = 'hover:bg-red-600';
+              if (socPlatform === 'website') hoverColor = 'hover:bg-[#10B981]';
+              if (socPlatform === 'twitter') hoverColor = 'hover:bg-sky-500';
+              if (socPlatform === 'linkedin') hoverColor = 'hover:bg-blue-700';
+              if (socPlatform === 'tiktok') hoverColor = 'hover:bg-slate-900';
+
+              let updatedList = [...socMedList];
+              if (editSocMedId) {
+                updatedList = updatedList.map((item) =>
+                  item.id === editSocMedId
+                    ? {
+                        ...item,
+                        platform: socPlatform,
+                        label: socLabel.trim(),
+                        url: socUrl.trim(),
+                        isActive: socIsActive,
+                        hoverColor
+                      }
+                    : item
+                );
+              } else {
+                const newItem: SocialMediaItem = {
+                  id: `soc_${Date.now()}`,
+                  platform: socPlatform,
+                  label: socLabel.trim(),
+                  url: socUrl.trim(),
+                  isActive: socIsActive,
+                  hoverColor
+                };
+                updatedList.push(newItem);
+              }
+
+              saveToDB('social_media', updatedList);
+              setSocMedList(updatedList);
+              setShowSocMedModal(false);
+              triggerToast(
+                'success',
+                editSocMedId
+                  ? 'Data media sosial berhasil diperbarui!'
+                  : 'Media sosial baru berhasil ditambahkan!'
+              );
+            };
+
+            return (
+              <div className="space-y-8">
+                {/* Header Title */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                      <Globe className="w-5 h-5 text-[#1E3A8A]" />
+                      Kelola Media Sosial &amp; Tautan Footer
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Atur link tujuan dan kontrol visibilitas ikon media sosial CDC yang tampil pada footer publik website
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={openAddModal}
+                    className="inline-flex items-center gap-2 bg-[#1E3A8A] hover:bg-blue-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm transition cursor-pointer shrink-0"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Tambah Media Sosial</span>
+                  </button>
+                </div>
+
+                {/* Main Cards List */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {socMedList.map((item) => (
+                    <div
+                      key={item.id}
+                      className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4 hover:shadow-md transition"
+                    >
+                      {/* Top Row: Icon, Label & Status Badge */}
+                      <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                            {item.platform === 'facebook' && 'f'}
+                            {item.platform === 'instagram' && 'IG'}
+                            {item.platform === 'youtube' && 'YT'}
+                            {item.platform === 'website' && 'WEB'}
+                            {item.platform === 'twitter' && 'X'}
+                            {item.platform === 'linkedin' && 'in'}
+                            {item.platform === 'tiktok' && 'TT'}
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-slate-900 text-sm">{item.label}</h3>
+                            <div className="text-[11px] text-slate-400 capitalize">Platform: {item.platform}</div>
+                          </div>
+                        </div>
+
+                        {/* Status Toggle Switch */}
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${
+                              item.isActive
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                : 'bg-slate-100 text-slate-500 border border-slate-200'
+                            }`}
+                          >
+                            {item.isActive ? '● Tampil di Footer' : '○ Tersembunyi'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleStatus(item.id)}
+                            title={item.isActive ? 'Klik untuk Sembunyikan' : 'Klik untuk Tampilkan'}
+                            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                              item.isActive ? 'bg-emerald-600' : 'bg-slate-300'
+                            }`}
+                          >
+                            <span
+                              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                item.isActive ? 'translate-x-5' : 'translate-x-0'
+                              }`}
+                            />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* URL Input Form */}
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-slate-700 flex items-center justify-between">
+                          <span>Link URL Tujuan</span>
+                          {item.url && (
+                            <a
+                              href={item.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline text-[11px] inline-flex items-center gap-1 font-normal"
+                            >
+                              Uji Link <ExternalLink className="w-3 h-3" />
+                            </a>
+                          )}
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="url"
+                            defaultValue={item.url}
+                            onBlur={(e) => {
+                              if (e.target.value.trim() !== item.url) {
+                                handleSaveItemUrl(item.id, e.target.value.trim());
+                              }
+                            }}
+                            placeholder="https://..."
+                            className="flex-1 rounded-xl border border-slate-200 bg-white py-2 px-3 text-xs text-slate-800 focus:border-[#1E3A8A] focus:outline-none focus:ring-1 focus:ring-[#1E3A8A] font-mono transition"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Bottom Actions */}
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+                        <button
+                          type="button"
+                          onClick={() => openEditModal(item)}
+                          className="text-blue-700 hover:text-blue-900 font-semibold inline-flex items-center gap-1 cursor-pointer"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" /> Edit Detail
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteItem(item.id)}
+                          className="text-rose-600 hover:text-rose-800 font-semibold inline-flex items-center gap-1 cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" /> Hapus
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Modal Form Tambah / Edit Media Sosial */}
+                {showSocMedModal && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+                    <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-5 relative animate-fade-in">
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+                          <Globe className="w-5 h-5 text-[#1E3A8A]" />
+                          {editSocMedId ? 'Edit Media Sosial' : 'Tambah Media Sosial Baru'}
+                        </h3>
+                        <button
+                          type="button"
+                          onClick={() => setShowSocMedModal(false)}
+                          className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+
+                      <form onSubmit={handleSaveModalForm} className="space-y-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-semibold text-slate-700">Platform Media Sosial</label>
+                          <select
+                            value={socPlatform}
+                            onChange={(e) => {
+                              const p = e.target.value as SocialMediaItem['platform'];
+                              setSocPlatform(p);
+                              if (!socLabel) {
+                                if (p === 'facebook') setSocLabel('Facebook CDC UM Kendari');
+                                else if (p === 'instagram') setSocLabel('Instagram CDC UM Kendari');
+                                else if (p === 'youtube') setSocLabel('YouTube CDC UM Kendari');
+                                else if (p === 'website') setSocLabel('Website UM Kendari');
+                                else if (p === 'twitter') setSocLabel('Twitter / X CDC');
+                                else if (p === 'linkedin') setSocLabel('LinkedIn CDC');
+                                else if (p === 'tiktok') setSocLabel('TikTok CDC');
+                              }
+                            }}
+                            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 px-3 text-xs text-slate-800 focus:border-[#1E3A8A] focus:outline-none focus:ring-1 focus:ring-[#1E3A8A] transition cursor-pointer"
+                          >
+                            <option value="facebook">Facebook</option>
+                            <option value="instagram">Instagram</option>
+                            <option value="youtube">YouTube</option>
+                            <option value="website">Website / Portal</option>
+                            <option value="twitter">Twitter / X</option>
+                            <option value="linkedin">LinkedIn</option>
+                            <option value="tiktok">TikTok</option>
+                          </select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-semibold text-slate-700">Label Keterangan</label>
+                          <input
+                            type="text"
+                            required
+                            value={socLabel}
+                            onChange={(e) => setSocLabel(e.target.value)}
+                            placeholder="Contoh: Instagram CDC UM Kendari"
+                            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 px-3 text-xs text-slate-800 focus:border-[#1E3A8A] focus:outline-none focus:ring-1 focus:ring-[#1E3A8A] transition"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-semibold text-slate-700">Link URL Tujuan</label>
+                          <input
+                            type="url"
+                            required
+                            value={socUrl}
+                            onChange={(e) => setSocUrl(e.target.value)}
+                            placeholder="https://instagram.com/cdc_umkendari"
+                            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 px-3 text-xs text-slate-800 font-mono focus:border-[#1E3A8A] focus:outline-none focus:ring-1 focus:ring-[#1E3A8A] transition"
+                          />
+                        </div>
+
+                        <div className="pt-1">
+                          <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={socIsActive}
+                              onChange={(e) => setSocIsActive(e.target.checked)}
+                              className="h-4 w-4 rounded border-slate-300 text-[#1E3A8A] focus:ring-[#1E3A8A] cursor-pointer"
+                            />
+                            <span>Tampilkan langsung ikon ini di footer website publik</span>
+                          </label>
+                        </div>
+
+                        <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+                          <button
+                            type="button"
+                            onClick={() => setShowSocMedModal(false)}
+                            className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                          >
+                            Batal
+                          </button>
+                          <button
+                            type="submit"
+                            className="px-5 py-2 rounded-xl text-xs font-bold bg-[#1E3A8A] hover:bg-blue-900 text-white shadow-md cursor-pointer"
+                          >
+                            Simpan Media Sosial
                           </button>
                         </div>
                       </form>

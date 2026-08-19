@@ -118,7 +118,7 @@ export default function Login({
           2. LEFT COLUMN: HERO BRANDING SECTION (OVERLAY BACKGROUND)
       ───────────────────────────────────────────────────────────── */}
       <div className="relative z-10 flex-1 flex flex-col justify-between p-6 sm:p-10 lg:p-14 text-white min-h-[50vh] lg:min-h-screen">
-        
+
         {/* Top Header Row */}
         <div className="flex items-center justify-between gap-4">
           <button
@@ -138,20 +138,20 @@ export default function Login({
             <img
               src="/logo-umk.png"
               alt="Logo Universitas Muhammadiyah Kendari"
-              className="h-12 sm:h-14 w-auto object-contain drop-shadow-md"
+              className="h-14 sm:h-18 lg:h-22 w-auto object-contain drop-shadow-md"
             />
-            <div className="h-8 w-px bg-white/40"></div>
+            <div className="h-10 sm:h-12 w-px bg-white/40"></div>
             <img
-              src="/logo-cdc-transparent.png"
+              src="/logo-cdc-branding-blue.png"
               alt="Logo Career Development Center UMK"
-              className="h-12 sm:h-14 w-auto object-contain drop-shadow-md"
+              className="h-16 sm:h-20 lg:h-24 w-auto object-contain"
             />
           </div>
 
           {/* Typography: Title & Subtitle */}
           <div className="space-y-3 text-left">
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight drop-shadow-sm">
-              SIMASTER <span className="text-amber-400">CDC UMK</span>
+              LOGIN <span className="text-amber-400">CDC UMK</span>
             </h1>
             <p className="text-sm sm:text-base text-slate-200/90 leading-relaxed font-normal">
               Sistem informasi <strong className="text-amber-300 font-semibold">Akademik Karir, Pelatihan, Magang, dan Tracer Study</strong> untuk Mendukung Tercapainya Lulusan Universitas Muhammadiyah Kendari yang Unggul, Berdaya Saing, dan Menjulang Tinggi.
@@ -159,33 +159,15 @@ export default function Login({
           </div>
         </div>
 
-        {/* Bottom Left Footer */}
-        <div className="pt-4 text-xs text-slate-300/80 space-y-2 border-t border-white/10 max-w-xl mx-auto w-full px-2 sm:px-6 text-left">
-          <p>
-            Made with ❤️ and ☕ by <span className="text-amber-300 font-semibold">Direktorat & Tim CDC Universitas Muhammadiyah Kendari</span>
-          </p>
-          <div className="flex flex-wrap items-center justify-start gap-4 text-slate-300 text-xs">
-            <a href="#terms" onClick={(e) => e.preventDefault()} className="hover:text-white underline transition">
-              Terms & Conditions
-            </a>
-            <span>•</span>
-            <a href="#privacy" onClick={(e) => e.preventDefault()} className="hover:text-white underline transition">
-              Privacy Policy
-            </a>
-            <span>•</span>
-            <a href="mailto:helpdesk@umkendari.ac.id" className="hover:text-white transition flex items-center gap-1">
-              <Mail className="w-3.5 h-3.5" /> helpdesk@umkendari.ac.id
-            </a>
-          </div>
-        </div>
+
 
       </div>
 
       {/* ─────────────────────────────────────────────────────────────
-          3. RIGHT COLUMN: FULL-HEIGHT STRAIGHT WHITE PANEL (TOP TO BOTTOM)
+          3. RIGHT COLUMN: FLOATING WHITE PANEL (MELAYANG DI ATAS BACKGROUND)
       ───────────────────────────────────────────────────────────── */}
-      <div className="relative z-10 w-full lg:w-[480px] xl:w-[540px] bg-white shadow-2xl flex flex-col justify-between p-6 sm:p-10 lg:p-12 min-h-screen lg:rounded-l-3xl border-l border-slate-100">
-        
+      <div className="relative z-10 w-full lg:w-[480px] xl:w-[520px] bg-white shadow-2xl flex flex-col justify-between p-6 sm:p-10 lg:p-12 lg:m-6 xl:m-8 lg:my-auto rounded-none lg:rounded-3xl border border-slate-100 my-auto min-h-screen lg:min-h-0">
+
         {/* Top Spacer or Mode Title */}
         <div className="w-full">
           {isEnteringCredentials ? (
@@ -205,7 +187,7 @@ export default function Login({
 
         {/* Main Panel Content (Hero vs Credential Form) */}
         <div className="my-auto py-4 space-y-6">
-          
+
           {/* Header Title */}
           <div className="text-center space-y-1.5">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
@@ -214,7 +196,7 @@ export default function Login({
             <p className="text-xs sm:text-sm text-slate-500">
               {isEnteringCredentials
                 ? 'Masukkan email dan kata sandi Akun CDC Anda'
-                : 'Akun SIMASTER / Portal CDC Anda'}
+                : 'Akun Portal CDC Anda'}
             </p>
           </div>
 
@@ -241,7 +223,7 @@ export default function Login({
           ───────────────────────────────────────────────────────────── */}
           {!isEnteringCredentials ? (
             <div className="space-y-5 pt-2" id="login-hero-view">
-              
+
               {/* Primary Action Button: Direct to Credential Form */}
               <button
                 type="button"
@@ -297,7 +279,7 @@ export default function Login({
                 VIEW B: FORM PENGISIAN (KREDENSIAL LOGIN LAMA)
             ───────────────────────────────────────────────────────────── */
             <form onSubmit={handleSubmit} className="space-y-4 pt-1 animate-fade-in" id="login-form">
-              
+
               {/* Field: Email */}
               <div className="space-y-1.5">
                 <label className="text-xs sm:text-[13px] font-semibold text-slate-700 flex items-center justify-between">

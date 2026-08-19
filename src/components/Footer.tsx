@@ -8,10 +8,12 @@ import {
   Facebook, 
   Instagram, 
   Youtube, 
-  Globe 
+  Globe,
+  Twitter,
+  Linkedin
 } from 'lucide-react';
 import { getFromDB } from '../data';
-import { Lowongan } from '../types';
+import { Lowongan, SocialMediaItem } from '../types';
 
 const POPULAR_LINKS = [
   'Loker BPJS Kesehatan 2026',
@@ -23,6 +25,16 @@ const POPULAR_LINKS = [
   'Magang BUMN Terbuka 2026',
 ];
 
+const PLATFORM_ICONS: Record<string, { icon: React.ElementType; defaultColor: string }> = {
+  facebook: { icon: Facebook, defaultColor: 'hover:bg-blue-600' },
+  instagram: { icon: Instagram, defaultColor: 'hover:bg-pink-600' },
+  youtube: { icon: Youtube, defaultColor: 'hover:bg-red-600' },
+  website: { icon: Globe, defaultColor: 'hover:bg-[#10B981]' },
+  twitter: { icon: Twitter, defaultColor: 'hover:bg-sky-500' },
+  linkedin: { icon: Linkedin, defaultColor: 'hover:bg-blue-700' },
+  tiktok: { icon: Globe, defaultColor: 'hover:bg-slate-900' },
+};
+
 interface FooterProps {
   onSelectLowongan?: (id: string) => void;
   setTab?: (tab: string) => void;
@@ -30,6 +42,9 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ onSelectLowongan, setTab }) => {
   const publishedLowongan = getFromDB<Lowongan>('lowongan').filter(l => l.status === 'published');
+  const socialMediaList = getFromDB<SocialMediaItem>('social_media').filter(
+    (item) => item.isActive && item.url && item.url.trim() !== ''
+  );
 
   const handleLinkClick = (id?: string) => {
     if (id && onSelectLowongan) {
@@ -71,19 +86,29 @@ export const Footer: React.FC<FooterProps> = ({ onSelectLowongan, setTab }) => {
               </div>
             </div>
 
-            {/* Social icons */}
-            <div className="flex gap-3">
-              {[
-                { icon: Facebook, color: 'hover:bg-blue-600' },
-                { icon: Instagram, color: 'hover:bg-pink-600' },
-                { icon: Youtube, color: 'hover:bg-red-600' },
-                { icon: Globe, color: 'hover:bg-[#10B981]' },
-              ].map(({ icon: Icon, color }, i) => (
-                <a key={i} href="#" className={`bg-slate-800 p-2.5 rounded-full ${color} hover:text-white transition-colors`}>
-                  <Icon className="w-4 h-4" />
-                </a>
-              ))}
-            </div>
+            {/* Dynamic Social icons */}
+            {socialMediaList.length > 0 && (
+              <div className="flex gap-3">
+                {socialMediaList.map((item) => {
+                  const config = PLATFORM_ICONS[item.platform] || { icon: Globe, defaultColor: 'hover:bg-[#10B981]' };
+                  const IconComponent = config.icon;
+                  const colorClass = item.hoverColor || config.defaultColor;
+
+                  return (
+                    <a
+                      key={item.id}
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={item.label}
+                      className={`bg-slate-800 p-2.5 rounded-full ${colorClass} hover:text-white transition-colors cursor-pointer`}
+                    >
+                      <IconComponent className="w-4 h-4" />
+                    </a>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Popular Info col */}

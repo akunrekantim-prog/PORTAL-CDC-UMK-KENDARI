@@ -364,13 +364,13 @@ export default function Register({
               <img
                 src="/logo-umk.png"
                 alt="Logo Universitas Muhammadiyah Kendari"
-                className="h-12 sm:h-14 w-auto object-contain drop-shadow-md"
+                className="h-14 sm:h-18 lg:h-22 w-auto object-contain drop-shadow-md"
               />
-              <div className="h-8 w-px bg-white/40"></div>
+              <div className="h-10 sm:h-12 w-px bg-white/40"></div>
               <img
-                src="/logo-cdc-transparent.png"
+                src="/logo-cdc-branding-blue.png"
                 alt="Logo Career Development Center UMK"
-                className="h-12 sm:h-14 w-auto object-contain drop-shadow-md"
+                className="h-16 sm:h-20 lg:h-24 w-auto object-contain"
               />
             </div>
 
@@ -384,28 +384,11 @@ export default function Register({
             </div>
           </div>
 
-          <div className="pt-4 text-xs text-slate-300/80 space-y-2 border-t border-white/10 max-w-xl mx-auto w-full px-2 sm:px-6 text-left">
-            <p>
-              Made with ❤️ and ☕ by <span className="text-amber-300 font-semibold">Direktorat & Tim CDC Universitas Muhammadiyah Kendari</span>
-            </p>
-            <div className="flex flex-wrap items-center justify-start gap-4 text-slate-300 text-xs">
-              <a href="#terms" onClick={(e) => e.preventDefault()} className="hover:text-white underline transition">
-                Terms & Conditions
-              </a>
-              <span>•</span>
-              <a href="#privacy" onClick={(e) => e.preventDefault()} className="hover:text-white underline transition">
-                Privacy Policy
-              </a>
-              <span>•</span>
-              <a href="mailto:helpdesk@umkendari.ac.id" className="hover:text-white transition flex items-center gap-1">
-                <Mail className="w-3.5 h-3.5" /> helpdesk@umkendari.ac.id
-              </a>
-            </div>
-          </div>
+
         </div>
 
-        {/* Right Column: Full-Height Straight White Panel */}
-        <div className="relative z-10 w-full lg:w-[480px] xl:w-[540px] bg-white shadow-2xl flex flex-col justify-between p-6 sm:p-10 lg:p-12 min-h-screen lg:rounded-l-3xl border-l border-slate-100">
+        {/* Right Column: Floating White Panel (Melayang di atas background) */}
+        <div className="relative z-10 w-full lg:w-[480px] xl:w-[520px] bg-white shadow-2xl flex flex-col justify-between p-6 sm:p-10 lg:p-12 lg:m-6 xl:m-8 lg:my-auto rounded-none lg:rounded-3xl border border-slate-100 my-auto min-h-screen lg:min-h-0">
           <div className="h-6"></div>
 
           <div className="my-auto py-6 space-y-6">
@@ -494,13 +477,13 @@ export default function Register({
   // ═════════════════════════════════════════════════════════════════════════
   return (
     <div className="min-h-screen bg-[#F8F9FC] text-slate-800 font-sans flex flex-col justify-between" id="register-page-root">
-      
+
       {/* ─────────────────────────────────────────────────────────────
           1. TOP NAVBAR
       ───────────────────────────────────────────────────────────── */}
       <header className="bg-white border-b border-slate-200/80 sticky top-0 z-30 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          
+
           {/* Official CDC Brand Logo */}
           <div className="flex items-center gap-3">
             <button
@@ -641,7 +624,7 @@ export default function Register({
                   ─────────────────────────────────────────────────── */}
                   {activeTab === 'alumni' && (
                     <form onSubmit={handleSubmitAlumni} className="space-y-5" id="form-register-user">
-                      
+
                       {/* Row 1: Nama Lengkap & NIM */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div className="space-y-1.5">
@@ -895,7 +878,7 @@ export default function Register({
                   ─────────────────────────────────────────────────── */}
                   {activeTab === 'perusahaan' && (
                     <form onSubmit={handleSubmitMitra} className="space-y-5" id="form-register-mitra">
-                      
+
                       {/* Top Info Banner */}
                       <div className="bg-[#EFF6FF] border border-blue-100 rounded-xl p-3.5 text-xs text-blue-900 flex items-center gap-2.5">
                         <Info className="w-4 h-4 text-blue-600 shrink-0" />
