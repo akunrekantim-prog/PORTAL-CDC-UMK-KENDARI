@@ -31,7 +31,8 @@ import {
   KonselingInfoItem,
   KonselingJadwalItem,
   AnggotaTim,
-  SocialMediaItem
+  SocialMediaItem,
+  HelpdeskConfig
 } from '../types';
 import {
   getFromDB,
@@ -44,7 +45,9 @@ import {
   getKonselingConfig,
   saveKonselingConfig,
   getAnggotaTim,
-  saveAnggotaTim
+  saveAnggotaTim,
+  getHelpdeskConfig,
+  saveHelpdeskConfig
 } from '../data';
 import {
   LayoutDashboard,
@@ -113,7 +116,10 @@ import {
   HeartHandshake,
   Info,
   UserCheck,
-  Globe
+  Globe,
+  KeyRound,
+  Mail,
+  Phone
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -392,6 +398,11 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const [socUrl, setSocUrl] = useState('');
   const [socIsActive, setSocIsActive] = useState(true);
 
+  // Form states Kontak Helpdesk / Pemulihan Kata Sandi
+  const [helpdeskEmail, setHelpdeskEmail] = useState(() => getHelpdeskConfig().email);
+  const [helpdeskWa, setHelpdeskWa] = useState(() => getHelpdeskConfig().whatsappNumber);
+  const [helpdeskNote, setHelpdeskNote] = useState(() => getHelpdeskConfig().whatsappNote);
+
   const reloadAll = () => {
     setStudents(getFromDB<Mahasiswa>('mahasiswa'));
     setAlumni(getFromDB<Alumni>('alumni'));
@@ -408,6 +419,11 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
     setAdminWaNum(getAdminWaPrestasi());
     setAnggotaList(getAnggotaTim());
     setSocMedList(getFromDB<SocialMediaItem>('social_media'));
+
+    const hConfig = getHelpdeskConfig();
+    setHelpdeskEmail(hConfig.email);
+    setHelpdeskWa(hConfig.whatsappNumber);
+    setHelpdeskNote(hConfig.whatsappNote);
 
     const cfg = getKonselingConfig();
     setKonselingCfg(cfg);
@@ -5028,10 +5044,10 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                   <div>
                     <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                       <Globe className="w-5 h-5 text-[#1E3A8A]" />
-                      Kelola Media Sosial &amp; Tautan Footer
+                      Kelola Media Sosial &amp; Kontak Helpdesk
                     </h2>
                     <p className="text-xs text-slate-500 mt-1">
-                      Atur link tujuan dan kontrol visibilitas ikon media sosial CDC yang tampil pada footer publik website
+                      Atur tautan media sosial footer publik serta kontak email &amp; WhatsApp untuk pemulihan kata sandi akun CDC
                     </p>
                   </div>
 
@@ -5043,6 +5059,112 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                     <Plus className="w-4 h-4" />
                     <span>Tambah Media Sosial</span>
                   </button>
+                </div>
+
+                {/* ─────────────────────────────────────────────────────────────
+                    SECTION: KONTAK BANTUAN & PEMULIHAN KATA SANDI
+                ───────────────────────────────────────────────────────────── */}
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                    <div>
+                      <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                        <KeyRound className="w-5 h-5 text-[#0077C6]" />
+                        Kontak Bantuan &amp; Pemulihan Kata Sandi
+                      </h3>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Atur email helpdesk dan nomor WhatsApp yang tampil pada popup <em>"Bantuan Pemulihan Kata Sandi"</em> di halaman Login
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!helpdeskEmail.trim() || !helpdeskWa.trim()) {
+                          triggerToast('error', 'Email Helpdesk dan Nomor WhatsApp wajib diisi.');
+                          return;
+                        }
+                        saveHelpdeskConfig({
+                          email: helpdeskEmail.trim(),
+                          whatsappNumber: helpdeskWa.trim(),
+                          whatsappNote: helpdeskNote.trim()
+                        });
+                        triggerToast('success', 'Kontak bantuan pemulihan kata sandi berhasil disimpan!');
+                      }}
+                      className="inline-flex items-center gap-2 bg-[#0077C6] hover:bg-[#005FA0] text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-xs transition cursor-pointer shrink-0"
+                    >
+                      <Check className="w-4 h-4" />
+                      <span>Simpan Kontak Pemulihan</span>
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                        <Mail className="w-3.5 h-3.5 text-[#0077C6]" />
+                        <span>Email Helpdesk <span className="text-red-500">*</span></span>
+                      </label>
+                      <input
+                        type="email"
+                        value={helpdeskEmail}
+                        onChange={(e) => setHelpdeskEmail(e.target.value)}
+                        placeholder="helpdesk@umkendari.ac.id"
+                        className="w-full rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 text-xs text-slate-800 focus:border-[#0077C6] focus:outline-none focus:ring-1 focus:ring-[#0077C6] transition"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                        <Phone className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Nomor WhatsApp / Layanan <span className="text-red-500">*</span></span>
+                      </label>
+                      <input
+                        type="text"
+                        value={helpdeskWa}
+                        onChange={(e) => setHelpdeskWa(e.target.value)}
+                        placeholder="0852-4100-9988"
+                        className="w-full rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 text-xs text-slate-800 focus:border-[#0077C6] focus:outline-none focus:ring-1 focus:ring-[#0077C6] transition"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Keterangan Jam Kerja (Opsional)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={helpdeskNote}
+                        onChange={(e) => setHelpdeskNote(e.target.value)}
+                        placeholder="(Jam Kerja 08.00 - 16.00 WITA)"
+                        className="w-full rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 text-xs text-slate-800 focus:border-[#0077C6] focus:outline-none focus:ring-1 focus:ring-[#0077C6] transition"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Live Preview Box */}
+                  <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 space-y-2.5">
+                    <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                      <Eye className="w-3.5 h-3.5 text-slate-400" />
+                      Pratinjau Tampilan Popup "Bantuan Pemulihan Kata Sandi" di Halaman Login:
+                    </div>
+                    <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3 max-w-md shadow-xs text-xs">
+                      <div className="flex items-start gap-2.5">
+                        <Mail className="w-4 h-4 text-[#0077C6] shrink-0 mt-0.5" />
+                        <div>
+                          <div className="font-semibold text-slate-800">Email Helpdesk:</div>
+                          <span className="text-[#0077C6] font-medium break-all">{helpdeskEmail || 'helpdesk@umkendari.ac.id'}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-2.5">
+                        <Phone className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <div>
+                          <div className="font-semibold text-slate-800">WhatsApp / Layanan Mahasiswa:</div>
+                          <span className="text-slate-800 font-medium">{helpdeskWa || '0852-4100-9988'}</span>{' '}
+                          {helpdeskNote && <span className="text-slate-500 font-normal">{helpdeskNote}</span>}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Main Cards List */}

@@ -10,7 +10,7 @@
  *   and seamless transition to credential input form on "Masuk dengan Akun CDC".
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Mail,
   Lock,
@@ -23,8 +23,8 @@ import {
   X,
   Phone
 } from 'lucide-react';
-import { getFromDB, saveToDB } from '../data';
-import { User as UserType } from '../types';
+import { getFromDB, saveToDB, getHelpdeskConfig } from '../data';
+import { User as UserType, HelpdeskConfig } from '../types';
 
 interface LoginProps {
   onLoginSuccess: (user: UserType) => void;
@@ -44,6 +44,14 @@ export default function Login({
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showForgotModal, setShowForgotModal] = useState(false);
+  const [helpdeskConfig, setHelpdeskConfig] = useState<HelpdeskConfig>(() => getHelpdeskConfig());
+
+  // Reload config when modal is opened
+  useEffect(() => {
+    if (showForgotModal) {
+      setHelpdeskConfig(getHelpdeskConfig());
+    }
+  }, [showForgotModal]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -280,62 +288,59 @@ export default function Login({
             ───────────────────────────────────────────────────────────── */
             <form onSubmit={handleSubmit} className="space-y-4 pt-1 animate-fade-in" id="login-form">
 
-              {/* Field: Email */}
-              <div className="space-y-1.5">
-                <label className="text-xs sm:text-[13px] font-semibold text-slate-700 flex items-center justify-between">
-                  <span>
-                    Alamat Email <span className="text-red-500">*</span>
-                  </span>
-                  <span className="text-[11px] font-normal text-slate-400">
-                    Gmail / @umkendari.ac.id
-                  </span>
+              {/* Field: Email with Facebook-style floating animation */}
+              <div className="relative rounded-xl border border-slate-200 bg-white focus-within:border-[#0077C6] focus-within:ring-2 focus-within:ring-[#0077C6]/15 transition-all">
+                <input
+                  type="email"
+                  id="login-input-email"
+                  required
+                  autoFocus
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder=" "
+                  className="peer w-full rounded-xl bg-transparent px-4 pt-5 pb-2 text-sm text-slate-800 placeholder-transparent focus:outline-none"
+                />
+                <label
+                  htmlFor="login-input-email"
+                  className={`pointer-events-none absolute left-4 transition-all duration-150 origin-left select-none ${
+                    email
+                      ? 'top-1.5 text-[11px] font-medium text-slate-500'
+                      : 'top-3.5 text-sm text-slate-400 peer-focus:top-1.5 peer-focus:text-[11px] peer-focus:text-[#0077C6] peer-focus:font-medium'
+                  }`}
+                >
+                  Email
                 </label>
-                <div className="relative">
-                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
-                    <Mail className="w-4 h-4" />
-                  </span>
-                  <input
-                    type="email"
-                    required
-                    autoFocus
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="nama@gmail.com / nama@umkendari.ac.id"
-                    className="w-full pl-10 pr-3.5 py-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-2 focus:ring-[#00186B]/15 transition"
-                    id="login-input-email"
-                  />
-                </div>
               </div>
 
-              {/* Field: Password */}
-              <div className="space-y-1.5">
-                <label className="text-xs sm:text-[13px] font-semibold text-slate-700 flex items-center justify-between">
-                  <span>
-                    Kata Sandi <span className="text-red-500">*</span>
-                  </span>
+              {/* Field: Password with Facebook-style floating animation */}
+              <div className="relative rounded-xl border border-slate-200 bg-white focus-within:border-[#0077C6] focus-within:ring-2 focus-within:ring-[#0077C6]/15 transition-all">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  id="login-input-password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder=" "
+                  className="peer w-full rounded-xl bg-transparent px-4 pr-11 pt-5 pb-2 text-sm text-slate-800 placeholder-transparent focus:outline-none"
+                />
+                <label
+                  htmlFor="login-input-password"
+                  className={`pointer-events-none absolute left-4 transition-all duration-150 origin-left select-none ${
+                    password
+                      ? 'top-1.5 text-[11px] font-medium text-slate-500'
+                      : 'top-3.5 text-sm text-slate-400 peer-focus:top-1.5 peer-focus:text-[11px] peer-focus:text-[#0077C6] peer-focus:font-medium'
+                  }`}
+                >
+                  Kata Sandi
                 </label>
-                <div className="relative">
-                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
-                    <Lock className="w-4 h-4" />
-                  </span>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Masukkan kata sandi Anda"
-                    className="w-full pl-10 pr-10 py-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-2 focus:ring-[#00186B]/15 transition"
-                    id="login-input-password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-700 transition cursor-pointer"
-                    aria-label={showPassword ? 'Sembunyikan sandi' : 'Lihat sandi'}
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-700 transition cursor-pointer"
+                  aria-label={showPassword ? 'Sembunyikan sandi' : 'Lihat sandi'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
 
               {/* Submit Button */}
@@ -435,8 +440,11 @@ export default function Login({
                 <Mail className="w-4 h-4 text-[#0077C6] shrink-0 mt-0.5" />
                 <div>
                   <div className="font-semibold text-slate-800">Email Helpdesk:</div>
-                  <a href="mailto:helpdesk@umkendari.ac.id" className="text-[#0077C6] hover:underline font-medium">
-                    helpdesk@umkendari.ac.id
+                  <a
+                    href={`mailto:${helpdeskConfig.email}`}
+                    className="text-[#0077C6] hover:underline font-medium break-all"
+                  >
+                    {helpdeskConfig.email}
                   </a>
                 </div>
               </div>
@@ -445,7 +453,17 @@ export default function Login({
                 <Phone className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                 <div>
                   <div className="font-semibold text-slate-800">WhatsApp / Layanan Mahasiswa:</div>
-                  <span className="text-slate-600 font-medium">0852-4100-9988 (Jam Kerja 08.00 - 16.00 WITA)</span>
+                  <a
+                    href={`https://wa.me/${helpdeskConfig.whatsappNumber.replace(/\D/g, '').replace(/^0/, '62')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-slate-800 hover:text-emerald-700 hover:underline font-medium inline-flex items-center gap-1.5"
+                  >
+                    <span>{helpdeskConfig.whatsappNumber}</span>
+                    {helpdeskConfig.whatsappNote && (
+                      <span className="text-slate-500 font-normal">{helpdeskConfig.whatsappNote}</span>
+                    )}
+                  </a>
                 </div>
               </div>
             </div>
