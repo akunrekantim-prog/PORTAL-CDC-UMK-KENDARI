@@ -618,3 +618,9 @@ export interface SocialMediaItem {
   isActive: boolean;
   hoverColor?: string;
 }
+
+export interface HelpdeskConfig {
+  email: string;
+  whatsappNumber: string;
+  whatsappNote: string;
+}

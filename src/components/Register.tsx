@@ -10,26 +10,23 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  Mail,
-  Lock,
-  User,
-  Phone,
-  Building2,
-  MapPin,
-  Globe,
   Loader2,
   Eye,
   EyeOff,
   CheckCircle2,
   AlertCircle,
   Info,
-  HelpCircle,
   ArrowRight,
-  ArrowLeft,
-  GraduationCap
+  ArrowLeft
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { registerUser, RegisterAlumniPayload, RegisterMitraPayload } from '../data';
+import {
+  registerUser,
+  RegisterAlumniPayload,
+  RegisterMitraPayload,
+  FAKULTAS_LIST,
+  PRODI_MAP
+} from '../data';
 
 interface RegisterProps {
   initialTab?: 'alumni' | 'perusahaan';
@@ -37,83 +34,6 @@ interface RegisterProps {
   onNavigateHome: () => void;
   onRegisterSuccess?: (user: any) => void;
 }
-
-const FAKULTAS_LIST = [
-  'Fakultas Teknik',
-  'Fakultas Ekonomi dan Bisnis Islam',
-  'Fakultas Keguruan dan Ilmu Pendidikan',
-  'Fakultas Hukum',
-  'Fakultas Ilmu Sosial dan Ilmu Politik',
-  'Fakultas Pertanian',
-  'Fakultas Perikanan dan Ilmu Kelautan',
-  'Fakultas Agama Islam',
-  'Program Pascasarjana (S2)',
-  'Lainnya'
-];
-
-const PRODI_MAP: Record<string, string[]> = {
-  'Fakultas Teknik': [
-    'Teknik Informatika',
-    'Sistem Informasi',
-    'Teknik Sipil',
-    'Teknik Arsitektur',
-    'Teknik Lingkungan',
-    'Lainnya'
-  ],
-  'Fakultas Ekonomi dan Bisnis Islam': [
-    'Manajemen',
-    'Akuntansi',
-    'Bisnis Digital',
-    'Perbankan Syariah',
-    'Ekonomi Islam',
-    'Lainnya'
-  ],
-  'Fakultas Keguruan dan Ilmu Pendidikan': [
-    'Pendidikan Bahasa Inggris',
-    'Pendidikan Guru Pendidikan Anak Usia Dini (PG-PAUD)',
-    'Pendidikan Guru Sekolah Dasar (PGSD)',
-    'Pendidikan Teknologi Informasi',
-    'Administrasi Pendidikan',
-    'Pendidikan Luar Sekolah (Pendidikan Masyarakat)',
-    'Lainnya'
-  ],
-  'Fakultas Hukum': [
-    'Ilmu Hukum',
-    'Lainnya'
-  ],
-  'Fakultas Ilmu Sosial dan Ilmu Politik': [
-    'Ilmu Pemerintahan',
-    'Ilmu Komunikasi',
-    'Lainnya'
-  ],
-  'Fakultas Pertanian': [
-    'Agribisnis',
-    'Kehutanan',
-    'Teknologi Hasil Pertanian',
-    'Lainnya'
-  ],
-  'Fakultas Perikanan dan Ilmu Kelautan': [
-    'Pemanfaatan Sumberdaya Perikanan',
-    'Akuakultur',
-    'Lainnya'
-  ],
-  'Fakultas Agama Islam': [
-    'Pendidikan Agama Islam',
-    'Hukum Ekonomi Syariah (Muamalah)',
-    'Pendidikan Islam Anak Usia Dini',
-    'Komunikasi dan Penyiaran Islam',
-    'Lainnya'
-  ],
-  'Program Pascasarjana (S2)': [
-    'Magister Manajemen (MM)',
-    'Magister Pendidikan Agama Islam',
-    'Magister Hukum',
-    'Lainnya'
-  ],
-  'Lainnya': [
-    'Program Studi Lainnya'
-  ]
-};
 
 const INDUSTRI_LIST = [
   'Teknologi Informasi, Software & Telekomunikasi',
@@ -147,8 +67,6 @@ export default function Register({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Terms Agreement State
-  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // Sync state if initialTab changes
   useEffect(() => {
@@ -221,10 +139,6 @@ export default function Register({
       setErrorMsg('Konfirmasi kata sandi tidak cocok dengan kata sandi yang dimasukkan.');
       return false;
     }
-    if (!agreedToTerms) {
-      setErrorMsg('Anda wajib menyetujui Ketentuan Layanan dan Kebijakan Privasi sebelum mendaftar.');
-      return false;
-    }
     return true;
   };
 
@@ -252,10 +166,6 @@ export default function Register({
     }
     if (mitraForm.password !== mitraForm.confirmPassword) {
       setErrorMsg('Konfirmasi kata sandi tidak cocok dengan kata sandi yang dimasukkan.');
-      return false;
-    }
-    if (!agreedToTerms) {
-      setErrorMsg('Anda wajib menyetujui Ketentuan Layanan dan Kebijakan Privasi sebelum mendaftar.');
       return false;
     }
     return true;
@@ -557,7 +467,7 @@ export default function Register({
                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs text-slate-600 divide-y divide-slate-100 text-left">
                   <div className="py-2 flex justify-between">
                     <span className="text-slate-500">Email Akun:</span>
-                    <span className="font-bold text-slate-900 font-mono">{successUser.email}</span>
+                    <span className="font-bold text-slate-900">{successUser.email}</span>
                   </div>
                   <div className="py-2 flex justify-between">
                     <span className="text-slate-500">Tipe Akun:</span>
@@ -629,14 +539,14 @@ export default function Register({
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div className="space-y-1.5">
                           <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
-                            Nama Lengkap (beserta gelar jika ada) <span className="text-red-500">*</span>
+                            Nama Lengkap <span className="text-red-500">*</span>
                           </label>
                           <input
                             type="text"
                             required
                             value={alumniForm.name}
                             onChange={(e) => setAlumniForm({ ...alumniForm, name: e.target.value })}
-                            placeholder="Contoh: Muhammad Fadly, S.Kom."
+                            placeholder="Masukkan nama lengkap"
                             className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
                           />
                         </div>
@@ -650,8 +560,8 @@ export default function Register({
                             required
                             value={alumniForm.nim}
                             onChange={(e) => setAlumniForm({ ...alumniForm, nim: e.target.value })}
-                            placeholder="Contoh: 202101001"
-                            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] font-mono transition"
+                            placeholder="Masukkan NIM"
+                            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
                           />
                         </div>
                       </div>
@@ -693,15 +603,15 @@ export default function Register({
 
                         <div className="space-y-1.5">
                           <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
-                            Tahun Angkatan / Kelulusan <span className="text-red-500">*</span>
+                            Tahun Angkatan <span className="text-red-500">*</span>
                           </label>
                           <select
                             value={alumniForm.tahunLulus}
                             onChange={(e) => setAlumniForm({ ...alumniForm, tahunLulus: e.target.value })}
                             className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 text-sm text-slate-800 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition cursor-pointer"
                           >
-                            <option value="" disabled>Pilih Tahun</option>
-                            {Array.from({ length: 15 }, (_, i) => new Date().getFullYear() + 1 - i).map(year => (
+                            <option value="" disabled>Pilih Tahun Angkatan</option>
+                            {Array.from({ length: new Date().getFullYear() - 1999 }, (_, i) => new Date().getFullYear() - i).map(year => (
                               <option key={year} value={year.toString()}>{year}</option>
                             ))}
                           </select>
@@ -736,38 +646,28 @@ export default function Register({
                           <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
                             Email Aktif <span className="text-red-500">*</span>
                           </label>
-                          <div className="relative">
-                            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
-                              <Mail className="w-4 h-4" />
-                            </span>
-                            <input
-                              type="email"
-                              required
-                              value={alumniForm.email}
-                              onChange={(e) => setAlumniForm({ ...alumniForm, email: e.target.value })}
-                              placeholder="nama@umkendari.ac.id"
-                              className="w-full pl-10 pr-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
-                            />
-                          </div>
+                          <input
+                            type="email"
+                            required
+                            value={alumniForm.email}
+                            onChange={(e) => setAlumniForm({ ...alumniForm, email: e.target.value })}
+                            placeholder="Masukkan email"
+                            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                          />
                         </div>
 
                         <div className="space-y-1.5">
                           <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
                             Nomor WhatsApp / Telepon <span className="text-red-500">*</span>
                           </label>
-                          <div className="relative">
-                            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
-                              <Phone className="w-4 h-4" />
-                            </span>
-                            <input
-                              type="tel"
-                              required
-                              value={alumniForm.phone}
-                              onChange={(e) => setAlumniForm({ ...alumniForm, phone: e.target.value })}
-                              placeholder="0852-XXXX-XXXX"
-                              className="w-full pl-10 pr-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] font-mono transition"
-                            />
-                          </div>
+                          <input
+                            type="tel"
+                            required
+                            value={alumniForm.phone}
+                            onChange={(e) => setAlumniForm({ ...alumniForm, phone: e.target.value })}
+                            placeholder="Masukkan nomor WhatsApp / telepon"
+                            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                          />
                         </div>
                       </div>
 
@@ -778,16 +678,13 @@ export default function Register({
                             Kata Sandi <span className="text-red-500">*</span>
                           </label>
                           <div className="relative">
-                            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
-                              <Lock className="w-4 h-4" />
-                            </span>
                             <input
                               type={showPassword ? 'text' : 'password'}
                               required
                               value={alumniForm.password}
                               onChange={(e) => setAlumniForm({ ...alumniForm, password: e.target.value })}
-                              placeholder="Minimal 6 karakter"
-                              className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                              placeholder="Masukkan kata sandi"
+                              className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 pr-10 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
                             />
                             <button
                               type="button"
@@ -804,16 +701,13 @@ export default function Register({
                             Konfirmasi Kata Sandi <span className="text-red-500">*</span>
                           </label>
                           <div className="relative">
-                            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
-                              <Lock className="w-4 h-4" />
-                            </span>
                             <input
                               type={showConfirmPassword ? 'text' : 'password'}
                               required
                               value={alumniForm.confirmPassword}
                               onChange={(e) => setAlumniForm({ ...alumniForm, confirmPassword: e.target.value })}
-                              placeholder="Ulangi kata sandi"
-                              className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                              placeholder="Masukkan konfirmasi kata sandi"
+                              className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 pr-10 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
                             />
                             <button
                               type="button"
@@ -826,20 +720,6 @@ export default function Register({
                         </div>
                       </div>
 
-                      {/* Agreement Checkbox */}
-                      <div className="pt-2">
-                        <label className="flex items-start gap-2.5 text-xs text-slate-600 cursor-pointer select-none">
-                          <input
-                            type="checkbox"
-                            checked={agreedToTerms}
-                            onChange={(e) => setAgreedToTerms(e.target.checked)}
-                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#00186B] focus:ring-[#00186B] cursor-pointer"
-                          />
-                          <span>
-                            Saya menyetujui <span className="text-blue-600 hover:underline font-medium">Ketentuan Layanan</span> dan <span className="text-blue-600 hover:underline font-medium">Kebijakan Privasi</span> Portal CDC Universitas Muhammadiyah Kendari.
-                          </span>
-                        </label>
-                      </div>
 
                       {/* Submit Button */}
                       <div className="pt-2">
@@ -891,38 +771,28 @@ export default function Register({
                           <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
                             Nama Perusahaan / Instansi <span className="text-red-500">*</span>
                           </label>
-                          <div className="relative">
-                            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
-                              <Building2 className="w-4 h-4" />
-                            </span>
-                            <input
-                              type="text"
-                              required
-                              value={mitraForm.namaInstansi}
-                              onChange={(e) => setMitraForm({ ...mitraForm, namaInstansi: e.target.value })}
-                              placeholder="Contoh: PT Go Digital Indonesia"
-                              className="w-full pl-10 pr-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
-                            />
-                          </div>
+                          <input
+                            type="text"
+                            required
+                            value={mitraForm.namaInstansi}
+                            onChange={(e) => setMitraForm({ ...mitraForm, namaInstansi: e.target.value })}
+                            placeholder="Masukkan nama perusahaan / instansi"
+                            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                          />
                         </div>
 
                         <div className="space-y-1.5">
                           <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
                             Nama HR / Penanggung Jawab <span className="text-red-500">*</span>
                           </label>
-                          <div className="relative">
-                            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
-                              <User className="w-4 h-4" />
-                            </span>
-                            <input
-                              type="text"
-                              required
-                              value={mitraForm.kontakPerson}
-                              onChange={(e) => setMitraForm({ ...mitraForm, kontakPerson: e.target.value })}
-                              placeholder="Contoh: Budi Setiawan (HR Manager)"
-                              className="w-full pl-10 pr-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
-                            />
-                          </div>
+                          <input
+                            type="text"
+                            required
+                            value={mitraForm.kontakPerson}
+                            onChange={(e) => setMitraForm({ ...mitraForm, kontakPerson: e.target.value })}
+                            placeholder="Masukkan nama HR / penanggung jawab"
+                            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                          />
                         </div>
                       </div>
 
@@ -948,19 +818,14 @@ export default function Register({
                           <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
                             Jabatan <span className="text-red-500">*</span>
                           </label>
-                          <div className="relative">
-                            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
-                              <User className="w-4 h-4" />
-                            </span>
-                            <input
-                              type="text"
-                              required
-                              value={mitraForm.jabatanKontak}
-                              onChange={(e) => setMitraForm({ ...mitraForm, jabatanKontak: e.target.value })}
-                              placeholder="Contoh: HR Manager / Talent Acquisition"
-                              className="w-full pl-10 pr-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
-                            />
-                          </div>
+                          <input
+                            type="text"
+                            required
+                            value={mitraForm.jabatanKontak}
+                            onChange={(e) => setMitraForm({ ...mitraForm, jabatanKontak: e.target.value })}
+                            placeholder="Masukkan jabatan"
+                            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                          />
                         </div>
                       </div>
 
@@ -970,38 +835,28 @@ export default function Register({
                           <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
                             Email Perusahaan / HR <span className="text-red-500">*</span>
                           </label>
-                          <div className="relative">
-                            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
-                              <Mail className="w-4 h-4" />
-                            </span>
-                            <input
-                              type="email"
-                              required
-                              value={mitraForm.email}
-                              onChange={(e) => setMitraForm({ ...mitraForm, email: e.target.value })}
-                              placeholder="Contoh: hrd@perusahaan.co.id"
-                              className="w-full pl-10 pr-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
-                            />
-                          </div>
+                          <input
+                            type="email"
+                            required
+                            value={mitraForm.email}
+                            onChange={(e) => setMitraForm({ ...mitraForm, email: e.target.value })}
+                            placeholder="Masukkan email perusahaan"
+                            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                          />
                         </div>
 
                         <div className="space-y-1.5">
                           <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
                             No. WhatsApp / Telepon HR <span className="text-red-500">*</span>
                           </label>
-                          <div className="relative">
-                            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
-                              <Phone className="w-4 h-4" />
-                            </span>
-                            <input
-                              type="tel"
-                              required
-                              value={mitraForm.phone}
-                              onChange={(e) => setMitraForm({ ...mitraForm, phone: e.target.value })}
-                              placeholder="Contoh: 0812 9999 XXXX"
-                              className="w-full pl-10 pr-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] font-mono transition"
-                            />
-                          </div>
+                          <input
+                            type="tel"
+                            required
+                            value={mitraForm.phone}
+                            onChange={(e) => setMitraForm({ ...mitraForm, phone: e.target.value })}
+                            placeholder="Masukkan no. WhatsApp / telepon HR"
+                            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                          />
                         </div>
                       </div>
 
@@ -1011,37 +866,27 @@ export default function Register({
                           <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
                             Website Perusahaan (Opsional)
                           </label>
-                          <div className="relative">
-                            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
-                              <Globe className="w-4 h-4" />
-                            </span>
-                            <input
-                              type="text"
-                              value={mitraForm.website}
-                              onChange={(e) => setMitraForm({ ...mitraForm, website: e.target.value })}
-                              placeholder="Contoh: https://www.perusahaan.com"
-                              className="w-full pl-10 pr-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
-                            />
-                          </div>
+                          <input
+                            type="text"
+                            value={mitraForm.website}
+                            onChange={(e) => setMitraForm({ ...mitraForm, website: e.target.value })}
+                            placeholder="Masukkan link website perusahaan (opsional)"
+                            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                          />
                         </div>
 
                         <div className="space-y-1.5">
                           <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
                             Alamat Kantor Perusahaan / Cabang <span className="text-red-500">*</span>
                           </label>
-                          <div className="relative">
-                            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
-                              <MapPin className="w-4 h-4" />
-                            </span>
-                            <input
-                              type="text"
-                              required
-                              value={mitraForm.alamat}
-                              onChange={(e) => setMitraForm({ ...mitraForm, alamat: e.target.value })}
-                              placeholder="Contoh: Jl. Jenderal Sudirman No. X, Kendari, Sultra"
-                              className="w-full pl-10 pr-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
-                            />
-                          </div>
+                          <input
+                            type="text"
+                            required
+                            value={mitraForm.alamat}
+                            onChange={(e) => setMitraForm({ ...mitraForm, alamat: e.target.value })}
+                            placeholder="Masukkan alamat kantor perusahaan"
+                            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                          />
                         </div>
                       </div>
 
@@ -1052,16 +897,13 @@ export default function Register({
                             Kata Sandi <span className="text-red-500">*</span>
                           </label>
                           <div className="relative">
-                            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
-                              <Lock className="w-4 h-4" />
-                            </span>
                             <input
                               type={showPassword ? 'text' : 'password'}
                               required
                               value={mitraForm.password}
                               onChange={(e) => setMitraForm({ ...mitraForm, password: e.target.value })}
-                              placeholder="Minimal 6 karakter"
-                              className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                              placeholder="Masukkan kata sandi"
+                              className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 pr-10 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
                             />
                             <button
                               type="button"
@@ -1078,16 +920,13 @@ export default function Register({
                             Konfirmasi Kata Sandi <span className="text-red-500">*</span>
                           </label>
                           <div className="relative">
-                            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
-                              <Lock className="w-4 h-4" />
-                            </span>
                             <input
                               type={showConfirmPassword ? 'text' : 'password'}
                               required
                               value={mitraForm.confirmPassword}
                               onChange={(e) => setMitraForm({ ...mitraForm, confirmPassword: e.target.value })}
-                              placeholder="Ulangi kata sandi"
-                              className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                              placeholder="Masukkan konfirmasi kata sandi"
+                              className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 pr-10 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
                             />
                             <button
                               type="button"
@@ -1100,20 +939,6 @@ export default function Register({
                         </div>
                       </div>
 
-                      {/* Agreement Checkbox */}
-                      <div className="pt-2">
-                        <label className="flex items-start gap-2.5 text-xs text-slate-600 cursor-pointer select-none">
-                          <input
-                            type="checkbox"
-                            checked={agreedToTerms}
-                            onChange={(e) => setAgreedToTerms(e.target.checked)}
-                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#00186B] focus:ring-[#00186B] cursor-pointer"
-                          />
-                          <span>
-                            Saya menyetujui <span className="text-blue-600 hover:underline font-medium">Ketentuan Layanan</span> dan <span className="text-blue-600 hover:underline font-medium">Kebijakan Privasi</span> Portal CDC Universitas Muhammadiyah Kendari.
-                          </span>
-                        </label>
-                      </div>
 
                       {/* Submit Button */}
                       <div className="pt-2">
@@ -1154,36 +979,6 @@ export default function Register({
 
         </div>
       </main>
-
-      {/* ─────────────────────────────────────────────────────────────
-          3. INSTITUTIONAL FOOTER
-      ───────────────────────────────────────────────────────────── */}
-      <footer className="bg-white border-t border-slate-200/80 py-5 text-slate-500 text-xs mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>
-            © {new Date().getFullYear()} Career Development Center — Universitas Muhammadiyah Kendari
-          </div>
-
-          <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
-            <span className="flex items-center gap-1.5">
-              <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
-              Butuh bantuan?
-            </span>
-            <a
-              href="mailto:helpdesk@umkendari.ac.id"
-              className="flex items-center gap-1.5 text-slate-600 hover:text-slate-900 transition"
-            >
-              <Mail className="w-3.5 h-3.5 text-slate-400" />
-              helpdesk@umkendari.ac.id
-            </a>
-            <span className="text-slate-300 hidden sm:inline">|</span>
-            <span className="flex items-center gap-1.5 text-slate-600">
-              <Phone className="w-3.5 h-3.5 text-slate-400" />
-              0852-XXXX-XXXX
-            </span>
-          </div>
-        </div>
-      </footer>
 
     </div>
   );

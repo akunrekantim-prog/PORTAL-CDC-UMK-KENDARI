@@ -26,8 +26,96 @@ import {
   KonselingInfoItem,
   KonselingJadwalItem,
   AnggotaTim,
-  SocialMediaItem
+  SocialMediaItem,
+  HelpdeskConfig
 } from './types';
+
+// Daftar Fakultas Resmi Universitas Muhammadiyah Kendari (UM Kendari)
+export const FAKULTAS_LIST: string[] = [
+  'Fakultas Teknik',
+  'Fakultas Ekonomi dan Bisnis Islam',
+  'Fakultas Keguruan dan Ilmu Pendidikan',
+  'Fakultas Agama Islam',
+  'Fakultas Hukum',
+  'Fakultas Ilmu Sosial dan Ilmu Politik',
+  'Fakultas Pertanian',
+  'Fakultas Perikanan dan Ilmu Kelautan',
+  'Fakultas Kedokteran dan Ilmu Kesehatan',
+  'Program Pascasarjana (S2)',
+  'Lainnya'
+];
+
+// Pemetaan Program Studi Resmi per Fakultas di UM Kendari
+export const PRODI_MAP: Record<string, string[]> = {
+  'Fakultas Teknik': [
+    'Teknik Sipil',
+    'Teknik Arsitektur',
+    'Teknik Lingkungan',
+    'Teknik Pertambangan',
+    'Sistem dan Teknologi Informasi',
+    'Teknik Kimia',
+    'Teknik Metalurgi',
+    'Lainnya'
+  ],
+  'Fakultas Ekonomi dan Bisnis Islam': [
+    'Manajemen',
+    'Bisnis Digital',
+    'Lainnya'
+  ],
+  'Fakultas Keguruan dan Ilmu Pendidikan': [
+    'Administrasi Pendidikan',
+    'Pendidikan Guru Pendidikan Anak Usia Dini (PG-PAUD)',
+    'Pendidikan Bahasa Inggris',
+    'Pendidikan Non Formal',
+    'Pendidikan Teknologi Informasi',
+    'Pendidikan Matematika',
+    'Pendidikan Profesi Guru (PPG)',
+    'Lainnya'
+  ],
+  'Fakultas Agama Islam': [
+    'Pendidikan Agama Islam (PAI)',
+    'Psikologi Islam',
+    'Lainnya'
+  ],
+  'Fakultas Hukum': [
+    'Ilmu Hukum',
+    'Lainnya'
+  ],
+  'Fakultas Ilmu Sosial dan Ilmu Politik': [
+    'Ilmu Pemerintahan',
+    'Desain Komunikasi Visual (DKV)',
+    'Lainnya'
+  ],
+  'Fakultas Pertanian': [
+    'Agribisnis',
+    'Teknologi Industri Pertanian',
+    'Lainnya'
+  ],
+  'Fakultas Perikanan dan Ilmu Kelautan': [
+    'Teknologi Hasil Perikanan',
+    'Pemanfaatan Sumberdaya Perikanan',
+    'Lainnya'
+  ],
+  'Fakultas Kedokteran dan Ilmu Kesehatan': [
+    'Kedokteran (S1)',
+    'Teknologi Laboratorium Medik (D4)',
+    'Farmasi (D3)',
+    'Profesi Dokter',
+    'Lainnya'
+  ],
+  'Program Pascasarjana (S2)': [
+    'Magister Manajemen (MM)',
+    'Magister Administrasi Pendidikan',
+    'Magister Pendidikan Bahasa Inggris',
+    'Magister Ilmu Hukum',
+    'Magister Ilmu Pemerintahan',
+    'Magister Agribisnis',
+    'Lainnya'
+  ],
+  'Lainnya': [
+    'Program Studi Lainnya'
+  ]
+};
 
 // Mock Password: all seeded accounts use "password"
 export const SEED_USERS: User[] = [
@@ -1826,6 +1914,36 @@ export function saveAdminWaPrestasi(phone: string) {
   let clean = phone.replace(/\D/g, '');
   if (clean.startsWith('0')) clean = '62' + clean.slice(1);
   localStorage.setItem('cdc_umk_admin_wa_prestasi', clean);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   HELPDESK & PEMULIHAN KATA SANDI CONFIG & HELPER
+───────────────────────────────────────────────────────────────── */
+export const DEFAULT_HELPDESK_CONFIG: HelpdeskConfig = {
+  email: 'helpdesk@umkendari.ac.id',
+  whatsappNumber: '0852-4100-9988',
+  whatsappNote: '(Jam Kerja 08.00 - 16.00 WITA)'
+};
+
+export function getHelpdeskConfig(): HelpdeskConfig {
+  const saved = localStorage.getItem('cdc_umk_helpdesk_config');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      return {
+        email: parsed.email || DEFAULT_HELPDESK_CONFIG.email,
+        whatsappNumber: parsed.whatsappNumber || DEFAULT_HELPDESK_CONFIG.whatsappNumber,
+        whatsappNote: parsed.whatsappNote ?? DEFAULT_HELPDESK_CONFIG.whatsappNote
+      };
+    } catch (e) {
+      // ignore
+    }
+  }
+  return DEFAULT_HELPDESK_CONFIG;
+}
+
+export function saveHelpdeskConfig(config: HelpdeskConfig) {
+  localStorage.setItem('cdc_umk_helpdesk_config', JSON.stringify(config));
 }
 
 /* ─────────────────────────────────────────────────────────────────
