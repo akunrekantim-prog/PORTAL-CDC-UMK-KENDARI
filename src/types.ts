@@ -126,6 +126,7 @@ export interface KontenKarir {
   terverifikasi?: boolean;
   isPinned?: boolean; // Penanda sematan (Pin) ke Popular Info
   showOnHome?: boolean; // Pilihan tampilkan di Beranda Utama (Section Berita & Artikel)
+  layoutType?: 'card' | 'badge'; // Pilihan Layout: 'card' (Card Gambar) vs 'badge' (Model Badge Khusus)
 }
 
 export interface Alumni {
@@ -311,6 +312,11 @@ export interface Pengumuman {
   status: 'draft' | 'published';
   publishedAt?: string;
   createdAt: string;
+  isImportant?: boolean;
+  displayType?: 'badge' | 'poster';
+  posterUrl?: string;
+  linkUrl?: string;
+  linkLabel?: string;
 }
 
 export interface SurveiLulusan {
@@ -462,6 +468,11 @@ export interface Pengumuman {
   status: 'draft' | 'published';
   publishedAt?: string;
   createdAt: string;
+  isImportant?: boolean;
+  displayType?: 'badge' | 'poster';
+  posterUrl?: string;
+  linkUrl?: string;
+  linkLabel?: string;
 }
 
 export interface SurveiLulusan {

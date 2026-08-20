@@ -31,7 +31,8 @@ import {
   KonselingInfoItem,
   KonselingJadwalItem,
   AnggotaTim,
-  SocialMediaItem
+  SocialMediaItem,
+  Pengumuman
 } from '../types';
 import {
   getFromDB,
@@ -392,6 +393,29 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const [socUrl, setSocUrl] = useState('');
   const [socIsActive, setSocIsActive] = useState(true);
 
+  // State Pengumuman Khusus / Utama Beranda
+  const [annIsImportant, setAnnIsImportant] = useState<boolean>(true);
+  const [annDisplayType, setAnnDisplayType] = useState<'badge' | 'poster'>('badge');
+  const [annTitle, setAnnTitle] = useState<string>('');
+  const [annContent, setAnnContent] = useState<string>('');
+  const [annPosterUrl, setAnnPosterUrl] = useState<string>('');
+  const [annLinkUrl, setAnnLinkUrl] = useState<string>('');
+  const [annLinkLabel, setAnnLinkLabel] = useState<string>('');
+
+  const syncAnnState = () => {
+    const list = getFromDB<Pengumuman>('pengumuman');
+    const imp = list.find((a) => a.isImportant) || list[0];
+    if (imp) {
+      setAnnIsImportant(imp.isImportant !== false);
+      setAnnDisplayType(imp.displayType || 'badge');
+      setAnnTitle(imp.title || '');
+      setAnnContent(imp.content || '');
+      setAnnPosterUrl(imp.posterUrl || '');
+      setAnnLinkUrl(imp.linkUrl || '');
+      setAnnLinkLabel(imp.linkLabel || '');
+    }
+  };
+
   const reloadAll = () => {
     setStudents(getFromDB<Mahasiswa>('mahasiswa'));
     setAlumni(getFromDB<Alumni>('alumni'));
@@ -408,6 +432,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
     setAdminWaNum(getAdminWaPrestasi());
     setAnggotaList(getAnggotaTim());
     setSocMedList(getFromDB<SocialMediaItem>('social_media'));
+    syncAnnState();
 
     const cfg = getKonselingConfig();
     setKonselingCfg(cfg);
@@ -434,7 +459,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
    * =======================================================*/
   const MENU: { group: string; items: { id: AdminTab; label: string; icon: React.ReactNode }[] }[] = [
     { group: 'DASHBOARD', items: [{ id: 'ringkasan', label: 'Ringkasan Laporan', icon: <LayoutDashboard className="w-4 h-4" /> }] },
-    { group: 'KONTEN KARIR', items: [ { id: 'konten', label: 'Riwayat & Pembuatan Konten', icon: <FileText className="w-4 h-4" /> } ] },
+    { group: 'KONTEN KARIR', items: [{ id: 'konten', label: 'Riwayat & Pembuatan Konten', icon: <FileText className="w-4 h-4" /> }] },
     {
       group: 'MANAJEMEN MITRA',
       items: [
@@ -688,6 +713,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const [eTerverifikasi, setETerverifikasi] = useState(true);
   const [eIsPinned, setEIsPinned] = useState(false);
   const [eShowOnHome, setEShowOnHome] = useState(false);
+  const [eLayoutType, setELayoutType] = useState<'card' | 'badge'>('card');
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const beritaEditRef = useRef<HTMLDivElement>(null);
   const [beritaPop, setBeritaPop] = useState<null | 'bullets' | 'numbering'>(null);
@@ -783,6 +809,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       setETerverifikasi(item.terverifikasi !== false);
       setEIsPinned(item.isPinned === true);
       setEShowOnHome(item.showOnHome === true);
+      setELayoutType(item.layoutType || 'card');
     } else {
       setEditId(null);
       setEJenis(jenis || 'berita');
@@ -795,6 +822,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       setETahunPres(new Date().getFullYear().toString()); setEPeringkat('Juara 1'); setETerverifikasi(true);
       setEIsPinned(false);
       setEShowOnHome(false);
+      setELayoutType('card');
     }
     setSaveError(null);
     setKontenSub('pembuatan');
@@ -1210,7 +1238,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       linkDaftar: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? eLinkDaftar.trim() : undefined,
       statusEvent: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? eStatusEvent : undefined,
       isPinned: eIsPinned,
-      showOnHome: eJenis === 'presentasi' ? eShowOnHome : undefined
+      showOnHome: eJenis === 'presentasi' ? eShowOnHome : undefined,
+      layoutType: eJenis === 'program' ? eLayoutType : undefined
     };
     try {
       const pruned = await saveKontenKarirWithQuota(base, !!editId);
@@ -1449,31 +1478,31 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
               <div className="bg-[#1E3A8A] text-white p-2 rounded-xl border border-blue-800/50"><FileText className="w-4 h-4" /></div>
               <div className="font-extrabold text-slate-900 text-sm tracking-tight">Menu Admin</div>
             </div>
-          <nav className="flex flex-col gap-1">
-            {MENU.map((section, idx) => (
-              <div key={section.group} className={idx > 0 ? 'mt-4 pt-3 border-t border-slate-100' : ''}>
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 px-1">{section.group}</div>
-                <div className="flex flex-col gap-1">
-                  {section.items.map((menu) => {
-                    const active = activeTab === menu.id;
-                    return (
-                      <button
-                        key={menu.id}
-                        id={`adm-tab-${menu.id}`}
-                        onClick={() => setActiveTab(menu.id)}
-                        className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 ${active ? 'bg-[#1E3A8A] text-white shadow-md shadow-blue-900/10' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}`}
-                      >
-                        <span className={`transition-transform duration-200 ${active ? 'text-white scale-110' : 'text-slate-400 group-hover:text-[#0077C6]'}`}>{menu.icon}</span>
-                        <span className="text-[13px] font-semibold">{menu.label}</span>
-                        {active
-                          ? <span className="ml-auto w-2 h-2 rounded-full bg-white" />
-                          : <span className="ml-auto w-1.5 h-1.5 rounded-full bg-transparent group-hover:bg-blue-300 transition" />}
-                      </button>
-                    );
-                  })}
+            <nav className="flex flex-col gap-1">
+              {MENU.map((section, idx) => (
+                <div key={section.group} className={idx > 0 ? 'mt-4 pt-3 border-t border-slate-100' : ''}>
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 px-1">{section.group}</div>
+                  <div className="flex flex-col gap-1">
+                    {section.items.map((menu) => {
+                      const active = activeTab === menu.id;
+                      return (
+                        <button
+                          key={menu.id}
+                          id={`adm-tab-${menu.id}`}
+                          onClick={() => setActiveTab(menu.id)}
+                          className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 ${active ? 'bg-[#1E3A8A] text-white shadow-md shadow-blue-900/10' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}`}
+                        >
+                          <span className={`transition-transform duration-200 ${active ? 'text-white scale-110' : 'text-slate-400 group-hover:text-[#0077C6]'}`}>{menu.icon}</span>
+                          <span className="text-[13px] font-semibold">{menu.label}</span>
+                          {active
+                            ? <span className="ml-auto w-2 h-2 rounded-full bg-white" />
+                            : <span className="ml-auto w-1.5 h-1.5 rounded-full bg-transparent group-hover:bg-blue-300 transition" />}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
             </nav>
           </div>
         </aside>
@@ -1545,20 +1574,20 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                 <h2 className="font-bold text-slate-900 tracking-tight mb-3 flex items-center gap-2">
                   <Activity className="w-4 h-4 text-[#0077C6]" /> Aktivitas Terkini
                 </h2>
-                  <div className="space-y-2 max-h-72 overflow-auto no-scrollbar">
-                    {aktivitas.length === 0 ? (
-                      <div className="text-sm text-slate-400 py-6 text-center">Belum ada aktivitas.</div>
-                    ) : aktivitas.map((a, i) => (
-                      <div key={i} className="flex gap-2 items-start text-sm hover:translate-x-0.5 transition">
-                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#0077C6] flex-shrink-0" />
-                        <div>
-                          <div className="text-slate-700">{a.text}</div>
-                          <div className="text-[10px] text-slate-400">{formatTanggal(a.date)}</div>
-                        </div>
+                <div className="space-y-2 max-h-72 overflow-auto no-scrollbar">
+                  {aktivitas.length === 0 ? (
+                    <div className="text-sm text-slate-400 py-6 text-center">Belum ada aktivitas.</div>
+                  ) : aktivitas.map((a, i) => (
+                    <div key={i} className="flex gap-2 items-start text-sm hover:translate-x-0.5 transition">
+                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#0077C6] flex-shrink-0" />
+                      <div>
+                        <div className="text-slate-700">{a.text}</div>
+                        <div className="text-[10px] text-slate-400">{formatTanggal(a.date)}</div>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
+              </div>
 
               {/* Top 5 mitra + Berita terbaru */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1625,7 +1654,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
 
               {kontenSub === 'riwayat' && (
                 <div className="space-y-4" id="adm-konten-riwayat">
-                  
+
                   {/* Pengaturan Nomor WA Admin untuk Lapor Prestasi */}
                   <div className="bg-emerald-50/60 border border-emerald-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
@@ -1656,6 +1685,186 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                       </button>
                     </div>
                   </div>
+
+                  {/* Pengaturan Pengumuman Utama Beranda (Pengumuman Sangat Penting) */}
+                  <div className="bg-slate-900 text-white rounded-2xl p-5 sm:p-6 shadow-md border border-slate-800 space-y-4">
+                    <div className="flex items-center justify-between gap-3 border-b border-slate-800 pb-3 flex-wrap">
+                      <div className="flex items-center gap-2.5">
+                        <div className="p-2 bg-emerald-500/20 text-emerald-400 rounded-xl">
+                          <Megaphone className="w-5 h-5 animate-pulse" />
+                        </div>
+                        <div>
+                          <h4 className="font-extrabold text-sm text-white flex items-center gap-2">
+                            Pengumuman Utama Beranda (Pengumuman Sangat Penting)
+                          </h4>
+                          <p className="text-slate-400 text-xs">
+                            Ditampilkan di posisi teratas beranda publik (tepat di atas Info Karir Terkini).
+                          </p>
+                        </div>
+                      </div>
+                      <label className="flex items-center gap-2 cursor-pointer bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700">
+                        <input
+                          type="checkbox"
+                          checked={annIsImportant}
+                          onChange={(e) => setAnnIsImportant(e.target.checked)}
+                          className="w-4 h-4 text-emerald-500 rounded border-slate-600 focus:ring-emerald-500 cursor-pointer"
+                        />
+                        <span className="text-xs font-bold text-slate-200">Aktif di Beranda</span>
+                      </label>
+                    </div>
+
+                    {/* Mode Tampilan Radio */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs font-semibold text-slate-300 block mb-1.5">Mode Tampilan Pengumuman</label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setAnnDisplayType('badge')}
+                            className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 border ${annDisplayType === 'badge'
+                                ? 'bg-emerald-500 text-slate-950 border-emerald-400 font-extrabold'
+                                : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200'
+                              }`}
+                          >
+                            <span>Banner Teks & Badge</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setAnnDisplayType('poster')}
+                            className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 border ${annDisplayType === 'poster'
+                                ? 'bg-emerald-500 text-slate-950 border-emerald-400 font-extrabold'
+                                : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200'
+                              }`}
+                          >
+                            <span>Poster Gambar</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Judul Pengumuman */}
+                      <div>
+                        <label className="text-xs font-semibold text-slate-300 block mb-1.5">Judul Pengumuman Khusus *</label>
+                        <input
+                          type="text"
+                          value={annTitle}
+                          onChange={(e) => setAnnTitle(e.target.value)}
+                          placeholder="Pengisian Tracer Study Alumni..."
+                          className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Isi Teks / Deskripsi */}
+                    <div>
+                      <label className="text-xs font-semibold text-slate-300 block mb-1.5">Isi Pengumuman / Deskripsi Ringkas</label>
+                      <textarea
+                        rows={2}
+                        value={annContent}
+                        onChange={(e) => setAnnContent(e.target.value)}
+                        placeholder="Tulis uraian pengumuman di sini..."
+                        className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+
+                    {/* Jika Mode Poster: Upload / URL Poster */}
+                    {annDisplayType === 'poster' && (
+                      <div className="space-y-2 pt-2 border-t border-slate-800">
+                        <label className="text-xs font-semibold text-emerald-400 block">Poster Gambar Pengumuman (Banner Visual)</label>
+                        <div className="flex flex-col sm:flex-row items-center gap-3">
+                          <label className="cursor-pointer bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shrink-0">
+                            <ImageIcon className="w-4 h-4 text-emerald-400" /> Upload Poster Gambar
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const r = new FileReader();
+                                  r.onloadend = () => setAnnPosterUrl(r.result as string);
+                                  r.readAsDataURL(file);
+                                }
+                              }}
+                            />
+                          </label>
+                          <input
+                            type="text"
+                            value={annPosterUrl}
+                            onChange={(e) => setAnnPosterUrl(e.target.value)}
+                            placeholder="atau tempel URL gambar poster (https://...)"
+                            className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                          />
+                        </div>
+                        {annPosterUrl && (
+                          <div className="relative w-full max-h-48 rounded-xl overflow-hidden border border-slate-700 bg-slate-950 flex items-center justify-center">
+                            <img src={annPosterUrl} alt="Preview Poster" className="w-full h-full object-contain max-h-48" />
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Link Aksi & Label Tombol */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-800">
+                      <div>
+                        <label className="text-xs font-semibold text-slate-300 block mb-1">Tautan / Link Aksi Opsional (URL)</label>
+                        <input
+                          type="text"
+                          value={annLinkUrl}
+                          onChange={(e) => setAnnLinkUrl(e.target.value)}
+                          placeholder="https://tracerstudy.umkendari.ac.id"
+                          className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-slate-300 block mb-1">Label Tombol Aksi</label>
+                        <input
+                          type="text"
+                          value={annLinkLabel}
+                          onChange={(e) => setAnnLinkLabel(e.target.value)}
+                          placeholder="mis. Isi Tracer Study / Buka Link"
+                          className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end pt-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const list = getFromDB<Pengumuman>('pengumuman');
+                          const activeAnn = list.find((a) => a.isImportant) || list[0];
+                          const updatedAnn: Pengumuman = {
+                            id: activeAnn?.id || `ann_${Date.now()}`,
+                            title: annTitle.trim() || 'Pengumuman Penting CDC UMK',
+                            content: annContent.trim(),
+                            category: activeAnn?.category || 'tracer_study',
+                            status: 'published',
+                            createdAt: activeAnn?.createdAt || new Date().toISOString(),
+                            publishedAt: new Date().toISOString(),
+                            isImportant: annIsImportant,
+                            displayType: annDisplayType,
+                            posterUrl: annPosterUrl,
+                            linkUrl: annLinkUrl.trim(),
+                            linkLabel: annLinkLabel.trim()
+                          };
+                          let newList: Pengumuman[];
+                          const idx = list.findIndex((a) => a.id === updatedAnn.id);
+                          if (idx >= 0) {
+                            newList = list.map((a, i) => (i === idx ? updatedAnn : { ...a, isImportant: false }));
+                          } else {
+                            newList = [updatedAnn, ...list.map(a => ({ ...a, isImportant: false }))];
+                          }
+                          saveToDB('pengumuman', newList);
+                          triggerToast('success', 'Pengumuman Utama Beranda berhasil disimpan!');
+                          reloadAll();
+                        }}
+                        className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-5 py-2.5 rounded-xl text-xs font-black transition shadow-sm flex items-center gap-2 cursor-pointer"
+                      >
+                        <Check className="w-4 h-4" /> Simpan Pengumuman Utama
+                      </button>
+                    </div>
+                  </div>
+
                   <div className="flex flex-wrap items-center gap-2">
                     <div className="relative flex-1 min-w-[200px]">
                       <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -1702,50 +1911,49 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
 
                   <div className="space-y-3">
                     {filteredKonten.map((k) => (
-                        <div key={k.id} className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex items-center gap-4">
-                          {THUMB_REQUIRED[k.jenis] && k.thumbnail ? (
-                            <button onClick={() => setZoomImage(k.thumbnail!)} className="flex-shrink-0 relative group">
-                              <img src={k.thumbnail} alt="" className={`w-20 object-cover rounded-xl ${k.jenis === 'lowongan' ? 'h-28' : 'h-14'}`} />
-                              <span className="absolute inset-0 bg-black/0 group-hover:bg-black/30 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition"><ZoomIn className="w-5 h-5 text-white" /></span>
-                            </button>
-                          ) : (
-                            <div className="w-20 h-14 flex-shrink-0 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400">{JENIS_ICON[k.jenis]}</div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-0.5">
-                              {statusBadge(k.status, { draft: { bg: 'bg-slate-100', text: 'text-slate-600', label: 'Draft' }, published: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Published' } })}
-                              <span className="text-[11px] text-slate-400 flex items-center gap-1">{JENIS_ICON[k.jenis]} {JENIS_LABEL[k.jenis]}</span>
-                              {k.isPinned && k.jenis !== 'lowongan' && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300">
-                                  <Pin className="w-3 h-3 fill-amber-600 text-amber-600" /> Ter-Pin
-                                </span>
-                              )}
-                            </div>
-                            <div className="font-bold text-slate-800 truncate">{k.judul}</div>
-                            <div className="text-[11px] text-slate-400">{formatTanggal(k.createdAt)}{k.penulis ? ' · ' + k.penulis : ''}</div>
-                          </div>
-                          <div className="flex gap-1.5 flex-shrink-0">
-                            {k.jenis !== 'lowongan' && (
-                              <button
-                                type="button"
-                                title={k.isPinned ? "Lepas Sematan (Unpin)" : "Sematkan ke Popular Info (Pin)"}
-                                onClick={() => handleTogglePinKonten(k)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${
-                                  k.isPinned
-                                    ? 'bg-amber-100 text-amber-800 border border-amber-300'
-                                    : 'bg-slate-100 hover:bg-amber-50 text-slate-600 hover:text-amber-700'
-                                }`}
-                              >
-                                <Pin className={`w-3.5 h-3.5 ${k.isPinned ? 'fill-amber-600 text-amber-600' : ''}`} />
-                                <span>{k.isPinned ? 'Ter-Pin' : 'Pin'}</span>
-                              </button>
+                      <div key={k.id} className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex items-center gap-4">
+                        {THUMB_REQUIRED[k.jenis] && k.thumbnail ? (
+                          <button onClick={() => setZoomImage(k.thumbnail!)} className="flex-shrink-0 relative group">
+                            <img src={k.thumbnail} alt="" className={`w-20 object-cover rounded-xl ${k.jenis === 'lowongan' ? 'h-28' : 'h-14'}`} />
+                            <span className="absolute inset-0 bg-black/0 group-hover:bg-black/30 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition"><ZoomIn className="w-5 h-5 text-white" /></span>
+                          </button>
+                        ) : (
+                          <div className="w-20 h-14 flex-shrink-0 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400">{JENIS_ICON[k.jenis]}</div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            {statusBadge(k.status, { draft: { bg: 'bg-slate-100', text: 'text-slate-600', label: 'Draft' }, published: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Published' } })}
+                            <span className="text-[11px] text-slate-400 flex items-center gap-1">{JENIS_ICON[k.jenis]} {JENIS_LABEL[k.jenis]}</span>
+                            {k.isPinned && k.jenis !== 'lowongan' && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300">
+                                <Pin className="w-3 h-3 fill-amber-600 text-amber-600" /> Ter-Pin
+                              </span>
                             )}
-                            <button onClick={() => openEditor(k)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Edit3 className="w-3.5 h-3.5" /> Edit</button>
-                            <button onClick={() => handleDeleteKonten(k)} className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Trash2 className="w-3.5 h-3.5" /> Hapus</button>
                           </div>
+                          <div className="font-bold text-slate-800 truncate">{k.judul}</div>
+                          <div className="text-[11px] text-slate-400">{formatTanggal(k.createdAt)}{k.penulis ? ' · ' + k.penulis : ''}</div>
                         </div>
-                      ))}
-                    </div>
+                        <div className="flex gap-1.5 flex-shrink-0">
+                          {k.jenis !== 'lowongan' && (
+                            <button
+                              type="button"
+                              title={k.isPinned ? "Lepas Sematan (Unpin)" : "Sematkan ke Popular Info (Pin)"}
+                              onClick={() => handleTogglePinKonten(k)}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${k.isPinned
+                                  ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                                  : 'bg-slate-100 hover:bg-amber-50 text-slate-600 hover:text-amber-700'
+                                }`}
+                            >
+                              <Pin className={`w-3.5 h-3.5 ${k.isPinned ? 'fill-amber-600 text-amber-600' : ''}`} />
+                              <span>{k.isPinned ? 'Ter-Pin' : 'Pin'}</span>
+                            </button>
+                          )}
+                          <button onClick={() => openEditor(k)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Edit3 className="w-3.5 h-3.5" /> Edit</button>
+                          <button onClick={() => handleDeleteKonten(k)} className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Trash2 className="w-3.5 h-3.5" /> Hapus</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -2027,19 +2235,60 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                     )}
 
                     {eJenis === 'program' && (
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-slate-500">Kategori Pengumuman (bebas, mis. KERJA / MAGANG / UMUM)</label>
-                        <input value={eKategori} onChange={(e) => setEKategori(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="KERJA / MAGANG / UMUM / DLL" />
+                      <div className="space-y-3 sm:col-span-2">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-slate-500">Kategori Pengumuman (bebas, mis. Program Unggulan / KERJA / MAGANG / UMUM)</label>
+                          <input value={eKategori} onChange={(e) => setEKategori(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="Program Unggulan / KERJA / MAGANG / UMUM / DLL" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700 block mb-1">Model Layout Tampilan (Penayangan Beranda)</label>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <button
+                              type="button"
+                              onClick={() => setELayoutType('card')}
+                              className={`p-3 rounded-xl text-xs font-bold transition flex items-center justify-start gap-2.5 border cursor-pointer ${
+                                eLayoutType === 'card'
+                                  ? 'bg-[#1E3A8A] text-white border-[#1E3A8A] shadow-xs'
+                                  : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                              }`}
+                            >
+                              <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${eLayoutType === 'card' ? 'border-white bg-white/20' : 'border-slate-400'}`}>
+                                {eLayoutType === 'card' && <div className="w-2 h-2 rounded-full bg-white" />}
+                              </div>
+                              <div className="text-left">
+                                <div className="font-extrabold text-xs">Card Gambar / Poster</div>
+                                <div className="text-[10px] opacity-80">Header foto + badge + info instansi (seperti di screenshot)</div>
+                              </div>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setELayoutType('badge')}
+                              className={`p-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2.5 border cursor-pointer ${
+                                eLayoutType === 'badge'
+                                  ? 'bg-[#1E3A8A] text-white border-[#1E3A8A] shadow-xs'
+                                  : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                              }`}
+                            >
+                              <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${eLayoutType === 'badge' ? 'border-white bg-white/20' : 'border-slate-400'}`}>
+                                {eLayoutType === 'badge' && <div className="w-2 h-2 rounded-full bg-white" />}
+                              </div>
+                              <div className="text-left">
+                                <div className="font-extrabold text-xs">Model Badge Khusus</div>
+                                <div className="text-[10px] opacity-80">Banner ringkas dengan badge berlatar & ikon khas</div>
+                              </div>
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     )}
 
                     {(eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') && (
                       <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
                         <div className="space-y-1.5">
-                              <label className="text-xs font-medium text-slate-500">Tanggal Pelaksanaan *</label>
-                              <input value={eTanggal} onChange={(e) => setETanggal(e.target.value)} type="date" required className={`w-full px-3 py-2 rounded-xl border text-sm ${!eTanggal ? 'border-rose-300 bg-rose-50/40 focus:border-rose-400 focus:ring-2 focus:ring-rose-200' : 'border-slate-300'}`} />
-                              {!eTanggal && <p className="text-[11px] text-rose-500 font-medium">Wajib diisi — klik ikon kalender di kanan input dan pilih tanggal.</p>}
-                            </div>
+                          <label className="text-xs font-medium text-slate-500">Tanggal Pelaksanaan *</label>
+                          <input value={eTanggal} onChange={(e) => setETanggal(e.target.value)} type="date" required className={`w-full px-3 py-2 rounded-xl border text-sm ${!eTanggal ? 'border-rose-300 bg-rose-50/40 focus:border-rose-400 focus:ring-2 focus:ring-rose-200' : 'border-slate-300'}`} />
+                          {!eTanggal && <p className="text-[11px] text-rose-500 font-medium">Wajib diisi — klik ikon kalender di kanan input dan pilih tanggal.</p>}
+                        </div>
                         <div className="space-y-1.5">
                           <label className="text-xs font-medium text-slate-500">Waktu (mis. 09:00 - 14:00 WITA)</label>
                           <input value={eWaktu} onChange={(e) => setEWaktu(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="09:00 - 14:00 WITA" />
@@ -2167,57 +2416,57 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                       )}
                     </div>
                   ) : (
-                  <>
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-slate-500">Isi Konten (Gaya Medium + Format Word)</label>
-                    <div className="flex flex-wrap items-center gap-1.5 border border-slate-200 rounded-t-xl p-2 bg-slate-50 relative">
-                      <ToolbarBtn icon={<Bold className="w-4 h-4" />} label="Bold" onMouseDown={(e) => e.preventDefault()} onClick={() => document.execCommand('bold')} />
-                      <ToolbarBtn icon={<Italic className="w-4 h-4" />} label="Italic" onMouseDown={(e) => e.preventDefault()} onClick={() => document.execCommand('italic')} />
-                      <ToolbarBtn icon={<UnderlineIcon className="w-4 h-4" />} label="Underline" onMouseDown={(e) => e.preventDefault()} onClick={() => document.execCommand('underline')} />
-                      <ToolbarBtn icon={<StrikethroughIcon className="w-4 h-4" />} label="Strikethrough" onMouseDown={(e) => e.preventDefault()} onClick={() => document.execCommand('strikeThrough')} />
-                      <span className="w-px h-6 bg-slate-300 mx-0.5" />
-                      <ToolbarBtn icon={<Heading1 className="w-4 h-4" />} label="H1" onMouseDown={(e) => e.preventDefault()} onClick={() => document.execCommand('formatBlock', false, 'h1')} />
-                      <ToolbarBtn icon={<Heading2 className="w-4 h-4" />} label="H2" onMouseDown={(e) => e.preventDefault()} onClick={() => document.execCommand('formatBlock', false, 'h2')} />
-                      <div className="relative">
-                        <ToolbarBtn icon={<List className="w-4 h-4" />} label="Bullets" onClick={() => setBeritaPop(beritaPop === 'bullets' ? null : 'bullets')} />
-                        {beritaPop === 'bullets' && (
-                          <div className="absolute z-30 mt-1 w-56 bg-white border border-slate-200 rounded-xl shadow-lg p-1.5 space-y-0.5">
-                            {BULLET_OPTIONS.map((b) => (
-                              <button key={b.ch} type="button" onClick={() => applyBullet(b.ch)} className="w-full flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 text-left text-sm text-slate-700">
-                                <span className="w-6 text-center text-base leading-none">{b.ch}</span>
-                                <span>{b.label}</span>
-                              </button>
-                            ))}
+                    <>
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium text-slate-500">Isi Konten (Gaya Medium + Format Word)</label>
+                        <div className="flex flex-wrap items-center gap-1.5 border border-slate-200 rounded-t-xl p-2 bg-slate-50 relative">
+                          <ToolbarBtn icon={<Bold className="w-4 h-4" />} label="Bold" onMouseDown={(e) => e.preventDefault()} onClick={() => document.execCommand('bold')} />
+                          <ToolbarBtn icon={<Italic className="w-4 h-4" />} label="Italic" onMouseDown={(e) => e.preventDefault()} onClick={() => document.execCommand('italic')} />
+                          <ToolbarBtn icon={<UnderlineIcon className="w-4 h-4" />} label="Underline" onMouseDown={(e) => e.preventDefault()} onClick={() => document.execCommand('underline')} />
+                          <ToolbarBtn icon={<StrikethroughIcon className="w-4 h-4" />} label="Strikethrough" onMouseDown={(e) => e.preventDefault()} onClick={() => document.execCommand('strikeThrough')} />
+                          <span className="w-px h-6 bg-slate-300 mx-0.5" />
+                          <ToolbarBtn icon={<Heading1 className="w-4 h-4" />} label="H1" onMouseDown={(e) => e.preventDefault()} onClick={() => document.execCommand('formatBlock', false, 'h1')} />
+                          <ToolbarBtn icon={<Heading2 className="w-4 h-4" />} label="H2" onMouseDown={(e) => e.preventDefault()} onClick={() => document.execCommand('formatBlock', false, 'h2')} />
+                          <div className="relative">
+                            <ToolbarBtn icon={<List className="w-4 h-4" />} label="Bullets" onClick={() => setBeritaPop(beritaPop === 'bullets' ? null : 'bullets')} />
+                            {beritaPop === 'bullets' && (
+                              <div className="absolute z-30 mt-1 w-56 bg-white border border-slate-200 rounded-xl shadow-lg p-1.5 space-y-0.5">
+                                {BULLET_OPTIONS.map((b) => (
+                                  <button key={b.ch} type="button" onClick={() => applyBullet(b.ch)} className="w-full flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 text-left text-sm text-slate-700">
+                                    <span className="w-6 text-center text-base leading-none">{b.ch}</span>
+                                    <span>{b.label}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                      <div className="relative">
-                        <ToolbarBtn icon={<ListOrdered className="w-4 h-4" />} label="Numbering" onClick={() => setBeritaPop(beritaPop === 'numbering' ? null : 'numbering')} />
-                        {beritaPop === 'numbering' && (
-                          <div className="absolute z-30 mt-1 w-64 bg-white border border-slate-200 rounded-xl shadow-lg p-1.5 space-y-0.5">
-                            <button type="button" onClick={() => applyNumbering(false)} className="w-full flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 text-left text-sm text-slate-700">
-                              <span className="w-8 text-center font-mono">1.</span><span>Penomoran standar (1, 2, 3, ...)</span>
-                            </button>
-                            <button type="button" onClick={() => applyNumbering(true)} className="w-full flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 text-left text-sm text-slate-700">
-                              <span className="w-8 text-center font-mono">1)</span><span>Angka Arab + kurung tutup (1), 2), ...)</span>
-                            </button>
+                          <div className="relative">
+                            <ToolbarBtn icon={<ListOrdered className="w-4 h-4" />} label="Numbering" onClick={() => setBeritaPop(beritaPop === 'numbering' ? null : 'numbering')} />
+                            {beritaPop === 'numbering' && (
+                              <div className="absolute z-30 mt-1 w-64 bg-white border border-slate-200 rounded-xl shadow-lg p-1.5 space-y-0.5">
+                                <button type="button" onClick={() => applyNumbering(false)} className="w-full flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 text-left text-sm text-slate-700">
+                                  <span className="w-8 text-center font-mono">1.</span><span>Penomoran standar (1, 2, 3, ...)</span>
+                                </button>
+                                <button type="button" onClick={() => applyNumbering(true)} className="w-full flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 text-left text-sm text-slate-700">
+                                  <span className="w-8 text-center font-mono">1)</span><span>Angka Arab + kurung tutup (1), 2), ...)</span>
+                                </button>
+                              </div>
+                            )}
                           </div>
-                        )}
+                          <ToolbarBtn icon={<Quote className="w-4 h-4" />} label="Quote" onMouseDown={(e) => e.preventDefault()} onClick={applyQuote} />
+                          <span className="w-px h-6 bg-slate-300 mx-0.5" />
+                          <ToolbarBtn icon={<LinkIcon className="w-4 h-4" />} label="Link" onMouseDown={(e) => e.preventDefault()} onClick={() => { const u = prompt('URL link:'); if (u) document.execCommand('createLink', false, u); }} />
+                          <ToolbarBtn icon={<ImageIcon className="w-4 h-4" />} label="Gambar" onMouseDown={(e) => e.preventDefault()} onClick={() => { const u = prompt('URL gambar:'); if (u) document.execCommand('insertImage', false, u); }} />
+                        </div>
+                        <div
+                          ref={beritaEditRef}
+                          contentEditable
+                          suppressContentEditableWarning
+                          onMouseDown={() => setBeritaPop(null)}
+                          className="w-full min-h-[320px] border border-slate-300 rounded-b-xl p-4 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-300 prose max-w-none"
+                        />
                       </div>
-                      <ToolbarBtn icon={<Quote className="w-4 h-4" />} label="Quote" onMouseDown={(e) => e.preventDefault()} onClick={applyQuote} />
-                      <span className="w-px h-6 bg-slate-300 mx-0.5" />
-                      <ToolbarBtn icon={<LinkIcon className="w-4 h-4" />} label="Link" onMouseDown={(e) => e.preventDefault()} onClick={() => { const u = prompt('URL link:'); if (u) document.execCommand('createLink', false, u); }} />
-                      <ToolbarBtn icon={<ImageIcon className="w-4 h-4" />} label="Gambar" onMouseDown={(e) => e.preventDefault()} onClick={() => { const u = prompt('URL gambar:'); if (u) document.execCommand('insertImage', false, u); }} />
-                    </div>
-                    <div
-                      ref={beritaEditRef}
-                      contentEditable
-                      suppressContentEditableWarning
-                      onMouseDown={() => setBeritaPop(null)}
-                      className="w-full min-h-[320px] border border-slate-300 rounded-b-xl p-4 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-300 prose max-w-none"
-                    />
-                  </div>
-                  </>)}
+                    </>)}
 
                   <div className="flex items-center justify-between gap-3 pt-2 flex-wrap">
                     <div className="flex items-center gap-4 flex-wrap">
@@ -2348,58 +2597,58 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                 const mitraLowongan = lowongan.filter((l) => l.namaInstansi === selectedMitra.namaInstansi);
                 const init = (selectedMitra.namaInstansi || '?').trim().charAt(0).toUpperCase();
                 return (
-                <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setSelectedMitra(null)}>
-                  <div className="bg-white rounded-xl max-w-lg w-full max-h-[85vh] overflow-auto no-scrollbar shadow-xl" onClick={(e) => e.stopPropagation()}>
-                    {/* Header */}
-                    <div className="flex items-center gap-3 p-5 border-b border-slate-100 sticky top-0 bg-white">
-                      <div className="w-11 h-11 rounded-xl bg-[#1E3A8A] text-white flex items-center justify-center font-extrabold text-lg">{init}</div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-extrabold text-slate-900 text-lg tracking-tight truncate">{selectedMitra.namaInstansi}</h3>
-                        <div className="text-[11px] text-slate-400">{selectedMitra.bidangIndustri || 'Mitra'} · {statusBadge(selectedMitra.statusKerjaSama, { aktif: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Aktif' }, nonaktif: { bg: 'bg-rose-50', text: 'text-rose-700', label: 'Nonaktif' }, pending: { bg: 'bg-amber-50', text: 'text-amber-700', label: 'Pending' } })}</div>
-                      </div>
-                      <button onClick={() => setSelectedMitra(null)} className="text-slate-400 hover:text-slate-700"><X className="w-5 h-5" /></button>
-                    </div>
-
-                    {/* Info grid */}
-                    <div className="p-5 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-                      <div><div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Email</div><div className="text-slate-700 truncate">{selectedMitra.email}</div></div>
-                      <div><div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Kontak</div><div className="text-slate-700 truncate">{selectedMitra.kontakPerson}</div></div>
-                      <div><div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Alamat</div><div className="text-slate-700 truncate">{selectedMitra.alamat || '-'}</div></div>
-                      <div><div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Website</div><div className="text-slate-700 truncate">{selectedMitra.website || '-'}</div></div>
-                      <div><div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Lowongan</div><div className="text-slate-700">{mitraLowongan.length} posting</div></div>
-                      <div><div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Konten Karir</div><div className="text-slate-700">{mitraKonten.length} posting</div></div>
-                    </div>
-
-                    {/* Riwayat konten buatan mitra */}
-                    <div className="px-5 pb-5">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Layers className="w-4 h-4 text-[#0077C6]" />
-                        <h4 className="font-bold text-slate-900 tracking-tight text-sm">Riwayat Konten ({mitraKonten.length})</h4>
-                      </div>
-                      {mitraKonten.length === 0 ? (
-                        <div className="text-[12px] text-slate-400 bg-slate-50 rounded-lg p-3 text-center">Mitra ini belum membuat konten.</div>
-                      ) : (
-                        <div className="space-y-1.5 max-h-48 overflow-auto no-scrollbar">
-                          {mitraKonten.map((k) => (
-                            <div key={k.id} className="flex items-center justify-between gap-2 bg-slate-50 rounded-lg px-3 py-2">
-                              <div className="min-w-0">
-                                <div className="text-sm font-semibold text-slate-700 truncate">{k.judul}</div>
-                                <div className="text-[10px] text-slate-400 uppercase tracking-wide">{JENIS_LABEL[k.jenis]} · {formatTanggal(k.createdAt)}</div>
-                              </div>
-                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${k.status === 'published' ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-500'}`}>{k.status === 'published' ? 'Live' : 'Draft'}</span>
-                            </div>
-                          ))}
+                  <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setSelectedMitra(null)}>
+                    <div className="bg-white rounded-xl max-w-lg w-full max-h-[85vh] overflow-auto no-scrollbar shadow-xl" onClick={(e) => e.stopPropagation()}>
+                      {/* Header */}
+                      <div className="flex items-center gap-3 p-5 border-b border-slate-100 sticky top-0 bg-white">
+                        <div className="w-11 h-11 rounded-xl bg-[#1E3A8A] text-white flex items-center justify-center font-extrabold text-lg">{init}</div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-extrabold text-slate-900 text-lg tracking-tight truncate">{selectedMitra.namaInstansi}</h3>
+                          <div className="text-[11px] text-slate-400">{selectedMitra.bidangIndustri || 'Mitra'} · {statusBadge(selectedMitra.statusKerjaSama, { aktif: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Aktif' }, nonaktif: { bg: 'bg-rose-50', text: 'text-rose-700', label: 'Nonaktif' }, pending: { bg: 'bg-amber-50', text: 'text-amber-700', label: 'Pending' } })}</div>
                         </div>
-                      )}
-                    </div>
+                        <button onClick={() => setSelectedMitra(null)} className="text-slate-400 hover:text-slate-700"><X className="w-5 h-5" /></button>
+                      </div>
 
-                    {/* Actions */}
-                    <div className="flex gap-2 p-5 border-t border-slate-100">
-                      <button onClick={() => handleBanMitra(selectedMitra)} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 rounded-xl text-sm font-bold">{selectedMitra.statusKerjaSama === 'aktif' ? 'Ban Mitra' : 'Unban Mitra'}</button>
-                      <button onClick={() => handleDeleteMitra(selectedMitra)} className="flex-1 bg-rose-500 hover:bg-rose-600 text-white py-2 rounded-xl text-sm font-bold">Hapus Mitra</button>
+                      {/* Info grid */}
+                      <div className="p-5 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                        <div><div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Email</div><div className="text-slate-700 truncate">{selectedMitra.email}</div></div>
+                        <div><div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Kontak</div><div className="text-slate-700 truncate">{selectedMitra.kontakPerson}</div></div>
+                        <div><div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Alamat</div><div className="text-slate-700 truncate">{selectedMitra.alamat || '-'}</div></div>
+                        <div><div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Website</div><div className="text-slate-700 truncate">{selectedMitra.website || '-'}</div></div>
+                        <div><div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Lowongan</div><div className="text-slate-700">{mitraLowongan.length} posting</div></div>
+                        <div><div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Konten Karir</div><div className="text-slate-700">{mitraKonten.length} posting</div></div>
+                      </div>
+
+                      {/* Riwayat konten buatan mitra */}
+                      <div className="px-5 pb-5">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Layers className="w-4 h-4 text-[#0077C6]" />
+                          <h4 className="font-bold text-slate-900 tracking-tight text-sm">Riwayat Konten ({mitraKonten.length})</h4>
+                        </div>
+                        {mitraKonten.length === 0 ? (
+                          <div className="text-[12px] text-slate-400 bg-slate-50 rounded-lg p-3 text-center">Mitra ini belum membuat konten.</div>
+                        ) : (
+                          <div className="space-y-1.5 max-h-48 overflow-auto no-scrollbar">
+                            {mitraKonten.map((k) => (
+                              <div key={k.id} className="flex items-center justify-between gap-2 bg-slate-50 rounded-lg px-3 py-2">
+                                <div className="min-w-0">
+                                  <div className="text-sm font-semibold text-slate-700 truncate">{k.judul}</div>
+                                  <div className="text-[10px] text-slate-400 uppercase tracking-wide">{JENIS_LABEL[k.jenis]} · {formatTanggal(k.createdAt)}</div>
+                                </div>
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${k.status === 'published' ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-500'}`}>{k.status === 'published' ? 'Live' : 'Draft'}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex gap-2 p-5 border-t border-slate-100">
+                        <button onClick={() => handleBanMitra(selectedMitra)} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 rounded-xl text-sm font-bold">{selectedMitra.statusKerjaSama === 'aktif' ? 'Ban Mitra' : 'Unban Mitra'}</button>
+                        <button onClick={() => handleDeleteMitra(selectedMitra)} className="flex-1 bg-rose-500 hover:bg-rose-600 text-white py-2 rounded-xl text-sm font-bold">Hapus Mitra</button>
+                      </div>
                     </div>
                   </div>
-                </div>
                 );
               })()}
             </div>
@@ -4050,10 +4299,9 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                         </div>
 
                         <div className="col-span-2">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${
-                            item.tipeMedia === 'youtube' ? 'bg-red-100 text-red-700' :
-                            item.tipeMedia === 'poster' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'
-                          }`}>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${item.tipeMedia === 'youtube' ? 'bg-red-100 text-red-700' :
+                              item.tipeMedia === 'poster' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'
+                            }`}>
                             {item.tipeMedia === 'youtube' ? 'Youtube' : item.tipeMedia === 'poster' ? 'Poster' : 'PDF'}
                           </span>
                         </div>
@@ -4416,9 +4664,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                           <div className="space-y-1.5">
                             <div className="flex items-center justify-between">
                               <span className="font-bold text-slate-900 text-sm">{jdw.hari}</span>
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${
-                                jdw.status === 'buka' ? 'bg-emerald-100 text-emerald-700' : jdw.status === 'penuh' ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-700'
-                              }`}>
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${jdw.status === 'buka' ? 'bg-emerald-100 text-emerald-700' : jdw.status === 'penuh' ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-700'
+                                }`}>
                                 {jdw.status}
                               </span>
                             </div>
@@ -4989,13 +5236,13 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                 updatedList = updatedList.map((item) =>
                   item.id === editSocMedId
                     ? {
-                        ...item,
-                        platform: socPlatform,
-                        label: socLabel.trim(),
-                        url: socUrl.trim(),
-                        isActive: socIsActive,
-                        hoverColor
-                      }
+                      ...item,
+                      platform: socPlatform,
+                      label: socLabel.trim(),
+                      url: socUrl.trim(),
+                      isActive: socIsActive,
+                      hoverColor
+                    }
                     : item
                 );
               } else {
@@ -5073,11 +5320,10 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                         {/* Status Toggle Switch */}
                         <div className="flex items-center gap-2">
                           <span
-                            className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${
-                              item.isActive
+                            className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${item.isActive
                                 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                 : 'bg-slate-100 text-slate-500 border border-slate-200'
-                            }`}
+                              }`}
                           >
                             {item.isActive ? '● Tampil di Footer' : '○ Tersembunyi'}
                           </span>
@@ -5085,14 +5331,12 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                             type="button"
                             onClick={() => handleToggleStatus(item.id)}
                             title={item.isActive ? 'Klik untuk Sembunyikan' : 'Klik untuk Tampilkan'}
-                            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                              item.isActive ? 'bg-emerald-600' : 'bg-slate-300'
-                            }`}
+                            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${item.isActive ? 'bg-emerald-600' : 'bg-slate-300'
+                              }`}
                           >
                             <span
-                              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                                item.isActive ? 'translate-x-5' : 'translate-x-0'
-                              }`}
+                              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${item.isActive ? 'translate-x-5' : 'translate-x-0'
+                                }`}
                             />
                           </button>
                         </div>

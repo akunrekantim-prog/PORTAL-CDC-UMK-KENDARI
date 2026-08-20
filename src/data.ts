@@ -794,6 +794,10 @@ export const SEED_PENGUMUMAN: Pengumuman[] = [
     content: 'Dalam rangka pengumpulan data evaluasi kurikulum serta akreditasi instansi Universitas Muhammadiyah Kendari, dihimbau kepada seluruh lulusan/alumni angkatan kelulusan tahun 2024 dan 2025 untuk menyempatkan waktu mengisi kuesioner Tracer Study pada dashboard alumni Portal CDC ini. Partisipasi Anda sangat menentukan kualitas masa depan almamater tercinta. Terima kasih.',
     category: 'tracer_study',
     status: 'published',
+    isImportant: true,
+    displayType: 'badge',
+    linkUrl: 'https://tracerstudy.umkendari.ac.id',
+    linkLabel: 'Isi Tracer Study',
     publishedAt: '2026-05-10T08:00:00Z',
     createdAt: '2026-05-10T08:00:00Z'
   },

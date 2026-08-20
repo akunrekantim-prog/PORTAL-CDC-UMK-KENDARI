@@ -24,7 +24,12 @@ import {
   CheckCircle2,
   Layers,
   Banknote,
-  Maximize2
+  Maximize2,
+  Facebook,
+  MessageCircle,
+  Send,
+  Linkedin,
+  Copy
 } from 'lucide-react';
 import { JobApplicationModal } from './JobApplicationModal';
 
@@ -131,9 +136,55 @@ export const JobDetail: React.FC<JobDetailProps> = ({
     triggerToast('Tautan lowongan berhasil disalin ke clipboard!');
   };
 
+  const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
+
+  const handleShareFacebook = () => {
+    const targetUrl = encodeURIComponent(window.location.href);
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${targetUrl}`, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleShareTwitter = () => {
+    const targetUrl = encodeURIComponent(window.location.href);
+    const targetTitle = encodeURIComponent(`Lowongan Kerja: ${job.judul} di ${job.namaInstansi}`);
+    window.open(`https://twitter.com/intent/tweet?url=${targetUrl}&text=${targetTitle}`, '_blank', 'noopener,noreferrer');
+  };
+
   const handleShareWhatsApp = () => {
     const text = `Lowongan Kerja: ${job.judul} di ${job.namaInstansi}. Cek selengkapnya di: ${window.location.href}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleShareTelegram = () => {
+    const targetUrl = encodeURIComponent(window.location.href);
+    const targetTitle = encodeURIComponent(`Lowongan Kerja: ${job.judul} di ${job.namaInstansi}`);
+    window.open(`https://t.me/share/url?url=${targetUrl}&text=${targetTitle}`, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleShareLinkedIn = () => {
+    const targetUrl = encodeURIComponent(window.location.href);
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${targetUrl}`, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleShareEmail = () => {
+    const subject = encodeURIComponent(`Lowongan Kerja: ${job.judul}`);
+    const body = encodeURIComponent(`Halo,\n\nAda lowongan menarik: ${job.judul} di ${job.namaInstansi}.\nCek selengkapnya di: ${window.location.href}`);
+    window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+  };
+
+  const handleNativeShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Lowongan Kerja: ${job.judul}`,
+          text: `${job.judul} di ${job.namaInstansi}`,
+          url: window.location.href
+        });
+      } catch (err) {
+        // User cancelled share
+      }
+    } else {
+      handleCopyLink();
+    }
   };
 
   const resetModal = () => {
@@ -566,6 +617,15 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                   <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider block">Bagikan Lowongan Ini</span>
                   <div className="flex items-center justify-center gap-2.5">
                     <button 
+                      onClick={() => setIsShareModalOpen(true)}
+                      className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-[#0077C6] text-white font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-xs active:scale-95"
+                      title="Pilihan Bagikan Lengkap"
+                      id="btn-open-share-modal"
+                    >
+                      <Share2 className="w-4 h-4 text-white" />
+                      <span>Bagikan Lowongan</span>
+                    </button>
+                    <button 
                       onClick={handleCopyLink}
                       className="w-9 h-9 rounded-xl bg-slate-50 hover:bg-blue-50 text-slate-600 hover:text-[#0077C6] border border-slate-200 flex items-center justify-center transition cursor-pointer"
                       title="Salin Tautan"
@@ -575,17 +635,10 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                     <button 
                       onClick={handleShareWhatsApp}
                       className="w-9 h-9 rounded-xl bg-slate-50 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600 border border-slate-200 flex items-center justify-center transition cursor-pointer"
-                      title="Bagikan via WhatsApp"
+                      title="Bagikan via WhatsApp Direct"
                     >
-                      <Share2 className="w-4 h-4" />
+                      <MessageCircle className="w-4 h-4 text-[#25D366]" />
                     </button>
-                    <a 
-                      href={`mailto:?subject=${encodeURIComponent(job.judul)}&body=${encodeURIComponent(window.location.href)}`}
-                      className="w-9 h-9 rounded-xl bg-slate-50 hover:bg-purple-50 text-slate-600 hover:text-purple-600 border border-slate-200 flex items-center justify-center transition cursor-pointer"
-                      title="Kirim via Email"
-                    >
-                      <Mail className="w-4 h-4" />
-                    </a>
                   </div>
                 </div>
 
@@ -674,6 +727,159 @@ export const JobDetail: React.FC<JobDetailProps> = ({
         />
       )}
 
+
+      {/* Interactive Multi-Social Media Share Modal */}
+      {isShareModalOpen && (
+        <div 
+          onClick={() => setIsShareModalOpen(false)}
+          className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-5 relative"
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[#0077C6] flex items-center justify-center shrink-0">
+                  <Share2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-slate-900 text-base leading-tight">Bagikan Lowongan Kerja</h3>
+                  <p className="text-xs text-slate-500 font-medium truncate max-w-[220px] sm:max-w-[260px]">{job.judul}</p>
+                </div>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setIsShareModalOpen(false)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Social Media Grid */}
+            <div className="grid grid-cols-4 gap-3 pt-1">
+              {/* 1. WhatsApp */}
+              <button
+                type="button"
+                onClick={() => { handleShareWhatsApp(); setIsShareModalOpen(false); }}
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-emerald-50/70 hover:bg-emerald-100/80 border border-emerald-200/80 transition active:scale-95 cursor-pointer space-y-1.5 group"
+                title="Bagikan ke WhatsApp"
+              >
+                <div className="w-10 h-10 rounded-2xl bg-[#25D366] text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                  <MessageCircle className="w-5 h-5 fill-white text-[#25D366]" />
+                </div>
+                <span className="text-[11px] font-extrabold text-slate-800">WhatsApp</span>
+              </button>
+
+              {/* 2. Facebook */}
+              <button
+                type="button"
+                onClick={() => { handleShareFacebook(); setIsShareModalOpen(false); }}
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-blue-50/70 hover:bg-blue-100/80 border border-blue-200/80 transition active:scale-95 cursor-pointer space-y-1.5 group"
+                title="Bagikan ke Facebook"
+              >
+                <div className="w-10 h-10 rounded-2xl bg-[#3b5998] text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                  <Facebook className="w-5 h-5 fill-white" />
+                </div>
+                <span className="text-[11px] font-extrabold text-slate-800">Facebook</span>
+              </button>
+
+              {/* 3. Twitter / X */}
+              <button
+                type="button"
+                onClick={() => { handleShareTwitter(); setIsShareModalOpen(false); }}
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-100/80 hover:bg-slate-200/90 border border-slate-300/80 transition active:scale-95 cursor-pointer space-y-1.5 group"
+                title="Bagikan ke Twitter / X"
+              >
+                <div className="w-10 h-10 rounded-2xl bg-black text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                  <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                  </svg>
+                </div>
+                <span className="text-[11px] font-extrabold text-slate-800">Twitter / X</span>
+              </button>
+
+              {/* 4. Telegram */}
+              <button
+                type="button"
+                onClick={() => { handleShareTelegram(); setIsShareModalOpen(false); }}
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-cyan-50/70 hover:bg-cyan-100/80 border border-cyan-200/80 transition active:scale-95 cursor-pointer space-y-1.5 group"
+                title="Bagikan ke Telegram"
+              >
+                <div className="w-10 h-10 rounded-2xl bg-[#229ED9] text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                  <Send className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-[11px] font-extrabold text-slate-800">Telegram</span>
+              </button>
+
+              {/* 5. LinkedIn */}
+              <button
+                type="button"
+                onClick={() => { handleShareLinkedIn(); setIsShareModalOpen(false); }}
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-indigo-50/70 hover:bg-indigo-100/80 border border-indigo-200/80 transition active:scale-95 cursor-pointer space-y-1.5 group"
+                title="Bagikan ke LinkedIn"
+              >
+                <div className="w-10 h-10 rounded-2xl bg-[#0A66C2] text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                  <Linkedin className="w-4 h-4 fill-white" />
+                </div>
+                <span className="text-[11px] font-extrabold text-slate-800">LinkedIn</span>
+              </button>
+
+              {/* 6. Email */}
+              <button
+                type="button"
+                onClick={() => { handleShareEmail(); setIsShareModalOpen(false); }}
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-purple-50/70 hover:bg-purple-100/80 border border-purple-200/80 transition active:scale-95 cursor-pointer space-y-1.5 group"
+                title="Kirim via Email"
+              >
+                <div className="w-10 h-10 rounded-2xl bg-purple-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                  <Mail className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-[11px] font-extrabold text-slate-800">Email</span>
+              </button>
+
+              {/* 7. Native Share / Aplikasi HP */}
+              <button
+                type="button"
+                onClick={() => { handleNativeShare(); setIsShareModalOpen(false); }}
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-amber-50/70 hover:bg-amber-100/80 border border-amber-200/80 transition active:scale-95 cursor-pointer space-y-1.5 group"
+                title="Bagikan via Fitur Ponsel"
+              >
+                <div className="w-10 h-10 rounded-2xl bg-amber-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                  <Share2 className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-[11px] font-extrabold text-slate-800">Lainnya</span>
+              </button>
+
+              {/* 8. Salin Tautan */}
+              <button
+                type="button"
+                onClick={() => { handleCopyLink(); setIsShareModalOpen(false); }}
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-100/80 hover:bg-slate-200/90 border border-slate-200 transition active:scale-95 cursor-pointer space-y-1.5 group"
+                title="Salin Tautan Lowongan"
+              >
+                <div className="w-10 h-10 rounded-2xl bg-slate-800 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                  <Copy className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-[11px] font-extrabold text-slate-800">Salin Link</span>
+              </button>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setIsShareModalOpen(false)}
+                className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Lightbox Modal */}
       {isLightboxOpen && (

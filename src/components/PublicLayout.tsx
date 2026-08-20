@@ -9,7 +9,7 @@ import {
   FileText, Mail, Phone, Clock, ArrowRight, Globe, Megaphone,
   Info, GraduationCap, ChevronRight, Facebook, Instagram, Youtube,
   Users, Building, Shield, Award, Star, TrendingUp, Zap, Target,
-  ExternalLink, Calendar, ShieldCheck, Trophy,
+  ExternalLink, Calendar, ShieldCheck, Trophy, Eye, Sparkles,
   MessageCircle, Send, Linkedin, Copy
 } from 'lucide-react';
 
@@ -135,6 +135,7 @@ export default function PublicLayout({
   const [beritaScopeFilter, setBeritaScopeFilter] = useState<'Semua' | 'LOKAL' | 'REGIONAL' | 'NASIONAL' | 'GLOBAL'>('Semua');
   const [beritaPage, setBeritaPage] = useState(1);
   const beritaItemsPerPage = 6;
+  const [selectedPosterModal, setSelectedPosterModal] = useState<string | null>(null);
 
   /* Data helpers: Lowongan kerja & magang terbaru (newest created) selalu di atas */
   const publishedLowongan = sortJobsByNewest(lowongan.filter(l => l.status === 'published'));
@@ -257,6 +258,99 @@ export default function PublicLayout({
               {/* ── LEFT / MAIN COLUMN ────────────────────────────────── */}
               <div className="lg:col-span-8 space-y-14">
 
+                {/* ── PENGUMUMAN KHUSUS / SANGAT PENTING ──────────────── */}
+                {(() => {
+                  const importantAnn = publishedPengumuman.find(p => p.isImportant) || publishedPengumuman[0];
+                  if (!importantAnn || importantAnn.isImportant === false) return null;
+
+                  const isPosterMode = importantAnn.displayType === 'poster' && !!importantAnn.posterUrl;
+
+                  return (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="overflow-hidden rounded-3xl border border-emerald-200/80 shadow-md bg-gradient-to-br from-emerald-50/90 via-white to-emerald-50/40 relative"
+                    >
+                      {isPosterMode ? (
+                        /* Mode Poster / Gambar Visual */
+                        <div className="relative group overflow-hidden bg-slate-950">
+                          <img
+                            src={importantAnn.posterUrl}
+                            alt={importantAnn.title}
+                            className="w-full max-h-[380px] object-cover object-center group-hover:scale-102 transition-transform duration-500 cursor-pointer"
+                            onClick={() => setSelectedPosterModal(importantAnn.posterUrl!)}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent flex flex-col justify-end p-6 text-white">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="bg-amber-400 text-slate-950 text-[10px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider shadow-xs flex items-center gap-1">
+                                <Megaphone className="w-3.5 h-3.5 text-slate-950 animate-pulse" /> PENGUMUMAN SANGAT PENTING
+                              </span>
+                            </div>
+                            <h3 className="text-xl sm:text-2xl font-black leading-snug text-white drop-shadow-xs">
+                              {importantAnn.title}
+                            </h3>
+                            {importantAnn.content && (
+                              <p className="text-slate-200 text-xs sm:text-sm mt-1.5 line-clamp-2 leading-relaxed max-w-3xl">
+                                {importantAnn.content}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-3 mt-4 flex-wrap">
+                              <button
+                                onClick={() => setSelectedPosterModal(importantAnn.posterUrl!)}
+                                className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white text-xs font-extrabold px-3.5 py-2 rounded-xl border border-white/30 transition flex items-center gap-1.5 cursor-pointer"
+                              >
+                                <Eye className="w-3.5 h-3.5" /> Perbesar Poster
+                              </button>
+                              {importantAnn.linkUrl && (
+                                <a
+                                  href={importantAnn.linkUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="bg-[#10B981] hover:bg-emerald-500 text-white text-xs font-black px-4 py-2 rounded-xl transition shadow-md flex items-center gap-1.5 cursor-pointer"
+                                >
+                                  {importantAnn.linkLabel || 'Buka Tautan'} <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        /* Mode Badge / Banner Teks */
+                        <div className="p-6 sm:p-7 flex flex-col sm:flex-row items-start gap-5 relative">
+                          <div className="bg-emerald-500 text-slate-950 p-3.5 rounded-2xl shadow-sm shrink-0 flex items-center justify-center">
+                            <Megaphone className="w-7 h-7 animate-pulse text-slate-950" />
+                          </div>
+                          <div className="flex-1 space-y-2">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+                                PENGUMUMAN PENTING
+                              </span>
+                            </div>
+                            <h3 className="text-lg sm:text-xl font-black text-slate-900 leading-snug">
+                              {importantAnn.title}
+                            </h3>
+                            <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+                              {importantAnn.content}
+                            </p>
+                            {importantAnn.linkUrl && (
+                              <div className="pt-2">
+                                <a
+                                  href={importantAnn.linkUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-2 bg-[#10B981] hover:bg-emerald-600 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-xs transition cursor-pointer"
+                                >
+                                  {importantAnn.linkLabel || 'Buka Tautan'} <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </motion.div>
+                  );
+                })()}
+
                 {/* ── JOB LISTINGS ───────────────────────────────────── */}
                 <section id="job-listings">
                   <div className="flex items-center justify-between mb-7">
@@ -350,144 +444,205 @@ export default function PublicLayout({
                   <h3 className="text-xl sm:text-2xl font-extrabold text-[#1E3A8A] mb-7
                                  flex items-center gap-2 before:block before:w-1.5 before:h-6
                                  before:rounded-full before:bg-[#10B981]">
-                    PROGRAM & PENGUMUMAN
+                    PROGRAM &amp; PENGUMUMAN
                   </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  {(() => {
+                    const dbPrograms = getFromDB<KontenKarir>('konten_karir').filter(
+                      k => k.jenis === 'program' && k.status !== 'draft'
+                    );
 
-                    {/* Job Preparation card */}
-                    <div
-                      onClick={() => (onNavigateToRegister ? onNavigateToRegister('alumni') : onNavigateToLogin())}
-                      className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group"
-                    >
-                      <div>
-                        {/* Company / Program Image Header Container (Matching Info Job Terkini) */}
-                        <div className="w-full h-44 relative overflow-hidden bg-slate-50 flex items-center justify-center p-4 border-b border-slate-100">
-                          <img
-                            src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=800&auto=format&fit=crop"
-                            alt="Job Preparation 2026"
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                          <div className="absolute top-3 left-3 flex items-center gap-2">
-                            <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-emerald-600 text-white">
-                              Program Unggulan
-                            </span>
-                          </div>
-                        </div>
+                    // Combine default/demo items with published DB items if any
+                    const itemsToRender = dbPrograms.length > 0 ? dbPrograms : [
+                      {
+                        id: 'demo_prog_1',
+                        jenis: 'program' as const,
+                        judul: 'JOB PREPARATION 2026',
+                        body: 'Persiapkan dirimu menghadapi dunia kerja dengan program intensif bersama praktisi HR terbaik.',
+                        kategori: 'Program Unggulan',
+                        thumbnail: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=800&auto=format&fit=crop',
+                        layoutType: 'card' as const,
+                        status: 'published' as const,
+                        createdAt: '2026-05-10T08:00:00Z',
+                        createdByName: 'Admin Website'
+                      },
+                      {
+                        id: 'demo_prog_2',
+                        jenis: 'program' as const,
+                        judul: 'Selamat & Sukses Pimpinan UMK',
+                        body: 'Pimpinan Universitas Muhammadiyah Kendari Periode 2026–2030. Semoga amanah & membawa kemajuan.',
+                        kategori: 'Pengumuman',
+                        thumbnail: 'https://images.unsplash.com/photo-1531545514256-b1400bc00f31?q=80&w=800&auto=format&fit=crop',
+                        layoutType: 'card' as const,
+                        status: 'published' as const,
+                        createdAt: '2026-05-12T09:00:00Z',
+                        createdByName: 'Admin Website'
+                      }
+                    ];
 
-                        {/* Card Content */}
-                        <div className="p-5 space-y-2">
-                          <div className="text-xs font-bold text-orange-600 tracking-wide uppercase truncate">
-                            CDC UM KENDARI
-                          </div>
+                    return (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        {itemsToRender.map(item => {
+                          const isBadgeLayout = item.layoutType === 'badge';
 
-                          <h3 className="font-extrabold text-slate-900 text-lg leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2">
-                            JOB PREPARATION 2026
-                          </h3>
+                          if (isBadgeLayout) {
+                            if (item.thumbnail) {
+                              /* Mode Banner Poster Full-Visual (Sesuai Gambar Screenshot) */
+                              return (
+                                <div
+                                  key={item.id}
+                                  onClick={() => (onNavigateToRegister ? onNavigateToRegister('alumni') : onNavigateToLogin())}
+                                  className="w-full h-64 sm:h-72 rounded-3xl relative overflow-hidden shadow-md hover:shadow-xl border border-slate-200/80 group cursor-pointer flex flex-col justify-between p-6 sm:p-7 transition-all"
+                                >
+                                  {/* Background Poster Image */}
+                                  <img
+                                    src={item.thumbnail}
+                                    alt={item.judul}
+                                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                  />
 
-                          <p className="text-slate-500 text-xs leading-relaxed line-clamp-2">
-                            Persiapkan dirimu menghadapi dunia kerja dengan program intensif bersama praktisi HR terbaik.
-                          </p>
+                                  {/* Dark Gradient Overlay */}
+                                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-900/60 to-slate-950/20" />
 
-                          <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
-                            <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
-                            <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
-                              <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                              2026
-                            </span>
-                          </div>
-                        </div>
+                                  {/* Header Badge (Amber / Yellow) */}
+                                  <div className="relative z-10 flex items-center justify-between gap-2">
+                                    <span className="px-3 py-1 bg-amber-500 text-slate-950 rounded-lg text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md">
+                                      <Megaphone className="w-3.5 h-3.5 text-slate-950" />
+                                      {item.kategori || ''}
+                                    </span>
+                                    <span className="text-[11px] font-extrabold text-amber-300 tracking-wider uppercase drop-shadow-xs">
+                                      {item.namaInstansi || 'CDC UM KENDARI'}
+                                    </span>
+                                  </div>
+
+                                  {/* Content Box at Bottom */}
+                                  <div className="relative z-10 space-y-2 mt-auto">
+                                    <h3 className="text-xl sm:text-2xl font-black text-white leading-snug group-hover:text-amber-300 transition-colors line-clamp-2">
+                                      {item.judul}
+                                    </h3>
+
+                                    <p className="text-slate-200 text-xs sm:text-sm leading-relaxed line-clamp-2">
+                                      {item.body}
+                                    </p>
+
+                                    <div className="flex items-center justify-between pt-3 border-t border-white/15 mt-3 flex-wrap gap-2">
+                                      <div className="flex items-center gap-3 flex-wrap">
+                                        <span className="text-xs font-semibold text-slate-200/90 whitespace-nowrap">
+                                          by {item.createdByName || 'Admin Website'}
+                                        </span>
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedPosterModal(item.thumbnail!);
+                                          }}
+                                          className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white border border-white/30 font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-xs cursor-pointer"
+                                        >
+                                          <Eye className="w-3.5 h-3.5" /> Perbesar Poster
+                                        </button>
+                                      </div>
+
+                                      <span className="flex items-center gap-1.5 text-xs text-slate-300 font-medium">
+                                        <Clock className="w-3.5 h-3.5 text-slate-300 shrink-0" />
+                                        {formatDateDisplay(item.createdAt)}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            }
+
+                            /* Fallback Mode Badge Teks Hijau jika foto poster tidak diunggah */
+                            return (
+                              <div
+                                key={item.id}
+                                onClick={() => (onNavigateToRegister ? onNavigateToRegister('alumni') : onNavigateToLogin())}
+                                className="bg-gradient-to-br from-emerald-50/90 via-white to-emerald-50/40 rounded-3xl border border-emerald-200/80 p-6 sm:p-7 shadow-md hover:shadow-lg transition-all cursor-pointer group flex flex-col sm:flex-row items-start gap-5 relative overflow-hidden"
+                              >
+                                <div className="bg-emerald-500 text-slate-950 p-3.5 rounded-2xl shadow-sm shrink-0 flex items-center justify-center">
+                                  <Sparkles className="w-7 h-7 animate-pulse text-slate-950" />
+                                </div>
+                                <div className="flex-1 space-y-2 w-full">
+                                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                                    <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+                                      {item.kategori || 'PROGRAM PENTING'}
+                                    </span>
+                                    <span className="text-[11px] font-extrabold text-orange-600 tracking-wider uppercase">
+                                      {item.namaInstansi || 'CDC UM KENDARI'}
+                                    </span>
+                                  </div>
+                                  <h3 className="text-lg sm:text-xl font-black text-slate-900 leading-snug group-hover:text-[#1E3A8A] transition-colors">
+                                    {item.judul}
+                                  </h3>
+                                  <p className="text-slate-600 text-xs sm:text-sm leading-relaxed line-clamp-3">
+                                    {item.body}
+                                  </p>
+                                  <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-3 border-t border-slate-100 mt-3">
+                                    <span className="whitespace-nowrap font-medium text-slate-400">by {item.createdByName || 'Admin Website'}</span>
+                                    <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
+                                      <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                      {formatDateDisplay(item.createdAt)}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          }
+
+                          /* Mode Card Gambar / Poster (Sesuai Screenshot User) */
+                          return (
+                            <div
+                              key={item.id}
+                              onClick={() => (onNavigateToRegister ? onNavigateToRegister('alumni') : onNavigateToLogin())}
+                              className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group"
+                            >
+                              <div>
+                                <div className="w-full h-44 relative overflow-hidden bg-slate-50 flex items-center justify-center border-b border-slate-100">
+                                  {item.thumbnail ? (
+                                    <img
+                                      src={item.thumbnail}
+                                      alt={item.judul}
+                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full flex flex-col items-center justify-center bg-slate-100 text-slate-400">
+                                      <Megaphone className="w-10 h-10 text-[#10B981]" />
+                                    </div>
+                                  )}
+                                  <div className="absolute top-3 left-3 flex items-center gap-2">
+                                    <span className="px-2.5 py-1 text-[11px] font-black rounded-md shadow-xs bg-emerald-700 text-white uppercase tracking-wider">
+                                      {item.kategori || 'Program Unggulan'}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="p-5 space-y-2">
+                                  <div className="text-xs font-bold text-orange-600 tracking-wide uppercase truncate">
+                                    {item.namaInstansi || 'CDC UM KENDARI'}
+                                  </div>
+
+                                  <h3 className="font-extrabold text-slate-900 text-lg leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2">
+                                    {item.judul}
+                                  </h3>
+
+                                  <p className="text-slate-500 text-xs leading-relaxed line-clamp-2">
+                                    {item.body}
+                                  </p>
+
+                                  <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
+                                    <span className="whitespace-nowrap font-medium text-slate-400">by {item.createdByName || 'Admin Website'}</span>
+                                    <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
+                                      <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                      {formatDateDisplay(item.createdAt)}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                    </div>
-
-                    {/* Congratulations card */}
-                    <div
-                      className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group"
-                    >
-                      <div>
-                        {/* Company / Program Image Header Container (Matching Info Job Terkini) */}
-                        <div className="w-full h-44 relative overflow-hidden bg-slate-50 flex items-center justify-center p-4 border-b border-slate-100">
-                          <img
-                            src="https://images.unsplash.com/photo-1531545514256-b1400bc00f31?q=80&w=800&auto=format&fit=crop"
-                            alt="Selamat & Sukses"
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                          <div className="absolute top-3 left-3 flex items-center gap-2">
-                            <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-amber-600 text-white">
-                              Pengumuman
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Card Content */}
-                        <div className="p-5 space-y-2">
-                          <div className="text-xs font-bold text-orange-600 tracking-wide uppercase truncate">
-                            UNIVERSITAS MUHAMMADIYAH KENDARI
-                          </div>
-
-                          <h3 className="font-extrabold text-slate-900 text-lg leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2">
-                            Selamat &amp; Sukses Pimpinan UMK
-                          </h3>
-
-                          <p className="text-slate-500 text-xs leading-relaxed line-clamp-2">
-                            Pimpinan Universitas Muhammadiyah Kendari Periode 2026–2030. Semoga amanah &amp; membawa kemajuan.
-                          </p>
-
-                          <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
-                            <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
-                            <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
-                              <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                              2026
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Dynamic Published Pengumuman Cards (If available) */}
-                    {publishedPengumuman.map(item => (
-                      <div
-                        key={item.id}
-                        className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group"
-                      >
-                        <div>
-                          <div className="w-full h-44 relative overflow-hidden bg-slate-50 flex items-center justify-center p-4 border-b border-slate-100">
-                            <div className="flex flex-col items-center justify-center text-slate-400 space-y-1">
-                              <Megaphone className="w-10 h-10 text-[#10B981]" />
-                              <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">PENGUMUMAN</span>
-                            </div>
-                            <div className="absolute top-3 left-3 flex items-center gap-2">
-                              <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-blue-600 text-white">
-                                {item.category ? item.category.toUpperCase() : 'PENGUMUMAN'}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="p-5 space-y-2">
-                            <div className="text-xs font-bold text-orange-600 tracking-wide uppercase truncate">
-                              CDC UM KENDARI
-                            </div>
-
-                            <h3 className="font-extrabold text-slate-900 text-lg leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2">
-                              {item.title}
-                            </h3>
-
-                            <p className="text-slate-500 text-xs leading-relaxed line-clamp-2">
-                              {item.content}
-                            </p>
-
-                            <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
-                              <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
-                              <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
-                                <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                                {formatDateDisplay(item.createdAt)}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-
-                  </div>
+                    );
+                  })()}
                 </section>
 
 
@@ -545,23 +700,7 @@ export default function PublicLayout({
                   </section>
                 )}
 
-                {/* ── PENGUMUMAN ────────────────────────────────────── */}
-                {publishedPengumuman.length > 0 && (
-                  <div className="bg-emerald-50 rounded-2xl border border-emerald-200 p-5 shadow-sm">
-                    <div className="flex items-start gap-4">
-                      <div className="bg-white p-3 rounded-xl shadow-sm border border-emerald-100 shrink-0">
-                        <Megaphone className="w-6 h-6 text-[#10B981] animate-pulse" />
-                      </div>
-                      <div>
-                        <div className="text-emerald-800 font-extrabold text-xs uppercase tracking-wider mb-1">
-                          Pengumuman Khusus
-                        </div>
-                        <h4 className="font-bold text-slate-900">{publishedPengumuman[0].title}</h4>
-                        <p className="text-slate-600 text-sm mt-1">{publishedPengumuman[0].content}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
+
 
               </div> {/* END left col */}
 
@@ -893,8 +1032,8 @@ export default function PublicLayout({
                         key={pageNum}
                         onClick={() => setJobInfoPage(pageNum)}
                         className={`px-3.5 py-1.5 rounded-lg font-bold text-xs transition ${pageNum === jobInfoPage
-                            ? 'bg-[#1B365D] text-white shadow-xs'
-                            : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                          ? 'bg-[#1B365D] text-white shadow-xs'
+                          : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
                           }`}
                       >
                         {pageNum}
@@ -921,7 +1060,7 @@ export default function PublicLayout({
         {/* ─── BERITA TAB ──────────────────────────────────────────── */}
         {currentTab === 'berita' && (
           <div className="bg-white min-h-screen font-sans text-slate-800 pb-20" id="tab-berita">
-            
+
             {/* ── BREADCRUMB ── */}
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-3">
               <nav className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
@@ -951,7 +1090,7 @@ export default function PublicLayout({
             {/* ── CONTROLS BAR: SEARCH & SCOPE FILTER ── */}
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 space-y-4">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
-                
+
                 {/* Search Input */}
                 <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -976,11 +1115,10 @@ export default function PublicLayout({
                         setBeritaScopeFilter(scope);
                         setBeritaPage(1);
                       }}
-                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
-                        beritaScopeFilter === scope
-                          ? 'bg-[#1E3A8A] text-white shadow-xs'
-                          : 'bg-white text-slate-600 hover:bg-slate-200/70 border border-slate-200'
-                      }`}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${beritaScopeFilter === scope
+                        ? 'bg-[#1E3A8A] text-white shadow-xs'
+                        : 'bg-white text-slate-600 hover:bg-slate-200/70 border border-slate-200'
+                        }`}
                     >
                       {scope === 'Semua' ? 'Semua Berita' : scope}
                     </button>
@@ -1071,11 +1209,10 @@ export default function PublicLayout({
                         <button
                           key={pageNum}
                           onClick={() => setBeritaPage(pageNum)}
-                          className={`px-3.5 py-1.5 rounded-lg font-bold text-xs transition cursor-pointer ${
-                            pageNum === beritaPage
-                              ? 'bg-[#1E3A8A] text-white shadow-xs'
-                              : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                          }`}
+                          className={`px-3.5 py-1.5 rounded-lg font-bold text-xs transition cursor-pointer ${pageNum === beritaPage
+                            ? 'bg-[#1E3A8A] text-white shadow-xs'
+                            : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                            }`}
                         >
                           {pageNum}
                         </button>
@@ -1248,100 +1385,118 @@ export default function PublicLayout({
                     </button>
                   </div>
 
-                {/* Search Bar */}
-                <div className="relative max-w-xl">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Cari kata kunci prestasi, capaian, atau nama mahasiswa..."
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
-                  />
-                </div>
-
-                {/* Achievement cards grid */}
-                {filteredItems.length === 0 ? (
-                  <div className="text-center py-16 bg-slate-50/50 rounded-2xl border border-dashed border-slate-300 space-y-3">
-                    <Award className="w-12 h-12 text-slate-300 mx-auto" />
-                    <h3 className="font-bold text-slate-700 text-base">Belum Ada Data Prestasi untuk Kategori Ini</h3>
-                    <p className="text-slate-400 text-xs max-w-md mx-auto">
-                      Belum terdapat postingan prestasi terpublikasi untuk {currentScope} ({currentKategori}). Admin dapat memposting prestasi baru dari Admin Dashboard.
-                    </p>
+                  {/* Search Bar */}
+                  <div className="relative max-w-xl">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Cari kata kunci prestasi, capaian, atau nama mahasiswa..."
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    />
                   </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredItems.map(item => (
-                      <div
-                        key={item.id}
-                        className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group"
-                      >
-                        <div>
-                          {/* Image documentation header */}
-                          <div className="w-full h-48 relative overflow-hidden bg-slate-100 border-b border-slate-100">
-                            {item.thumbnail ? (
-                              <img
-                                src={item.thumbnail}
-                                alt={item.judul}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex flex-col items-center justify-center bg-slate-100 text-slate-400 space-y-1">
-                                <Award className="w-10 h-10 text-amber-400" />
-                                <span className="text-xs font-bold text-slate-400 uppercase">Dokumentasi</span>
+
+                  {/* Achievement cards grid */}
+                  {filteredItems.length === 0 ? (
+                    <div className="text-center py-16 bg-slate-50/50 rounded-2xl border border-dashed border-slate-300 space-y-3">
+                      <Award className="w-12 h-12 text-slate-300 mx-auto" />
+                      <h3 className="font-bold text-slate-700 text-base">Belum Ada Data Prestasi untuk Kategori Ini</h3>
+                      <p className="text-slate-400 text-xs max-w-md mx-auto">
+                        Belum terdapat postingan prestasi terpublikasi untuk {currentScope} ({currentKategori}). Admin dapat memposting prestasi baru dari Admin Dashboard.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {filteredItems.map(item => (
+                        <div
+                          key={item.id}
+                          className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group"
+                        >
+                          <div>
+                            {/* Image documentation header */}
+                            <div className="w-full h-48 relative overflow-hidden bg-slate-100 border-b border-slate-100">
+                              {item.thumbnail ? (
+                                <img
+                                  src={item.thumbnail}
+                                  alt={item.judul}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex flex-col items-center justify-center bg-slate-100 text-slate-400 space-y-1">
+                                  <Award className="w-10 h-10 text-amber-400" />
+                                  <span className="text-xs font-bold text-slate-400 uppercase">Dokumentasi</span>
+                                </div>
+                              )}
+                              <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                                <span className="px-2.5 py-1 bg-amber-400 text-slate-950 rounded-lg text-xs font-black shadow-md flex items-center gap-1">
+                                  <Award className="w-3.5 h-3.5 text-slate-950" /> {item.peringkat}
+                                </span>
                               </div>
+                              <div className="absolute top-3 right-3">
+                                <span className="px-2.5 py-1 bg-black/60 backdrop-blur-md text-white rounded-lg text-xs font-bold">
+                                  {item.tahun}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Card Body */}
+                            <div className="p-5 space-y-3">
+                              <div className="text-xs font-extrabold text-amber-600 uppercase tracking-wide truncate">
+                                {item.prodi || 'UM KENDARI'}
+                              </div>
+
+                              <h3 className="font-extrabold text-slate-900 text-base leading-snug group-hover:text-amber-600 transition-colors line-clamp-2">
+                                {item.judul}
+                              </h3>
+
+                              <p className="text-slate-600 text-xs leading-relaxed line-clamp-3">
+                                {item.body}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Card Footer */}
+                          <div className="px-5 py-3.5 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between text-xs">
+                            <div className="font-bold text-slate-800 truncate max-w-[170px]" title={item.namaMahasiswa}>
+                              {item.namaMahasiswa}
+                            </div>
+                            {item.terverifikasi !== false && (
+                              <span className="text-emerald-600 font-extrabold text-[11px] flex items-center gap-1 shrink-0">
+                                <ShieldCheck className="w-3.5 h-3.5" /> Terverifikasi CDC
+                              </span>
                             )}
-                            <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                              <span className="px-2.5 py-1 bg-amber-400 text-slate-950 rounded-lg text-xs font-black shadow-md flex items-center gap-1">
-                                <Award className="w-3.5 h-3.5 text-slate-950" /> {item.peringkat}
-                              </span>
-                            </div>
-                            <div className="absolute top-3 right-3">
-                              <span className="px-2.5 py-1 bg-black/60 backdrop-blur-md text-white rounded-lg text-xs font-bold">
-                                {item.tahun}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Card Body */}
-                          <div className="p-5 space-y-3">
-                            <div className="text-xs font-extrabold text-amber-600 uppercase tracking-wide truncate">
-                              {item.prodi || 'UM KENDARI'}
-                            </div>
-
-                            <h3 className="font-extrabold text-slate-900 text-base leading-snug group-hover:text-amber-600 transition-colors line-clamp-2">
-                              {item.judul}
-                            </h3>
-
-                            <p className="text-slate-600 text-xs leading-relaxed line-clamp-3">
-                              {item.body}
-                            </p>
                           </div>
                         </div>
-
-                        {/* Card Footer */}
-                        <div className="px-5 py-3.5 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between text-xs">
-                          <div className="font-bold text-slate-800 truncate max-w-[170px]" title={item.namaMahasiswa}>
-                            {item.namaMahasiswa}
-                          </div>
-                          {item.terverifikasi !== false && (
-                            <span className="text-emerald-600 font-extrabold text-[11px] flex items-center gap-1 shrink-0">
-                              <ShieldCheck className="w-3.5 h-3.5" /> Terverifikasi CDC
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        );
+          );
         })()}
 
       </main>
 
+
+      {/* Modal Lightbox Perbesar Poster Pengumuman */}
+      {selectedPosterModal && (
+        <div
+          className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4"
+          onClick={() => setSelectedPosterModal(null)}
+        >
+          <div className="relative max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl bg-slate-900 shadow-2xl p-2" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setSelectedPosterModal(null)}
+              className="absolute top-4 right-4 bg-slate-950/80 text-white hover:bg-red-600 p-2 rounded-full transition z-10 cursor-pointer"
+            >
+              ✕
+            </button>
+            <img src={selectedPosterModal} alt="Poster Full" className="w-full max-h-[85vh] object-contain rounded-xl" />
+          </div>
+        </div>
+      )}
 
       {/* ══════════════════════════════════════════
           FOOTER
