@@ -25,6 +25,7 @@ import {
   KonselingConfig,
   KonselingInfoItem,
   KonselingJadwalItem,
+  VisiMisiConfig,
   AnggotaTim,
   SocialMediaItem,
   HelpdeskConfig
@@ -1951,6 +1952,7 @@ export function saveHelpdeskConfig(config: HelpdeskConfig) {
 ───────────────────────────────────────────────────────────────── */
 export const DEFAULT_KONSELING_CONFIG: KonselingConfig = {
   id: 'konseling_config_default',
+  published: true,
   title: 'Layanan Konseling Karir UPT CDC UM Kendari',
   subtitle: 'Sesi konsultasi karir personal & pendampingan profesional untuk mahasiswa dan alumni Universitas Muhammadiyah Kendari',
   posterUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=1200&q=80',
@@ -2027,6 +2029,35 @@ export function saveKonselingConfig(config: KonselingConfig): void {
     updatedAt: new Date().toISOString()
   };
   localStorage.setItem('cdc_umk_konseling_config', JSON.stringify(updated));
+}
+
+/* =========================================================
+ *  VISI & MISI (config gambar beranda)
+ * =======================================================*/
+export const DEFAULT_VISI_MISI_CONFIG: VisiMisiConfig = {
+  id: 'visi_misi_default',
+  // Fallback ke aset publik bawaan kalau admin belum upload
+  imageUrl: '/visi-misi-cdc.svg'
+};
+
+export function getVisiMisiConfig(): VisiMisiConfig {
+  const saved = localStorage.getItem('cdc_umk_visi_misi_config');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed && typeof parsed === 'object' && typeof parsed.imageUrl === 'string') {
+        return { ...DEFAULT_VISI_MISI_CONFIG, ...parsed };
+      }
+    } catch (e) {
+      console.error('Error parsing visi misi config:', e);
+    }
+  }
+  return DEFAULT_VISI_MISI_CONFIG;
+}
+
+export function saveVisiMisiConfig(config: VisiMisiConfig): void {
+  const updated = { ...config, updatedAt: new Date().toISOString() };
+  localStorage.setItem('cdc_umk_visi_misi_config', JSON.stringify(updated));
 }
 
 export const DEFAULT_ANGGOTA_TIM: AnggotaTim[] = [

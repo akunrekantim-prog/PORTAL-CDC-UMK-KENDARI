@@ -14,6 +14,19 @@ export default function KonselingKarir() {
     setConfig(getKonselingConfig());
   }, []);
 
+  // Respek flag publikasi dari admin (Draft → tidak tampil di publik)
+  if (config.published === false) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center space-y-4" id="layanan-konseling-karir">
+        <div className="w-14 h-14 mx-auto rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center">
+          <ArrowUpRight className="w-6 h-6" />
+        </div>
+        <h2 className="text-2xl font-bold text-slate-700">Layanan Konseling Karir Sedang Dalam Penyusunan</h2>
+        <p className="text-sm text-slate-500">Halaman ini masih berstatus Draft dan belum dipublikasikan oleh admin CDC UM Kendari.</p>
+      </div>
+    );
+  }
+
   const cleanWaNumber = (config.adminWaNumber || '6285299887766').replace(/\D/g, '');
   const waUrl = `https://wa.me/${cleanWaNumber}?text=${encodeURIComponent(
     config.adminWaDefaultMessage || WA_MSG_DEFAULT

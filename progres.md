@@ -6,6 +6,32 @@ Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 
 ---
 
+## Tanggal: 21 Agustus 2026
+**Oleh: Mirzat L. Teori**
+**Fokus Pekerjaan:** Analisis seluruh struktur project Portal CDC & penyesuaian form Lowongan Admin (section "3. Detail Konten & Kriteria" dijadikan opsional)
+
+### Ringkasan Perubahan
+1. **Analisis Menyeluruh Project (read-through seluruh file sumber):**
+   - Membaca konfigurasi (`package.json`, `vite.config.ts`, `tsconfig.json`, `index.html`), entry point (`main.tsx`, `App.tsx`), data layer (`src/data.ts` 2170 baris — localStorage key `cdc_umk_<dbkey>` + `initializeDB` seed v12_social_media, helper CRUD/register/applyForJob), tipe (`src/types.ts`), styling (`src/index.css` Tailwind v4 @theme kustom clay/emerald/blue + `.prose`/`.prose-berita`), dan seluruh komponen publik (`PublicLayout`, `Header`, `Footer`, `HeroSlider`, `LayananContainer`) serta dashboard (`AdminDashboard` 5833 baris, `MitraDashboard`, `MahasiswaDashboard`).
+   - Memetakan ~14 tab publik dan 14 menu admin, alur auth (Login/Register), alur lamar (`JobApplicationModal` + `applyForJob`), dan view layanan (EventCardLayout, GaleriView, SuratKeputusanView, dll).
+2. **Penyesuaian Form Lowongan Admin — Section 3 Dijadikan Opsional:**
+   - Hapus `!lDeskripsi.trim()` dari validasi `handleSaveLowongan` (syarat wajib tersisa: Judul, Instansi, Lokasi, Deadline).
+   - Hapus atribut `required` dan tanda `*` pada label "Deskripsi Ringkas" di section "3. Detail Konten & Kriteria" (form Input Lowongan By Admin CDC).
+   - Field section 3 (Deskripsi Ringkas, Tanggung Jawab, Kualifikasi, Keahlian, Benefit) kini seluruhnya opsional — admin dapat memposting lowongan cukup dari section 1 & 2.
+3. **Temuan Tech Debt (belum diubah, dicatat untuk tindak lanjut):**
+   - 8 file orphan yang tidak diimpor sama sekali: `MegaMenu.tsx`, `EventDetailView.tsx`, `TracerStudyForm.tsx`, `ExitSurvey.tsx`, `CaraPasang.tsx`, `BursaKerja.tsx`, `JobPlacement.tsx`, `HiringCriteriaModal.tsx`.
+   - `src/types.ts` memuat interface duplikat (Berita, Pengumuman, TracerStudy, SurveiLulusan, Prestasi, UploadedDocument dideklarasikan 2x) — penyebab `npm run lint` (tsc) gagal; `npm run build` (esbuild) tetap lolos.
+   - Duplikasi `formatDateDisplay` (di-copy manual di `StudentApplicationsView` & `MitraDashboard`) dan logo URL berbeda antar dashboard.
+
+### File Diubah
+- `src/components/AdminDashboard.tsx` (section 3 form lowongan → opsional)
+- `progres.md`
+
+### Verifikasi
+- ✅ `npm run build` — passed (built 8.21s, 2120 modules)
+
+---
+
 ## Tanggal: 20 Agustus 2026
 **Oleh: ARYA APRIAWAN**
 **Fokus Pekerjaan:** Redesign tampilan menu **Layanan Konseling Karir** — bersihkan gaya "AI slop" jadi clean & profesional, serta sinkronisasi remote GitHub

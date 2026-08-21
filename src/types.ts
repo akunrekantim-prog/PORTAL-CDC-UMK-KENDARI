@@ -599,6 +599,15 @@ export interface KonselingConfig {
   narasiWa: string;
   adminWaNumber: string;
   adminWaDefaultMessage: string;
+  /** Flag publikasi konseling (seragam dgn draft/published Konten Karir). */
+  published?: boolean;
+  updatedAt?: string;
+}
+
+/** Config Visi & Misi (tampil di beranda publik, section "Tentang Kami"). */
+export interface VisiMisiConfig {
+  id: string;
+  imageUrl: string; // bisa file lokal (data URL) hasil upload admin, atau fallback svg
   updatedAt?: string;
 }
 

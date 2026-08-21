@@ -30,6 +30,7 @@ import {
   KonselingConfig,
   KonselingInfoItem,
   KonselingJadwalItem,
+  VisiMisiConfig,
   AnggotaTim,
   SocialMediaItem,
   Pengumuman,
@@ -45,6 +46,8 @@ import {
   saveAdminWaPrestasi,
   getKonselingConfig,
   saveKonselingConfig,
+  getVisiMisiConfig,
+  saveVisiMisiConfig,
   getAnggotaTim,
   saveAnggotaTim,
   getHelpdeskConfig,
@@ -58,6 +61,7 @@ import {
   Megaphone,
   GraduationCap,
   Sparkles,
+  Target,
   TrendingUp,
   Activity,
   Trophy,
@@ -129,7 +133,7 @@ interface AdminDashboardProps {
   onReloadData?: () => void;
 }
 
-type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'konseling' | 'keanggotaan' | 'media-sosial';
+type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin' | 'visi-misi' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'media-sosial';
 type KontenSubTab = 'riwayat' | 'pembuatan';
 type MitraSubTab = 'approval' | 'list';
 
@@ -361,6 +365,12 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const [kNarasiWa, setKNarasiWa] = useState(konselingCfg.narasiWa || '');
   const [kAdminWaNum, setKAdminWaNum] = useState(konselingCfg.adminWaNumber || '');
   const [kAdminWaMsg, setKAdminWaMsg] = useState(konselingCfg.adminWaDefaultMessage || '');
+  const [kPublished, setKPublished] = useState<boolean>(konselingCfg.published !== false);
+
+  // State collapsible grup sidebar + Visi & Misi
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+  const [visiMisiCfg, setVisiMisiCfg] = useState<VisiMisiConfig>(getVisiMisiConfig());
+  const [vmImageUrl, setVmImageUrl] = useState(visiMisiCfg.imageUrl || '');
 
   // Form states Info Items
   const [showInfoModal, setShowInfoModal] = useState(false);
@@ -473,7 +483,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   /* =========================================================
    *  SIDEBAR
    * =======================================================*/
-  const MENU: { group: string; items: { id: AdminTab; label: string; icon: React.ReactNode }[] }[] = [
+  const MENU: { group: string; collapsible?: boolean; items: { id: AdminTab; label: string; icon: React.ReactNode }[] }[] = [
     { group: 'DASHBOARD', items: [{ id: 'ringkasan', label: 'Ringkasan Laporan', icon: <LayoutDashboard className="w-4 h-4" /> }] },
     { group: 'KONTEN KARIR', items: [{ id: 'konten', label: 'Riwayat & Pembuatan Konten', icon: <FileText className="w-4 h-4" /> }] },
     {
@@ -483,21 +493,17 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       ]
     },
     {
-      group: 'DOKUMEN & KALENDER',
+      group: 'MANAJEMEN WEB',
+      collapsible: true,
       items: [
-        { id: 'sk-cdc', label: 'Kelola SK CDC', icon: <FileText className="w-4 h-4" /> },
-        { id: 'kalender', label: 'Kelola Kalender Kegiatan', icon: <Calendar className="w-4 h-4" /> },
-        { id: 'laporan', label: 'Kelola Laporan Kinerja', icon: <FileText className="w-4 h-4" /> },
-        { id: 'mou', label: 'Kelola MOU Stakeholder', icon: <FileText className="w-4 h-4" /> },
-        { id: 'galeri', label: 'Kelola Galeri Kegiatan', icon: <Film className="w-4 h-4" /> },
-        { id: 'konseling', label: 'Kelola Konseling Karir', icon: <HeartHandshake className="w-4 h-4" /> },
-        { id: 'keanggotaan', label: 'Kelola Keanggotaan & Tim', icon: <UserCheck className="w-4 h-4" /> },
-        { id: 'media-sosial', label: 'Kelola Media Sosial', icon: <Globe className="w-4 h-4" /> }
-      ]
-    },
-    {
-      group: 'MANAJEMEN ADMIN',
-      items: [
+        { id: 'keanggotaan', label: 'Keanggotaan & Tim', icon: <UserCheck className="w-4 h-4" /> },
+        { id: 'visi-misi', label: 'Visi & Misi', icon: <Target className="w-4 h-4" /> },
+        { id: 'sk-cdc', label: 'Surat Keputusan CDC', icon: <FileText className="w-4 h-4" /> },
+        { id: 'kalender', label: 'Kalender Kegiatan', icon: <Calendar className="w-4 h-4" /> },
+        { id: 'laporan', label: 'Laporan Kinerja', icon: <FileText className="w-4 h-4" /> },
+        { id: 'mou', label: 'MOU Stakeholder', icon: <FileText className="w-4 h-4" /> },
+        { id: 'galeri', label: 'Galeri Kegiatan', icon: <Film className="w-4 h-4" /> },
+        { id: 'media-sosial', label: 'Media Sosial', icon: <Globe className="w-4 h-4" /> },
         { id: 'admin', label: 'Kelola Admin', icon: <UserCog className="w-4 h-4" /> }
       ]
     }
@@ -958,8 +964,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   };
 
   const handleSaveLowongan = async () => {
-    if (!lJudul.trim() || !lNamaInstansi.trim() || !lLokasi.trim() || !lDeadline.trim() || !lDeskripsi.trim()) {
-      triggerToast('error', 'Field bertanda * wajib diisi (Judul, Instansi, Lokasi, Deadline, Deskripsi).');
+    if (!lJudul.trim() || !lNamaInstansi.trim() || !lLokasi.trim() || !lDeadline.trim()) {
+      triggerToast('error', 'Field bertanda * wajib diisi (Judul, Instansi, Lokasi, Deadline).');
       return;
     }
     if (lCtaEnabled && !lLinkEksternal.trim()) {
@@ -1495,9 +1501,24 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
               <div className="font-extrabold text-slate-900 text-sm tracking-tight">Menu Admin</div>
             </div>
             <nav className="flex flex-col gap-1">
-              {MENU.map((section, idx) => (
+              {MENU.map((section, idx) => {
+                const isCollapsible = !!section.collapsible;
+                const isOpen = expandedGroups[section.group] ?? true;
+                return (
                 <div key={section.group} className={idx > 0 ? 'mt-4 pt-3 border-t border-slate-100' : ''}>
-                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 px-1">{section.group}</div>
+                  {isCollapsible ? (
+                    <button
+                      type="button"
+                      onClick={() => setExpandedGroups((g) => ({ ...g, [section.group]: !isOpen }))}
+                      className="w-full flex items-center justify-between px-1 mb-1.5 group"
+                    >
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-slate-500 transition">{section.group}</span>
+                      <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isOpen ? '' : '-rotate-90'}`} />
+                    </button>
+                  ) : (
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 px-1">{section.group}</div>
+                  )}
+                  {isOpen && (
                   <div className="flex flex-col gap-1">
                     {section.items.map((menu) => {
                       const active = activeTab === menu.id;
@@ -1517,8 +1538,10 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                       );
                     })}
                   </div>
+                  )}
                 </div>
-              ))}
+                );
+              })}
             </nav>
           </div>
         </aside>
@@ -1926,6 +1949,22 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                   )}
 
                   <div className="space-y-3">
+                    {/* Baris khusus Konseling Karir (bukan konten_karir biasa) */}
+                    <div className="bg-white rounded-xl border border-emerald-200 shadow-sm p-4 flex items-center gap-4">
+                      <div className="w-20 h-14 flex-shrink-0 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600"><HeartHandshake className="w-5 h-5" /></div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          {statusBadge(konselingCfg.published === false ? 'draft' : 'published', { draft: { bg: 'bg-slate-100', text: 'text-slate-600', label: 'Draft' }, published: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Published' } })}
+                          <span className="text-[11px] text-slate-400 flex items-center gap-1"><HeartHandshake className="w-3 h-3" /> Konseling Karir</span>
+                        </div>
+                        <div className="font-bold text-slate-800 truncate">{konselingCfg.title || 'Layanan Konseling Karir'}</div>
+                        <div className="text-[11px] text-slate-400">Konfigurasi layanan konseling · {konselingCfg.updatedAt ? formatTanggal(konselingCfg.updatedAt) : '—'}</div>
+                      </div>
+                      <div className="flex gap-1.5 flex-shrink-0">
+                        <button onClick={() => setActiveTab('konseling')} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Edit3 className="w-3.5 h-3.5" /> Edit</button>
+                      </div>
+                    </div>
+
                     {filteredKonten.map((k) => (
                       <div key={k.id} className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex items-center gap-4">
                         {THUMB_REQUIRED[k.jenis] && k.thumbnail ? (
@@ -1989,6 +2028,17 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                         <div className="text-[11px] text-slate-400 mt-1">{j === 'lowongan' ? '→ Buka form lowongan Info Karir' : '→ Buka editor konten'}</div>
                       </button>
                     ))}
+
+                    {/* Card khusus Konseling Karir (bukan jenis konten, tapi konfigurasi dedicated) */}
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('konseling')}
+                      className="text-left border border-emerald-200 hover:border-emerald-400 hover:bg-emerald-50/50 hover:shadow-sm rounded-xl p-4 transition group"
+                    >
+                      <div className="text-emerald-600 group-hover:scale-110 transition"><span className="inline-flex w-9 h-9 rounded-lg bg-emerald-50 ring-1 ring-emerald-100 items-center justify-center"><HeartHandshake className="w-4 h-4" /></span></div>
+                      <div className="font-bold text-slate-800 mt-3 tracking-tight">Konseling Karir</div>
+                      <div className="text-[11px] text-slate-400 mt-1">→ Buka pengaturan layanan konseling</div>
+                    </button>
                   </div>
                 </div>
               )}
@@ -2132,8 +2182,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                       <h5 className="font-bold text-slate-800 text-xs uppercase tracking-wider border-b border-slate-100 pb-2">3. Detail Konten & Kriteria</h5>
                       <div className="space-y-3">
                         <div className="space-y-1.5">
-                          <label className="text-xs font-medium text-slate-500">Deskripsi Ringkas *</label>
-                          <textarea required value={lDeskripsi} onChange={(e) => setLDeskripsi(e.target.value)} rows={3} placeholder="Gambaran umum, lingkup tugas..." className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+                          <label className="text-xs font-medium text-slate-500">Deskripsi Ringkas</label>
+                          <textarea value={lDeskripsi} onChange={(e) => setLDeskripsi(e.target.value)} rows={3} placeholder="Gambaran umum, lingkup tugas... (opsional)" className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
                         </div>
                         <div className="space-y-1.5">
                           <label className="text-xs font-medium text-slate-500">Tanggung Jawab (1 baris per poin)</label>
@@ -4358,11 +4408,12 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                 posterUrl: kPosterUrl,
                 narasiWa: kNarasiWa,
                 adminWaNumber: kAdminWaNum,
-                adminWaDefaultMessage: kAdminWaMsg
+                adminWaDefaultMessage: kAdminWaMsg,
+                published: kPublished
               };
               saveKonselingConfig(updated);
               setKonselingCfg(updated);
-              triggerToast('success', 'Pengaturan Konseling Karir berhasil disimpan!');
+              triggerToast('success', `Pengaturan Konseling Karir berhasil disimpan! (${kPublished ? 'Published' : 'Draft'})`);
             };
 
             const handleSaveInfoItem = (e: React.FormEvent) => {
@@ -4520,6 +4571,27 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                   >
                     <Save className="w-4 h-4" /> Simpan Semua Pengaturan
                   </button>
+                </div>
+
+                {/* Status publikasi (Draft / Published) — seragam dgn Konten Karir */}
+                <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex items-center justify-between gap-4 flex-wrap">
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                      <HeartHandshake className="w-4 h-4 text-emerald-600" /> Status Publikasi Konseling Karir
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-0.5">Tentukan apakah halaman Konseling Karir tampil di publik (Published) atau disimpan sebagai Draft.</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className={`text-xs font-bold ${!kPublished ? 'text-amber-600' : 'text-slate-400'}`}>Draft</span>
+                    <button
+                      type="button"
+                      onClick={() => setKPublished((v) => !v)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${kPublished ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                    >
+                      <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${kPublished ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                    </button>
+                    <span className={`text-xs font-bold ${kPublished ? 'text-emerald-600' : 'text-slate-400'}`}>Published</span>
+                  </div>
                 </div>
 
                 {/* 1. POSTER TEMPLATE & BANNER TITLE */}
@@ -5618,6 +5690,97 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                     </div>
                   </div>
                 )}
+              </div>
+            );
+          })()}
+
+          {/* ============== VISI & MISI ============== */}
+          {activeTab === 'visi-misi' && (() => {
+            const handleVmFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              try {
+                const compressed = await compressImageAdaptive(file);
+                setVmImageUrl(compressed);
+                triggerToast('success', 'Gambar Visi & Misi berhasil diunggah & dikompres!');
+              } catch (err: any) {
+                triggerToast('error', 'Gagal memuat gambar Visi & Misi.');
+              }
+            };
+
+            const handleSaveVm = () => {
+              if (!vmImageUrl.trim()) {
+                triggerToast('error', 'Gambar Visi & Misi wajib diunggah.');
+                return;
+              }
+              const updated: VisiMisiConfig = { ...visiMisiCfg, imageUrl: vmImageUrl, updatedAt: new Date().toISOString() };
+              saveVisiMisiConfig(updated);
+              setVisiMisiCfg(updated);
+              triggerToast('success', 'Gambar Visi & Misi berhasil disimpan!');
+            };
+
+            return (
+              <div className="space-y-6" id="adm-visi-misi">
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+                  <div className="border-b border-slate-100 pb-3">
+                    <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                      <Target className="w-5 h-5 text-[#1E3A8A]" /> Pengaturan Gambar Visi &amp; Misi
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Unggah gambar Visi &amp; Misi yang akan tampil di beranda publik, section &quot;Tentang Kami&quot;.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1.5">Unggah Gambar Visi &amp; Misi</label>
+                        <div className="border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center bg-slate-50 hover:border-[#1E3A8A] transition relative cursor-pointer">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleVmFileChange}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          />
+                          <ImageIcon className="w-8 h-8 mx-auto mb-2 text-slate-400" />
+                          <span className="text-xs font-semibold text-[#1E3A8A]">Klik atau seret gambar ke sini</span>
+                          <span className="text-[10px] text-slate-400 block mt-1">PNG / JPG • otomatis dikompres</span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="block text-xs font-bold text-slate-700 mb-1">Atau tempel URL gambar</label>
+                        <input
+                          type="text"
+                          value={vmImageUrl}
+                          onChange={(e) => setVmImageUrl(e.target.value)}
+                          placeholder="/visi-misi-cdc.svg atau https://..."
+                          className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20"
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleSaveVm}
+                        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-md transition"
+                      >
+                        <Save className="w-4 h-4" /> Simpan Gambar Visi &amp; Misi
+                      </button>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5">Preview Tampilan</label>
+                      <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-slate-50 p-2 sm:p-4">
+                        <img
+                          src={vmImageUrl || '/visi-misi-cdc.svg'}
+                          alt="Preview Visi & Misi"
+                          className="w-full h-auto object-contain rounded-xl"
+                          onError={(e) => { (e.target as HTMLImageElement).src = '/visi-misi-cdc.svg'; }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             );
           })()}

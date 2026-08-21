@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 import { Lowongan, Berita, Pengumuman, KontenKarir } from '../types';
-import { sortJobsByNewest, formatDateDisplay, isJobDeadlinePassed, getFromDB, trackAndGetVisitorCount, getAdminWaPrestasi } from '../data';
+import { sortJobsByNewest, formatDateDisplay, isJobDeadlinePassed, getFromDB, trackAndGetVisitorCount, getAdminWaPrestasi, getVisiMisiConfig } from '../data';
 import { motion } from 'motion/react';
 import Header from './Header';
 import { Footer } from './Footer';
@@ -125,6 +125,8 @@ export default function PublicLayout({
   onNavigateToLogin,
   onNavigateToRegister,
 }: PublicLayoutProps) {
+  // Gambar Visi & Misi (bisa diubah admin via Manajemen Web → Visi & Misi)
+  const [visiMisiUrl, setVisiMisiUrl] = useState<string>(() => getVisiMisiConfig().imageUrl);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'magang' | 'kerja'>('all');
   const [jobInfoPage, setJobInfoPage] = useState(1);
@@ -883,9 +885,10 @@ export default function PublicLayout({
               <h3 className="text-lg font-bold text-slate-900 border-l-4 border-[#10B981] pl-3">Visi &amp; Misi</h3>
               <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm mt-4 bg-slate-50 p-2 sm:p-4">
                 <img
-                  src="/visi-misi-cdc.svg"
+                  src={visiMisiUrl}
                   alt="Visi & Misi UPT. Pusat Pengembangan Kreativitas, Inovasi dan Konseling Mahasiswa Universitas Muhammadiyah Kendari"
                   className="w-full h-auto object-contain rounded-xl"
+                  onError={(e) => { (e.target as HTMLImageElement).src = '/visi-misi-cdc.svg'; }}
                 />
               </div>
             </div>
@@ -901,9 +904,10 @@ export default function PublicLayout({
             </div>
             <div className="bg-white rounded-3xl border border-slate-200/80 p-4 sm:p-6 shadow-lg overflow-hidden">
               <img
-                src="/visi-misi-cdc.svg"
+                src={visiMisiUrl}
                 alt="Visi & Misi UPT. Pusat Pengembangan Kreativitas, Inovasi dan Konseling Mahasiswa Universitas Muhammadiyah Kendari"
                 className="w-full h-auto rounded-2xl object-contain shadow-sm"
+                onError={(e) => { (e.target as HTMLImageElement).src = '/visi-misi-cdc.svg'; }}
               />
             </div>
           </div>
