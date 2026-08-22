@@ -91,9 +91,7 @@ const NAV_ITEMS: NavItem[] = [
     children: [
       { label: 'Panduan Tracer Study', href: 'https://tracerstudy.umkendari.ac.id/page/panduan' },
       { label: 'Form Kuesioner Tracer Study', href: 'https://tracerstudy.umkendari.ac.id/page/survey' },
-      { label: 'Mengisi Tracer Study', href: 'https://tracerstudy.umkendari.ac.id' },
       { label: 'Laporan Tracer Study', href: 'https://tracerstudy.umkendari.ac.id/page/laporan' },
-      { label: 'Laporan Monev Tracer Study', href: 'https://tracerstudy.umkendari.ac.id/page/monev' },
     ],
   },
   {
