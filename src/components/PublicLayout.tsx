@@ -9,7 +9,7 @@ import {
   FileText, Mail, Phone, Clock, ArrowRight, Globe, Megaphone,
   Info, GraduationCap, ChevronRight, Facebook, Instagram, Youtube,
   Users, Building, Shield, Award, Star, TrendingUp, Zap, Target,
-  ExternalLink, Calendar, ShieldCheck, Trophy, Eye, Sparkles,
+  ExternalLink, Calendar, ShieldCheck, Trophy, Eye,
   MessageCircle, Send, Linkedin, Copy
 } from 'lucide-react';
 
@@ -602,7 +602,7 @@ export default function PublicLayout({
                                 className="bg-gradient-to-br from-emerald-50/90 via-white to-emerald-50/40 rounded-3xl border border-emerald-200/80 p-6 sm:p-7 shadow-md hover:shadow-lg transition-all cursor-pointer group flex flex-col sm:flex-row items-start gap-5 relative overflow-hidden"
                               >
                                 <div className="bg-emerald-500 text-slate-950 p-3.5 rounded-2xl shadow-sm shrink-0 flex items-center justify-center">
-                                  <Sparkles className="w-7 h-7 animate-pulse text-slate-950" />
+                                  <Award className="w-7 h-7 text-slate-950" />
                                 </div>
                                 <div className="flex-1 space-y-2 w-full">
                                   <div className="flex items-center justify-between gap-2 flex-wrap">

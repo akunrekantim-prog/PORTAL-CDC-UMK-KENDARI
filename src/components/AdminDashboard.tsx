@@ -60,7 +60,6 @@ import {
   Briefcase,
   Megaphone,
   GraduationCap,
-  Sparkles,
   Target,
   TrendingUp,
   Activity,
@@ -152,7 +151,7 @@ const JENIS_ICON: Record<JenisKonten, React.ReactNode> = {
   lowongan: <Briefcase className="w-4 h-4" />,
   program: <Megaphone className="w-4 h-4" />,
   workshop: <GraduationCap className="w-4 h-4" />,
-  softskill: <Sparkles className="w-4 h-4" />,
+  softskill: <Award className="w-4 h-4" />,
   seminar: <GraduationCap className="w-4 h-4" />,
   presentasi: <Trophy className="w-4 h-4" />
 };

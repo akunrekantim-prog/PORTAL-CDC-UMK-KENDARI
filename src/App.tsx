@@ -39,7 +39,6 @@ import {
   Lock,
   Mail,
   Info,
-  Sparkles,
   AlertCircle
 } from 'lucide-react';
 import { motion } from 'motion/react';

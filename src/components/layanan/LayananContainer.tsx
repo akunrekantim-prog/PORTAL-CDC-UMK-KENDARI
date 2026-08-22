@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   MessageSquare, Wrench, GraduationCap,
-  Mic, Sparkles, Rocket, Briefcase, Brain,
+  Mic, CalendarDays, Rocket, Briefcase, Brain,
   ChevronRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -82,7 +82,7 @@ export const LAYANAN_MENU: LayananMenuOption[] = [
     label: 'Job Fair & Bursa Kerja',
     shortLabel: 'Job Fair',
     description: 'Bursa kerja tahunan yang mempertemukan mahasiswa dan alumni UMK dengan puluhan perusahaan mitra.',
-    icon: Sparkles,
+    icon: CalendarDays,
     badge: 'Annual Event',
     color: 'from-amber-400 to-yellow-600'
   },

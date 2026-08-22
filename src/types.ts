@@ -66,6 +66,15 @@ export interface Mahasiswa {
     year: string;
     ipk?: string;
   }>;
+  languages?: Array<{
+    id: string;
+    name: string;
+    level: string;
+  }>;
+  gender?: string;
+  industries?: string;
+  locations?: string;
+  university?: string;
 }
 
 export type JenisKonten = 'berita' | 'lowongan' | 'program' | 'workshop' | 'softskill' | 'seminar' | 'presentasi';

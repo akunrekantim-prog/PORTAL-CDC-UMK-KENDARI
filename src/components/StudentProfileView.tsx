@@ -1,25 +1,25 @@
 import React, { useState } from 'react';
-import { 
-  User as UserType, 
-  Mahasiswa 
+import {
+  User as UserType,
+  Mahasiswa
 } from '../types';
-import { 
+import {
   updateUserProfile,
   getFromDB,
   getSavedJobIds,
   getValidSavedJobs,
   toggleSaveJob
 } from '../data';
-import { 
-  Pencil, 
-  CheckCircle2, 
-  Plus, 
-  FileText, 
-  Bookmark, 
-  Search, 
-  Briefcase, 
-  Building2, 
-  GraduationCap, 
+import {
+  Pencil,
+  CheckCircle2,
+  Plus,
+  FileText,
+  Bookmark,
+  Search,
+  Briefcase,
+  Building2,
+  GraduationCap,
   X,
   ShieldCheck,
   UserCheck,
@@ -33,7 +33,8 @@ import {
   Award,
   BookOpen,
   Languages,
-  Sparkles,
+  TrendingUp,
+  AlertCircle,
   Trash2,
   Calendar,
   Settings
@@ -123,7 +124,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
   const [opportunityStartDate, setOpportunityStartDate] = useState(mahasiswaData?.preferredStartDate || 'As soon as possible (Segera)');
   const [industries, setIndustries] = useState('IT & Computer Science, Business & Management');
   const [locations, setLocations] = useState('Kendari, Jakarta, Remote, Morowali');
-  
+
   // High school states
   const [hsGradYear, setHsGradYear] = useState('2022');
   const [hsCountry, setHsCountry] = useState('Indonesia');
@@ -221,21 +222,37 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
   };
 
   const saveProfileData = (partial: Partial<Mahasiswa>) => {
-    updateUserProfile(user.id, {
-      ...partial,
+    const updated = updateUserProfile(user.id, {
+      nama: partial.nama !== undefined ? partial.nama : `${firstName} ${lastName}`.trim(),
+      nim: partial.nim !== undefined ? partial.nim : nim,
+      email: partial.email !== undefined ? partial.email : email,
+      phone: partial.phone !== undefined ? partial.phone : mobile,
+      nationality: partial.nationality !== undefined ? partial.nationality : nationality,
+      opportunityType: partial.opportunityType !== undefined ? partial.opportunityType : opportunityType,
+      preferredStartDate: partial.preferredStartDate !== undefined ? partial.preferredStartDate : opportunityStartDate,
+      aboutMe: partial.aboutMe !== undefined ? partial.aboutMe : aboutMe,
+      userStatusType: partial.userStatusType !== undefined ? partial.userStatusType : userStatusType,
       qualifications: partial.qualifications || qualifications,
       skills: partial.skills || skills,
       experiences: partial.experiences || experiences,
-      certificates: partial.certificates || certificates
+      certificates: partial.certificates || certificates,
+      languages: partial.languages || languagesList,
+      gender: partial.gender !== undefined ? partial.gender : gender,
+      workRights: partial.workRights !== undefined ? partial.workRights : workRights,
+      industries: partial.industries !== undefined ? partial.industries : industries,
+      locations: partial.locations !== undefined ? partial.locations : locations,
+      university: partial.university !== undefined ? partial.university : university,
+      ...partial
     });
     if (onProfileUpdated) onProfileUpdated();
+    return updated;
   };
 
   const handleSaveProfileSection = (e: React.FormEvent) => {
     e.preventDefault();
     const updatedProfile: Partial<Mahasiswa> = {
       nama: `${firstName} ${lastName}`.trim(),
-      nim,
+      nim: userStatusType === 'Mahasiswa' ? nim : '',
       email,
       phone: mobile,
       nationality,
@@ -245,9 +262,14 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
       skills,
       experiences,
       certificates,
-      ipk: '3.85 / 4.00'
+      languages: languagesList,
+      gender,
+      workRights,
+      industries,
+      locations,
+      university
     };
-    
+
     saveProfileData(updatedProfile);
     setEditingSection(null);
     triggerToast('Profil berhasil diperbarui!');
@@ -256,8 +278,9 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
   // Add Skill Handler
   const handleAddSkill = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newSkillInput.trim()) {
-      const nextSkills = skills.includes(newSkillInput.trim()) ? skills : [...skills, newSkillInput.trim()];
+    const trimmed = newSkillInput.trim();
+    if (trimmed) {
+      const nextSkills = skills.includes(trimmed) ? skills : [...skills, trimmed];
       setSkills(nextSkills);
       setNewSkillInput('');
       saveProfileData({ skills: nextSkills });
@@ -275,15 +298,15 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
   // Add Experience Handler
   const handleAddExperience = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newExpPos && newExpComp) {
+    if (newExpPos.trim() && newExpComp.trim()) {
       const nextExp = [
         ...experiences,
         {
           id: Date.now().toString(),
-          position: newExpPos,
-          company: newExpComp,
-          period: newExpPeriod || '2026',
-          description: newExpDesc || '-'
+          position: newExpPos.trim(),
+          company: newExpComp.trim(),
+          period: newExpPeriod.trim() || '2026',
+          description: newExpDesc.trim() || '-'
         }
       ];
       setExperiences(nextExp);
@@ -307,14 +330,14 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
   // Add Certificate Handler
   const handleAddCertificate = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newCertName) {
+    if (newCertName.trim()) {
       const nextCerts = [
         ...certificates,
         {
           id: Date.now().toString(),
-          name: newCertName,
-          issuer: newCertIssuer || 'Lembaga Sertifikasi',
-          year: newCertYear || '2026'
+          name: newCertName.trim(),
+          issuer: newCertIssuer.trim() || 'Lembaga Sertifikasi',
+          year: newCertYear.trim() || '2026'
         }
       ];
       setCertificates(nextCerts);
@@ -337,32 +360,41 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
   // Add Language Handler
   const handleAddLanguage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newLangName) {
-      setLanguagesList([
+    if (newLangName.trim()) {
+      const nextLang = [
         ...languagesList,
         {
           id: Date.now().toString(),
-          name: newLangName,
+          name: newLangName.trim(),
           level: newLangLevel
         }
-      ]);
+      ];
+      setLanguagesList(nextLang);
       setNewLangName('');
       setEditingSection(null);
+      saveProfileData({ languages: nextLang });
       triggerToast('Bahasa baru berhasil ditambahkan!');
     }
+  };
+
+  const handleRemoveLanguage = (langId: string) => {
+    const nextLang = languagesList.filter(l => l.id !== langId);
+    setLanguagesList(nextLang);
+    saveProfileData({ languages: nextLang });
+    triggerToast('Bahasa berhasil dihapus');
   };
 
   // Add Qualification Handler
   const handleAddQualification = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newInst && newLevel) {
+    if (newInst.trim() && newLevel.trim()) {
       const nextQual = [
         ...qualifications,
         {
           id: Date.now().toString(),
-          institution: newInst,
-          level: newLevel,
-          year: newYear || '2026',
+          institution: newInst.trim(),
+          level: newLevel.trim(),
+          year: newYear.trim() || '2026',
           ...(newIpk.trim() ? { ipk: newIpk.trim() } : {})
         }
       ];
@@ -377,18 +409,126 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
     }
   };
 
-  // Profile completion calculation
-  const calculateCompletion = () => {
-    const fields = [firstName, lastName, email, mobile, nationality, opportunityType, hsName, aboutMe];
-    const filled = fields.filter(f => f && f.trim() !== '').length;
-    return Math.round((filled / fields.length) * 100);
+  const handleRemoveQualification = (qualId: string) => {
+    const nextQual = qualifications.filter(item => item.id !== qualId);
+    setQualifications(nextQual);
+    saveProfileData({ qualifications: nextQual });
+    triggerToast('Riwayat pendidikan berhasil dihapus');
   };
 
-  const completionPercent = calculateCompletion();
+  // Profile completion calculation system (9 dynamic weighted criteria)
+  const isPhotoCompleted = Boolean(avatarUrl && avatarUrl.trim() !== '');
+  const isPersonalCompleted = Boolean(
+    firstName.trim() !== '' &&
+    email.trim() !== '' &&
+    mobile.trim() !== '' &&
+    (userStatusType !== 'Mahasiswa' || (nim && nim.trim() !== ''))
+  );
+  const isBioCompleted = Boolean(aboutMe && aboutMe.trim().length >= 15);
+  const isEducationCompleted = qualifications.length > 0;
+  const isSkillsCompleted = skills.length > 0;
+  const isExperienceCompleted = experiences.length > 0;
+  const isCertificateCompleted = certificates.length > 0;
+  const isLanguageCompleted = languagesList.length > 0;
+  const isCareerCompleted = Boolean(
+    opportunityType && opportunityType.trim() !== '' &&
+    industries && industries.trim() !== '' &&
+    locations && locations.trim() !== ''
+  );
+
+  const checklistItems = [
+    {
+      id: 'photo',
+      label: 'Foto Profil',
+      isCompleted: isPhotoCompleted,
+      weight: 10,
+      detail: isPhotoCompleted ? 'Foto Terpasang' : 'Belum Ada Foto',
+      action: () => fileInputRef.current?.click(),
+      actionLabel: 'Unggah Foto'
+    },
+    {
+      id: 'personal',
+      label: 'Data Pribadi',
+      isCompleted: isPersonalCompleted,
+      weight: 20,
+      detail: isPersonalCompleted ? 'Identitas Lengkap' : 'Belum Lengkap',
+      action: () => setEditingSection('personal'),
+      actionLabel: 'Lengkapi Data'
+    },
+    {
+      id: 'aboutMe',
+      label: 'Tentang Saya',
+      isCompleted: isBioCompleted,
+      weight: 10,
+      detail: isBioCompleted ? 'Bio Terisi' : 'Belum Diisi',
+      action: () => setEditingSection('aboutMe'),
+      actionLabel: 'Tulis Bio'
+    },
+    {
+      id: 'education',
+      label: `Pendidikan (${qualifications.length})`,
+      isCompleted: isEducationCompleted,
+      weight: 15,
+      detail: qualifications.length > 0 ? `${qualifications.length} Riwayat` : 'Belum Ada',
+      action: () => setEditingSection('education'),
+      actionLabel: 'Tambah Pendidikan'
+    },
+    {
+      id: 'skills',
+      label: `Skill (${skills.length})`,
+      isCompleted: isSkillsCompleted,
+      weight: 15,
+      detail: skills.length > 0 ? `${skills.length} Keahlian` : 'Belum Ada',
+      action: () => setEditingSection('skills'),
+      actionLabel: 'Kelola Skill'
+    },
+    {
+      id: 'experience',
+      label: `Pengalaman (${experiences.length})`,
+      isCompleted: isExperienceCompleted,
+      weight: 10,
+      detail: experiences.length > 0 ? `${experiences.length} Pengalaman` : 'Belum Ada',
+      action: () => setEditingSection('experience'),
+      actionLabel: 'Tambah Pengalaman'
+    },
+    {
+      id: 'certificate',
+      label: `Sertifikat (${certificates.length})`,
+      isCompleted: isCertificateCompleted,
+      weight: 10,
+      detail: certificates.length > 0 ? `${certificates.length} Sertifikat` : 'Belum Ada',
+      action: () => setEditingSection('certificate'),
+      actionLabel: 'Tambah Sertifikat'
+    },
+    {
+      id: 'languages',
+      label: `Bahasa (${languagesList.length})`,
+      isCompleted: isLanguageCompleted,
+      weight: 5,
+      detail: languagesList.length > 0 ? `${languagesList.length} Bahasa` : 'Belum Ada',
+      action: () => setEditingSection('languages'),
+      actionLabel: 'Tambah Bahasa'
+    },
+    {
+      id: 'career',
+      label: 'Preferensi Karir',
+      isCompleted: isCareerCompleted,
+      weight: 5,
+      detail: isCareerCompleted ? 'Terisi' : 'Belum Diisi',
+      action: () => setEditingSection('career'),
+      actionLabel: 'Atur Preferensi'
+    }
+  ];
+
+  const completionPercent = checklistItems.reduce(
+    (acc, item) => (item.isCompleted ? acc + item.weight : acc),
+    0
+  );
+  const completedCount = checklistItems.filter(i => i.isCompleted).length;
 
   return (
     <div className="bg-slate-50/50 min-h-screen font-sans" id="prosple-student-profile-view">
-      
+
       {/* Toast Notification */}
       {toastMsg && (
         <div className="fixed top-4 right-4 z-50 bg-emerald-50 text-emerald-800 px-5 py-3 rounded-2xl shadow-lg border border-emerald-200 flex items-center gap-3 animate-fadeIn text-sm font-semibold">
@@ -397,26 +537,22 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
         </div>
       )}
 
-      {/* 1. HEADER HERO SECTION (EXPERT PROGRAMMER GRADE UI) */}
-      <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white pt-10 pb-14 px-4 sm:px-6 lg:px-8 relative overflow-hidden shadow-xl border-b border-slate-800">
-        {/* Ambient Decorative Lighting Effects */}
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-
+      {/* 1. HEADER HERO SECTION (INSTITUTIONAL GRADE UI) */}
+      <div className="bg-[#0b132b] text-white pt-10 pb-12 px-4 sm:px-6 lg:px-8 relative shadow-lg border-b border-slate-800">
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center md:items-start gap-7 relative z-10">
-          
+
           {/* Hidden File Input for Local Image Upload */}
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            accept="image/*" 
-            onChange={handleImageFileChange} 
-            className="hidden" 
+          <input
+            type="file"
+            ref={fileInputRef}
+            accept="image/*"
+            onChange={handleImageFileChange}
+            className="hidden"
           />
 
           {/* Foto Profil with Ambient Ring Glow */}
           <div className="relative group shrink-0">
-            <div 
+            <div
               onClick={() => fileInputRef.current?.click()}
               className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl border-2 border-white/20 ring-4 ring-emerald-500/20 shadow-2xl overflow-hidden bg-slate-800 flex items-center justify-center cursor-pointer relative transition-transform duration-300 group-hover:scale-[1.02]"
               title="Klik untuk ubah foto profil dari berkas lokal"
@@ -431,7 +567,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                 <span className="text-[10px] font-bold uppercase tracking-wider">Ubah Foto</span>
               </div>
             </div>
-            <button 
+            <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
               className="absolute -bottom-1 -right-1 bg-[#10B981] hover:bg-emerald-600 text-white p-2.5 rounded-2xl shadow-lg border-2 border-slate-900 transition transform group-hover:scale-110 cursor-pointer"
@@ -469,7 +605,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
               </button>
             </div>
 
-            <h1 
+            <h1
               onClick={() => setEditingSection('headerInfo')}
               className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight cursor-pointer hover:text-emerald-300 transition group flex items-center justify-center md:justify-start gap-2"
               title="Klik untuk edit nama"
@@ -477,7 +613,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
               <span>{`${firstName} ${lastName}`.trim() || user.name}</span>
             </h1>
 
-            <div 
+            <div
               onClick={() => setEditingSection('headerInfo')}
               className="flex items-center justify-center md:justify-start gap-2 text-slate-300 text-xs sm:text-sm font-medium cursor-pointer hover:text-white transition group w-fit mx-auto md:mx-0"
               title="Klik untuk ubah nama Universitas"
@@ -493,8 +629,8 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                 <span className="uppercase tracking-wider text-[10px] text-emerald-400 font-extrabold flex items-center gap-1.5">
                   <UserIcon className="w-3 h-3 text-emerald-400" /> TENTANG SAYA
                 </span>
-                <button 
-                  onClick={() => setEditingSection('aboutMe')} 
+                <button
+                  onClick={() => setEditingSection('aboutMe')}
                   className="text-emerald-400 hover:text-emerald-300 hover:underline flex items-center gap-1 font-semibold text-xs cursor-pointer"
                 >
                   Edit Bio <Pencil className="w-3 h-3" />
@@ -514,11 +650,10 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
         <div className="max-w-4xl mx-auto px-4 flex items-center justify-center gap-4 sm:gap-8 text-xs sm:text-sm font-bold">
           <button
             onClick={() => setSubTab('profile')}
-            className={`py-3.5 px-3 transition-all flex items-center gap-2 relative ${
-              subTab === 'profile'
-                ? 'text-[#0077C6] font-extrabold border-b-2 border-[#0077C6]'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
+            className={`py-3.5 px-3 transition-all flex items-center gap-2 relative ${subTab === 'profile'
+              ? 'text-[#0077C6] font-extrabold border-b-2 border-[#0077C6]'
+              : 'text-slate-600 hover:text-slate-900'
+              }`}
           >
             <UserIcon className="w-4 h-4" />
             <span>Profil Saya</span>
@@ -526,11 +661,10 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
 
           <button
             onClick={() => setSubTab('bookmarks')}
-            className={`py-3.5 px-3 transition-all flex items-center gap-2 relative ${
-              subTab === 'bookmarks'
-                ? 'text-[#0077C6] font-extrabold border-b-2 border-[#0077C6]'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
+            className={`py-3.5 px-3 transition-all flex items-center gap-2 relative ${subTab === 'bookmarks'
+              ? 'text-[#0077C6] font-extrabold border-b-2 border-[#0077C6]'
+              : 'text-slate-600 hover:text-slate-900'
+              }`}
           >
             <Bookmark className="w-4 h-4" />
             <span>Lowongan Tersimpan</span>
@@ -544,18 +678,17 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     </span>
                   );
                 }
-              } catch {}
+              } catch { }
               return null;
             })()}
           </button>
 
           <button
             onClick={() => setSubTab('account')}
-            className={`py-3.5 px-3 transition-all flex items-center gap-2 relative ${
-              subTab === 'account'
-                ? 'text-[#0077C6] font-extrabold border-b-2 border-[#0077C6]'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
+            className={`py-3.5 px-3 transition-all flex items-center gap-2 relative ${subTab === 'account'
+              ? 'text-[#0077C6] font-extrabold border-b-2 border-[#0077C6]'
+              : 'text-slate-600 hover:text-slate-900'
+              }`}
           >
             <Settings className="w-4 h-4" />
             <span>Akun Saya</span>
@@ -565,55 +698,90 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
 
       {/* 3. MAIN PROFILE CONTENT & STRUCTURE */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        
+
         {/* SUB-TAB A: PROFIL SAYA */}
         {subTab === 'profile' && (
           <div className="space-y-6 animate-fadeIn">
-            
-            {/* KELENGKAPAN PROFIL PROGRESS CARD (MODERN DESIGN) */}
+
+            {/* KELENGKAPAN PROFIL PROGRESS CARD (DYNAMIC & CLEAN DESIGN) */}
             <div className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-xs space-y-4 hover:border-slate-300 transition-all">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-                    <Sparkles className="w-4 h-4" />
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#0055D4] flex items-center justify-center font-bold shrink-0">
+                    <TrendingUp className="w-5 h-5 text-[#0055D4]" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">SKOR KELENGKAPAN PROFIL</h4>
-                    <p className="text-[11px] text-slate-500 font-medium">Profil lengkap meningkatkan peluang dilirik oleh Mitra Industri UMK</p>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">SKOR KELENGKAPAN PROFIL</h4>
+                      <span className="text-[10px] text-slate-500 font-semibold">({completedCount}/{checklistItems.length} Lengkap)</span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 font-medium">Profil yang terisi lengkap memaksimalkan peluang lolos seleksi berkas Mitra UMK</p>
                   </div>
                 </div>
-                <span className="bg-emerald-50 text-emerald-700 font-extrabold px-3 py-1 rounded-full text-xs border border-emerald-200 shadow-2xs">
-                  {completionPercent}% Selesai
-                </span>
+
+                <div className="flex items-center gap-2">
+                  <span className={`font-extrabold px-3.5 py-1.5 rounded-full text-xs border shadow-2xs ${completionPercent >= 80
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    : completionPercent >= 50
+                      ? 'bg-blue-50 text-[#0055D4] border-blue-200'
+                      : 'bg-amber-50 text-amber-700 border-amber-200'
+                    }`}>
+                    {completionPercent}% Selesai {completionPercent === 100 ? '' : ''}
+                  </span>
+                </div>
               </div>
 
-              <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-200/60">
-                <div 
-                  className="bg-gradient-to-r from-emerald-500 to-blue-600 h-full rounded-full transition-all duration-700 ease-out"
-                  style={{ width: `${completionPercent}%` }}
-                ></div>
+              {/* Dynamic Animated Progress Bar */}
+              <div className="space-y-1.5">
+                <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-200/60">
+                  <div
+                    className={`h-full rounded-full transition-all duration-700 ease-out ${completionPercent >= 80
+                      ? 'bg-gradient-to-r from-emerald-500 to-teal-600'
+                      : completionPercent >= 50
+                        ? 'bg-gradient-to-r from-blue-500 to-[#0077C6]'
+                        : 'bg-gradient-to-r from-amber-500 to-orange-500'
+                      }`}
+                    style={{ width: `${Math.max(completionPercent, 4)}%` }}
+                  ></div>
+                </div>
+                <div className="flex justify-between items-center text-[10px] font-semibold text-slate-500">
+                  <span>
+                    {completionPercent >= 80
+                      ? 'Profil siap untuk diajukan melamar pekerjaan & magang resmi.'
+                      : completionPercent >= 50
+                        ? 'Profil cukup lengkap, lengkapi bagian yang tersisa untuk hasil optimal.'
+                        : 'Lengkapi seluruh bagian agar berkas lamaran Anda memenuhi syarat mitra.'}
+                  </span>
+                  <span className="font-mono font-bold text-slate-700">{completionPercent}/100</span>
+                </div>
               </div>
 
-              {/* Checklist Badges */}
-              <div className="flex flex-wrap gap-2 pt-1 border-t border-slate-100">
-                <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/60 flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Foto Profil
-                </span>
-                <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/60 flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Data Pribadi
-                </span>
-                <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/60 flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Pendidikan ({qualifications.length})
-                </span>
-                <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/60 flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Skill ({skills.length})
-                </span>
-                <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/60 flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Pengalaman ({experiences.length})
-                </span>
-                <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/60 flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Sertifikat ({certificates.length})
-                </span>
+              {/* Dynamic Interactive Checklist Badges */}
+              <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
+                {checklistItems.map(item => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={item.action}
+                    className={`text-[11px] font-semibold px-3 py-1.5 rounded-xl border flex items-center gap-1.5 transition cursor-pointer active:scale-95 ${item.isCompleted
+                      ? 'text-emerald-800 bg-emerald-50/90 border-emerald-200 hover:bg-emerald-100/80 hover:border-emerald-300'
+                      : 'text-slate-600 bg-slate-50 border-slate-200 hover:bg-blue-50 hover:text-[#0055D4] hover:border-blue-300'
+                      }`}
+                    title={item.isCompleted ? `${item.label}: Lengkap (${item.detail}) - Klik untuk perbarui` : `${item.label}: Belum Lengkap - Klik untuk ${item.actionLabel.toLowerCase()}`}
+                  >
+                    {item.isCompleted ? (
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    ) : (
+                      <Plus className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    )}
+                    <span>{item.label}</span>
+                    {!item.isCompleted && (
+                      <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-amber-100/80 text-amber-800 ml-0.5">
+                        + Lengkapi
+                      </span>
+                    )}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -631,7 +799,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     <p className="text-[11px] text-slate-500 font-medium">Informasi identitas resmi pelamar</p>
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={() => setEditingSection('personal')}
                   className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                 >
@@ -702,38 +870,42 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
               </div>
 
               <div className="space-y-3.5">
-                {qualifications.map(q => (
-                  <div key={q.id} className="bg-slate-50/80 border border-slate-200/70 hover:border-emerald-300 rounded-2xl p-4.5 transition-all space-y-2 relative group">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <div className="text-[11px] font-bold text-blue-700 uppercase tracking-wider flex items-center gap-1.5">
-                          <Building2 className="w-3.5 h-3.5 text-blue-600" />
-                          {q.institution}
+                {qualifications.length === 0 ? (
+                  <p className="text-xs text-slate-500 italic">Belum ada riwayat pendidikan yang ditambahkan.</p>
+                ) : (
+                  qualifications.map(q => (
+                    <div key={q.id} className="bg-slate-50/80 border border-slate-200/70 hover:border-emerald-300 rounded-2xl p-4.5 transition-all space-y-2 relative group">
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                          <div className="text-[11px] font-bold text-blue-700 uppercase tracking-wider flex items-center gap-1.5">
+                            <Building2 className="w-3.5 h-3.5 text-blue-600" />
+                            {q.institution}
+                          </div>
+                          <h4 className="font-extrabold text-slate-900 text-sm sm:text-base">{q.level}</h4>
                         </div>
-                        <h4 className="font-extrabold text-slate-900 text-sm sm:text-base">{q.level}</h4>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-bold text-slate-600 bg-white px-3 py-1 rounded-full border border-slate-200">
+                            Tahun Lulus: {q.year}
+                          </span>
+                          <button
+                            onClick={() => handleRemoveQualification(q.id)}
+                            className="text-slate-400 hover:text-rose-600 p-1 transition opacity-70 group-hover:opacity-100 cursor-pointer"
+                            title="Hapus Pendidikan"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-bold text-slate-600 bg-white px-3 py-1 rounded-full border border-slate-200">
-                          Tahun Lulus: {q.year}
-                        </span>
-                        <button 
-                          onClick={() => setQualifications(qualifications.filter(item => item.id !== q.id))} 
-                          className="text-slate-400 hover:text-rose-600 p-1 transition opacity-70 group-hover:opacity-100"
-                          title="Hapus Pendidikan"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+                      {q.ipk && (
+                        <div className="pt-1 flex items-center gap-2">
+                          <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full">
+                            IPK: {q.ipk}
+                          </span>
+                        </div>
+                      )}
                     </div>
-                    {q.ipk && (
-                      <div className="pt-1 flex items-center gap-2">
-                        <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full">
-                          IPK: {q.ipk}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 
@@ -760,22 +932,25 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
               </div>
 
               <div className="flex flex-wrap gap-2.5">
-                {skills.map(sk => (
-                  <span 
-                    key={sk} 
-                    className="bg-slate-50 hover:bg-blue-50/60 text-slate-800 border border-slate-200/90 hover:border-blue-300 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-2xs transition hover:scale-105"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                    <span>{sk}</span>
-                    <button 
-                      onClick={() => handleRemoveSkill(sk)} 
-                      className="text-slate-400 hover:text-rose-600 transition ml-0.5 cursor-pointer"
-                      title="Hapus Skill"
+                {skills.length === 0 ? (
+                  <p className="text-xs text-slate-500 italic">Belum ada skill yang ditambahkan.</p>
+                ) : (
+                  skills.map(sk => (
+                    <span
+                      key={sk}
+                      className="bg-slate-100 text-slate-800 border border-slate-200/90 hover:border-blue-300 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-2xs transition"
                     >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </span>
-                ))}
+                      <span>{sk}</span>
+                      <button
+                        onClick={() => handleRemoveSkill(sk)}
+                        className="text-slate-400 hover:text-rose-600 transition ml-0.5 cursor-pointer"
+                        title="Hapus Skill"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </span>
+                  ))
+                )}
               </div>
             </div>
 
@@ -802,33 +977,37 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
               </div>
 
               <div className="space-y-4">
-                {experiences.map(exp => (
-                  <div key={exp.id} className="bg-slate-50/80 border border-slate-200/70 hover:border-amber-300 rounded-2xl p-4.5 space-y-2 relative transition-all border-l-4 border-l-amber-500">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h4 className="font-extrabold text-slate-900 text-sm sm:text-base">{exp.position}</h4>
-                        <div className="text-xs font-bold text-amber-700 flex items-center gap-1.5 mt-0.5">
-                          <Building2 className="w-3.5 h-3.5" /> {exp.company}
+                {experiences.length === 0 ? (
+                  <p className="text-xs text-slate-500 italic">Belum ada pengalaman yang ditambahkan.</p>
+                ) : (
+                  experiences.map(exp => (
+                    <div key={exp.id} className="bg-slate-50/80 border border-slate-200/70 hover:border-amber-300 rounded-2xl p-4.5 space-y-2 relative transition-all border-l-4 border-l-amber-500">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h4 className="font-extrabold text-slate-900 text-sm sm:text-base">{exp.position}</h4>
+                          <div className="text-xs font-bold text-amber-700 flex items-center gap-1.5 mt-0.5">
+                            <Building2 className="w-3.5 h-3.5" /> {exp.company}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-bold text-slate-600 bg-white px-3 py-1 rounded-full border border-slate-200">
+                            {exp.period}
+                          </span>
+                          <button
+                            onClick={() => handleRemoveExperience(exp.id)}
+                            className="text-slate-400 hover:text-rose-600 transition p-1 cursor-pointer"
+                            title="Hapus Pengalaman"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-bold text-slate-600 bg-white px-3 py-1 rounded-full border border-slate-200">
-                          {exp.period}
-                        </span>
-                        <button 
-                          onClick={() => handleRemoveExperience(exp.id)}
-                          className="text-slate-400 hover:text-rose-600 transition p-1"
-                          title="Hapus Pengalaman"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+                      <p className="text-xs text-slate-600 leading-relaxed font-medium pt-1">
+                        {exp.description}
+                      </p>
                     </div>
-                    <p className="text-xs text-slate-600 leading-relaxed font-medium pt-1">
-                      {exp.description}
-                    </p>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 
@@ -869,7 +1048,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                       </div>
                       <button
                         onClick={() => handleRemoveCertificate(cert.id)}
-                        className="text-slate-400 hover:text-rose-600 transition p-1"
+                        className="text-slate-400 hover:text-rose-600 transition p-1 cursor-pointer"
                         title="Hapus Sertifikat"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -903,20 +1082,25 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                {languagesList.map(lang => (
-                  <div key={lang.id} className="bg-slate-50/80 border border-slate-200/70 rounded-2xl p-4 flex items-center justify-between">
-                    <div>
-                      <div className="font-extrabold text-slate-900 text-xs sm:text-sm">{lang.name}</div>
-                      <div className="text-[11px] text-teal-700 font-bold mt-0.5">{lang.level}</div>
+                {languagesList.length === 0 ? (
+                  <p className="text-xs text-slate-500 italic col-span-2">Belum ada bahasa yang ditambahkan.</p>
+                ) : (
+                  languagesList.map(lang => (
+                    <div key={lang.id} className="bg-slate-50/80 border border-slate-200/70 rounded-2xl p-4 flex items-center justify-between">
+                      <div>
+                        <div className="font-extrabold text-slate-900 text-xs sm:text-sm">{lang.name}</div>
+                        <div className="text-[11px] text-teal-700 font-bold mt-0.5">{lang.level}</div>
+                      </div>
+                      <button
+                        onClick={() => handleRemoveLanguage(lang.id)}
+                        className="text-slate-400 hover:text-rose-600 transition p-1 cursor-pointer"
+                        title="Hapus Bahasa"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
-                    <button 
-                      onClick={() => setLanguagesList(languagesList.filter(l => l.id !== lang.id))}
-                      className="text-slate-400 hover:text-rose-600 transition p-1"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 
@@ -934,7 +1118,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     <p className="text-[11px] text-slate-500 font-medium">Kriteria pekerjaan dan penempatan yang dicari</p>
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={() => setEditingSection('career')}
                   className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                 >
@@ -945,22 +1129,22 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1">
                   <div className="font-extrabold text-slate-400 uppercase tracking-wider text-[10px]">JENIS KESEMPATAN</div>
-                  <div className="font-bold text-slate-900 text-sm">{opportunityType}</div>
+                  <div className="font-bold text-slate-900 text-sm">{opportunityType || 'Belum Diisi'}</div>
                 </div>
 
                 <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1">
                   <div className="font-extrabold text-slate-400 uppercase tracking-wider text-[10px]">TANGGAL SIAP KERJA</div>
-                  <div className="font-bold text-slate-900 text-sm">{opportunityStartDate}</div>
+                  <div className="font-bold text-slate-900 text-sm">{opportunityStartDate || 'Belum Diisi'}</div>
                 </div>
 
                 <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1">
                   <div className="font-extrabold text-slate-400 uppercase tracking-wider text-[10px]">INDUSTRI YANG DIMINATI</div>
-                  <div className="font-bold text-slate-900 text-sm">{industries}</div>
+                  <div className="font-bold text-slate-900 text-sm">{industries || 'Belum Diisi'}</div>
                 </div>
 
                 <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1">
                   <div className="font-extrabold text-slate-400 uppercase tracking-wider text-[10px]">LOKASI KERJA IMPIAN</div>
-                  <div className="font-bold text-slate-900 text-sm">{locations}</div>
+                  <div className="font-bold text-slate-900 text-sm">{locations || 'Belum Diisi'}</div>
                 </div>
               </div>
             </div>
@@ -984,8 +1168,8 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
               {savedJobs.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {savedJobs.map((job: any) => (
-                    <div 
-                      key={job.id} 
+                    <div
+                      key={job.id}
                       onClick={() => onSelectJob && onSelectJob(job)}
                       className="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md transition-all flex justify-between items-start cursor-pointer group hover:border-[#0077C6]/50"
                     >
@@ -1000,10 +1184,11 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                           <span className="flex items-center gap-1"><Briefcase className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {job.tipe === 'magang' ? 'Magang' : 'Kerja'}</span>
                         </div>
                       </div>
-                      
+
                       <div className="flex flex-col items-end gap-3 shrink-0">
-                        <span className="bg-emerald-50 text-emerald-700 font-bold text-xs px-3 py-1 rounded-full border border-emerald-200 shadow-2xs">
-                          Tersimpan 🔖
+                        <span className="bg-emerald-50 text-emerald-700 font-bold text-xs px-3 py-1 rounded-full border border-emerald-200 shadow-2xs flex items-center gap-1.5">
+                          <Bookmark className="w-3.5 h-3.5 fill-emerald-600 text-emerald-600" />
+                          <span>Tersimpan</span>
                         </span>
                         <button
                           onClick={(e) => {
@@ -1079,7 +1264,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
             <form onSubmit={(e) => {
               e.preventDefault();
               const updatedNim = userStatusType === 'Mahasiswa' ? nim : '';
-              saveProfileData({ 
+              saveProfileData({
                 nama: `${firstName} ${lastName}`.trim(),
                 userStatusType: userStatusType,
                 nim: updatedNim
@@ -1090,8 +1275,8 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
             }} className="space-y-4 text-xs">
               <div>
                 <label className="font-bold text-slate-700 block mb-1">Status Keanggotaan</label>
-                <select 
-                  value={userStatusType} 
+                <select
+                  value={userStatusType}
                   onChange={e => setUserStatusType(e.target.value as 'Mahasiswa' | 'Alumni' | 'Job Seeker')}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white font-bold"
                 >
@@ -1104,34 +1289,34 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="font-bold text-slate-700 block mb-1">Nama Depan *</label>
-                  <input 
-                    type="text" 
-                    value={firstName} 
-                    onChange={e => setFirstName(e.target.value)} 
-                    required 
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" 
+                  <input
+                    type="text"
+                    value={firstName}
+                    onChange={e => setFirstName(e.target.value)}
+                    required
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20"
                   />
                 </div>
                 <div>
                   <label className="font-bold text-slate-700 block mb-1">Nama Belakang</label>
-                  <input 
-                    type="text" 
-                    value={lastName} 
-                    onChange={e => setLastName(e.target.value)} 
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" 
+                  <input
+                    type="text"
+                    value={lastName}
+                    onChange={e => setLastName(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20"
                   />
                 </div>
               </div>
 
               <div>
                 <label className="font-bold text-slate-700 block mb-1">Nama Perguruan Tinggi / Universitas *</label>
-                <input 
-                  type="text" 
-                  value={university} 
-                  onChange={e => setUniversity(e.target.value)} 
-                  required 
+                <input
+                  type="text"
+                  value={university}
+                  onChange={e => setUniversity(e.target.value)}
+                  required
                   placeholder="Contoh: Universitas Muhammadiyah Kendari"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" 
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20"
                 />
               </div>
 
@@ -1143,7 +1328,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
           </div>
         </div>
       )}
-      
+
       {/* MODAL TENTANG SAYA (BIO) */}
       {editingSection === 'aboutMe' && (
         <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
@@ -1156,7 +1341,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
             </div>
             <div className="space-y-3">
               <label className="text-xs font-bold text-slate-700 block">Ringkasan Bio / Profil Profesional</label>
-              <textarea 
+              <textarea
                 rows={5}
                 value={aboutMe}
                 onChange={e => setAboutMe(e.target.value)}
@@ -1269,12 +1454,12 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                 <label className="font-bold text-slate-700 block mb-1">
                   IPK / Nilai Akhir <span className="text-slate-400 font-normal">(Opsional - Khusus Perguruan Tinggi)</span>
                 </label>
-                <input 
-                  type="text" 
-                  placeholder="Contoh: 3.85 / 4.00 atau 3.85 (Kosongkan jika SD - SMA)" 
-                  value={newIpk} 
-                  onChange={e => setNewIpk(e.target.value)} 
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20" 
+                <input
+                  type="text"
+                  placeholder="Contoh: 3.85 / 4.00 atau 3.85 (Kosongkan jika SD - SMA)"
+                  value={newIpk}
+                  onChange={e => setNewIpk(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20"
                 />
               </div>
               <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
@@ -1296,11 +1481,11 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <form onSubmit={handleAddSkill} className="flex gap-2">
-              <input 
-                type="text" 
-                placeholder="Ketik skill baru (misal: React, Python)..." 
+              <input
+                type="text"
+                placeholder="Ketik skill baru (misal: React, Python)..."
                 value={newSkillInput}
                 onChange={e => setNewSkillInput(e.target.value)}
                 className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20"

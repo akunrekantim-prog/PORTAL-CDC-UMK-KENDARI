@@ -16,7 +16,7 @@ import {
   GraduationCap,
   HeartHandshake,
   Brain,
-  Sparkles,
+  Award,
   Presentation,
   CalendarDays,
   FileText,
@@ -116,7 +116,7 @@ const LAYANAN_ITEMS: MenuItem[] = [
     href: 'https://www.klob.id/klob-journey/klob-meter',
   },
   {
-    icon: Sparkles,
+    icon: Award,
     label: 'Pelatihan Softskill',
     description: 'Pelatihan kepemimpinan, komunikasi, dan kemampuan interpersonal',
     tab: 'softskill',

@@ -1,6 +1,6 @@
 import React from 'react';
 import { PageHeader, Card } from './ui';
-import { ExternalLink, Sparkles, Brain, CheckCircle, Target, ArrowUpRight } from 'lucide-react';
+import { ExternalLink, Brain, CheckCircle, Target, ArrowUpRight } from 'lucide-react';
 
 export default function TesMinat() {
   const klobUrl = "https://www.klob.id/klob-journey/klob-meter";
@@ -20,7 +20,7 @@ export default function TesMinat() {
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="space-y-3 max-w-2xl">
             <div className="inline-flex items-center gap-2 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-bold px-3 py-1 rounded-full">
-              <Sparkles className="w-3.5 h-3.5" /> Powered by Klob Meter
+              <Target className="w-3.5 h-3.5" /> Powered by Klob Meter
             </div>
             <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight">
               Ikuti Tes Potensi &amp; Minat Kerja Sekarang
