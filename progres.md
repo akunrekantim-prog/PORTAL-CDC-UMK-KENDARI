@@ -1734,3 +1734,30 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 - [x] Verifikasi typecheck TypeScript (`npx tsc --noEmit` PASSED 0 Error)
 - [x] Update dokumentasi `progres.md`
 
+---
+
+## Tanggal: 22 Agustus 2026
+**Developer:** Tim Pengembang CDC UM Kendari  
+**Fokus Pekerjaan:** Menjadikan Field Deskripsi pada Form Lowongan (Job Detail / Pembuatan Lowongan) Bersifat Opsional.
+
+### 📝 Detail Perubahan:
+1. **Model & Tipe Data (`types.ts`)**:
+   - Menjadikan properti `deskripsi?: string;` opsional pada interface `Lowongan`.
+2. **Dashboard Mitra (`MitraDashboard.tsx`)**:
+   - Menghapus validasi wajib isi untuk deskripsi pada `handleAddJobPosting`.
+   - Mengubah label form menjadi `"Deskripsi Ringkas Pekerjaan (Opsional)"` dan placeholder `"... (opsional)"`.
+   - Menghapus atribut HTML `required` pada elemen textarea deskripsi lowongan.
+   - Menangani fallback nilai string kosong `job.deskripsi || ''` pada mode edit lowongan.
+3. **Dashboard Admin (`AdminDashboard.tsx`)**:
+   - Menangani fallback nilai string kosong `item.deskripsi || ''` pada form pembuatan/edit lowongan admin.
+   - Menyelaraskan label menjadi `"Deskripsi Ringkas (Opsional)"`.
+4. **Pencarian & Filter Lowongan (`JobSearchMasterDetail.tsx`)**:
+   - Melindungi pencarian kata kunci dan filtering agar aman terhadap lowongan tanpa deskripsi (`(job.deskripsi || '').toLowerCase()`).
+
+### 📁 File Diubah:
+- **[MODIFY]** `src/types.ts`
+- **[MODIFY]** `src/components/MitraDashboard.tsx`
+- **[MODIFY]** `src/components/AdminDashboard.tsx`
+- **[MODIFY]** `src/components/JobSearchMasterDetail.tsx`
+- **[MODIFY]** `progres.md`
+

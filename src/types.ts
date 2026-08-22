@@ -176,7 +176,7 @@ export interface Lowongan {
   ctaLabel?: string; // khusus admin: teks tombol CTA (default 'Daftar Sekarang')
   isPinned?: boolean; // Penanda sematan (Pin) ke Popular Info
   lokasi: string;
-  deskripsi: string;
+  deskripsi?: string;
   kualifikasi: string[]; // parsed from JSON array
   tanggungJawab?: string[];
   keahlian?: string[];

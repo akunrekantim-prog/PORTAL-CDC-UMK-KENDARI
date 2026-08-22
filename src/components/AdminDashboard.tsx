@@ -133,7 +133,7 @@ interface AdminDashboardProps {
   onReloadData?: () => void;
 }
 
-type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin' | 'visi-misi' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'media-sosial';
+type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin' | 'keanggotaan' | 'visi-misi' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'media-sosial';
 type KontenSubTab = 'riwayat' | 'pembuatan';
 type MitraSubTab = 'approval' | 'list';
 
@@ -912,7 +912,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       setLGaji(item.gaji || '');
       setLKuota(item.kuota != null ? String(item.kuota) : '');
       setLDeadline(item.deadline);
-      setLDeskripsi(item.deskripsi);
+      setLDeskripsi(item.deskripsi || '');
       setLTanggungJawab(Array.isArray(item.tanggungJawab) ? item.tanggungJawab.join('\n') : (item.tanggungJawab || ''));
       setLKualifikasi(Array.isArray(item.kualifikasi) ? item.kualifikasi.join('\n') : '');
       setLKeahlian(Array.isArray(item.keahlian) ? item.keahlian.join('\n') : '');
@@ -2182,7 +2182,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                       <h5 className="font-bold text-slate-800 text-xs uppercase tracking-wider border-b border-slate-100 pb-2">3. Detail Konten & Kriteria</h5>
                       <div className="space-y-3">
                         <div className="space-y-1.5">
-                          <label className="text-xs font-medium text-slate-500">Deskripsi Ringkas</label>
+                          <label className="text-xs font-medium text-slate-500">Deskripsi Ringkas (Opsional)</label>
                           <textarea value={lDeskripsi} onChange={(e) => setLDeskripsi(e.target.value)} rows={3} placeholder="Gambaran umum, lingkup tugas... (opsional)" className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
                         </div>
                         <div className="space-y-1.5">

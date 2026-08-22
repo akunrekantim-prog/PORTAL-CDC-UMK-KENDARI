@@ -203,7 +203,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
       const matchTitle = job.judul.toLowerCase().includes(kw);
       const matchCompany = job.namaInstansi.toLowerCase().includes(kw);
       const matchCategory = (job.kategori || '').toLowerCase().includes(kw);
-      const matchDesc = job.deskripsi.toLowerCase().includes(kw);
+      const matchDesc = (job.deskripsi || '').toLowerCase().includes(kw);
       if (!matchTitle && !matchCompany && !matchCategory && !matchDesc) {
         return false;
       }
@@ -247,7 +247,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
         const s = spec.toLowerCase().trim();
         const cat = (job.kategori || '').toLowerCase();
         const title = job.judul.toLowerCase();
-        const desc = job.deskripsi.toLowerCase();
+        const desc = (job.deskripsi || '').toLowerCase();
 
         if (cat.includes(s) || title.includes(s) || desc.includes(s)) return true;
 

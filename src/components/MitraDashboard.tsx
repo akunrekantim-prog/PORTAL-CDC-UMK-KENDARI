@@ -721,7 +721,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
     setDeadline(job.deadline);
     setCompanyLogoUrl(job.companyLogo || '');
     setPosterUrl(job.flyer || job.imageUrl || job.bannerImage || (job.flyers && job.flyers[0]) || '');
-    setDeskripsi(job.deskripsi);
+    setDeskripsi(job.deskripsi || '');
     setTanggungJawab(Array.isArray(job.tanggungJawab) ? job.tanggungJawab.join('\n') : job.tanggungJawab || '');
     setKualifikasi(Array.isArray(job.kualifikasi) ? job.kualifikasi.join('\n') : job.kualifikasi || '');
     setKeahlian(Array.isArray(job.keahlian) ? job.keahlian.join('\n') : job.keahlian || '');
@@ -734,7 +734,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
     e.preventDefault();
     if (!mitraData) return;
 
-    if (!judul || !lokasi || !deadline || !deskripsi) {
+    if (!judul || !lokasi || !deadline) {
       triggerToast('error', 'Semua bidang wajib (*) harus diisi');
       return;
     }
@@ -767,7 +767,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
       gaji: gaji || 'Kompetitif',
       kuota: Number(kuota) || 1,
       deadline,
-      deskripsi,
+      deskripsi: deskripsi ? deskripsi.trim() : '',
       tanggungJawab: parseLines(tanggungJawab),
       kualifikasi: parseLines(kualifikasi),
       keahlian: parseLines(keahlian),
@@ -1813,13 +1813,12 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                         
                         <div className="space-y-4">
                           <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-slate-700">Deskripsi Ringkas Pekerjaan *</label>
+                            <label className="text-xs font-bold text-slate-700">Deskripsi Ringkas Pekerjaan (Opsional)</label>
                             <textarea 
-                              required
                               value={deskripsi}
                               onChange={(e) => setDeskripsi(e.target.value)}
                               rows={3}
-                              placeholder="Uraikan gambaran umum, lingkup tugas, dan teknologi yang dipakai..."
+                              placeholder="Uraikan gambaran umum, lingkup tugas, dan teknologi yang dipakai... (opsional)"
                               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
                             ></textarea>
                           </div>
