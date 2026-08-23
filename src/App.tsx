@@ -298,6 +298,8 @@ export default function App() {
         {currentView === 'public' && viewingBeritaSlug && selectedBerita && (
           <BeritaDetailView
             berita={selectedBerita}
+            allBeritaList={allBerita}
+            onSelectBerita={(b) => setViewingBeritaSlug(b.slug)}
             onBack={() => setViewingBeritaSlug(null)}
             setTab={(tab) => {
               setViewingBeritaSlug(null);

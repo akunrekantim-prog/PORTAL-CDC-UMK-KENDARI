@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   ChevronLeft,
   Tag,
@@ -12,7 +12,8 @@ import {
   CheckCircle2,
   Send,
   CornerDownRight,
-  Sparkles
+  Sparkles,
+  Calendar
 } from 'lucide-react';
 import { Berita } from '../types';
 import Header from './Header';
@@ -21,6 +22,8 @@ import { renderContentMarkdown } from '../markdown';
 
 interface BeritaDetailViewProps {
   berita: Berita;
+  allBeritaList?: Berita[];
+  onSelectBerita?: (berita: Berita) => void;
   onBack: () => void;
   setTab?: (tab: string) => void;
   onNavigateToLogin?: () => void;
@@ -37,6 +40,8 @@ interface CommentItem {
 
 export default function BeritaDetailView({
   berita,
+  allBeritaList,
+  onSelectBerita,
   onBack,
   setTab,
   onNavigateToLogin,
@@ -57,6 +62,37 @@ export default function BeritaDetailView({
   const [inputEmail, setInputEmail] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  // Komputasi Berita Terkait (Maksimal 3 Card berdasarkan relevansi Scope & Judul)
+  const relatedBeritaList = useMemo(() => {
+    if (!allBeritaList || allBeritaList.length === 0) return [];
+
+    const candidateNews = allBeritaList.filter((b) => b.id !== berita.id && b.slug !== berita.slug);
+    if (candidateNews.length === 0) return [];
+
+    const currentTitleWords = berita.title.toLowerCase().split(/\s+/).filter((w) => w.length > 3);
+
+    const scored = candidateNews.map((candidate) => {
+      let score = 0;
+      if (candidate.scope && berita.scope && candidate.scope === berita.scope) {
+        score += 10;
+      }
+      const candTitleLower = candidate.title.toLowerCase();
+      currentTitleWords.forEach((word) => {
+        if (candTitleLower.includes(word)) {
+          score += 5;
+        }
+      });
+      return { candidate, score };
+    });
+
+    scored.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return new Date(b.candidate.createdAt).getTime() - new Date(a.candidate.createdAt).getTime();
+    });
+
+    return scored.slice(0, 3).map((s) => s.candidate);
+  }, [allBeritaList, berita]);
 
   const formatDateDisplayFull = (dateStr?: string) => {
     if (!dateStr) return '12 Agustus 2026, 13.15';
@@ -279,23 +315,63 @@ export default function BeritaDetailView({
                 </div>
               </div>
 
-              {/* TAGS SECTION (CYAN / TEAL PILLS — Sesuai Screenshot 3) */}
-              <div className="pt-6 border-t border-slate-100 flex flex-wrap items-center gap-2">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-2">TAGS:</span>
-                {[
-                  'CDC UM KENDARI',
-                  'SDG 17 - KEMITRAAN UNTUK MENCAPAI TUJUAN',
-                  'SDG 4 - PENDIDIKAN BERKUALITAS',
-                  'SDG 8'
-                ].map((tagText, idx) => (
-                  <span
-                    key={idx}
-                    className="bg-[#0097a7] hover:bg-[#00838f] text-white text-xs font-bold px-3 py-1.5 rounded-full transition cursor-pointer shadow-2xs"
-                  >
-                    {tagText}
-                  </span>
-                ))}
-              </div>
+              {/* SECTION BERITA TERKAIT (3 CARD LAYOUT BERDAMPINGAN) */}
+              {relatedBeritaList.length > 0 && (
+                <div className="pt-8 border-t border-slate-200/80 space-y-5">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                      <span className="w-2.5 h-5 bg-[#0077C6] rounded-full inline-block" />
+                      Berita Terkait
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+                    {relatedBeritaList.map((item) => (
+                      <div
+                        key={item.id}
+                        onClick={() => {
+                          if (onSelectBerita) {
+                            onSelectBerita(item);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }
+                        }}
+                        className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition duration-300 flex flex-col cursor-pointer hover:border-blue-300"
+                      >
+                        {/* Thumbnail */}
+                        <div className="relative h-36 w-full overflow-hidden bg-slate-100">
+                          <img
+                            src={item.coverImageUrl || 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=800&auto=format&fit=crop'}
+                            alt={item.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                          />
+                          {item.scope && (
+                            <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-bold tracking-wide uppercase">
+                              {item.scope}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-4 flex flex-col justify-between flex-1 space-y-3">
+                          <h4 className="text-sm font-bold text-slate-800 group-hover:text-[#0077C6] transition line-clamp-2 leading-snug">
+                            {item.title}
+                          </h4>
+
+                          <div className="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-slate-100 mt-auto">
+                            <span className="flex items-center gap-1 font-medium">
+                              <Calendar className="w-3.5 h-3.5 text-[#EBA300]" />
+                              {new Date(item.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </span>
+                            <span className="font-semibold text-slate-600">
+                              by Admin Website
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* BOTTOM HORIZONTAL SOCIAL SHARE BAR */}
               <div className="pt-6 flex flex-wrap items-center justify-center gap-3 border-t border-slate-100">
