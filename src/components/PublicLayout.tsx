@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Building2, MapPin, Briefcase, Search, BookOpen,
   FileText, Mail, Phone, Clock, ArrowRight, Globe, Megaphone,
-  Info, GraduationCap, ChevronRight, Facebook, Instagram, Youtube,
+  Info, GraduationCap, ChevronRight, ChevronDown, X, Facebook, Instagram, Youtube,
   Users, Building, Shield, Award, Star, TrendingUp, Zap, Target,
   ExternalLink, Calendar, ShieldCheck, Trophy, Eye,
   MessageCircle, Send, Linkedin, Copy
@@ -15,7 +15,7 @@ import {
 
 import { Lowongan, Berita, Pengumuman, KontenKarir } from '../types';
 import { sortJobsByNewest, formatDateDisplay, isJobDeadlinePassed, getFromDB, trackAndGetVisitorCount, getAdminWaPrestasi, getVisiMisiConfig } from '../data';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import Header from './Header';
 import { Footer } from './Footer';
 import BimbinganKarir from './layanan/BimbinganKarir';
@@ -34,7 +34,15 @@ import GaleriView from './layanan/GaleriView';
 import Keanggotaan from './layanan/Keanggotaan';
 import LayananContainer from './layanan/LayananContainer';
 import HeroSlider from './HeroSlider';
-import { JobSearchMasterDetail } from './JobSearchMasterDetail';
+import { 
+  JobSearchMasterDetail,
+  INDONESIAN_PROVINCES, 
+  isIndonesianLocation, 
+  JOB_SPECIALIZATIONS, 
+  getCompanyBadgeColor, 
+  getCompanyInitials 
+} from './JobSearchMasterDetail';
+import Dropdown from './Dropdown';
 import SocialShareBar from './ui/SocialShareBar';
 
 /* ─── Types ─────────────────────────────────── */
@@ -128,10 +136,48 @@ export default function PublicLayout({
 }: PublicLayoutProps) {
   // Gambar Visi & Misi (bisa diubah admin via Manajemen Web → Visi & Misi)
   const [visiMisiUrl, setVisiMisiUrl] = useState<string>(() => getVisiMisiConfig().imageUrl);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'magang' | 'kerja'>('all');
+  
+  // Job Info Search & Filter States
+  const [jobKeyword, setJobKeyword] = useState('');
+  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
+  const [selectedSpecializations, setSelectedSpecializations] = useState<string[]>([]);
+  const [jobSortOrder, setJobSortOrder] = useState<'newest' | 'oldest' | 'alphabetical'>('newest');
+  const [locationSearch, setLocationSearch] = useState('');
+  const [specializationSearch, setSpecializationSearch] = useState('');
+  const [openPopup, setOpenPopup] = useState<string | null>(null);
   const [jobInfoPage, setJobInfoPage] = useState(1);
   const itemsPerPage = 9;
+  const jobPopupRef = useRef<HTMLDivElement>(null);
+
+  // Click outside listener for Job Info Popovers
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (jobPopupRef.current && !jobPopupRef.current.contains(event.target as Node)) {
+        setOpenPopup(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Reset to page 1 on filter or sort changes
+  useEffect(() => {
+    setJobInfoPage(1);
+  }, [jobKeyword, selectedLocations, selectedSpecializations, jobSortOrder]);
+
+  const toggleCheckboxOption = (setList: React.Dispatch<React.SetStateAction<string[]>>, val: string) => {
+    setList(prev => prev.includes(val) ? prev.filter(item => item !== val) : [...prev, val]);
+  };
+
+  const clearAllJobFilters = () => {
+    setSelectedLocations([]);
+    setSelectedSpecializations([]);
+    setJobKeyword('');
+    setLocationSearch('');
+    setSpecializationSearch('');
+  };
+
+  const hasActiveJobFilters = selectedLocations.length > 0 || selectedSpecializations.length > 0 || jobKeyword !== '';
 
   // Berita & Artikel Filter & Pagination States
   const [beritaSearchQuery, setBeritaSearchQuery] = useState('');
@@ -139,6 +185,9 @@ export default function PublicLayout({
   const [beritaPage, setBeritaPage] = useState(1);
   const beritaItemsPerPage = 6;
   const [selectedPosterModal, setSelectedPosterModal] = useState<string | null>(null);
+
+  // Prestasi Search State
+  const [prestasiSearchQuery, setPrestasiSearchQuery] = useState('');
 
   /* Data helpers: Lowongan kerja & magang terbaru (newest created) selalu di atas */
   const publishedLowongan = sortJobsByNewest(lowongan.filter(l => l.status === 'published'));
@@ -176,20 +225,112 @@ export default function PublicLayout({
     })),
   ].sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
 
-  const filteredLowongan = publishedLowongan.filter(item => {
-    const q = searchQuery.toLowerCase();
-    return (
-      item.judul.toLowerCase().includes(q) ||
-      item.namaInstansi.toLowerCase().includes(q) ||
-      item.lokasi.toLowerCase().includes(q)
-    );
+  const filteredLowongan = publishedLowongan.filter(job => {
+    // 1 Textbox: Kata Kunci, Jabatan, Perusahaan
+    if (jobKeyword) {
+      const kw = jobKeyword.toLowerCase();
+      const matchTitle = job.judul.toLowerCase().includes(kw);
+      const matchCompany = job.namaInstansi.toLowerCase().includes(kw);
+      const matchCategory = (job.kategori || '').toLowerCase().includes(kw);
+      const matchDesc = (job.deskripsi || '').toLowerCase().includes(kw);
+      const matchLoc = (job.lokasi || '').toLowerCase().includes(kw);
+      if (!matchTitle && !matchCompany && !matchCategory && !matchDesc && !matchLoc) {
+        return false;
+      }
+    }
+
+    // Checkbox 1: Location Filter
+    if (selectedLocations.length > 0) {
+      const matchLoc = selectedLocations.some(loc => {
+        const l = loc.toLowerCase().trim();
+        const jobLoc = (job.lokasi || '').toLowerCase().trim();
+
+        if (l.includes('lainnya') || l.includes('luar negeri')) {
+          if (!isIndonesianLocation(jobLoc)) return true;
+        }
+
+        if (jobLoc.includes(l) || l.includes(jobLoc)) return true;
+
+        const matchedProv = INDONESIAN_PROVINCES.find(
+          p => p.province.toLowerCase() === l
+        );
+        if (matchedProv) {
+          if (jobLoc.includes(matchedProv.province.toLowerCase())) return true;
+          if (matchedProv.cities.some(city => jobLoc.includes(city.toLowerCase()))) return true;
+        }
+
+        const jobProv = INDONESIAN_PROVINCES.find(
+          p => p.province.toLowerCase() === jobLoc || p.cities.some(c => c.toLowerCase() === jobLoc)
+        );
+        if (jobProv) {
+          if (jobProv.province.toLowerCase().includes(l) || l.includes(jobProv.province.toLowerCase())) return true;
+        }
+
+        return false;
+      });
+      if (!matchLoc) return false;
+    }
+
+    // Checkbox 2: Specialization Filter
+    if (selectedSpecializations.length > 0) {
+      const matchSpec = selectedSpecializations.some(spec => {
+        const s = spec.toLowerCase().trim();
+        const cat = (job.kategori || '').toLowerCase();
+        const title = job.judul.toLowerCase();
+        const desc = (job.deskripsi || '').toLowerCase();
+
+        if (cat.includes(s) || title.includes(s) || desc.includes(s)) return true;
+
+        const jobCatItems = cat.split(',').map(c => c.trim()).filter(Boolean);
+        if (jobCatItems.some(ci => ci.includes(s) || s.includes(ci))) return true;
+
+        const sWords = s.split(/[\s/&,]+/).filter(w => w.length > 2);
+        if (sWords.length > 0 && sWords.some(w => cat.includes(w) || title.includes(w))) return true;
+
+        if (s.includes('it') || s.includes('komputer') || s.includes('teknologi')) {
+          if (cat.includes('it') || cat.includes('ti') || cat.includes('komputer') || cat.includes('teknologi') || title.includes('developer') || title.includes('engineer') || title.includes('ui/ux') || title.includes('software')) return true;
+        }
+        if (s.includes('akuntansi') || s.includes('keuangan')) {
+          if (cat.includes('keuangan') || cat.includes('akuntansi') || title.includes('accountant') || title.includes('finance') || title.includes('akuntan')) return true;
+        }
+        if (s.includes('pemasaran') || s.includes('digital')) {
+          if (cat.includes('pemasaran') || cat.includes('marketing') || title.includes('marketing') || title.includes('exim') || title.includes('promosi')) return true;
+        }
+        if (s.includes('teknik') || s.includes('rekayasa') || s.includes('manufaktur')) {
+          if (cat.includes('teknik') || cat.includes('rekayasa') || cat.includes('manufaktur') || title.includes('engineer') || title.includes('project')) return true;
+        }
+        return false;
+      });
+      if (!matchSpec) return false;
+    }
+
+    return true;
   });
 
-  const totalJobInfoPages = Math.ceil(filteredLowongan.length / itemsPerPage);
-  const paginatedLowongan = filteredLowongan.slice(
-    (jobInfoPage - 1) * itemsPerPage,
-    jobInfoPage * itemsPerPage
+  const sortedLowongan = [...filteredLowongan].sort((a, b) => {
+    if (jobSortOrder === 'oldest') {
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return timeA - timeB;
+    }
+    if (jobSortOrder === 'alphabetical') {
+      return a.judul.localeCompare(b.judul);
+    }
+    // Default: newest first
+    const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    if (timeA !== timeB) return timeB - timeA;
+    return b.id.localeCompare(a.id, undefined, { numeric: true });
+  });
+
+  const totalLowonganCount = sortedLowongan.length;
+  const totalJobInfoPages = Math.max(1, Math.ceil(totalLowonganCount / itemsPerPage));
+  const jobStartIndex = (jobInfoPage - 1) * itemsPerPage;
+  const paginatedLowongan = sortedLowongan.slice(
+    jobStartIndex,
+    jobStartIndex + itemsPerPage
   );
+  const jobEndIndex = Math.min(jobStartIndex + paginatedLowongan.length, totalLowonganCount);
 
   // Filtered & Paginated Berita List
   const filteredBeritaList = publishedBerita.filter((b) => {
@@ -1039,9 +1180,9 @@ export default function PublicLayout({
         {/* ─── KEANGGOTAAN TIM CDC TAB ──────────────────────────────────── */}
         {currentTab === 'keanggotaan' && <Keanggotaan />}
 
-        {/* ─── LOWONGAN TAB (JOB INFO - GOOGLE STITCH REPLICA) ──────────────── */}
+        {/* ─── LOWONGAN TAB (JOB INFO) ──────────────── */}
         {currentTab === 'lowongan' && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8" id="tab-lowongan">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6" id="tab-lowongan">
             {/* Title & Subtitle */}
             <div className="space-y-1">
               <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1B365D] tracking-tight">
@@ -1052,140 +1193,414 @@ export default function PublicLayout({
               </p>
             </div>
 
-            {/* Controls Bar: Search Input */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="relative flex-1 max-w-xl">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={e => {
-                    setSearchQuery(e.target.value);
-                    setJobInfoPage(1);
-                  }}
-                  placeholder="Cari kata kunci, instansi, atau lokasi..."
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1B365D]/20 focus:border-[#1B365D] shadow-2xs"
+            {/* WHITE SEARCH & FILTER BAR CONTAINER */}
+            <div className="bg-white relative" ref={jobPopupRef}>
+              <div className="flex flex-col md:flex-row items-stretch gap-2.5 md:gap-3">
+                
+                {/* TEXTBOX: Kata kunci, jabatan, atau perusahaan */}
+                <div className="flex-1 bg-white text-slate-900 rounded-xl flex items-center px-3.5 py-2.5 border border-slate-300 focus-within:ring-2 focus-within:ring-blue-500/30 focus-within:border-blue-400 hover:border-blue-300 transition shadow-2xs">
+                  <Search className="w-4 h-4 text-slate-400 shrink-0 mr-2.5" />
+                  <input
+                    type="text"
+                    placeholder="Kata kunci, jabatan, atau perusahaan"
+                    value={jobKeyword}
+                    onChange={(e) => setJobKeyword(e.target.value)}
+                    className="w-full bg-transparent border-none focus:outline-none text-xs md:text-sm font-medium text-slate-800 placeholder:text-slate-400"
+                  />
+                  {jobKeyword && (
+                    <button onClick={() => setJobKeyword('')} className="text-slate-400 hover:text-slate-600 ml-1 cursor-pointer">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {/* FILTER 1: Semua Lokasi */}
+                <div className="flex-1 relative">
+                  <button
+                    type="button"
+                    onClick={() => setOpenPopup(openPopup === 'location' ? null : 'location')}
+                    className={`w-full bg-white rounded-xl flex items-center justify-between px-3.5 py-2.5 border transition text-xs md:text-sm font-medium text-left shadow-2xs cursor-pointer ${
+                      openPopup === 'location' || selectedLocations.length > 0
+                        ? 'border-blue-400 bg-blue-50/40 text-blue-900 ring-2 ring-blue-500/30'
+                        : 'border-slate-300 text-slate-700 hover:border-blue-300 hover:bg-blue-50/40'
+                    }`}
+                  >
+                    <div className="flex items-center min-w-0 pr-2">
+                      <MapPin className={`w-4 h-4 shrink-0 mr-2.5 transition-colors ${
+                        selectedLocations.length > 0 ? 'text-blue-600' : 'text-slate-400'
+                      }`} />
+                      <span className={`truncate ${selectedLocations.length > 0 ? 'font-bold text-slate-800' : 'text-slate-600'}`}>
+                        {selectedLocations.length === 0
+                          ? 'Semua Lokasi'
+                          : `${selectedLocations.length} Lokasi Terpilih (${selectedLocations.slice(0, 2).join(', ')}${selectedLocations.length > 2 ? '...' : ''})`}
+                      </span>
+                    </div>
+                    <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${openPopup === 'location' ? 'rotate-180 text-blue-600' : ''}`} />
+                  </button>
+
+                  {/* POPOVER MENU FOR LOCATION CHECKBOXES WITH ANIMATION */}
+                  <AnimatePresence>
+                    {openPopup === 'location' && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                        transition={{ duration: 0.16, ease: 'easeOut' }}
+                        className="absolute top-full left-0 mt-1.5 z-50 w-80 sm:w-96 max-w-[92vw] bg-white border border-slate-100 shadow-xl shadow-slate-900/10 rounded-2xl overflow-hidden text-slate-800 text-xs"
+                      >
+                        <div className="bg-slate-50/90 backdrop-blur-xs border-b border-slate-100 px-4 py-2.5 font-bold text-slate-700 flex items-center justify-between">
+                          <span className="flex items-center gap-1.5 text-slate-800 font-extrabold text-xs">
+                            <MapPin className="w-3.5 h-3.5 text-[#0077C6]" /> Lokasi Pekerjaan
+                          </span>
+                          {selectedLocations.length > 0 && (
+                            <button 
+                              onClick={() => setSelectedLocations([])}
+                              className="text-[11px] font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-0.5 rounded-lg transition cursor-pointer"
+                            >
+                              Reset ({selectedLocations.length})
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="p-2.5 border-b border-slate-100 bg-white">
+                          <div className="relative">
+                            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                            <input
+                              type="text"
+                              placeholder="Cari provinsi, kota, atau luar negeri..."
+                              value={locationSearch}
+                              onChange={(e) => setLocationSearch(e.target.value)}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-7 py-1.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition"
+                            />
+                            {locationSearch && (
+                              <button onClick={() => setLocationSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="max-h-72 overflow-y-auto nice-scrollbar p-2.5 space-y-2.5">
+                        {(!locationSearch || 'lainnya (luar negeri)'.includes(locationSearch.toLowerCase()) || 'luar negeri'.includes(locationSearch.toLowerCase()) || 'lainnya'.includes(locationSearch.toLowerCase())) && (
+                          <div className="pb-2.5 border-b border-slate-200 mb-2">
+                            <label className="flex items-center gap-2 font-bold text-slate-900 cursor-pointer hover:bg-slate-50 p-1.5 rounded transition">
+                              <input
+                                type="checkbox"
+                                checked={selectedLocations.includes('LAINNYA (LUAR NEGERI)')}
+                                onChange={() => toggleCheckboxOption(setSelectedLocations, 'LAINNYA (LUAR NEGERI)')}
+                                className="rounded text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
+                              />
+                              <span className="flex items-center gap-1.5 text-blue-700 font-extrabold">
+                                <Globe className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                                <span>LAINNYA (LUAR NEGERI)</span>
+                              </span>
+                            </label>
+                            <p className="text-[10px] text-slate-400 pl-7 font-normal">Lokasi pekerjaan luar negeri (Jepang, Jerman, Tokyo, dll.)</p>
+                          </div>
+                        )}
+                        {INDONESIAN_PROVINCES.map((prov) => {
+                          const filteredCities = prov.cities.filter(c => 
+                            c.toLowerCase().includes(locationSearch.toLowerCase()) || 
+                            prov.province.toLowerCase().includes(locationSearch.toLowerCase())
+                          );
+
+                          if (locationSearch && !prov.province.toLowerCase().includes(locationSearch.toLowerCase()) && filteredCities.length === 0) {
+                            return null;
+                          }
+
+                          const isProvChecked = selectedLocations.includes(prov.province);
+
+                          return (
+                            <div key={prov.province} className="space-y-1">
+                              <label className="flex items-center gap-2 font-bold text-slate-900 cursor-pointer hover:bg-slate-50 p-1 rounded">
+                                <input
+                                  type="checkbox"
+                                  checked={isProvChecked}
+                                  onChange={() => toggleCheckboxOption(setSelectedLocations, prov.province)}
+                                  className="rounded text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
+                                />
+                                <span>{prov.province}</span>
+                              </label>
+
+                              <div className="pl-5 space-y-1 border-l border-slate-100 ml-2">
+                                {filteredCities.map((city) => {
+                                  const isCityChecked = selectedLocations.includes(city);
+                                  return (
+                                    <label key={city} className="flex items-center gap-2 font-normal text-slate-700 cursor-pointer hover:bg-slate-50 p-0.5 rounded">
+                                      <input
+                                        type="checkbox"
+                                        checked={isCityChecked}
+                                        onChange={() => toggleCheckboxOption(setSelectedLocations, city)}
+                                        className="rounded text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
+                                      />
+                                      <span>{city}</span>
+                                    </label>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* FILTER 2: Semua Spesialisasi */}
+                <div className="flex-1 relative">
+                  <button
+                    type="button"
+                    onClick={() => setOpenPopup(openPopup === 'specialization' ? null : 'specialization')}
+                    className={`w-full bg-white rounded-xl flex items-center justify-between px-3.5 py-2.5 border transition text-xs md:text-sm font-medium text-left shadow-2xs cursor-pointer ${
+                      openPopup === 'specialization' || selectedSpecializations.length > 0
+                        ? 'border-blue-400 bg-blue-50/40 text-blue-900 ring-2 ring-blue-500/30'
+                        : 'border-slate-300 text-slate-700 hover:border-blue-300 hover:bg-blue-50/40'
+                    }`}
+                  >
+                    <div className="flex items-center min-w-0 pr-2">
+                      <Users className={`w-4 h-4 shrink-0 mr-2.5 transition-colors ${
+                        selectedSpecializations.length > 0 ? 'text-blue-600' : 'text-slate-400'
+                      }`} />
+                      <span className={`truncate ${selectedSpecializations.length > 0 ? 'font-bold text-slate-800' : 'text-slate-600'}`}>
+                        {selectedSpecializations.length === 0
+                          ? 'Semua Spesialisasi'
+                          : `${selectedSpecializations.length} Spesialisasi Terpilih`}
+                      </span>
+                    </div>
+                    <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${openPopup === 'specialization' ? 'rotate-180 text-blue-600' : ''}`} />
+                  </button>
+
+                  {/* POPOVER MENU FOR SPECIALIZATION CHECKBOXES WITH ANIMATION */}
+                  <AnimatePresence>
+                    {openPopup === 'specialization' && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                        transition={{ duration: 0.16, ease: 'easeOut' }}
+                        className="absolute top-full left-0 mt-1.5 z-50 w-80 sm:w-96 max-w-[92vw] bg-white border border-slate-100 shadow-xl shadow-slate-900/10 rounded-2xl overflow-hidden text-slate-800 text-xs"
+                      >
+                        <div className="bg-slate-50/90 backdrop-blur-xs border-b border-slate-100 px-4 py-2.5 font-bold text-slate-700 flex items-center justify-between">
+                          <span className="flex items-center gap-1.5 text-slate-800 font-extrabold text-xs">
+                            <Briefcase className="w-3.5 h-3.5 text-[#0077C6]" /> Spesialisasi Pekerjaan
+                          </span>
+                          {selectedSpecializations.length > 0 && (
+                            <button 
+                              onClick={() => setSelectedSpecializations([])}
+                              className="text-[11px] font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-0.5 rounded-lg transition cursor-pointer"
+                            >
+                              Reset ({selectedSpecializations.length})
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="p-2.5 border-b border-slate-100 bg-white">
+                          <div className="relative">
+                            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                            <input
+                              type="text"
+                              placeholder="Cari bidang spesialisasi..."
+                              value={specializationSearch}
+                              onChange={(e) => setSpecializationSearch(e.target.value)}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-7 py-1.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition"
+                            />
+                            {specializationSearch && (
+                              <button onClick={() => setSpecializationSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="max-h-72 overflow-y-auto nice-scrollbar p-2.5 space-y-1">
+                          {JOB_SPECIALIZATIONS.filter(spec => 
+                            spec.toLowerCase().includes(specializationSearch.toLowerCase())
+                          ).map((spec) => {
+                            const isChecked = selectedSpecializations.includes(spec);
+                            return (
+                              <label key={spec} className="flex items-center gap-2.5 font-medium text-slate-700 cursor-pointer hover:bg-blue-50/60 hover:text-blue-700 p-2 rounded-xl transition">
+                                <input
+                                  type="checkbox"
+                                  checked={isChecked}
+                                  onChange={() => toggleCheckboxOption(setSelectedSpecializations, spec)}
+                                  className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4"
+                                />
+                                <span className="truncate">{spec}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* BUTTON: Cari */}
+                <button
+                  type="button"
+                  onClick={() => setOpenPopup(null)}
+                  className="bg-[#0B1E48] hover:bg-[#071533] active:scale-95 text-white px-7 py-2.5 rounded-xl font-bold text-xs md:text-sm transition shrink-0 shadow-sm cursor-pointer"
+                >
+                  Cari
+                </button>
+
+              </div>
+            </div>
+
+            {/* ACTIVE FILTERS SUMMARY & COUNTER & SORTING */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-semibold text-slate-600 pt-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span>Menampilkan {totalLowonganCount > 0 ? jobStartIndex + 1 : 0}-{jobEndIndex} dari <strong className="text-[#0055D4] font-extrabold">{totalLowonganCount} lowongan</strong></span>
+                
+                {hasActiveJobFilters && (
+                  <button
+                    onClick={clearAllJobFilters}
+                    className="text-red-600 hover:underline text-[11px] font-bold flex items-center gap-1 bg-red-50 px-2 py-0.5 rounded-lg ml-2 cursor-pointer"
+                  >
+                    <X className="w-3 h-3" /> Bersihkan Filter
+                  </button>
+                )}
+              </div>
+
+              {/* Sorting Select Dropdown with Dropdown component */}
+              <div className="flex items-center gap-2 self-end sm:self-auto">
+                <span className="text-slate-500 font-medium text-xs">Urutkan:</span>
+                <Dropdown
+                  value={jobSortOrder}
+                  onChange={(v) => setJobSortOrder(v as any)}
+                  size="sm"
+                  className="w-36"
+                  options={[
+                    { value: 'newest', label: 'Terbaru' },
+                    { value: 'oldest', label: 'Terlama' },
+                    { value: 'alphabetical', label: 'Abjad (A-Z)' }
+                  ]}
                 />
               </div>
             </div>
 
             {/* Empty State */}
-            {filteredLowongan.length === 0 ? (
+            {sortedLowongan.length === 0 ? (
               <div className="text-center py-16 bg-white border border-slate-200 rounded-2xl shadow-2xs">
                 <Info className="w-10 h-10 text-slate-300 mx-auto mb-2" />
                 <h3 className="font-bold text-slate-700">Tidak Ada Lowongan Ditemukan</h3>
-                <p className="text-slate-400 text-sm mt-1">Coba kata kunci lain atau pilih filter kategori yang berbeda.</p>
+                <p className="text-slate-400 text-sm mt-1">Coba kata kunci lain atau pilih filter lokasi/spesialisasi yang berbeda.</p>
               </div>
             ) : (
               /* 3-Column Card Grid & Pagination */
               <div className="space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {paginatedLowongan.map(item => (
-                    <div
-                      key={item.id}
-                      onClick={() => onSelectLowongan(item.id)}
-                      className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group"
-                    >
-                      <div>
-                        {item.sumber === 'admin' ? (
-                          /* Poster Image Container (Khusus Input Admin: Full-bleed, Zoom-in Center Crop) */
-                          <div className="w-full h-48 sm:h-52 relative overflow-hidden bg-slate-900 border-b border-slate-100">
-                            {(() => {
-                              const posterSrc = item.flyer || item.imageUrl || (item.flyers && item.flyers.length > 0 ? item.flyers[0] : null) || item.bannerImage || item.companyLogo;
-                              if (posterSrc) {
+                  {paginatedLowongan.map(item => {
+                    const hasLogo = Boolean(item.companyLogo);
+
+                    return (
+                      <div
+                        key={item.id}
+                        onClick={() => onSelectLowongan(item.id)}
+                        className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group"
+                      >
+                        <div>
+                          {item.sumber === 'admin' ? (
+                            /* Poster Image Container (Khusus Input Admin: Full-bleed, Zoom-in Center Crop) */
+                            <div className="w-full h-48 sm:h-52 relative overflow-hidden bg-slate-900 border-b border-slate-100">
+                              {(() => {
+                                const posterSrc = item.flyer || item.imageUrl || (item.flyers && item.flyers.length > 0 ? item.flyers[0] : null) || item.bannerImage || item.companyLogo;
+                                if (posterSrc) {
+                                  return (
+                                    <>
+                                      <img
+                                        src={posterSrc}
+                                        alt={item.judul || item.namaInstansi}
+                                        className="w-full h-full object-cover object-center scale-110 group-hover:scale-125 transition-transform duration-500"
+                                        onError={(e) => {
+                                          (e.currentTarget as HTMLElement).style.display = 'none';
+                                        }}
+                                      />
+                                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none" />
+                                    </>
+                                  );
+                                }
                                 return (
-                                  <>
-                                    <img
-                                      src={posterSrc}
-                                      alt={item.judul || item.namaInstansi}
-                                      className="w-full h-full object-cover object-center scale-110 group-hover:scale-125 transition-transform duration-500"
-                                      onError={(e) => {
-                                        (e.currentTarget as HTMLElement).style.display = 'none';
-                                      }}
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none" />
-                                  </>
+                                  <div className="w-full h-full flex flex-col items-center justify-center bg-slate-100 text-slate-400 space-y-1">
+                                    <Building2 className="w-10 h-10 text-slate-400" />
+                                    <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">{item.namaInstansi}</span>
+                                  </div>
                                 );
-                              }
-                              return (
-                                <div className="w-full h-full flex flex-col items-center justify-center bg-slate-100 text-slate-400 space-y-1">
-                                  <Building2 className="w-10 h-10 text-slate-400" />
-                                  <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">{item.namaInstansi}</span>
-                                </div>
-                              );
-                            })()}
-                            <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
-                              {item.tipe === 'magang' ? (
-                                <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-emerald-600 text-white uppercase tracking-wider">
-                                  INTERNSHIP
-                                </span>
-                              ) : item.jenisPekerjaan ? (
-                                <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-slate-800/90 backdrop-blur-xs text-white">
-                                  {item.jenisPekerjaan === 'full-time' ? 'Full-Time' : 'Part-Time'}
-                                </span>
-                              ) : null}
-                            </div>
-                          </div>
-                        ) : (
-                          /* Company Logo Container (Khusus Input Mitra: Style Original contain p-4) */
-                          <div className="w-full h-44 relative overflow-hidden bg-slate-50 flex items-center justify-center p-4 border-b border-slate-100">
-                            {item.companyLogo ? (
-                              <img
-                                src={item.companyLogo}
-                                alt={item.namaInstansi}
-                                className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
-                                onError={(e) => {
-                                  (e.currentTarget as HTMLElement).style.display = 'none';
-                                }}
-                              />
-                            ) : (
-                              <div className="flex flex-col items-center justify-center text-slate-300 space-y-1">
-                                <Building2 className="w-10 h-10 text-slate-400" />
-                                <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">{item.namaInstansi}</span>
+                              })()}
+                              <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
+                                {item.tipe === 'magang' ? (
+                                  <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-emerald-600 text-white uppercase tracking-wider">
+                                    INTERNSHIP
+                                  </span>
+                                ) : item.jenisPekerjaan ? (
+                                  <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-slate-800/90 backdrop-blur-xs text-white">
+                                    {item.jenisPekerjaan === 'full-time' ? 'Full-Time' : 'Part-Time'}
+                                  </span>
+                                ) : null}
                               </div>
-                            )}
-                            <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
-                              {item.tipe === 'magang' ? (
-                                <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-emerald-600 text-white uppercase tracking-wider">
-                                  INTERNSHIP
-                                </span>
-                              ) : item.jenisPekerjaan ? (
-                                <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-slate-700 text-white">
-                                  {item.jenisPekerjaan === 'full-time' ? 'Full-Time' : 'Part-Time'}
-                                </span>
-                              ) : null}
                             </div>
-                          </div>
-                        )}
+                          ) : (
+                            /* Company Logo Container (Khusus Input Mitra) */
+                            <div className="w-full h-44 relative overflow-hidden bg-slate-50 flex items-center justify-center p-4 border-b border-slate-100">
+                              {hasLogo ? (
+                                <img
+                                  src={item.companyLogo}
+                                  alt={item.namaInstansi}
+                                  className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
+                                  onError={(e) => {
+                                    (e.currentTarget as HTMLElement).style.display = 'none';
+                                  }}
+                                />
+                              ) : (
+                                <div className={`w-32 h-24 rounded-2xl ${getCompanyBadgeColor(item.namaInstansi)} flex flex-col items-center justify-center p-2 shadow-xs group-hover:scale-105 transition-transform duration-300 text-center`}>
+                                  <span className="font-extrabold text-xl tracking-wider leading-none">{getCompanyInitials(item.namaInstansi)}</span>
+                                  <span className="text-[9px] font-extrabold tracking-wider uppercase mt-1 line-clamp-1 px-1">{item.namaInstansi.replace(/^PT\s+/i, '').split(' ')[0]}</span>
+                                </div>
+                              )}
+                              <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
+                                {item.tipe === 'magang' ? (
+                                  <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-emerald-600 text-white uppercase tracking-wider">
+                                    INTERNSHIP
+                                  </span>
+                                ) : item.jenisPekerjaan ? (
+                                  <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-slate-700 text-white">
+                                    {item.jenisPekerjaan === 'full-time' ? 'Full-Time' : 'Part-Time'}
+                                  </span>
+                                ) : null}
+                              </div>
+                            </div>
+                          )}
 
-                        {/* Card Content */}
-                        <div className="p-5 space-y-2">
-                          {/* Category / Instansi Subheading in Accent Orange */}
-                          <div className="text-xs font-bold text-orange-600 tracking-wide uppercase truncate">
-                            {item.namaInstansi}
-                          </div>
+                          {/* Card Content */}
+                          <div className="p-5 space-y-2">
+                            {/* Category / Instansi Subheading in Accent Orange */}
+                            <div className="text-xs font-bold text-orange-600 tracking-wide uppercase truncate">
+                              {item.namaInstansi}
+                            </div>
 
-                          {/* Main Title */}
-                          <h3 className="font-extrabold text-slate-900 text-lg leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2">
-                            {item.judul}
-                          </h3>
+                            {/* Main Title */}
+                            <h3 className="font-extrabold text-slate-900 text-lg leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2">
+                              {item.judul}
+                            </h3>
 
-                          {/* Meta Footer: source + Upload Date */}
-                          <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
-                            {item.sumber === 'admin' ? (
-                              <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
-                            ) : (
-                              <span className="whitespace-nowrap font-medium text-slate-400">by Mitra</span>
-                            )}
-                            <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
-                              <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                              {formatDateDisplay(item.createdAt || item.deadline)}
-                            </span>
+                            {/* Meta Footer: source + Upload Date */}
+                            <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
+                              {item.sumber === 'admin' ? (
+                                <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
+                              ) : (
+                                <span className="whitespace-nowrap font-medium text-slate-400">by Mitra</span>
+                              )}
+                              <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
+                                <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                {formatDateDisplay(item.createdAt || item.deadline)}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {/* PAGINATION (9 items per page) */}
@@ -1194,7 +1609,7 @@ export default function PublicLayout({
                     <button
                       onClick={() => setJobInfoPage(p => Math.max(1, p - 1))}
                       disabled={jobInfoPage === 1}
-                      className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition"
+                      className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
                     >
                       &lt;
                     </button>
@@ -1203,7 +1618,7 @@ export default function PublicLayout({
                       <button
                         key={pageNum}
                         onClick={() => setJobInfoPage(pageNum)}
-                        className={`px-3.5 py-1.5 rounded-lg font-bold text-xs transition ${pageNum === jobInfoPage
+                        className={`px-3.5 py-1.5 rounded-lg font-bold text-xs transition cursor-pointer ${pageNum === jobInfoPage
                           ? 'bg-[#1B365D] text-white shadow-xs'
                           : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
                           }`}
@@ -1215,7 +1630,7 @@ export default function PublicLayout({
                     <button
                       onClick={() => setJobInfoPage(p => Math.min(totalJobInfoPages, p + 1))}
                       disabled={jobInfoPage === totalJobInfoPages}
-                      className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition"
+                      className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
                     >
                       &gt;
                     </button>
@@ -1494,7 +1909,7 @@ export default function PublicLayout({
           );
 
           const filteredItems = publishedPresentasi.filter(item => {
-            const q = searchQuery.toLowerCase();
+            const q = prestasiSearchQuery.toLowerCase();
             const matchQ = !q || item.judul.toLowerCase().includes(q) || (item.namaMahasiswa || '').toLowerCase().includes(q);
             return matchQ;
           });
@@ -1562,8 +1977,8 @@ export default function PublicLayout({
                     <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input
                       type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                      value={prestasiSearchQuery}
+                      onChange={(e) => setPrestasiSearchQuery(e.target.value)}
                       placeholder="Cari kata kunci prestasi, capaian, atau nama mahasiswa..."
                       className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                     />

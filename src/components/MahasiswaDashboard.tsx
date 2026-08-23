@@ -256,7 +256,9 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
               }}
               className="text-right hidden sm:flex items-center cursor-pointer group"
             >
-              <span className="font-extrabold text-sm text-slate-800 group-hover:text-blue-600 transition">{user.name}</span>
+              <span className="font-extrabold text-sm text-slate-800 group-hover:text-blue-600 transition">
+                {mahasiswaData?.nama || user.name}
+              </span>
             </div>
             <button
               onClick={onLogout}
@@ -357,10 +359,6 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
             setActiveTab('applications');
           }}
           onSubmit={handleApplySubmit}
-          defaultName={`${firstName} ${lastName}`.trim()}
-          defaultEmail={email}
-          defaultProdi={major}
-          defaultNim={mahasiswaData?.nim || '202101001'}
         />
       )}
     </div>
