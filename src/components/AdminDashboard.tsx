@@ -738,9 +738,20 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const [eLayoutType, setELayoutType] = useState<'card' | 'badge'>('card');
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const beritaEditRef = useRef<HTMLDivElement>(null);
+  const savedRangeRef = useRef<Range | null>(null);
   const [beritaPop, setBeritaPop] = useState<null | 'bullets' | 'numbering' | 'image'>(null);
   const [inlineImgUrl, setInlineImgUrl] = useState('');
   const [inlineImgAlign, setInlineImgAlign] = useState<'left' | 'right' | 'center'>('left');
+
+  const saveSelection = () => {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      const range = sel.getRangeAt(0);
+      if (beritaEditRef.current && beritaEditRef.current.contains(range.commonAncestorContainer)) {
+        savedRangeRef.current = range.cloneRange();
+      }
+    }
+  };
 
   const insertFormattedInlineImage = (srcUrl?: string, alignPos?: 'left' | 'right' | 'center') => {
     const ed = beritaEditRef.current;
@@ -758,13 +769,13 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
     let classStr = '';
 
     if (targetAlign === 'left') {
-      styleStr = 'float: left; margin-right: 1.25rem; margin-bottom: 1rem; margin-top: 0.5rem; width: 320px; max-width: 100%; height: 200px; object-fit: cover; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);';
+      styleStr = 'float: left; margin-right: 1.25rem; margin-bottom: 1rem; margin-top: 0.5rem; width: 320px; max-width: 48%; height: 200px; object-fit: cover; border-radius: 12px; border: 1px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.1);';
       classStr = 'img-float-left float-left mr-5 mb-4 w-full sm:w-80 h-52 object-cover rounded-xl border border-slate-200 shadow-sm';
     } else if (targetAlign === 'right') {
-      styleStr = 'float: right; margin-left: 1.25rem; margin-bottom: 1rem; margin-top: 0.5rem; width: 320px; max-width: 100%; height: 200px; object-fit: cover; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);';
+      styleStr = 'float: right; margin-left: 1.25rem; margin-bottom: 1rem; margin-top: 0.5rem; width: 320px; max-width: 48%; height: 200px; object-fit: cover; border-radius: 12px; border: 1px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.1);';
       classStr = 'img-float-right float-right ml-5 mb-4 w-full sm:w-80 h-52 object-cover rounded-xl border border-slate-200 shadow-sm';
     } else {
-      styleStr = 'display: block; margin: 1rem auto; max-width: 100%; height: 260px; object-fit: cover; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);';
+      styleStr = 'display: block; margin: 1rem auto; max-width: 100%; height: 260px; object-fit: cover; border-radius: 12px; border: 1px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.1);';
       classStr = 'img-float-center block mx-auto my-4 w-full h-64 object-cover rounded-xl border border-slate-200 shadow-sm';
     }
 
@@ -774,10 +785,20 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
     imgTag.setAttribute('class', classStr);
 
     const sel = window.getSelection();
-    if (sel && sel.rangeCount > 0) {
-      const range = sel.getRangeAt(0);
+    let range: Range | null = null;
+
+    if (savedRangeRef.current && ed.contains(savedRangeRef.current.commonAncestorContainer)) {
+      range = savedRangeRef.current;
+    } else if (sel && sel.rangeCount > 0 && ed.contains(sel.getRangeAt(0).commonAncestorContainer)) {
+      range = sel.getRangeAt(0);
+    }
+
+    if (range && sel) {
+      sel.removeAllRanges();
+      sel.addRange(range);
       range.deleteContents();
       range.insertNode(imgTag);
+
       const p = document.createElement('p');
       p.innerHTML = '<br>';
       if (imgTag.nextSibling) {
@@ -785,13 +806,23 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       } else {
         ed.appendChild(p);
       }
+
+      const newRange = document.createRange();
+      newRange.setStartAfter(imgTag);
+      newRange.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(newRange);
     } else {
       ed.appendChild(imgTag);
+      const p = document.createElement('p');
+      p.innerHTML = '<br>';
+      ed.appendChild(p);
     }
 
+    savedRangeRef.current = null;
     setInlineImgUrl('');
     setBeritaPop(null);
-    triggerToast('success', `Foto disisipkan (${targetAlign === 'left' ? 'Rata Kiri' : targetAlign === 'right' ? 'Rata Kanan' : 'Tengah'}).`);
+    triggerToast('success', `Foto disisipkan di posisi kursor (${targetAlign === 'left' ? 'Rata Kiri' : targetAlign === 'right' ? 'Rata Kanan' : 'Tengah'}).`);
   };
 
   const handleInlineImageFile = async (e: React.ChangeEvent<HTMLInputElement>, alignPos: 'left' | 'right' | 'center') => {
@@ -831,34 +862,56 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
     { ch: '➔', css: '"➔ "', label: 'Panah ke kanan' },
   ];
 
-  const insertList = (tag: 'ul' | 'ol', style?: string, paren?: boolean) => {
+  const applyBullet = (marker: string) => {
     const ed = beritaEditRef.current; if (!ed) return;
     ed.focus();
-    // Bersihkan placeholder kosong agar list tidak numpuk di bawah teks kosong.
-    if (ed.innerHTML === '<div><br></div>' || ed.innerHTML.trim() === '') ed.innerHTML = '';
-    const list = document.createElement(tag);
-    if (style) list.style.listStyleType = style;
-    if (paren && tag === 'ol') list.classList.add('list-paren');
-    const li = document.createElement('li');
-    li.appendChild(document.createElement('br'));
-    list.appendChild(li);
-    ed.appendChild(list);
-    const r = document.createRange();
-    r.setStart(li, 0);
-    r.collapse(true);
-    const s = window.getSelection();
-    s?.removeAllRanges();
-    s?.addRange(r);
-  };
 
-  const applyBullet = (marker: string) => {
+    const sel = window.getSelection();
+    if (savedRangeRef.current && ed.contains(savedRangeRef.current.commonAncestorContainer)) {
+      if (sel) {
+        sel.removeAllRanges();
+        sel.addRange(savedRangeRef.current);
+      }
+    }
+
     const opt = BULLET_OPTIONS.find((b) => b.ch === marker);
-    insertList('ul', opt?.css);
+    document.execCommand('insertUnorderedList', false);
+
+    if (sel && sel.anchorNode) {
+      const el = sel.anchorNode.nodeType === 1 ? (sel.anchorNode as HTMLElement) : sel.anchorNode.parentElement;
+      const parentUl = el?.closest('ul');
+      if (parentUl && opt?.css) {
+        parentUl.style.listStyleType = opt.css;
+      }
+    }
     setBeritaPop(null);
   };
 
   const applyNumbering = (paren: boolean) => {
-    insertList('ol', undefined, paren);
+    const ed = beritaEditRef.current; if (!ed) return;
+    ed.focus();
+
+    const sel = window.getSelection();
+    if (savedRangeRef.current && ed.contains(savedRangeRef.current.commonAncestorContainer)) {
+      if (sel) {
+        sel.removeAllRanges();
+        sel.addRange(savedRangeRef.current);
+      }
+    }
+
+    document.execCommand('insertOrderedList', false);
+
+    if (sel && sel.anchorNode) {
+      const el = sel.anchorNode.nodeType === 1 ? (sel.anchorNode as HTMLElement) : sel.anchorNode.parentElement;
+      const parentOl = el?.closest('ol');
+      if (parentOl) {
+        if (paren) {
+          parentOl.classList.add('list-paren');
+        } else {
+          parentOl.classList.remove('list-paren');
+        }
+      }
+    }
     setBeritaPop(null);
   };
 
@@ -1271,8 +1324,11 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       triggerToast('error', 'Judul wajib diisi.');
       return;
     }
-    const currentBody = eJenis === 'berita' ? (beritaEditRef.current?.innerHTML || '').replace(/<br\s*\/?>/gi, '').trim() : eBody;
-    if (eJenis !== 'program' && !currentBody) {
+    const rawBody = eJenis === 'berita' ? (beritaEditRef.current?.innerHTML || '') : eBody;
+    // Sanitasi tag list kosong (ul/ol tanpa isi teks) agar tidak meninggalkan titik liar
+    const sanitizedBody = rawBody.replace(/<(ul|ol)[^>]*>\s*(<li>\s*(<br\s*\/?>)?\s*<\/li>\s*)*<\/\1>/gi, '').trim();
+
+    if (eJenis !== 'program' && !sanitizedBody) {
       setSaveError('Isi konten (body) wajib diisi.');
       triggerToast('error', 'Judul dan isi konten wajib diisi.');
       return;
@@ -1292,7 +1348,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       id: editId || `kk_${Date.now()}`,
       jenis: eJenis,
       judul: eJudul.trim(),
-      body: eJenis === 'berita' ? (beritaEditRef.current?.innerHTML || '') : eBody,
+      body: eJenis === 'berita' ? sanitizedBody : eBody,
       penulis: eJenis === 'berita' ? (ePenulis.trim() || user.name) : undefined,
       namaInstansi: eJenis === 'lowongan' ? eNamaInstansi.trim() : undefined,
       tipe: eJenis === 'lowongan' ? eTipe : undefined,
@@ -2592,7 +2648,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                             <ToolbarBtn
                               icon={<ImageIcon className="w-4 h-4" />}
                               label="Gambar"
-                              onClick={() => setBeritaPop(beritaPop === 'image' ? null : 'image')}
+                              onMouseDown={(e) => { e.preventDefault(); saveSelection(); }}
+                              onClick={() => { saveSelection(); setBeritaPop(beritaPop === 'image' ? null : 'image'); }}
                             />
                             {beritaPop === 'image' && (
                               <div className="absolute z-30 mt-1 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl p-4 space-y-3 right-0 sm:right-auto animate-fadeIn text-left">
@@ -2689,8 +2746,11 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                           ref={beritaEditRef}
                           contentEditable
                           suppressContentEditableWarning
-                          onMouseDown={() => setBeritaPop(null)}
-                          className="w-full min-h-[320px] border border-slate-300 rounded-b-xl p-4 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-300 prose max-w-none"
+                          onMouseDown={() => { saveSelection(); setBeritaPop(null); }}
+                          onMouseUp={saveSelection}
+                          onKeyUp={saveSelection}
+                          onBlur={saveSelection}
+                          className="w-full min-h-[360px] border border-slate-300 rounded-b-xl p-4 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-300 prose max-w-none flow-root overflow-auto"
                         />
                       </div>
                     </>)}

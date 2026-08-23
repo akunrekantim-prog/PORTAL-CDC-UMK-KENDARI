@@ -135,5 +135,12 @@ ol.list-paren > li::before { content: counter(lp) ") "; position: absolute; left
 .prose ol.list-paren > li::before { content: counter(lp) ") "; position: absolute; left: -0.5cm; color: #0077C6; font-weight: 700; }
 .prose-berita ul li::marker { color: #0077C6; }
 .prose-berita ol li::marker { color: #0077C6; }
+/* Proteksi CSS agar gambar dan elemen tanpa teks tidak memicu titik biru liar */
+.prose-berita li:empty::marker,
+.prose-berita li:has(img:only-child)::marker,
+.prose-berita img::marker {
+  content: "" !important;
+  color: transparent !important;
+}
 
 
