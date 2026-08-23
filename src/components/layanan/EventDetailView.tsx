@@ -26,16 +26,17 @@ export default function EventDetailView({
 }: EventDetailViewProps) {
   if (!event) return null;
 
-  const formatDateDisplayFull = (dateStr?: string) => {
+  const formatDateDisplayFull = (dateStr?: string, timeStr?: string) => {
     if (!dateStr) return '';
     try {
       const d = new Date(dateStr);
       if (isNaN(d.getTime())) return dateStr;
-      return new Intl.DateTimeFormat('id-ID', {
+      const formattedDate = new Intl.DateTimeFormat('id-ID', {
         day: 'numeric',
         month: 'long',
         year: 'numeric'
       }).format(d);
+      return timeStr ? `${formattedDate}, ${timeStr}` : formattedDate;
     } catch {
       return dateStr;
     }
@@ -148,7 +149,7 @@ export default function EventDetailView({
 
             {/* METADATA STRIP WITH GOLD ICONS */}
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs sm:text-sm text-slate-600 font-medium pt-1 pb-3 border-b border-slate-100">
-              {/* Categories / Tags */}
+              {/* Category Tag */}
               <div className="flex items-center gap-1.5">
                 <Tag className="w-4 h-4 text-amber-500 shrink-0" />
                 <span>{categoryLabel}</span>
@@ -157,7 +158,7 @@ export default function EventDetailView({
               {/* Date & Time */}
               <div className="flex items-center gap-1.5">
                 <Clock className="w-4 h-4 text-amber-500 shrink-0" />
-                <span>{formatDateDisplayFull(event.date)}</span>
+                <span>{formatDateDisplayFull(event.date, event.time)}</span>
               </div>
 
               {/* Author */}
@@ -167,7 +168,7 @@ export default function EventDetailView({
               </div>
             </div>
 
-            {/* FEATURED MAIN COVER IMAGE */}
+            {/* FEATURED MAIN COVER IMAGE / POSTER */}
             {event.image && (
               <div className="w-full aspect-[16/9] sm:aspect-[21/9] rounded-2xl overflow-hidden border border-slate-200/80 bg-slate-900 shadow-sm relative">
                 <img
@@ -178,7 +179,7 @@ export default function EventDetailView({
               </div>
             )}
 
-            {/* ARTICLE BODY & RICH TEXT FORMATTING */}
+            {/* ARTICLE BODY */}
             <div className="prose prose-slate max-w-none text-slate-700 text-sm sm:text-base leading-relaxed space-y-6 pt-2">
               <div className="space-y-4 text-slate-700 leading-relaxed font-normal">
                 {renderContentMarkdown(event.description)}
