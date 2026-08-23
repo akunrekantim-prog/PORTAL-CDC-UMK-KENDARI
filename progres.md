@@ -1,8 +1,48 @@
 # Progres Pengerjaan — Portal CDC UM Kendari
 
-Periode: 23 Agustus 2026  
+Periode: 23–24 Agustus 2026  
 Branch: `main`  
 Repo: `D:\PORTAL-CDC-UMK-KENDARI`
+
+---
+
+## Tanggal: 23-24 Agustus 2026 (Sesi 4)
+**Oleh: Developer Fachrul Alam Sanuddin**
+**Fokus Pekerjaan:** Animasi Counter Angka Beranda, Penyesuaian Visitor Counter Live Hosting (Start 0 & Session Deduplication), Tampilan Foto Berita Mobile Full-Width (100% Rata Kiri-Kanan), Integrasi Dinamis 3 Sub-Menu Layanan (Workshop, Softskill, Seminar) pada Section Program & Pengumuman Beranda, dan Penambahan Akses Campus Hiring di Widget Layanan Cepat Beranda.
+
+### Ringkasan Perubahan
+1. **Animasi Counter Angka Beranda (`PublicLayout.tsx`):**
+   - Membuat komponen `AnimatedCounterStat` menggunakan `window.requestAnimationFrame` dan kurva `easeOutCubic` 60 FPS.
+   - Ke-4 statistik beranda (**20.000+ Alumni**, **10 Mitra Perusahaan**, **Total Pengunjung**, **10+ Tahun Pengalaman**) bergerak naik secara mulus dari `0` menuju angka aktual dengan format titik desimal Indonesia (`toLocaleString('id-ID')`).
+2. **Visitor Counter Live Hosting (`data.ts`):**
+   - Menyesuaikan `BASE_VISITOR_COUNT = 0` untuk rilis *live hosting*.
+   - Menerapkan deduplikasi sesi peramban (`sessionStorage`), menjamin perhitungan bertambah 1 per pengunjung tanpa menghabiskan kuota database server (0% efek beban database).
+3. **Tampilan Foto Berita Mobile Full-Width (`index.css`):**
+   - Memperbarui aturan CSS `@media (max-width: 640px)` untuk `.prose-berita img` dan `.prose img`.
+   - Di perangkat seluler/HP (< 640px), seluruh foto berita (baik yang di-set *Float Left*, *Float Right*, maupun *Center*) otomatis membentang **100% full-width rata kiri-kanan** memenuhi lebar wadah artikel berita.
+4. **Integrasi Dinamis 3 Sub-Menu Layanan di Section Program & Pengumuman (`PublicLayout.tsx` & `data.ts`):**
+   - Section **PROGRAM & PENGUMUMAN** di Beranda Utama kini menyedot publikasi terbaru dari **Workshop**, **Pelatihan Softskill**, dan **Seminar** secara otomatis.
+   - Diurutkan berdasarkan **tanggal rilis paling terbaru** (`createdAt`/`updatedAt` descending).
+   - Memasang Badge Label Kustom per Card: **WORKSHOP**, **SOFTSKILL**, **SEMINAR**, **PROGRAM**, **PENGUMUMAN**.
+   - Mengklik Card Workshop/Softskill/Seminar langsung mengarahkan pengunjung ke halaman detail sub-menu layanan terkait.
+   - Menambahkan seed dummy published untuk `workshop`, `softskill`, dan `seminar` di `SEED_KONTEN_KARIR`.
+5. **Penambahan Akses Campus Hiring pada Widget Layanan Cepat (`PublicLayout.tsx`):**
+   - Menambahkan tombol navigasi cepat `{ label: 'Campus Hiring - Recruitment', tab: 'campus-hiring' }` pada sidebar widget **Layanan Cepat** di Beranda Utama.
+6. **Git Pull & Push Synchronization:**
+   - Melakukan `git pull origin main`, menyelesaikan resolusi merge conflict secara bersih, dan me-push seluruh perubahan terbaru ke GitHub remote `main`.
+
+### File Diubah
+- `src/components/PublicLayout.tsx` (Animasi counter, integrasi 3 sub-menu layanan, badge kustom & akses Campus Hiring Layanan Cepat)
+- `src/data.ts` (Reset BASE_VISITOR_COUNT = 0 & seed dummy workshop, softskill, seminar)
+- `src/index.css` (Responsif foto berita mobile 100% full-width)
+- `src/types.ts` (Penyelarasan union type JenisKonten 'pengumuman')
+- `src/components/AdminDashboard.tsx` (Penyelarasan dictionary JenisKonten 'pengumuman')
+- `src/components/layanan/EventDetailView.tsx` & `src/components/layanan/ui/EventCardLayout.tsx` (Merge resolution)
+- `progres.md` (Update progres)
+
+### Verifikasi
+- ✅ `npx tsc --noEmit` — passed (0 error)
+- ✅ Git commit & push — sukses ter-sync dengan `origin/main`
 
 ---
 
