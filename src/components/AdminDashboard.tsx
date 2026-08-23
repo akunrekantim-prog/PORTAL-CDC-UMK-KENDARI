@@ -141,6 +141,7 @@ const JENIS_LABEL: Record<JenisKonten, string> = {
   berita: 'Berita & Artikel',
   lowongan: 'Lowongan (Magang/Kerja)',
   program: 'Program & Pengumuman',
+  pengumuman: 'Pengumuman Penting',
   workshop: 'Workshop & Pelatihan Karir',
   softskill: 'Pelatihan Softskill & Kewirausahaan',
   seminar: 'Seminar Sukses Berkarir',
@@ -151,6 +152,7 @@ const JENIS_ICON: Record<JenisKonten, React.ReactNode> = {
   berita: <Newspaper className="w-4 h-4" />,
   lowongan: <Briefcase className="w-4 h-4" />,
   program: <Megaphone className="w-4 h-4" />,
+  pengumuman: <Megaphone className="w-4 h-4" />,
   workshop: <GraduationCap className="w-4 h-4" />,
   softskill: <Award className="w-4 h-4" />,
   seminar: <GraduationCap className="w-4 h-4" />,
@@ -162,6 +164,7 @@ const THUMB_REQUIRED: Record<JenisKonten, boolean> = {
   berita: true,    // 16:9 — wajib upload poster
   lowongan: true,  // 9:16
   program: true,     // thumbnail wajib (header kartu)
+  pengumuman: false, // opsional
   workshop: false,  // opsional — fallback ke gambar default di EventCardLayout
   softskill: false, // opsional
   seminar: false,    // opsional

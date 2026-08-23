@@ -859,6 +859,48 @@ export const SEED_KONTEN_KARIR: KontenKarir[] = [
     updatedAt: '2026-06-10T10:00:00Z',
     createdBy: 'usr_admin',
     createdByName: 'Admin Website'
+  },
+  {
+    id: 'kk_seed_ws1',
+    jenis: 'workshop',
+    judul: 'Workshop UI/UX Design & Interactive Prototyping Figma 2026',
+    body: 'Pelatihan praktis pembuatan wireframe, Design System, hingga Interactive Prototype aplikasi berbasis industri dengan alat Figma bersama praktisi profesional.',
+    penulis: 'CDC UM Kendari & Studio Kreatif',
+    thumbnail: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=800&auto=format&fit=crop',
+    kategori: 'Workshop',
+    status: 'published',
+    createdAt: '2026-08-18T09:00:00Z',
+    updatedAt: '2026-08-18T09:00:00Z',
+    createdBy: 'usr_admin',
+    createdByName: 'Admin Website'
+  },
+  {
+    id: 'kk_seed_ss1',
+    jenis: 'softskill',
+    judul: 'Pelatihan Softskill Public Speaking & Persuasi Komunikasi Karir',
+    body: 'Membangun kepercayaan diri saat presentasi, wawancara kerja, dan komunikasi profesional di dunia industri modern.',
+    penulis: 'CDC UM Kendari',
+    thumbnail: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=800&auto=format&fit=crop',
+    kategori: 'Softskill',
+    status: 'published',
+    createdAt: '2026-08-19T10:00:00Z',
+    updatedAt: '2026-08-19T10:00:00Z',
+    createdBy: 'usr_admin',
+    createdByName: 'Admin Website'
+  },
+  {
+    id: 'kk_seed_sm1',
+    jenis: 'seminar',
+    judul: 'Seminar Nasional Strategi Menembus BUMN & Perusahaan Multinasional',
+    body: 'Pemaparan komprehensif mengenai alur seleksi Rekrutmen Bersama BUMN, psikotes, dan tips wawancara langsung bersama praktisi HR.',
+    penulis: 'CDC UM Kendari',
+    thumbnail: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=800&auto=format&fit=crop',
+    kategori: 'Seminar',
+    status: 'published',
+    createdAt: '2026-08-20T11:00:00Z',
+    updatedAt: '2026-08-20T11:00:00Z',
+    createdBy: 'usr_admin',
+    createdByName: 'Admin Website'
   }
 ];
 
