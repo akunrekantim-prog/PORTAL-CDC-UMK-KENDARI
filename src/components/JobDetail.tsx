@@ -280,7 +280,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
 
                       {job.sumber === 'admin' && (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-600 text-white">
-                          <ShieldCheck className="w-3.5 h-3.5" /> By Admin CDC
+                          <ShieldCheck className="w-3.5 h-3.5" /> by Admin Website
                         </span>
                       )}
                     </div>

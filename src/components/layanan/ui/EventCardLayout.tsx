@@ -262,7 +262,7 @@ export default function EventCardLayout({
                 </div>
                 <div className="absolute bottom-3 left-3 right-3">
                   <span className="inline-block px-2.5 py-1 rounded bg-slate-900/70 backdrop-blur-md text-white text-[11px] font-medium">
-                    By Admin
+                    by Admin Website
                   </span>
                 </div>
               </div>
@@ -344,7 +344,7 @@ export default function EventCardLayout({
                   </h3>
                   <div className="flex items-center gap-3">
                     {getStatusBadge(selectedEvent.status)}
-                    <span className="text-slate-400 text-xs font-medium">By Admin</span>
+                    <span className="text-slate-400 text-xs font-medium">by Admin Website</span>
                   </div>
                 </div>
 

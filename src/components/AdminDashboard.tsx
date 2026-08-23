@@ -75,6 +75,7 @@ import {
   Eye,
   Check,
   X,
+  Upload,
   Ban,
   MapPin,
   Calendar,
@@ -737,7 +738,73 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const [eLayoutType, setELayoutType] = useState<'card' | 'badge'>('card');
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const beritaEditRef = useRef<HTMLDivElement>(null);
-  const [beritaPop, setBeritaPop] = useState<null | 'bullets' | 'numbering'>(null);
+  const [beritaPop, setBeritaPop] = useState<null | 'bullets' | 'numbering' | 'image'>(null);
+  const [inlineImgUrl, setInlineImgUrl] = useState('');
+  const [inlineImgAlign, setInlineImgAlign] = useState<'left' | 'right' | 'center'>('left');
+
+  const insertFormattedInlineImage = (srcUrl?: string, alignPos?: 'left' | 'right' | 'center') => {
+    const ed = beritaEditRef.current;
+    if (!ed) return;
+    ed.focus();
+
+    const targetUrl = srcUrl || inlineImgUrl;
+    const targetAlign = alignPos || inlineImgAlign;
+    if (!targetUrl || !targetUrl.trim()) {
+      triggerToast('error', 'Masukkan URL foto atau unggah file foto terlebih dahulu.');
+      return;
+    }
+
+    let styleStr = '';
+    let classStr = '';
+
+    if (targetAlign === 'left') {
+      styleStr = 'float: left; margin-right: 1.25rem; margin-bottom: 1rem; margin-top: 0.5rem; width: 320px; max-width: 100%; height: 200px; object-fit: cover; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);';
+      classStr = 'img-float-left float-left mr-5 mb-4 w-full sm:w-80 h-52 object-cover rounded-xl border border-slate-200 shadow-sm';
+    } else if (targetAlign === 'right') {
+      styleStr = 'float: right; margin-left: 1.25rem; margin-bottom: 1rem; margin-top: 0.5rem; width: 320px; max-width: 100%; height: 200px; object-fit: cover; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);';
+      classStr = 'img-float-right float-right ml-5 mb-4 w-full sm:w-80 h-52 object-cover rounded-xl border border-slate-200 shadow-sm';
+    } else {
+      styleStr = 'display: block; margin: 1rem auto; max-width: 100%; height: 260px; object-fit: cover; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);';
+      classStr = 'img-float-center block mx-auto my-4 w-full h-64 object-cover rounded-xl border border-slate-200 shadow-sm';
+    }
+
+    const imgTag = document.createElement('img');
+    imgTag.src = targetUrl.trim();
+    imgTag.setAttribute('style', styleStr);
+    imgTag.setAttribute('class', classStr);
+
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      const range = sel.getRangeAt(0);
+      range.deleteContents();
+      range.insertNode(imgTag);
+      const p = document.createElement('p');
+      p.innerHTML = '<br>';
+      if (imgTag.nextSibling) {
+        ed.insertBefore(p, imgTag.nextSibling);
+      } else {
+        ed.appendChild(p);
+      }
+    } else {
+      ed.appendChild(imgTag);
+    }
+
+    setInlineImgUrl('');
+    setBeritaPop(null);
+    triggerToast('success', `Foto disisipkan (${targetAlign === 'left' ? 'Rata Kiri' : targetAlign === 'right' ? 'Rata Kanan' : 'Tengah'}).`);
+  };
+
+  const handleInlineImageFile = async (e: React.ChangeEvent<HTMLInputElement>, alignPos: 'left' | 'right' | 'center') => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const compressed = await compressImageAdaptive(file);
+        insertFormattedInlineImage(compressed, alignPos);
+      } catch {
+        triggerToast('error', 'Gagal memproses file gambar.');
+      }
+    }
+  };
 
   const applyQuote = () => {
     const ed = beritaEditRef.current; if (!ed) return; ed.focus();
@@ -1248,7 +1315,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       createdAt: editId ? (konten.find((k) => k.id === editId)?.createdAt || now) : now,
       updatedAt: now,
       createdBy: 'usr_admin',
-      createdByName: 'Admin CDC',
+      createdByName: 'Admin Website',
       // Field khusus event layanan
       tanggal: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? eTanggal : undefined,
       waktu: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? eWaktu.trim() : undefined,
@@ -2521,7 +2588,102 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                           <ToolbarBtn icon={<Quote className="w-4 h-4" />} label="Quote" onMouseDown={(e) => e.preventDefault()} onClick={applyQuote} />
                           <span className="w-px h-6 bg-slate-300 mx-0.5" />
                           <ToolbarBtn icon={<LinkIcon className="w-4 h-4" />} label="Link" onMouseDown={(e) => e.preventDefault()} onClick={() => { const u = prompt('URL link:'); if (u) document.execCommand('createLink', false, u); }} />
-                          <ToolbarBtn icon={<ImageIcon className="w-4 h-4" />} label="Gambar" onMouseDown={(e) => e.preventDefault()} onClick={() => { const u = prompt('URL gambar:'); if (u) document.execCommand('insertImage', false, u); }} />
+                          <div className="relative">
+                            <ToolbarBtn
+                              icon={<ImageIcon className="w-4 h-4" />}
+                              label="Gambar"
+                              onClick={() => setBeritaPop(beritaPop === 'image' ? null : 'image')}
+                            />
+                            {beritaPop === 'image' && (
+                              <div className="absolute z-30 mt-1 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl p-4 space-y-3 right-0 sm:right-auto animate-fadeIn text-left">
+                                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                                  <h4 className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
+                                    <ImageIcon className="w-3.5 h-3.5 text-[#0077C6]" /> Sisip Foto Inline Berita
+                                  </h4>
+                                  <button
+                                    type="button"
+                                    onClick={() => setBeritaPop(null)}
+                                    className="text-slate-400 hover:text-slate-600 text-xs font-bold px-1"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+
+                                {/* 1. Pilihan Posisi Tata Letak */}
+                                <div className="space-y-1">
+                                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                                    1. Pilihan Posisi Tata Letak
+                                  </label>
+                                  <div className="grid grid-cols-3 gap-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => setInlineImgAlign('left')}
+                                      className={`px-2 py-2 rounded-xl text-xs font-bold transition flex flex-col items-center gap-0.5 border cursor-pointer ${inlineImgAlign === 'left' ? 'bg-blue-50 text-[#1E3A8A] border-blue-400 shadow-2xs' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'}`}
+                                    >
+                                      <span>⬅️ Kiri</span>
+                                      <span className="text-[9px] font-medium text-slate-400">(Float Left)</span>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setInlineImgAlign('right')}
+                                      className={`px-2 py-2 rounded-xl text-xs font-bold transition flex flex-col items-center gap-0.5 border cursor-pointer ${inlineImgAlign === 'right' ? 'bg-blue-50 text-[#1E3A8A] border-blue-400 shadow-2xs' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'}`}
+                                    >
+                                      <span>➡️ Kanan</span>
+                                      <span className="text-[9px] font-medium text-slate-400">(Float Right)</span>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setInlineImgAlign('center')}
+                                      className={`px-2 py-2 rounded-xl text-xs font-bold transition flex flex-col items-center gap-0.5 border cursor-pointer ${inlineImgAlign === 'center' ? 'bg-blue-50 text-[#1E3A8A] border-blue-400 shadow-2xs' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'}`}
+                                    >
+                                      <span>↔️ Tengah</span>
+                                      <span className="text-[9px] font-medium text-slate-400">(Full Width)</span>
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {/* 2. Unggah File Foto dari Perangkat */}
+                                <div className="space-y-1">
+                                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                                    2. Unggah File Foto dari Perangkat
+                                  </label>
+                                  <label className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-[#1E3A8A] text-xs font-bold rounded-xl border border-dashed border-slate-300 hover:border-blue-300 cursor-pointer transition">
+                                    <Upload className="w-3.5 h-3.5 text-[#0077C6]" />
+                                    <span>Pilih File Foto...</span>
+                                    <input
+                                      type="file"
+                                      accept="image/*"
+                                      onChange={(e) => handleInlineImageFile(e, inlineImgAlign)}
+                                      className="hidden"
+                                    />
+                                  </label>
+                                </div>
+
+                                {/* Atau 3. Masukkan Tautan URL Foto */}
+                                <div className="space-y-1.5 pt-1.5 border-t border-slate-100">
+                                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                                    Atau Input URL Foto Online
+                                  </label>
+                                  <div className="flex gap-1.5">
+                                    <input
+                                      type="url"
+                                      value={inlineImgUrl}
+                                      onChange={(e) => setInlineImgUrl(e.target.value)}
+                                      placeholder="https://..."
+                                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => insertFormattedInlineImage(undefined, inlineImgAlign)}
+                                      className="px-3 py-1.5 bg-[#1E3A8A] hover:bg-blue-900 text-white text-xs font-bold rounded-lg transition shrink-0 cursor-pointer"
+                                    >
+                                      Sisip
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                         <div
                           ref={beritaEditRef}

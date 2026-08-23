@@ -20,6 +20,7 @@ import {
 import EventDetailView from './components/layanan/EventDetailView';
 // ...
 import PublicLayout from './components/PublicLayout';
+import BeritaDetailView from './components/BeritaDetailView';
 import Register from './components/Register';
 import Login from './components/Login';
 import { JobDetail } from './components/JobDetail';
@@ -295,46 +296,17 @@ export default function App() {
 
         {/* VIEW 3: NEWS ARTICLE BLOCK */}
         {currentView === 'public' && viewingBeritaSlug && selectedBerita && (
-          <div className="max-w-3xl mx-auto px-4 py-16 space-y-6" id="berita-detail-panel">
-            <button
-              onClick={() => setViewingBeritaSlug(null)}
-              className="inline-flex items-center gap-1.5 text-slate-550 hover:text-slate-800 font-bold text-sm bg-white border border-slate-150 px-4 py-2 rounded-xl shadow-xs transition"
-              id="berita-back-btn"
-            >
-              <ChevronLeft className="w-4 h-4" /> Kembali Rilis
-            </button>
-
-            <article className="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm" id="berita-detail-doc">
-              {selectedBerita.coverImageUrl && (
-                <div className="aspect-[21/9]" id="berita-detail-cover">
-                  <img
-                    src={selectedBerita.coverImageUrl}
-                    alt={selectedBerita.title}
-                    className="w-full h-full object-cover"
-                    referrerPolicy="no-referrer"
-                  />
-                </div>
-              )}
-
-              <div className="p-8 sm:p-10 space-y-6" id="berita-detail-body">
-                <div className="space-y-3">
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${selectedBerita.status === 'published' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}`}>
-                    {selectedBerita.scope || 'LOKAL'}
-                  </span>
-                  <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 leading-tight">
-                    {selectedBerita.title}
-                  </h1>
-                  <p className="text-xs text-slate-400 font-medium">
-                    Dipublikasikan oleh: {selectedBerita.penulis || 'Admin CDC'} · {new Date(selectedBerita.createdAt).toLocaleDateString('id-ID')}
-                  </p>
-                </div>
-
-                <div className="border-t border-slate-100 pt-6 text-slate-700 text-sm sm:text-base space-y-4">
-                  {renderContentMarkdown(selectedBerita.content)}
-                </div>
-              </div>
-            </article>
-          </div>
+          <BeritaDetailView
+            berita={selectedBerita}
+            onBack={() => setViewingBeritaSlug(null)}
+            setTab={(tab) => {
+              setViewingBeritaSlug(null);
+              setPublicTab(tab);
+              reloadDatabase();
+            }}
+            onNavigateToLogin={handleNavigateToLogin}
+            onNavigateToRegister={handleNavigateToRegister}
+          />
         )}
 
         {/* VIEW 3.5: PROGRAM & PENGUMUMAN DETAIL BLOCK */}
@@ -369,7 +341,7 @@ export default function App() {
                     {selectedProgram.judul}
                   </h1>
                   <p className="text-xs text-slate-400 font-medium">
-                    Dipublikasikan oleh: {selectedProgram.createdByName || 'Admin CDC'} · {new Date(selectedProgram.createdAt).toLocaleDateString('id-ID')}
+                    Dipublikasikan oleh: {(!selectedProgram.createdByName || selectedProgram.createdByName.toLowerCase().includes('admin')) ? 'Admin Website' : selectedProgram.createdByName} · {new Date(selectedProgram.createdAt).toLocaleDateString('id-ID')}
                   </p>
                 </div>
 

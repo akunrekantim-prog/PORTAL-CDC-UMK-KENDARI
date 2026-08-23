@@ -101,14 +101,15 @@ const STATS = [
 
 /* ─── Popular links ───────────────────────────── */
 const POPULAR_LINKS = [
-  'Loker BPJS Kesehatan 2026',
-  'Loker Bank Mandiri 2026',
-  'JOB PREPARATION 2026',
-  'UM Kendari Career Fair',
-  'Selamat & Sukses Pimpinan UM Kendari 2026',
-  'Loker Pertamina 2026',
-  'Magang BUMN Terbuka 2026',
+  { label: 'Loker BPJS Kesehatan 2026', kategori: 'Lowongan', thumbnail: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=300&auto=format&fit=crop' },
+  { label: 'Loker Bank Mandiri 2026', kategori: 'Lowongan', thumbnail: 'https://images.unsplash.com/photo-1541354329998-f4d9a9f9297f?q=80&w=300&auto=format&fit=crop' },
+  { label: 'JOB PREPARATION 2026', kategori: 'Program', thumbnail: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=300&auto=format&fit=crop' },
+  { label: 'UM Kendari Career Fair', kategori: 'Event', thumbnail: 'https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=300&auto=format&fit=crop' },
+  { label: 'Selamat & Sukses Pimpinan UM Kendari 2026', kategori: 'Pengumuman', thumbnail: 'https://images.unsplash.com/photo-1531545514256-b1400bc00f31?q=80&w=300&auto=format&fit=crop' },
+  { label: 'Loker Pertamina 2026', kategori: 'Lowongan', thumbnail: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=300&auto=format&fit=crop' },
+  { label: 'Magang BUMN Terbuka 2026', kategori: 'Magang', thumbnail: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=300&auto=format&fit=crop' },
 ];
+
 
 
 export default function PublicLayout({
@@ -158,7 +159,7 @@ export default function PublicLayout({
       coverImageUrl: b.coverImageUrl,
       badge: b.scope || 'LOKAL',
       badgeBg: 'bg-[#1E3A8A] text-white',
-      penulis: b.penulis || 'Admin CDC',
+      penulis: b.penulis && !b.penulis.toLowerCase().includes('admin') ? b.penulis : 'Admin Website',
       createdAt: b.createdAt,
       onClick: () => onSelectBerita(b.slug),
     })),
@@ -169,7 +170,7 @@ export default function PublicLayout({
       coverImageUrl: p.thumbnail,
       badge: p.peringkat || 'PRESTASI',
       badgeBg: 'bg-amber-400 text-slate-950',
-      penulis: p.penulis || 'Admin CDC',
+      penulis: p.penulis && !p.penulis.toLowerCase().includes('admin') ? p.penulis : 'Admin Website',
       createdAt: p.createdAt,
       onClick: () => setTab(`presentasi-${p.kategori || 'internasional'}-${p.subKategori || 'akademik'}`),
     })),
@@ -570,7 +571,7 @@ export default function PublicLayout({
                                     <div className="flex items-center justify-between pt-3 border-t border-white/15 mt-3 flex-wrap gap-2">
                                       <div className="flex items-center gap-3 flex-wrap">
                                         <span className="text-xs font-semibold text-slate-200/90 whitespace-nowrap">
-                                          by {item.createdByName || 'Admin Website'}
+                                          by {(!item.createdByName || item.createdByName.toLowerCase().includes('admin')) ? 'Admin Website' : item.createdByName}
                                         </span>
                                         <button
                                           type="button"
@@ -620,7 +621,7 @@ export default function PublicLayout({
                                     {item.body}
                                   </p>
                                   <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-3 border-t border-slate-100 mt-3">
-                                    <span className="whitespace-nowrap font-medium text-slate-400">by {item.createdByName || 'Admin Website'}</span>
+                                    <span className="whitespace-nowrap font-medium text-slate-400">by {(!item.createdByName || item.createdByName.toLowerCase().includes('admin')) ? 'Admin Website' : item.createdByName}</span>
                                     <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
                                       <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                                       {formatDateDisplay(item.createdAt)}
@@ -672,7 +673,7 @@ export default function PublicLayout({
                                   </p>
 
                                   <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
-                                    <span className="whitespace-nowrap font-medium text-slate-400">by {item.createdByName || 'Admin Website'}</span>
+                                    <span className="whitespace-nowrap font-medium text-slate-400">by {(!item.createdByName || item.createdByName.toLowerCase().includes('admin')) ? 'Admin Website' : item.createdByName}</span>
                                     <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
                                       <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                                       {formatDateDisplay(item.createdAt)}
@@ -779,12 +780,23 @@ export default function PublicLayout({
 
                 {/* Popular Info widget (Dinamis dari info terpin & terpublikasi, KHUSUS non-lowongan/non-internship) */}
                 {(() => {
+                  interface PopularDisplayItem {
+                    label: string;
+                    thumbnail?: string;
+                    isPinned?: boolean;
+                    kategori?: string;
+                    action: () => void;
+                  }
+
                   const pinnedKonten = getFromDB<KontenKarir>('konten_karir').filter(k => k.status === 'published' && k.isPinned && k.jenis !== 'lowongan');
                   const publishedNonLowonganKonten = getFromDB<KontenKarir>('konten_karir').filter(k => k.status === 'published' && k.jenis !== 'lowongan');
 
-                  const dynamicPopularItems: { label: string; action: () => void }[] = [
+                  const dynamicPopularItems: PopularDisplayItem[] = [
                     ...pinnedKonten.map(k => ({
-                      label: `📌 ${k.judul}`,
+                      label: k.judul,
+                      thumbnail: k.thumbnail,
+                      isPinned: true,
+                      kategori: k.kategori || k.jenis,
                       action: () => {
                         if (k.jenis === 'berita') setTab('berita');
                         else if (k.jenis === 'presentasi') setTab('presentasi-internasional-akademik');
@@ -793,14 +805,20 @@ export default function PublicLayout({
                     })),
                     ...publishedBerita.slice(0, 3).map(b => ({
                       label: b.title,
+                      thumbnail: b.coverImageUrl,
+                      kategori: b.scope || 'Berita',
                       action: () => onSelectBerita(b.slug)
                     })),
                     ...publishedPengumuman.slice(0, 2).map(p => ({
                       label: p.title,
+                      thumbnail: p.posterUrl,
+                      kategori: 'Pengumuman',
                       action: () => setTab('beranda')
                     })),
                     ...publishedNonLowonganKonten.filter(k => !k.isPinned).slice(0, 3).map(k => ({
                       label: k.judul,
+                      thumbnail: k.thumbnail,
+                      kategori: k.kategori || k.jenis,
                       action: () => {
                         if (k.jenis === 'berita') setTab('berita');
                         else if (k.jenis === 'presentasi') setTab('presentasi-internasional-akademik');
@@ -809,13 +827,18 @@ export default function PublicLayout({
                     }))
                   ];
 
-                  const popularDisplayList = dynamicPopularItems.length > 0
+                  const popularDisplayList: PopularDisplayItem[] = dynamicPopularItems.length > 0
                     ? dynamicPopularItems.slice(0, 7)
-                    : POPULAR_LINKS.map(link => ({ label: link, action: () => setTab('lowongan') }));
+                    : POPULAR_LINKS.map(link => ({
+                        label: link.label,
+                        thumbnail: link.thumbnail,
+                        kategori: link.kategori,
+                        action: () => setTab('lowongan')
+                      }));
 
                   return (
                     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                      <div className="bg-[#1E3A8A] px-5 py-3.5">
+                      <div className="bg-[#1E3A8A] px-5 py-3.5 flex items-center justify-between">
                         <h4 className="font-extrabold text-sm text-white uppercase tracking-wider
                                        flex items-center gap-2">
                           <Star className="w-4 h-4 text-amber-400" /> Popular Info
@@ -826,13 +849,55 @@ export default function PublicLayout({
                           <li key={idx}>
                             <button
                               onClick={item.action}
-                              className="w-full text-left px-5 py-3 text-sm font-medium text-slate-700
-                                         hover:bg-blue-50 hover:text-[#1E3A8A] transition-colors
-                                         flex items-start gap-2 group"
+                              className="w-full text-left p-3 sm:p-3.5 hover:bg-blue-50/60 transition-colors
+                                         flex items-center gap-3 group cursor-pointer"
                             >
-                              <ChevronRight className="w-4 h-4 text-[#10B981] shrink-0 mt-0.5
-                                                       group-hover:translate-x-0.5 transition-transform" />
-                              <span className="line-clamp-2">{item.label}</span>
+                              {/* Mini Card Thumbnail Image */}
+                              <div className="w-12 h-12 sm:w-13 sm:h-13 rounded-xl border border-slate-200/80 bg-slate-100 shrink-0 overflow-hidden relative flex items-center justify-center shadow-2xs">
+                                {item.thumbnail ? (
+                                  <img
+                                    src={item.thumbnail}
+                                    alt={item.label}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                    onError={(e) => {
+                                      (e.currentTarget as HTMLElement).style.display = 'none';
+                                      const fallbackEl = e.currentTarget.nextElementSibling as HTMLElement;
+                                      if (fallbackEl) fallbackEl.style.display = 'flex';
+                                    }}
+                                  />
+                                ) : null}
+                                <div
+                                  className={`w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 text-[#1E3A8A] ${
+                                    item.thumbnail ? 'hidden' : 'flex'
+                                  }`}
+                                >
+                                  <FileText className="w-5 h-5 text-[#1E3A8A]" />
+                                </div>
+                              </div>
+
+                              {/* Text & Meta info */}
+                              <div className="min-w-0 flex-1 space-y-0.5">
+                                {(item.isPinned || item.kategori) && (
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    {item.isPinned && (
+                                      <span className="text-[9px] font-black bg-amber-100 text-amber-800 border border-amber-300 px-1.5 py-0.2 rounded-md flex items-center gap-0.5 uppercase tracking-wider">
+                                        📌 Pinned
+                                      </span>
+                                    )}
+                                    {item.kategori && !item.isPinned && (
+                                      <span className="text-[10px] font-extrabold text-[#10B981] uppercase tracking-wider truncate max-w-[120px]">
+                                        {item.kategori}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                                <h5 className="font-bold text-slate-800 text-xs leading-snug line-clamp-2 group-hover:text-[#1E3A8A] transition-colors">
+                                  {item.label}
+                                </h5>
+                              </div>
+
+                              {/* Subtle Chevron indicator */}
+                              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#1E3A8A] group-hover:translate-x-0.5 transition-all shrink-0 self-center" />
                             </button>
                           </li>
                         ))}
@@ -1292,7 +1357,7 @@ export default function PublicLayout({
 
                         {/* Card Footer */}
                         <div className="p-5 pt-0 flex items-center justify-between border-t border-slate-100 mt-2 text-xs text-slate-400 font-medium">
-                          <span>Oleh {item.penulis || 'Admin CDC'}</span>
+                          <span>Oleh {(!item.penulis || item.penulis.toLowerCase().includes('admin')) ? 'Admin Website' : item.penulis}</span>
                           <span className="text-[#0077C6] font-bold inline-flex items-center gap-1 group-hover:translate-x-1 transition-transform">
                             Baca <ChevronRight className="w-3.5 h-3.5" />
                           </span>

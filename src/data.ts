@@ -858,7 +858,7 @@ export const SEED_KONTEN_KARIR: KontenKarir[] = [
     createdAt: '2026-06-02T08:30:00Z',
     updatedAt: '2026-06-02T08:30:00Z',
     createdBy: 'usr_admin',
-    createdByName: 'Admin CDC'
+    createdByName: 'Admin Website'
   },
   {
     id: 'kk_seed_berita2',
@@ -872,7 +872,7 @@ export const SEED_KONTEN_KARIR: KontenKarir[] = [
     createdAt: '2026-06-10T10:00:00Z',
     updatedAt: '2026-06-10T10:00:00Z',
     createdBy: 'usr_admin',
-    createdByName: 'Admin CDC'
+    createdByName: 'Admin Website'
   }
 ];
 
@@ -1103,7 +1103,7 @@ export const SEED_KONTEN_KARIR_PRESENTASI: KontenKarir[] = [
     createdAt: '2026-06-15T09:00:00Z',
     updatedAt: '2026-06-15T09:00:00Z',
     createdBy: 'usr_admin',
-    createdByName: 'Admin CDC'
+    createdByName: 'Admin Website'
   },
   {
     id: 'prest_002',
@@ -1122,7 +1122,7 @@ export const SEED_KONTEN_KARIR_PRESENTASI: KontenKarir[] = [
     createdAt: '2026-05-20T10:30:00Z',
     updatedAt: '2026-05-20T10:30:00Z',
     createdBy: 'usr_admin',
-    createdByName: 'Admin CDC'
+    createdByName: 'Admin Website'
   },
   {
     id: 'prest_003',
@@ -1141,7 +1141,7 @@ export const SEED_KONTEN_KARIR_PRESENTASI: KontenKarir[] = [
     createdAt: '2026-04-12T14:00:00Z',
     updatedAt: '2026-04-12T14:00:00Z',
     createdBy: 'usr_admin',
-    createdByName: 'Admin CDC'
+    createdByName: 'Admin Website'
   },
   {
     id: 'prest_004',
@@ -1160,7 +1160,7 @@ export const SEED_KONTEN_KARIR_PRESENTASI: KontenKarir[] = [
     createdAt: '2025-11-05T11:15:00Z',
     updatedAt: '2025-11-05T11:15:00Z',
     createdBy: 'usr_admin',
-    createdByName: 'Admin CDC'
+    createdByName: 'Admin Website'
   },
   {
     id: 'prest_005',
@@ -1179,7 +1179,7 @@ export const SEED_KONTEN_KARIR_PRESENTASI: KontenKarir[] = [
     createdAt: '2026-03-18T16:20:00Z',
     updatedAt: '2026-03-18T16:20:00Z',
     createdBy: 'usr_admin',
-    createdByName: 'Admin CDC'
+    createdByName: 'Admin Website'
   },
   {
     id: 'prest_006',
@@ -1198,7 +1198,7 @@ export const SEED_KONTEN_KARIR_PRESENTASI: KontenKarir[] = [
     createdAt: '2026-02-10T13:45:00Z',
     updatedAt: '2026-02-10T13:45:00Z',
     createdBy: 'usr_admin',
-    createdByName: 'Admin CDC'
+    createdByName: 'Admin Website'
   }
 ];
 

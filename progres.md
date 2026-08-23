@@ -6,6 +6,48 @@ Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 
 ---
 
+## Tanggal: 23 Agustus 2026
+**Oleh: Developer Fachrul Alam Sanuddin**
+**Fokus Pekerjaan:** Penyelarasan Mini Thumbnail Popular Info, Penyelarasan Narasi "by Admin Website", Tampilan Detail Berita & Artikel Presisi (`BeritaDetailView.tsx`), Ikon Share Medsos (X Terbaru, Telegram, LinkedIn), Navigasi Breadcrumb (`Beranda > Berita & Artikel > [Judul Berita]`), Editor Admin Sisip Foto Inline (Float Left / Right), dan Pembersihan Duplikasi Teks.
+
+### Ringkasan Perubahan
+1. **Popular Info Widget Thumbnail Card (`PublicLayout.tsx`):**
+   - Menambahkan properti `thumbnail` & `kategori` pada data `dynamicPopularItems` & `POPULAR_LINKS`.
+   - Mengubah render list Popular Info menjadi Flex Layout Card dengan Mini Thumbnail Box (`w-12 h-12` / `w-13 h-13`, `rounded-xl`, `object-cover`), efek zoom saat hover, dan fallback icon `FileText` jika foto poster belum diunggah. Teks judul dibatasi 2 baris (`line-clamp-2`).
+2. **Penyelarasan Narasi "by Admin Website":**
+   - Memperbarui seluruh Card Layout di berbagai section (`PublicLayout.tsx`, `EventCardLayout.tsx`, `JobDetail.tsx`, `App.tsx`, `data.ts`, `AdminDashboard.tsx`) agar jika di-input oleh admin secara konsisten menggunakan narasi **"by Admin Website"** (atau **"By Admin Website"** / **"Oleh Admin Website"**).
+3. **Komponen Detail Berita & Artikel Presisi (`BeritaDetailView.tsx` - BARU):**
+   - Membuat komponen standalone `BeritaDetailView.tsx` yang mereplikasi presisi layout editorial dari gambar screenshot:
+     - **Breadcrumb Navigation**: `Beranda > Berita & Artikel > [Judul Berita]`.
+     - **Metadata Strip**: Ikon berwarna kuning/gold untuk Tag Scope, Tanggal & Waktu (`12 Agustus 2026, 13.15`), Penulis (`Oleh: Admin Website`), dan Jumlah Komentar (`0` / dinamis).
+     - **Sticky Floating Share Sidebar (Kiri)** & **Horizontal Share Bar (Bawah)**: Mendukung 5 tombol share platform lengkap (**Facebook**, **X (Logo Terbaru)**, **WhatsApp**, **Telegram**, **LinkedIn**).
+     - **Section Tags**: Pill badge cyan/teal di bawah artikel (`TAGS:`, `CDC UM KENDARI`, `SDG 17`, `SDG 4`, `SDG 8`).
+     - **Section "Tinggalkan Komentar"**: Heading dengan garis bawah aksen kuning (*yellow underline accent*), form input (komentar, nama, email, checkbox simpan peramban), tombol submit **KIRIM KOMENTAR** (navy blue), dan tampilan komentar terkirim secara live.
+4. **Fitur Tata Letak Foto Inline (Float Left / Float Right) di Editor Admin (`AdminDashboard.tsx`):**
+   - Menambahkan Popover Sisip Foto Inline pada toolbar berita Admin.
+   - Admin dapat memilih opsi **Rata Kiri (Float Left)**, **Rata Kanan (Float Right)**, atau **Tengah (Full Width)** dengan pilihan **Upload File Foto** dari perangkat atau **Input URL**. Foto dimasukkan berukuran seragam (`w-80 h-52` / `320px x 200px`, `rounded-xl`, `shadow-sm`) dengan paragraf mengalir mengelilinginya (*text wrapping*).
+   - Menambahkan styling responsif di `index.css` (`.prose-berita img`) agar foto melayang rapi di desktop/laptop dan menyesuaikan di HP.
+5. **Pembersihan Duplikasi Teks Berita (`BeritaDetailView.tsx`):**
+   - Menghapus blok teks sampel statis (*hardcoded sample text*) dan render `{berita.excerpt}` yang terduplikasi.
+   - Konten berita kini di-render murni **1 kali tayang** dari `{renderContentMarkdown(berita.content)}` tanpa perulangan.
+
+### File Diubah & Dibuat
+- `src/components/BeritaDetailView.tsx` (BARU - Komponen Detail Berita & Artikel)
+- `src/App.tsx` (Integrasi BeritaDetailView pada VIEW 3)
+- `src/components/PublicLayout.tsx` (Mini thumbnail Popular Info & narasi by Admin Website)
+- `src/components/AdminDashboard.tsx` (Editor foto inline float left/right & createdByName)
+- `src/components/JobDetail.tsx` (Narasi badge source admin)
+- `src/components/layanan/ui/EventCardLayout.tsx` (Badge event by Admin Website)
+- `src/data.ts` (Mock data seed author Admin Website)
+- `src/index.css` (CSS float-left / float-right .prose-berita img)
+- `progres.md` (Update laporan progres)
+
+### Verifikasi
+- ✅ `npx tsc --noEmit` — 0 error
+- ✅ Visual & Functional Check: Popular Info thumbnail mini, card layout footers, berita detail view, share buttons, float left/right image insertion, single-render news text without duplication.
+
+---
+
 ## Tanggal: 21 Agustus 2026
 **Oleh: Mirzat L. Teori**
 **Fokus Pekerjaan:** Analisis seluruh struktur project Portal CDC & penyesuaian form Lowongan Admin (section "3. Detail Konten & Kriteria" dijadikan opsional)

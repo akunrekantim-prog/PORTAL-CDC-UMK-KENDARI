@@ -85,8 +85,37 @@
 .prose-berita ul { list-style: disc; padding-left: 0.5cm; margin: 0.6rem 0; }
 .prose-berita ol { list-style: decimal; padding-left: 0.5cm; margin: 0.6rem 0; }
 .prose-berita li { margin: 0.25rem 0; }
-.prose-berita blockquote { border-left: 4px solid #0077C6; padding-left: 1rem; font-style: italic; color: #475569; margin: 0.8rem 0; }
-.prose-berita img { max-width: 100%; border-radius: 0.75rem; margin: 0.8rem 0; }
+.prose-berita img { max-width: 100%; border-radius: 0.75rem; }
+.prose-berita img[style*="float: left"],
+.prose-berita img[style*="float:left"],
+.prose-berita img.img-float-left {
+  float: left;
+  margin-right: 1.5rem;
+  margin-bottom: 1rem;
+  margin-top: 0.5rem;
+}
+.prose-berita img[style*="float: right"],
+.prose-berita img[style*="float:right"],
+.prose-berita img.img-float-right {
+  float: right;
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+  margin-top: 0.5rem;
+}
+@media (max-width: 640px) {
+  .prose-berita img[style*="float: left"],
+  .prose-berita img[style*="float:left"],
+  .prose-berita img[style*="float: right"],
+  .prose-berita img[style*="float:right"],
+  .prose-berita img.img-float-left,
+  .prose-berita img.img-float-right {
+    float: none !important;
+    margin: 1rem auto !important;
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+}
 .prose-berita hr { border: 0; border-top: 1px solid #E6DFD3; margin: 1.2rem 0; }
 /* Numbering gaya "1) 2) 3)" (Angka Arab + kurung tutup) */
 ol.list-paren { list-style: none; padding-left: 0.5cm; counter-reset: lp; }
