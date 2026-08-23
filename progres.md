@@ -1,8 +1,31 @@
 # Progres Pengerjaan — Portal CDC UM Kendari
 
-Periode: 6 Agustus 2026  
+Periode: 23 Agustus 2026  
 Branch: `main`  
 Repo: `D:\PORTAL-CDC-UMK-KENDARI`
+
+---
+
+## Tanggal: 23 Agustus 2026 (Sesi 2)
+**Oleh: Developer Fachrul Alam Sanuddin**
+**Fokus Pekerjaan:** Final Audit Frontend & Pembersihan Bug Menu Layanan dan Tracer Study tanpa Perubahan Konsep UI/UX.
+
+### Ringkasan Perubahan
+1. **Audit Frontend Menu Layanan & Tracer Study:**
+   - Melakukan inspeksi menyeluruh pada seluruh komponen sub-menu Layanan (`BimbinganKarir.tsx`, `TesMinat.tsx`, `Workshop.tsx`, `Softskill.tsx`, `Seminar.tsx`, `CareerFair.tsx`, `CampusHiring.tsx`, `Magang.tsx`, `BursaKerja.tsx`) dan Tracer Study.
+   - Mengonfirmasi bahwa konsep UI/UX tetap sesuai rancangan tim (seperti penautan direct link eksternal ke Klob Meter & Tracer Study UM Kendari).
+2. **Pembersihan Teks Hardcoded Eksternal (`BursaKerja.tsx`):**
+   - Menghapus referensi teks statis entitas luar (*"UMSU"* & *"CDAC UMSU"*) dan menyelaraskannya menjadi **"UM Kendari"** dan **"CDC UM Kendari"**.
+3. **Verifikasi Build Produksi:**
+   - Memastikan tidak ada kendala sintaks, error import, maupun kerusakan layout saat dikompilasi ke mode produksi.
+
+### File Diubah
+- `src/components/layanan/BursaKerja.tsx` (Pembersihan teks entitas CDC UM Kendari)
+- `progres.md` (Pencatatan laporan progres)
+
+### Verifikasi
+- ✅ `npm run build` — passed (0 error)
+- ✅ Git status clean & sinkron dengan remote GitHub
 
 ---
 

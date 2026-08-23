@@ -19,7 +19,7 @@ export default function BursaKerja() {
       <PageHeader
         badge="Bursa Kerja"
         title="Bursa Kerja"
-        description="Kegiatan event karir yang mempertemukan lulusan dengan perusahaan, meliputi Campus Hiring setiap bulan dan UMSU Job Fair 2 kali setahun."
+        description="Kegiatan event karir yang mempertemukan lulusan dengan perusahaan, meliputi Campus Hiring setiap bulan dan Job Fair UMK."
         accent="blue"
         icon={Search}
       />
@@ -29,9 +29,9 @@ export default function BursaKerja() {
           <Card>
             <MetaList
               items={[
-                { label: 'Tujuan', text: 'Memberikan kesempatan yang luas bagi lulusan UMSU berinteraksi dengan perusahaan yang sedang membutuhkan tenaga kerja.' },
-                { label: 'Pihak Yang Terlibat', text: 'Lulusan UMSU dan perusahaan-perusahaan regional, nasional maupun internasional.' },
-                { label: 'Waktu dan Tempat', text: 'Kegiatan ini dilaksanakan sesuai kebutuhan perusahaan dan kesepakatan pihak perusahaan dan CDAC UMSU.' },
+                { label: 'Tujuan', text: 'Memberikan kesempatan yang luas bagi lulusan UM Kendari berinteraksi dengan perusahaan yang sedang membutuhkan tenaga kerja.' },
+                { label: 'Pihak Yang Terlibat', text: 'Lulusan UM Kendari dan perusahaan-perusahaan regional, nasional maupun internasional.' },
+                { label: 'Waktu dan Tempat', text: 'Kegiatan ini dilaksanakan sesuai kebutuhan perusahaan dan kesepakatan pihak perusahaan dan CDC UM Kendari.' },
                 { label: 'Alat', text: <PillRow items={TOOLS} /> },
               ]}
             />
