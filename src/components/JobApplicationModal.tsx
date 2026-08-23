@@ -20,16 +20,12 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
-  onViewApplications,
-  defaultName = '',
-  defaultEmail = '',
-  defaultProdi = '',
-  defaultNim = ''
+  onViewApplications
 }) => {
-  const [applicantName, setApplicantName] = useState<string>(defaultName);
-  const [applicantEmail, setApplicantEmail] = useState<string>(defaultEmail);
-  const [applicantProdi, setApplicantProdi] = useState<string>(defaultProdi);
-  const [applicantNim, setApplicantNim] = useState<string>(defaultNim);
+  const [applicantName, setApplicantName] = useState<string>('');
+  const [applicantEmail, setApplicantEmail] = useState<string>('');
+  const [applicantProdi, setApplicantProdi] = useState<string>('');
+  const [applicantNim, setApplicantNim] = useState<string>('');
   const [applicantNotes, setApplicantNotes] = useState<string>('');
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
   const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
@@ -115,6 +111,10 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
 
   const handleClose = () => {
     setSubmitSuccess(false);
+    setApplicantName('');
+    setApplicantEmail('');
+    setApplicantProdi('');
+    setApplicantNim('');
     setApplicantNotes('');
     setUploadedFileName(null);
     setUploadedFileUrl(null);
@@ -250,6 +250,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
                 required
                 value={applicantName}
                 onChange={(e) => setApplicantName(e.target.value)}
+                placeholder="Masukkan nama lengkap Anda..."
                 className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20"
               />
             </div>
@@ -262,6 +263,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
                   required
                   value={applicantEmail}
                   onChange={(e) => setApplicantEmail(e.target.value)}
+                  placeholder="Masukkan alamat email aktif..."
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20"
                 />
               </div>
@@ -273,6 +275,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
                   required
                   value={applicantProdi}
                   onChange={(e) => setApplicantProdi(e.target.value)}
+                  placeholder="Contoh: S1 Teknik Informatika..."
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20"
                 />
               </div>

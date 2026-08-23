@@ -717,10 +717,6 @@ export const JobDetail: React.FC<JobDetailProps> = ({
             window.dispatchEvent(new Event('storage'));
             triggerToast(`Lamaran untuk ${job.judul} di ${job.namaInstansi} berhasil terkirim ke Mitra!`);
           }}
-          defaultName={activeStudent?.nama || "Muhammad Fadly Alamsyah"}
-          defaultEmail={activeStudent?.email || "mhs@umkendari.ac.id"}
-          defaultProdi={activeStudent?.programStudi || "Teknik Informatika"}
-          defaultNim={activeStudent?.nim || "202101001"}
         />
       )}
 

@@ -42,8 +42,7 @@ export const FAKULTAS_LIST: string[] = [
   'Fakultas Pertanian',
   'Fakultas Perikanan dan Ilmu Kelautan',
   'Fakultas Kedokteran dan Ilmu Kesehatan',
-  'Program Pascasarjana (S2)',
-  'Lainnya'
+  'Program Pascasarjana (S2)'
 ];
 
 // Pemetaan Program Studi Resmi per Fakultas di UM Kendari
@@ -55,13 +54,11 @@ export const PRODI_MAP: Record<string, string[]> = {
     'Teknik Pertambangan',
     'Sistem dan Teknologi Informasi',
     'Teknik Kimia',
-    'Teknik Metalurgi',
-    'Lainnya'
+    'Teknik Metalurgi'
   ],
   'Fakultas Ekonomi dan Bisnis Islam': [
     'Manajemen',
-    'Bisnis Digital',
-    'Lainnya'
+    'Bisnis Digital'
   ],
   'Fakultas Keguruan dan Ilmu Pendidikan': [
     'Administrasi Pendidikan',
@@ -70,39 +67,32 @@ export const PRODI_MAP: Record<string, string[]> = {
     'Pendidikan Non Formal',
     'Pendidikan Teknologi Informasi',
     'Pendidikan Matematika',
-    'Pendidikan Profesi Guru (PPG)',
-    'Lainnya'
+    'Pendidikan Profesi Guru (PPG)'
   ],
   'Fakultas Agama Islam': [
     'Pendidikan Agama Islam (PAI)',
-    'Psikologi Islam',
-    'Lainnya'
+    'Psikologi Islam'
   ],
   'Fakultas Hukum': [
-    'Ilmu Hukum',
-    'Lainnya'
+    'Ilmu Hukum'
   ],
   'Fakultas Ilmu Sosial dan Ilmu Politik': [
     'Ilmu Pemerintahan',
-    'Desain Komunikasi Visual (DKV)',
-    'Lainnya'
+    'Desain Komunikasi Visual (DKV)'
   ],
   'Fakultas Pertanian': [
     'Agribisnis',
-    'Teknologi Industri Pertanian',
-    'Lainnya'
+    'Teknologi Industri Pertanian'
   ],
   'Fakultas Perikanan dan Ilmu Kelautan': [
     'Teknologi Hasil Perikanan',
-    'Pemanfaatan Sumberdaya Perikanan',
-    'Lainnya'
+    'Pemanfaatan Sumberdaya Perikanan'
   ],
   'Fakultas Kedokteran dan Ilmu Kesehatan': [
     'Kedokteran (S1)',
     'Teknologi Laboratorium Medik (D4)',
     'Farmasi (D3)',
-    'Profesi Dokter',
-    'Lainnya'
+    'Profesi Dokter'
   ],
   'Program Pascasarjana (S2)': [
     'Magister Manajemen (MM)',
@@ -110,11 +100,7 @@ export const PRODI_MAP: Record<string, string[]> = {
     'Magister Pendidikan Bahasa Inggris',
     'Magister Ilmu Hukum',
     'Magister Ilmu Pemerintahan',
-    'Magister Agribisnis',
-    'Lainnya'
-  ],
-  'Lainnya': [
-    'Program Studi Lainnya'
+    'Magister Agribisnis'
   ]
 };
 
@@ -1663,29 +1649,44 @@ export function registerUser(
 export function updateUserProfile(userId: string, profileData: Partial<Mahasiswa>) {
   const students = getFromDB<Mahasiswa>('mahasiswa');
   let student = students.find(s => s.userId === userId);
+  let updatedStudent: Mahasiswa;
 
   if (student) {
-    const updatedStudent = { ...student, ...profileData };
+    updatedStudent = { ...student, ...profileData };
     updateInDB<Mahasiswa>('mahasiswa', updatedStudent);
-    return updatedStudent;
+  } else {
+    // If no existing record, create one
+    const newStudent: Mahasiswa = {
+      id: `mhs_${Date.now()}`,
+      userId: userId,
+      nim: profileData.nim || '',
+      nama: profileData.nama || '',
+      email: profileData.email || '',
+      phone: profileData.phone || '',
+      programStudi: profileData.programStudi || '',
+      fakultas: profileData.fakultas || '',
+      angkatan: profileData.angkatan || '',
+      semester: profileData.semester || 1,
+      ...profileData
+    };
+    insertToDB<Mahasiswa>('mahasiswa', newStudent);
+    updatedStudent = newStudent;
   }
 
-  // If no existing record, create one
-  const newStudent: Mahasiswa = {
-    id: `mhs_${Date.now()}`,
-    userId: userId,
-    nim: profileData.nim || '',
-    nama: profileData.nama || '',
-    email: profileData.email || '',
-    phone: profileData.phone || '',
-    programStudi: profileData.programStudi || '',
-    fakultas: profileData.fakultas || '',
-    angkatan: profileData.angkatan || '',
-    semester: profileData.semester || 1,
-    ...profileData
-  };
-  insertToDB<Mahasiswa>('mahasiswa', newStudent);
-  return newStudent;
+  // Also sync name, email, photoUrl with users table
+  const users = getFromDB<User>('users');
+  const userObj = users.find(u => u.id === userId);
+  if (userObj) {
+    const updatedUser: User = {
+      ...userObj,
+      name: profileData.nama || userObj.name,
+      email: profileData.email || userObj.email,
+      photoUrl: profileData.photoUrl || userObj.photoUrl
+    };
+    updateInDB<User>('users', updatedUser);
+  }
+
+  return updatedStudent;
 }
 
 export function applyForJob(userId: string, job: Lowongan, extraData?: any) {

@@ -595,7 +595,7 @@ export default function Register({
                             className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 text-sm text-slate-800 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition disabled:bg-slate-50 disabled:text-slate-400 cursor-pointer"
                           >
                             <option value="" disabled>Pilih Program Studi</option>
-                            {(PRODI_MAP[alumniForm.fakultas] || ['Lainnya']).map(prodi => (
+                            {(PRODI_MAP[alumniForm.fakultas] || []).map(prodi => (
                               <option key={prodi} value={prodi}>{prodi}</option>
                             ))}
                           </select>

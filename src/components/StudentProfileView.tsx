@@ -75,6 +75,26 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
     }
   }, [mahasiswaData?.photoUrl, user.photoUrl]);
 
+  React.useEffect(() => {
+    if (mahasiswaData) {
+      const names = (mahasiswaData.nama || user.name).split(' ');
+      setFirstName(names[0] || '');
+      setLastName(names.slice(1).join(' ') || '');
+      if (mahasiswaData.email) setEmail(mahasiswaData.email);
+      if (mahasiswaData.nim) setNim(mahasiswaData.nim);
+      if (mahasiswaData.phone) setMobile(mahasiswaData.phone);
+      if (mahasiswaData.aboutMe) setAboutMe(mahasiswaData.aboutMe);
+      if (mahasiswaData.userStatusType) setUserStatusType(mahasiswaData.userStatusType);
+      if (mahasiswaData.qualifications) setQualifications(mahasiswaData.qualifications);
+      if (mahasiswaData.skills) setSkills(mahasiswaData.skills);
+      if (mahasiswaData.experiences) setExperiences(mahasiswaData.experiences);
+      if (mahasiswaData.certificates) setCertificates(mahasiswaData.certificates);
+      if (mahasiswaData.languages) setLanguagesList(mahasiswaData.languages);
+      if (mahasiswaData.university) setUniversity(mahasiswaData.university);
+      if (mahasiswaData.nationality) setNationality(mahasiswaData.nationality);
+    }
+  }, [mahasiswaData, user.name]);
+
   const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
