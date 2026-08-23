@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, createContext, useContext } from 'react';
 import {
   MessageSquare, Wrench, GraduationCap,
   Mic, CalendarDays, Rocket, Briefcase, Brain,
@@ -6,6 +6,18 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import SocialShareBar from '../ui/SocialShareBar';
+
+interface LayananContextType {
+  isDetailActive: boolean;
+  setIsDetailActive: (val: boolean) => void;
+}
+
+export const LayananContext = createContext<LayananContextType>({
+  isDetailActive: false,
+  setIsDetailActive: () => {},
+});
+
+export const useLayanan = () => useContext(LayananContext);
 
 interface LayananContainerProps {
   currentTab: string;
@@ -98,55 +110,68 @@ export const LAYANAN_MENU: LayananMenuOption[] = [
 ];
 
 export default function LayananContainer({ currentTab, setTab, children }: LayananContainerProps) {
+  const [isDetailActive, setIsDetailActive] = useState(false);
   const activeOption = LAYANAN_MENU.find(m => m.id === currentTab) || LAYANAN_MENU[0];
+
+  // Reset status detail ketika berganti sub-tab
+  useEffect(() => {
+    setIsDetailActive(false);
+  }, [currentTab]);
 
   const getShareTitle = () => {
     return `${activeOption.label} - CDC UM Kendari`;
   };
 
   return (
-    <div className="min-h-screen bg-white pb-20">
-      
-      {/* ── BREADCRUMB (BERANDA > SUB MENU) ── */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-3">
-        <nav className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
-          <button
-            onClick={() => setTab('beranda')}
-            className="hover:text-[#F26522] transition-colors font-semibold"
-          >
-            Beranda
-          </button>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-          <span className="text-slate-600 font-semibold">{activeOption.label}</span>
-        </nav>
-      </div>
+    <LayananContext.Provider value={{ isDetailActive, setIsDetailActive }}>
+      <div className="min-h-screen bg-white pb-20">
+        
+        {/* HANYA TAMPILKAN HEADER SUB-MENU JIKA TIDAK SEDANG MEMBUKA DETAIL ARTIKEL */}
+        {!isDetailActive && (
+          <>
+            {/* ── BREADCRUMB (BERANDA > SUB MENU) ── */}
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-3">
+              <nav className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                <button
+                  onClick={() => setTab('beranda')}
+                  className="hover:text-[#F26522] transition-colors font-semibold"
+                >
+                  Beranda
+                </button>
+                <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                <span className="text-slate-600 font-semibold">{activeOption.label}</span>
+              </nav>
+            </div>
 
-      {/* ── MAIN TITLE (LARGE BOLD BLACK TITLE) ── */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
-          {activeOption.label}
-        </h1>
-      </div>
+            {/* ── MAIN TITLE (LARGE BOLD BLACK TITLE) ── */}
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
+                {activeOption.label}
+              </h1>
+            </div>
 
-      {/* ── DYNAMIC SOCIAL SHARE BAR (PERSIS SK CDC) ── */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
-        <SocialShareBar title={getShareTitle()} />
-      </div>
+            {/* ── DYNAMIC SOCIAL SHARE BAR (PERSIS SK CDC) ── */}
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+              <SocialShareBar title={getShareTitle()} />
+            </div>
+          </>
+        )}
 
-      {/* ── MAIN CONTENT AREA ── */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentTab}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
-          >
-            {children}
-          </motion.div>
-        </AnimatePresence>
+        {/* ── MAIN CONTENT AREA ── */}
+        <div className={`max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 ${isDetailActive ? 'pt-8' : ''}`}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentTab}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
-    </div>
+    </LayananContext.Provider>
   );
 }

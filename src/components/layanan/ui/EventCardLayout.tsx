@@ -1,6 +1,8 @@
-import React, { useState, useMemo } from 'react';
-import { Search, Calendar, Clock, MapPin, User, Users, Filter, X, CheckCircle, AlertCircle } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Search, Calendar, Filter, X, Layers, ArrowUpDown } from 'lucide-react';
 import { EventLayananItem, KontenKarir } from '../../../types';
+import EventDetailView from '../EventDetailView';
+import { useLayanan } from '../LayananContainer';
 import Dropdown from '../../Dropdown';
 
 interface EventCardLayoutProps {
@@ -9,10 +11,12 @@ interface EventCardLayoutProps {
   subtitle: string;
   events: EventLayananItem[];
   kontenEvents?: KontenKarir[]; // hasil input admin (jenis workshop/softskill/seminar)
+  onDetailStateChange?: (isDetail: boolean) => void;
+  setTab?: (tab: string) => void;
 }
 
 // Bersihkan teks markdown sederhana dari body konten admin agar tampil
-// rapi di kartu (tanpa tag sisa seperti "# Workshop" atau "[c:...]").
+// rapi di kartu preview
 const cleanText = (s: string = ''): string =>
   s
     .replace(/\n/g, ' ')
@@ -34,7 +38,7 @@ const mapKontenToEvent = (k: KontenKarir): EventLayananItem => ({
   time: k.waktu,
   location: k.lokasiEvent || '-',
   image: k.thumbnail || 'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=800&auto=format&fit=crop',
-  description: cleanText(k.body).slice(0, 180),
+  description: k.body || '',
   speaker: k.pembicara,
   quota: k.kuotaEvent,
   registeredCount: k.terdaftar,
@@ -47,15 +51,28 @@ export default function EventCardLayout({
   pageTitle,
   subtitle,
   events,
-  kontenEvents
+  kontenEvents,
+  onDetailStateChange,
+  setTab
 }: EventCardLayoutProps) {
+  const { setIsDetailActive } = useLayanan();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState<string>('semua');
-  const [startDate, setStartDate] = useState<string>('');
-  const [endDate, setEndDate] = useState<string>('');
+  const [selectedYear, setSelectedYear] = useState<string>('semua');
+  const [sortBy, setSortBy] = useState<'terbaru' | 'terlama' | 'az' | 'za'>('terbaru');
   const [selectedEvent, setSelectedEvent] = useState<EventLayananItem | null>(null);
 
-  // Gabungkan seed dummy + hasil admin yang sudah published
+  // Sync detail state to LayananContainer & optional prop callback
+  useEffect(() => {
+    const isDetail = selectedEvent !== null;
+    if (setIsDetailActive) {
+      setIsDetailActive(isDetail);
+    }
+    if (onDetailStateChange) {
+      onDetailStateChange(isDetail);
+    }
+  }, [selectedEvent, setIsDetailActive, onDetailStateChange]);
+
+  // Gabungkan seed dummy + hasil input admin yang sudah published
   const allEvents = useMemo(() => {
     const fromKonten = (kontenEvents || [])
       .filter(k => k.status === 'published' && k.jenis === category)
@@ -63,13 +80,21 @@ export default function EventCardLayout({
     return [...fromKonten, ...events];
   }, [events, kontenEvents, category]);
 
-  const handleSelectEvent = (item: EventLayananItem) => {
-    setSelectedEvent(item);
-  };
+  // Ekstrak daftar tahun kegiatan yang tersedia secara dinamis
+  const availableYears = useMemo(() => {
+    const years = new Set<string>();
+    allEvents.forEach((item) => {
+      if (item.category === category && item.date) {
+        const y = item.date.slice(0, 4);
+        if (y && !isNaN(Number(y))) years.add(y);
+      }
+    });
+    return Array.from(years).sort((a, b) => Number(b) - Number(a));
+  }, [allEvents, category]);
 
-  // Filter logic
+  // Filter logic: Pencarian teks, filter tahun, & pengurutan (HARUS SEBELUM CONDITIONAL RETURN)
   const filteredEvents = useMemo(() => {
-    return allEvents.filter(item => {
+    let list = allEvents.filter(item => {
       // Category match
       if (item.category !== category) return false;
 
@@ -79,76 +104,84 @@ export default function EventCardLayout({
         !query ||
         item.title.toLowerCase().includes(query) ||
         item.organizer.toLowerCase().includes(query) ||
-        item.location.toLowerCase().includes(query) ||
-        (item.speaker && item.speaker.toLowerCase().includes(query));
+        cleanText(item.description).toLowerCase().includes(query);
 
-      // Status match
-      const matchesStatus =
-        selectedStatus === 'semua' || item.status === selectedStatus;
-
-      // Date range match
-      let matchesDate = true;
-      if (startDate) {
-        matchesDate = matchesDate && item.date >= startDate;
-      }
-      if (endDate) {
-        matchesDate = matchesDate && item.date <= endDate;
+      // Year match
+      let matchesYear = true;
+      if (selectedYear !== 'semua') {
+        matchesYear = item.date?.startsWith(selectedYear) || false;
       }
 
-      return matchesSearch && matchesStatus && matchesDate;
+      return matchesSearch && matchesYear;
     });
-  }, [events, category, searchQuery, selectedStatus, startDate, endDate]);
+
+    // Sorting logic
+    list = [...list].sort((a, b) => {
+      if (sortBy === 'terbaru') {
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      }
+      if (sortBy === 'terlama') {
+        return new Date(a.date).getTime() - new Date(b.date).getTime();
+      }
+      if (sortBy === 'az') {
+        return a.title.localeCompare(b.title);
+      }
+      if (sortBy === 'za') {
+        return b.title.localeCompare(a.title);
+      }
+      return 0;
+    });
+
+    return list;
+  }, [allEvents, category, searchQuery, selectedYear, sortBy]);
+
+  const handleSelectEvent = (item: EventLayananItem) => {
+    setSelectedEvent(item);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleBackFromDetail = () => {
+    setSelectedEvent(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const resetFilters = () => {
     setSearchQuery('');
-    setSelectedStatus('semua');
-    setStartDate('');
-    setEndDate('');
+    setSelectedYear('semua');
+    setSortBy('terbaru');
   };
 
-  const hasActiveFilters = searchQuery !== '' || selectedStatus !== 'semua' || startDate !== '' || endDate !== '';
+  const hasActiveFilters = searchQuery !== '' || selectedYear !== 'semua' || sortBy !== 'terbaru';
 
   const formatDateIndo = (dateStr: string) => {
     if (!dateStr) return '';
-    const date = new Date(dateStr);
-    return new Intl.DateTimeFormat('id-ID', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    }).format(date);
-  };
-
-  const getStatusBadge = (status: EventLayananItem['status']) => {
-    switch (status) {
-      case 'buka':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            Pendaftaran Dibuka
-          </span>
-        );
-      case 'segera':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-            <Clock className="w-3 h-3 text-amber-500" />
-            Segera Hadir
-          </span>
-        );
-      case 'selesai':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
-            <CheckCircle className="w-3 h-3 text-slate-400" />
-            Selesai
-          </span>
-        );
-      default:
-        return null;
+    try {
+      const date = new Date(dateStr);
+      return new Intl.DateTimeFormat('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      }).format(date);
+    } catch {
+      return dateStr;
     }
   };
 
+  // Jika sedang melihat detail, tampilkan EventDetailView penuh
+  if (selectedEvent) {
+    return (
+      <EventDetailView
+        event={selectedEvent}
+        categoryLabel={pageTitle}
+        onBack={handleBackFromDetail}
+        setTab={setTab}
+      />
+    );
+  }
+
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-      {/* Penjelasan Sub-Menu (Tanpa Judul & Tanpa Garis Biru) */}
+    <div className="w-full space-y-8" id="event-card-layout-root">
+      {/* Penjelasan Sub-Menu */}
       {subtitle && (
         <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 sm:p-5">
           <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-normal">
@@ -157,84 +190,82 @@ export default function EventCardLayout({
         </div>
       )}
 
-      {/* Control Panel: Search & Date Filters */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm p-4 sm:p-5 space-y-4 overflow-hidden">
+      {/* Control Panel: Search Bar + Filter Periode + Dropdown Urutkan + Badge Total */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-4 sm:p-5 space-y-4 overflow-hidden">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-4 items-center">
-          {/* Main Search Input */}
-          <div className="md:col-span-4 lg:col-span-5 relative">
+          {/* 1. Main Search Input (Lebih Luas & Modern) */}
+          <div className="md:col-span-6 lg:col-span-6 relative">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari judul kegiatan..."
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 hover:bg-slate-100/80 focus:bg-white text-slate-800 text-sm rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
+              placeholder="Cari judul kegiatan atau materi..."
+              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 hover:bg-slate-100/80 focus:bg-white text-slate-800 text-sm rounded-xl border border-slate-200 focus:border-[#0077C6] focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                title="Hapus pencarian"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
 
-          {/* Status Dropdown with Animated Dropdown Component */}
+          {/* 2. Filter Periode / Tahun */}
           <div className="md:col-span-3 lg:col-span-3 min-w-0">
             <Dropdown
-              value={selectedStatus}
-              onChange={(v) => setSelectedStatus(v)}
+              value={selectedYear}
+              onChange={(v) => setSelectedYear(v)}
               className="w-full"
               options={[
-                { value: 'semua', label: 'Semua Status' },
-                { value: 'buka', label: 'Pendaftaran Dibuka' },
-                { value: 'segera', label: 'Segera Hadir' },
-                { value: 'selesai', label: 'Selesai' }
+                { value: 'semua', label: 'Semua Periode' },
+                ...availableYears.map(y => ({ value: y, label: `Tahun ${y}` }))
               ]}
             />
           </div>
 
-          {/* Date Filter Range (No Overflow) */}
-          <div className="md:col-span-5 lg:col-span-4 flex items-center gap-1.5 min-w-0 w-full">
-            <div className="relative min-w-0 flex-1">
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                aria-label="Tanggal Mulai"
-                className="w-full min-w-0 px-2 py-2 bg-slate-50 text-slate-700 text-xs rounded-lg border border-slate-200 focus:border-blue-500 focus:bg-white outline-none"
-                title="Tanggal Mulai"
-              />
-            </div>
-            <span className="text-slate-400 text-xs font-semibold shrink-0">s/d</span>
-            <div className="relative min-w-0 flex-1">
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                aria-label="Tanggal Akhir"
-                className="w-full min-w-0 px-2 py-2 bg-slate-50 text-slate-700 text-xs rounded-lg border border-slate-200 focus:border-blue-500 focus:bg-white outline-none"
-                title="Tanggal Akhir"
-              />
-            </div>
+          {/* 3. Dropdown Pengurutan (Sort By) */}
+          <div className="md:col-span-3 lg:col-span-3 min-w-0">
+            <Dropdown
+              value={sortBy}
+              onChange={(v) => setSortBy(v as any)}
+              className="w-full"
+              options={[
+                { value: 'terbaru', label: '📅 Terbaru' },
+                { value: 'terlama', label: '⏳ Terlama' },
+                { value: 'az', label: '🔤 Judul (A - Z)' },
+                { value: 'za', label: '🔡 Judul (Z - A)' }
+              ]}
+            />
           </div>
         </div>
 
-        {/* Filter Summary & Reset Action */}
-        {hasActiveFilters && (
-          <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs text-slate-500">
-            <span>
-              Menampilkan <strong className="text-slate-800 font-semibold">{filteredEvents.length}</strong> kegiatan dari total {allEvents.filter(e => e.category === category).length}
+        {/* 4. Total Kegiatan Badge & Reset Filter */}
+        <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs text-slate-500 flex-wrap gap-2">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-blue-50 text-[#0077C6] font-bold border border-blue-100">
+              <Layers className="w-3.5 h-3.5 text-[#0077C6]" />
+              Menampilkan {filteredEvents.length} Kegiatan
             </span>
+            {hasActiveFilters && (
+              <span className="text-slate-400 font-medium">
+                (dari total {allEvents.filter(e => e.category === category).length} kegiatan)
+              </span>
+            )}
+          </div>
+
+          {hasActiveFilters && (
             <button
               onClick={resetFilters}
-              className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-700 font-medium hover:underline cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-[#0077C6] hover:text-[#1E3A8A] font-bold hover:underline cursor-pointer"
             >
               <X className="w-3.5 h-3.5" /> Reset Filter
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Grid List Event Cards */}
@@ -247,42 +278,35 @@ export default function EventCardLayout({
               tabIndex={0}
               onClick={() => handleSelectEvent(item)}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSelectEvent(item); } }}
-              className="group bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-md hover:border-slate-300 transition-all flex flex-col h-full cursor-pointer"
+              className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md hover:border-slate-300 transition-all flex flex-col h-full cursor-pointer"
             >
-              {/* Thumbnail Header Image */}
-              <div className="relative aspect-[16/9] bg-slate-100 overflow-hidden">
+              {/* Thumbnail Header Poster / Image */}
+              <div className="relative aspect-[16/9] bg-slate-100 overflow-hidden border-b border-slate-100">
                 <img
                   src={item.image}
                   alt={item.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   loading="lazy"
                 />
-                <div className="absolute top-3 right-3">
-                  {getStatusBadge(item.status)}
-                </div>
-                <div className="absolute bottom-3 left-3 right-3">
-                  <span className="inline-block px-2.5 py-1 rounded bg-slate-900/70 backdrop-blur-md text-white text-[11px] font-medium">
-                    by Admin Website
-                  </span>
-                </div>
               </div>
 
               {/* Card Body */}
               <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                <div className="space-y-2.5">
-                  <h3 className="font-semibold text-slate-900 text-base line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">
+                <div className="space-y-2">
+                  <h3 className="font-bold text-slate-900 text-base line-clamp-2 leading-snug group-hover:text-[#0077C6] transition-colors">
                     {item.title}
                   </h3>
                 </div>
 
-                {/* Metadata List — kartu hanya tampilkan tanggal.
-                    Waktu, lokasi, pembicara, kuota, dan deskripsi detail
-                    dipindah ke modal (klik kartu untuk membukanya). */}
-                <div className="pt-3 border-t border-slate-100 text-xs text-slate-600 space-y-1.5">
-                  <div className="flex items-center gap-2 text-slate-700">
+                {/* Card Footer: Tanggal di kiri & By Admin Website di kanan */}
+                <div className="pt-3 border-t border-slate-100 text-xs text-slate-500 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 text-slate-600 font-medium">
                     <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                     <span>{formatDateIndo(item.date)}</span>
                   </div>
+                  <span className="text-slate-400 font-medium whitespace-nowrap">
+                    by Admin Website
+                  </span>
                 </div>
               </div>
             </div>
@@ -296,101 +320,14 @@ export default function EventCardLayout({
           </div>
           <h4 className="font-semibold text-slate-800 text-base">Tidak ada kegiatan ditemukan</h4>
           <p className="text-slate-500 text-xs max-w-sm mx-auto">
-            Coba ganti kata kunci pencarian, ubah filter status, atau atur ulang rentang tanggal.
+            Coba ganti kata kunci pencarian, ubah periode tahun, atau atur ulang filter.
           </p>
           <button
             onClick={resetFilters}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition-colors cursor-pointer"
           >
             Reset Semua Filter
           </button>
-        </div>
-      )}
-
-      {/* Modal Detail Event */}
-      {selectedEvent && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-4xl w-full overflow-hidden shadow-2xl border border-slate-100 max-h-[90vh] flex flex-col md:flex-row animate-in fade-in zoom-in-95 duration-200">
-            {/* Modal Header Image */}
-            <div className="md:w-1/2 relative bg-slate-900">
-              <img
-                src={selectedEvent.image}
-                alt={selectedEvent.title}
-                className="w-full h-full object-cover"
-              />
-              <button
-                onClick={() => setSelectedEvent(null)}
-                className="md:hidden absolute top-4 right-4 bg-slate-900/70 hover:bg-slate-900 text-white p-2 rounded-full transition-colors cursor-pointer"
-                title="Tutup Modal"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Modal Body Content */}
-            <div className="md:w-1/2 p-8 overflow-y-auto flex flex-col justify-between">
-              <div className="space-y-6">
-                <button
-                  onClick={() => setSelectedEvent(null)}
-                  className="hidden md:flex absolute top-6 right-6 p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors cursor-pointer"
-                  title="Tutup Modal"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-
-                <div className="space-y-3">
-                  <h3 className="text-2xl font-extrabold text-slate-900 leading-snug">
-                    {selectedEvent.title}
-                  </h3>
-                  <div className="flex items-center gap-3">
-                    {getStatusBadge(selectedEvent.status)}
-                    <span className="text-slate-400 text-xs font-medium">by Admin Website</span>
-                  </div>
-                </div>
-
-                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
-                  <h4 className="text-sm font-bold text-slate-900 mb-2">Deskripsi Kegiatan</h4>
-                  <p className="text-slate-600 text-sm leading-relaxed">
-                    {selectedEvent.description}
-                  </p>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm text-sm">
-                    <p className="text-slate-400 font-medium text-xs">Tanggal Pelaksanaan</p>
-                    <p className="text-slate-800 font-semibold">{formatDateIndo(selectedEvent.date)}{selectedEvent.time ? ` · ${selectedEvent.time}` : ''}</p>
-                  </div>
-                  {selectedEvent.location && selectedEvent.location !== '-' && (
-                    <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm text-sm">
-                      <p className="text-slate-400 font-medium text-xs">Lokasi</p>
-                      <p className="text-slate-800 font-semibold">{selectedEvent.location}</p>
-                    </div>
-                  )}
-                  {selectedEvent.speaker && (
-                    <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm text-sm">
-                      <p className="text-slate-400 font-medium text-xs">Pembicara / Narasumber</p>
-                      <p className="text-slate-800 font-semibold">{selectedEvent.speaker}</p>
-                    </div>
-                  )}
-                  {selectedEvent.quota != null && (
-                    <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm text-sm">
-                      <p className="text-slate-400 font-medium text-xs">Kuota Peserta</p>
-                      <p className="text-slate-800 font-semibold">{selectedEvent.quota}{selectedEvent.registeredCount != null ? ` · Terdaftar ${selectedEvent.registeredCount}` : ''}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              <div className="pt-6 mt-6 border-t border-slate-100 space-y-2">
-                <button
-                  onClick={() => setSelectedEvent(null)}
-                  className="w-full inline-flex items-center justify-center gap-2 py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-2xl transition-colors cursor-pointer"
-                >
-                  Tutup
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
       )}
     </div>

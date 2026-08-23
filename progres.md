@@ -1832,3 +1832,30 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 - [x] Verifikasi struktur menu tersisa (Panduan, Form Kuesioner, Laporan)
 - [x] Pencatatan laporan progres di `progres.md` atas nama ARYA APRIAWAN
 
+
+## Tanggal: 24 Agustus 2026
+**Developer:** ARYA APRIAWAN
+**Fokus Pekerjaan:** Revisi Menu Tracer Study — Rename Sub-Menu & Penghapusan "Laporan Tracer Study"
+
+---
+
+### 🚀 Ringkasan Perubahan
+
+#### 1. Revisi Dropdown Menu Tracer Study (`Header.tsx`)
+- **Rename sub-menu pertama**: "Panduan Tracer Study" → **"Tracer Study"**, dan mengarah langsung ke halaman utama `https://tracerstudy.umkendari.ac.id/` (sebelumnya `/page/panduan`).
+- **Penghapusan sub-menu "Laporan Tracer Study"** (`https://tracerstudy.umkendari.ac.id/page/laporan`) dari dropdown.
+- Struktur sub-menu Tracer Study setelah revisi (2 item):
+  1. **Tracer Study** → `https://tracerstudy.umkendari.ac.id/`
+  2. **Form Kuesioner Tracer Study** → `https://tracerstudy.umkendari.ac.id/page/survey`
+
+#### 2. Perbaikan Type Error `AdminDashboard.tsx`
+- Menambahkan `'konseling'` ke union type `AdminTab` sehingga error TypeScript pada penggunaan `setActiveTab('konseling')` terselesaikan.
+
+### ✅ Verifikasi
+- [x] `npm run lint` → PASS (exit 0, tanpa error)
+- [x] `npm run build` → PASS (vite build sukses, built in ~10.8s)
+
+### 📁 File Diubah
+- **[MODIFY]** `src/components/Header.tsx` — rename + retarget sub-menu Tracer Study, hapus "Laporan Tracer Study"
+- **[MODIFY]** `src/components/AdminDashboard.tsx` — tambah `'konseling'` pada type `AdminTab`
+- **[MODIFY]** `progres.md` — pencatatan laporan progres tanggal 24 Agustus 2026 oleh ARYA APRIAWAN
