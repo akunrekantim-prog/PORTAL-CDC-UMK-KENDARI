@@ -4,7 +4,6 @@ import { EventLayananItem, KontenKarir } from '../../../types';
 import EventDetailView from '../EventDetailView';
 import { useLayanan } from '../LayananContainer';
 import Dropdown from '../../Dropdown';
-import EventDetailView from '../EventDetailView';
 
 interface EventCardLayoutProps {
   category: 'workshop' | 'softskill' | 'seminar';
@@ -140,11 +139,6 @@ export default function EventCardLayout({
 
     return list;
   }, [allEvents, category, searchQuery, selectedYear, sortBy]);
-
-  const handleSelectEvent = (item: EventLayananItem) => {
-    setSelectedEvent(item);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
 
   const handleBackFromDetail = () => {
     setSelectedEvent(null);
