@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Building2, MapPin, Briefcase, Search, BookOpen,
   FileText, Mail, Phone, Clock, ArrowRight, Globe, Megaphone,
@@ -106,6 +106,47 @@ const STATS = [
   { value: trackAndGetVisitorCount(), label: 'Total Pengunjung' },
   { value: `${expYears}+`, label: 'Tahun Pengalaman' },
 ];
+
+/* ─── Helper Animasi Counter Angka Beranda ─────────────────── */
+function parseStatValue(raw: string) {
+  const suffix = raw.endsWith('+') ? '+' : '';
+  const cleanStr = raw.replace(/\+/g, '').replace(/\./g, '').replace(/,/g, '').trim();
+  const num = parseInt(cleanStr, 10) || 0;
+  return { num, suffix };
+}
+
+function AnimatedCounterStat({ rawValue }: { rawValue: string }) {
+  const [count, setCount] = useState(0);
+  const { num: targetNum, suffix } = useMemo(() => parseStatValue(rawValue), [rawValue]);
+
+  useEffect(() => {
+    let startTimestamp: number | null = null;
+    const duration = 1800; // 1.8 detik animasi count-up
+
+    const step = (timestamp: number) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      const easeProgress = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+      const currentCount = Math.floor(easeProgress * targetNum);
+      setCount(currentCount);
+
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      } else {
+        setCount(targetNum);
+      }
+    };
+
+    const handle = window.requestAnimationFrame(step);
+    return () => window.cancelAnimationFrame(handle);
+  }, [targetNum]);
+
+  return (
+    <span>
+      {count.toLocaleString('id-ID')}{suffix}
+    </span>
+  );
+}
 
 /* ─── Popular links ───────────────────────────── */
 const POPULAR_LINKS = [
@@ -388,7 +429,9 @@ export default function PublicLayout({
                               grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
                 {STATS.map(({ value, label }) => (
                   <div key={label} className="space-y-1">
-                    <div className="text-3xl sm:text-4xl font-extrabold text-[#10B981]">{value}</div>
+                    <div className="text-3xl sm:text-4xl font-extrabold text-[#10B981]">
+                      <AnimatedCounterStat rawValue={value} />
+                    </div>
                     <div className="text-blue-200 text-xs sm:text-sm font-semibold uppercase tracking-wider">{label}</div>
                   </div>
                 ))}
