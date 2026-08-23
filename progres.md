@@ -6,6 +6,32 @@ Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 
 ---
 
+## Tanggal: 23 Agustus 2026 (Sesi 3)
+**Oleh: Developer Fachrul Alam Sanuddin**
+**Fokus Pekerjaan:** Revisi Desain Detail Card Event Layanan (Workshop, Softskill, Seminar) mengikuti Layout Editorial Halaman Berita & Artikel.
+
+### Ringkasan Perubahan
+1. **Penyelarasan Kartu Event Layanan:**
+   - Menghapus badge status pendaftaran (`Pendaftaran Dibuka` / `Segera Hadir`) dari pojok atas gambar kartu luar maupun dalam.
+   - Memindahkan watermark label **"by Admin Website"** ke pojok kanan bawah sejajar dengan tanggal pelaksanaan kegiatan.
+2. **Transformasi Tampilan Detail Event Layanan (`EventDetailView.tsx`):**
+   - Mengubah tampilan klik kartu yang sebelumnya berupa modal pop-up kecil menjadi halaman detail editorial penuh (*full page editorial view*) yang persis sama dengan tampilan **Detail Berita & Artikel**:
+     - **Navigasi Breadcrumb**: `Beranda > [Nama Sub-Layanan] > [Judul Kegiatan]`
+     - **Metadata Strip**: Ikon gold untuk Kategori Layanan, Tanggal, dan Penulis (`Oleh: Admin Website`).
+     - **Media Cover**: Aspect ratio banner presisi dengan sudut membulat (`rounded-2xl`).
+     - **Floating & Horizontal Social Share Bar**: 5 tombol media sosial lengkap (**Facebook**, **X**, **WhatsApp**, **Telegram**, **LinkedIn**).
+     - **Rich Markdown Body**: Menampilkan seluruh deskripsi kegiatan dengan typography yang nyaman dibaca.
+     - Disesuaikan tanpa fitur *Tinggalkan Komentar* dan *Berita Terkait* sesuai instruksi.
+3. **Verifikasi Build:**
+   - Memastikan seluruh modul ter-compile bersih (`npm run build` sukses).
+
+### File Diubah
+- `src/components/layanan/EventDetailView.tsx` (Implementasi layout editorial event)
+- `src/components/layanan/ui/EventCardLayout.tsx` (Integrasi halaman detail dan pemindahan watermark)
+- `progres.md` (Update progres)
+
+---
+
 ## Tanggal: 23 Agustus 2026 (Sesi 2)
 **Oleh: Developer Fachrul Alam Sanuddin**
 **Fokus Pekerjaan:** Final Audit Frontend & Pembersihan Bug Menu Layanan dan Tracer Study tanpa Perubahan Konsep UI/UX.

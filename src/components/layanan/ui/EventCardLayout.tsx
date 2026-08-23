@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Search, Calendar, Clock, MapPin, User, Users, Filter, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { EventLayananItem, KontenKarir } from '../../../types';
 import Dropdown from '../../Dropdown';
+import EventDetailView from '../EventDetailView';
 
 interface EventCardLayoutProps {
   category: 'workshop' | 'softskill' | 'seminar';
@@ -65,7 +66,18 @@ export default function EventCardLayout({
 
   const handleSelectEvent = (item: EventLayananItem) => {
     setSelectedEvent(item);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  if (selectedEvent) {
+    return (
+      <EventDetailView
+        event={selectedEvent}
+        categoryLabel={pageTitle}
+        onBack={() => setSelectedEvent(null)}
+      />
+    );
+  }
 
   // Filter logic
   const filteredEvents = useMemo(() => {
@@ -257,14 +269,6 @@ export default function EventCardLayout({
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   loading="lazy"
                 />
-                <div className="absolute top-3 right-3">
-                  {getStatusBadge(item.status)}
-                </div>
-                <div className="absolute bottom-3 left-3 right-3">
-                  <span className="inline-block px-2.5 py-1 rounded bg-slate-900/70 backdrop-blur-md text-white text-[11px] font-medium">
-                    by Admin Website
-                  </span>
-                </div>
               </div>
 
               {/* Card Body */}
@@ -275,14 +279,15 @@ export default function EventCardLayout({
                   </h3>
                 </div>
 
-                {/* Metadata List — kartu hanya tampilkan tanggal.
-                    Waktu, lokasi, pembicara, kuota, dan deskripsi detail
-                    dipindah ke modal (klik kartu untuk membukanya). */}
-                <div className="pt-3 border-t border-slate-100 text-xs text-slate-600 space-y-1.5">
-                  <div className="flex items-center gap-2 text-slate-700">
+                {/* Metadata Footer: Tanggal di kiri & By Admin Website di kanan */}
+                <div className="pt-3 border-t border-slate-100 text-xs text-slate-500 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 text-slate-600 font-medium">
                     <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                     <span>{formatDateIndo(item.date)}</span>
                   </div>
+                  <span className="text-slate-400 font-medium whitespace-nowrap">
+                    by Admin Website
+                  </span>
                 </div>
               </div>
             </div>
@@ -304,93 +309,6 @@ export default function EventCardLayout({
           >
             Reset Semua Filter
           </button>
-        </div>
-      )}
-
-      {/* Modal Detail Event */}
-      {selectedEvent && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-4xl w-full overflow-hidden shadow-2xl border border-slate-100 max-h-[90vh] flex flex-col md:flex-row animate-in fade-in zoom-in-95 duration-200">
-            {/* Modal Header Image */}
-            <div className="md:w-1/2 relative bg-slate-900">
-              <img
-                src={selectedEvent.image}
-                alt={selectedEvent.title}
-                className="w-full h-full object-cover"
-              />
-              <button
-                onClick={() => setSelectedEvent(null)}
-                className="md:hidden absolute top-4 right-4 bg-slate-900/70 hover:bg-slate-900 text-white p-2 rounded-full transition-colors cursor-pointer"
-                title="Tutup Modal"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Modal Body Content */}
-            <div className="md:w-1/2 p-8 overflow-y-auto flex flex-col justify-between">
-              <div className="space-y-6">
-                <button
-                  onClick={() => setSelectedEvent(null)}
-                  className="hidden md:flex absolute top-6 right-6 p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors cursor-pointer"
-                  title="Tutup Modal"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-
-                <div className="space-y-3">
-                  <h3 className="text-2xl font-extrabold text-slate-900 leading-snug">
-                    {selectedEvent.title}
-                  </h3>
-                  <div className="flex items-center gap-3">
-                    {getStatusBadge(selectedEvent.status)}
-                    <span className="text-slate-400 text-xs font-medium">by Admin Website</span>
-                  </div>
-                </div>
-
-                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
-                  <h4 className="text-sm font-bold text-slate-900 mb-2">Deskripsi Kegiatan</h4>
-                  <p className="text-slate-600 text-sm leading-relaxed">
-                    {selectedEvent.description}
-                  </p>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm text-sm">
-                    <p className="text-slate-400 font-medium text-xs">Tanggal Pelaksanaan</p>
-                    <p className="text-slate-800 font-semibold">{formatDateIndo(selectedEvent.date)}{selectedEvent.time ? ` · ${selectedEvent.time}` : ''}</p>
-                  </div>
-                  {selectedEvent.location && selectedEvent.location !== '-' && (
-                    <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm text-sm">
-                      <p className="text-slate-400 font-medium text-xs">Lokasi</p>
-                      <p className="text-slate-800 font-semibold">{selectedEvent.location}</p>
-                    </div>
-                  )}
-                  {selectedEvent.speaker && (
-                    <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm text-sm">
-                      <p className="text-slate-400 font-medium text-xs">Pembicara / Narasumber</p>
-                      <p className="text-slate-800 font-semibold">{selectedEvent.speaker}</p>
-                    </div>
-                  )}
-                  {selectedEvent.quota != null && (
-                    <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm text-sm">
-                      <p className="text-slate-400 font-medium text-xs">Kuota Peserta</p>
-                      <p className="text-slate-800 font-semibold">{selectedEvent.quota}{selectedEvent.registeredCount != null ? ` · Terdaftar ${selectedEvent.registeredCount}` : ''}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              <div className="pt-6 mt-6 border-t border-slate-100 space-y-2">
-                <button
-                  onClick={() => setSelectedEvent(null)}
-                  className="w-full inline-flex items-center justify-center gap-2 py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-2xl transition-colors cursor-pointer"
-                >
-                  Tutup
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
       )}
     </div>
