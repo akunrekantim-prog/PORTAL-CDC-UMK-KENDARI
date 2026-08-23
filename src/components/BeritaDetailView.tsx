@@ -332,7 +332,7 @@ export default function BeritaDetailView({
                         onClick={() => {
                           if (onSelectBerita) {
                             onSelectBerita(item);
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                            window.scrollTo(0, 0);
                           }
                         }}
                         className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition duration-300 flex flex-col cursor-pointer hover:border-blue-300"

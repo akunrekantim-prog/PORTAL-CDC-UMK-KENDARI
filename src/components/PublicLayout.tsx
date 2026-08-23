@@ -178,6 +178,9 @@ export default function PublicLayout({
   // Gambar Visi & Misi (bisa diubah admin via Manajemen Web → Visi & Misi)
   const [visiMisiUrl, setVisiMisiUrl] = useState<string>(() => getVisiMisiConfig().imageUrl);
   
+  // Event Detail Direct Access State
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  
   // Job Info Search & Filter States
   const [jobKeyword, setJobKeyword] = useState('');
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
@@ -682,9 +685,9 @@ export default function PublicLayout({
                     // Combine default/demo items with published DB items if any
                     const itemsToRender = dbPrograms.length > 0 ? dbPrograms : [
                       {
-                        id: 'demo_prog_ws',
+                        id: 'evt_ws_001',
                         jenis: 'workshop' as const,
-                        judul: 'Workshop UI/UX Design & Interactive Prototyping Figma 2026',
+                        judul: 'Workshop UI/UX Design & Prototyping Figma 2026',
                         body: 'Pelatihan praktis pembuatan wireframe, Design System, hingga Interactive Prototype aplikasi berbasis industri bersama praktisi.',
                         kategori: 'Workshop',
                         thumbnail: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=800&auto=format&fit=crop',
@@ -694,7 +697,7 @@ export default function PublicLayout({
                         createdByName: 'Admin Website'
                       },
                       {
-                        id: 'demo_prog_ss',
+                        id: 'evt_ss_001',
                         jenis: 'softskill' as const,
                         judul: 'Pelatihan Softskill Public Speaking & Persuasi Komunikasi Karir',
                         body: 'Membangun kepercayaan diri saat presentasi, wawancara kerja, dan komunikasi profesional di dunia industri modern.',
@@ -706,7 +709,7 @@ export default function PublicLayout({
                         createdByName: 'Admin Website'
                       },
                       {
-                        id: 'demo_prog_sm',
+                        id: 'evt_sm_001',
                         jenis: 'seminar' as const,
                         judul: 'Seminar Nasional Strategi Menembus BUMN & Perusahaan Multinasional',
                         body: 'Pemaparan komprehensif mengenai alur seleksi Rekrutmen Bersama BUMN, psikotes, dan tips wawancara langsung bersama HR.',
@@ -741,12 +744,10 @@ export default function PublicLayout({
                     };
 
                     const handleCardItemClick = (item: KontenKarir) => {
-                      if (item.jenis === 'workshop') {
-                        setTab('layanan-workshop');
-                      } else if (item.jenis === 'softskill') {
-                        setTab('layanan-softskill');
-                      } else if (item.jenis === 'seminar') {
-                        setTab('layanan-seminar');
+                      window.scrollTo(0, 0);
+                      if (item.jenis === 'workshop' || item.jenis === 'softskill' || item.jenis === 'seminar') {
+                        setSelectedEventId(item.id);
+                        setTab(item.jenis);
                       } else if (onSelectProgram) {
                         onSelectProgram(item.id);
                       } else if (onNavigateToRegister) {
@@ -1977,9 +1978,9 @@ export default function PublicLayout({
           <LayananContainer currentTab={currentTab} setTab={setTab}>
             {currentTab === 'konseling' && <BimbinganKarir />}
             {currentTab === 'tes-minat' && <TesMinat />}
-            {currentTab === 'workshop' && <Workshop konten={konten} />}
-            {currentTab === 'softskill' && <Softskill konten={konten} />}
-            {currentTab === 'seminar' && <Seminar konten={konten} />}
+            {currentTab === 'workshop' && <Workshop konten={konten} initialEventId={selectedEventId} />}
+            {currentTab === 'softskill' && <Softskill konten={konten} initialEventId={selectedEventId} />}
+            {currentTab === 'seminar' && <Seminar konten={konten} initialEventId={selectedEventId} />}
             {currentTab === 'career-fair' && <CareerFair />}
             {currentTab === 'campus-hiring' && <CampusHiring />}
             {currentTab === 'magang' && <Magang lowongan={lowongan} onSelectLowongan={onSelectLowongan} />}

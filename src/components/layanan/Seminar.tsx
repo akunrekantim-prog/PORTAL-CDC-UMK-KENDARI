@@ -3,7 +3,7 @@ import EventCardLayout from './ui/EventCardLayout';
 import { SEED_EVENT_LAYANAN } from '../../data';
 import { KontenKarir } from '../../types';
 
-export default function Seminar({ konten = [] }: { konten?: KontenKarir[] }) {
+export default function Seminar({ konten = [], initialEventId }: { konten?: KontenKarir[]; initialEventId?: string | null }) {
   return (
     <div id="layanan-seminar">
       <EventCardLayout
@@ -12,6 +12,7 @@ export default function Seminar({ konten = [] }: { konten?: KontenKarir[] }) {
         subtitle="Ikuti seminar wawasan karir nasional, peluang Beasiswa, hingga persiapan Rekrutmen Bersama BUMN & Industri."
         events={SEED_EVENT_LAYANAN}
         kontenEvents={konten}
+        initialEventId={initialEventId}
       />
     </div>
   );

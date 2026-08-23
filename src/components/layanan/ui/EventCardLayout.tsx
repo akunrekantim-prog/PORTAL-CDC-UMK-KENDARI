@@ -11,6 +11,7 @@ interface EventCardLayoutProps {
   subtitle: string;
   events: EventLayananItem[];
   kontenEvents?: KontenKarir[]; // hasil input admin (jenis workshop/softskill/seminar)
+  initialEventId?: string | null;
   onDetailStateChange?: (isDetail: boolean) => void;
   setTab?: (tab: string) => void;
 }
@@ -52,6 +53,7 @@ export default function EventCardLayout({
   subtitle,
   events,
   kontenEvents,
+  initialEventId,
   onDetailStateChange,
   setTab
 }: EventCardLayoutProps) {
@@ -80,9 +82,23 @@ export default function EventCardLayout({
     return [...fromKonten, ...events];
   }, [events, kontenEvents, category]);
 
+  // Auto-select event jika initialEventId diberikan dari beranda
+  useEffect(() => {
+    if (initialEventId) {
+      const cleanId = initialEventId.replace(/^kk_/, '');
+      const matched = allEvents.find(
+        e => e.id === initialEventId || e.id === `kk_${cleanId}` || e.id === cleanId
+      ) || allEvents.find(e => e.category === category);
+      if (matched) {
+        setSelectedEvent(matched);
+        window.scrollTo(0, 0);
+      }
+    }
+  }, [initialEventId, allEvents, category]);
+
   const handleSelectEvent = (item: EventLayananItem) => {
     setSelectedEvent(item);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo(0, 0);
   };
 
   // Ekstrak daftar tahun kegiatan yang tersedia secara dinamis
@@ -142,8 +158,19 @@ export default function EventCardLayout({
 
   const handleBackFromDetail = () => {
     setSelectedEvent(null);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo(0, 0);
   };
+
+  if (selectedEvent) {
+    return (
+      <EventDetailView
+        event={selectedEvent}
+        categoryLabel={pageTitle}
+        onBack={handleBackFromDetail}
+        setTab={setTab}
+      />
+    );
+  }
 
   const resetFilters = () => {
     setSearchQuery('');

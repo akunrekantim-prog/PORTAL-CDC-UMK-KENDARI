@@ -3,7 +3,7 @@ import EventCardLayout from './ui/EventCardLayout';
 import { SEED_EVENT_LAYANAN } from '../../data';
 import { KontenKarir } from '../../types';
 
-export default function Softskill({ konten = [] }: { konten?: KontenKarir[] }) {
+export default function Softskill({ konten = [], initialEventId }: { konten?: KontenKarir[]; initialEventId?: string | null }) {
   return (
     <div id="layanan-softskill">
       <EventCardLayout
@@ -12,6 +12,7 @@ export default function Softskill({ konten = [] }: { konten?: KontenKarir[] }) {
         subtitle="Asah kemampuan kepemimpinan, komunikasi profesional, serta wawasan kewirausahaan berbasis potensi daerah."
         events={SEED_EVENT_LAYANAN}
         kontenEvents={konten}
+        initialEventId={initialEventId}
       />
     </div>
   );
