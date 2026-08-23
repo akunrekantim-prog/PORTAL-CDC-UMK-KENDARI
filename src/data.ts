@@ -1879,7 +1879,8 @@ export function isJobDeadlinePassed(deadlineStr?: string): boolean {
    VISITOR COUNTER HELPER
 ───────────────────────────────────────────────────────────────── */
 export function trackAndGetVisitorCount(): string {
-  const BASE_VISITOR_COUNT = 2580;
+  // Untuk rilis live hosting: Dimulai dari 0 dan bertambah secara otomatis & alami per sesi peramban unik
+  const BASE_VISITOR_COUNT = 0;
   const STORAGE_KEY = 'cdc_umk_visitor_count';
   const SESSION_KEY = 'cdc_umk_session_tracked';
 
