@@ -36,7 +36,10 @@ import {
   Pengumuman,
   HelpdeskConfig,
   KomentarBerita,
-  CdcClubConfig
+  CdcClubConfig,
+  HeroSlideItem,
+  CampusHiringItem,
+  JobFairItem
 } from '../types';
 import {
   getFromDB,
@@ -58,7 +61,13 @@ import {
   updateKomentarBeritaStatus,
   deleteKomentarBerita,
   getCdcClubConfig,
-  saveCdcClubConfig
+  saveCdcClubConfig,
+  getHeroSlides,
+  saveHeroSlides,
+  getCampusHiring,
+  saveCampusHiring,
+  getJobFair,
+  saveJobFair
 } from '../data';
 import {
   LayoutDashboard,
@@ -141,7 +150,7 @@ interface AdminDashboardProps {
   onReloadData?: () => void;
 }
 
-type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin' | 'keanggotaan' | 'visi-misi' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'media-sosial' | 'komentar' | 'konseling';
+type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin' | 'keanggotaan' | 'visi-misi' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'media-sosial' | 'komentar' | 'konseling' | 'hero-slider' | 'campus-hiring' | 'job-fair';
 type KontenSubTab = 'riwayat' | 'pembuatan';
 type MitraSubTab = 'approval' | 'list';
 
@@ -371,6 +380,51 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const [galDeskripsi, setGalDeskripsi] = useState('');
   const [galIsFeatured, setGalIsFeatured] = useState(false);
 
+  // Form states Hero Slider Beranda
+  const [heroSlides, setHeroSlides] = useState<HeroSlideItem[]>(() => getHeroSlides());
+  const [showSlideForm, setShowSlideForm] = useState(false);
+  const [editSlideId, setEditSlideId] = useState<string | null>(null);
+  const [slideTitle, setSlideTitle] = useState('');
+  const [slideImageUrl, setSlideImageUrl] = useState('');
+  const [slideTargetUrl, setSlideTargetUrl] = useState('lowongan');
+  const [slideAlt, setSlideAlt] = useState('');
+  const [slideIsActive, setSlideIsActive] = useState(true);
+
+  // Form states Campus Hiring
+  const [campusHiringItems, setCampusHiringItems] = useState<CampusHiringItem[]>(() => getCampusHiring());
+  const [showChForm, setShowChForm] = useState(false);
+  const [editChId, setEditChId] = useState<string | null>(null);
+  const [chJudul, setChJudul] = useState('');
+  const [chPerusahaan, setChPerusahaan] = useState('');
+  const [chLogoUrl, setChLogoUrl] = useState('');
+  const [chBannerUrl, setChBannerUrl] = useState('');
+  const [chTanggal, setChTanggal] = useState('');
+  const [chWaktu, setChWaktu] = useState('08:30 - 15:00 WITA');
+  const [chLokasi, setChLokasi] = useState('Aula Gedung Rektorat Lt. 2 UM Kendari');
+  const [chTipe, setChTipe] = useState<'on-campus' | 'virtual'>('on-campus');
+  const [chLinkVirtual, setChLinkVirtual] = useState('');
+  const [chPosisiStr, setChPosisiStr] = useState('');
+  const [chSyaratStr, setChSyaratStr] = useState('');
+  const [chKuota, setChKuota] = useState('100');
+  const [chDeskripsi, setChDeskripsi] = useState('');
+  const [chStatus, setChStatus] = useState<'buka' | 'proses' | 'selesai'>('buka');
+
+  // Form states Job Fair
+  const [jobFairItems, setJobFairItems] = useState<JobFairItem[]>(() => getJobFair());
+  const [showJfForm, setShowJfForm] = useState(false);
+  const [editJfId, setEditJfId] = useState<string | null>(null);
+  const [jfJudul, setJfJudul] = useState('');
+  const [jfTagline, setJfTagline] = useState('');
+  const [jfBannerUrl, setJfBannerUrl] = useState('');
+  const [jfTglMulai, setJfTglMulai] = useState('');
+  const [jfTglSelesai, setJfTglSelesai] = useState('');
+  const [jfWaktu, setJfWaktu] = useState('08:00 - 16:00 WITA');
+  const [jfLokasi, setJfLokasi] = useState('Auditorium Utama UM Kendari');
+  const [jfHtm, setJfHtm] = useState('Gratis Khusus Mahasiswa & Alumni UM Kendari');
+  const [jfDeskripsi, setJfDeskripsi] = useState('');
+  const [jfPerusahaanStr, setJfPerusahaanStr] = useState('');
+  const [jfStatus, setJfStatus] = useState<'buka' | 'berlangsung' | 'selesai'>('buka');
+
   // Form states Kelola Konseling Karir
   const [konselingCfg, setKonselingCfg] = useState<KonselingConfig>(getKonselingConfig());
   const [kPosterUrl, setKPosterUrl] = useState(konselingCfg.posterUrl || '');
@@ -469,6 +523,9 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
     setAdminWaNum(getAdminWaPrestasi());
     setAnggotaList(getAnggotaTim());
     setSocMedList(getFromDB<SocialMediaItem>('social_media'));
+    setHeroSlides(getHeroSlides());
+    setCampusHiringItems(getCampusHiring());
+    setJobFairItems(getJobFair());
     syncAnnState();
 
     const hConfig = getHelpdeskConfig();
@@ -518,6 +575,9 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       group: 'MANAJEMEN WEB',
       collapsible: true,
       items: [
+        { id: 'hero-slider', label: 'Slider Beranda', icon: <ImageIcon className="w-4 h-4" /> },
+        { id: 'campus-hiring', label: 'Campus Hiring', icon: <Building2 className="w-4 h-4" /> },
+        { id: 'job-fair', label: 'Job Fair & Bursa Kerja', icon: <Megaphone className="w-4 h-4" /> },
         { id: 'keanggotaan', label: 'Keanggotaan & Tim', icon: <UserCheck className="w-4 h-4" /> },
         { id: 'visi-misi', label: 'Visi & Misi', icon: <Target className="w-4 h-4" /> },
         { id: 'sk-cdc', label: 'Surat Keputusan CDC', icon: <FileText className="w-4 h-4" /> },
@@ -525,6 +585,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
         { id: 'laporan', label: 'Laporan Kinerja', icon: <FileText className="w-4 h-4" /> },
         { id: 'mou', label: 'MOU Stakeholder', icon: <FileText className="w-4 h-4" /> },
         { id: 'galeri', label: 'Galeri Kegiatan', icon: <Film className="w-4 h-4" /> },
+        { id: 'konseling', label: 'Bimbingan & Konseling', icon: <HeartHandshake className="w-4 h-4" /> },
         { id: 'media-sosial', label: 'Media Sosial', icon: <Globe className="w-4 h-4" /> },
         { id: 'admin', label: 'Kelola Admin', icon: <UserCog className="w-4 h-4" /> }
       ]
@@ -542,13 +603,21 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const aktivitas = [
     ...lowongan.map((l) => ({ date: l.createdAt, text: `Lowongan baru dipublikasikan: ${l.judul}` })),
     ...konten.map((k) => ({ date: k.createdAt, text: `Konten ${JENIS_LABEL[k.jenis]} dibuat: ${k.judul}` })),
-    ...mitra.map((m) => ({ date: m.userId, text: `Mitra terdaftar: ${m.namaInstansi}` }))
+    ...mitra.map((m) => {
+      const u = allUsers.find((usr) => usr.id === m.userId);
+      return { date: u?.createdAt || new Date().toISOString(), text: `Mitra terdaftar: ${m.namaInstansi}` };
+    })
   ]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 8);
 
   const topMitra = [...mitra]
-    .map((m) => ({ m, count: lowongan.filter((l) => l.namaInstansi === m.namaInstansi).length }))
+    .map((m) => ({
+      m,
+      count: lowongan.filter(
+        (l) => l.mitraId === m.id || (l.namaInstansi && m.namaInstansi && l.namaInstansi.trim().toLowerCase() === m.namaInstansi.trim().toLowerCase())
+      ).length
+    }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 5);
 
@@ -635,6 +704,11 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
     const next = m.statusKerjaSama === 'aktif' ? 'nonaktif' : 'aktif';
     const updated = { ...m, statusKerjaSama: next as any };
     updateInDB<Mitra>('mitra', updated);
+    const users = getFromDB<UserType>('users');
+    const u = users.find((x) => x.id === m.userId || x.email.toLowerCase() === (m.email || '').toLowerCase());
+    if (u) {
+      updateInDB<UserType>('users', { ...u, status: next === 'aktif' ? 'active' : 'inactive' });
+    }
     setSelectedMitra(updated);
     reloadAll();
     triggerToast('success', `Status mitra "${m.namaInstansi}" -> ${next}.`);
@@ -692,9 +766,17 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   };
 
   const handleDisableAdmin = (u: UserType) => {
-    updateInDB<UserType>('users', { ...u, status: u.status === 'active' ? 'inactive' : 'active' });
+    const nextStatus = u.status === 'active' ? 'inactive' : 'active';
+    updateInDB<UserType>('users', { ...u, status: nextStatus });
+    if (u.role === 'mitra') {
+      const allM = getFromDB<Mitra>('mitra');
+      const targetM = allM.find((m) => m.userId === u.id || m.email.toLowerCase() === u.email.toLowerCase());
+      if (targetM) {
+        updateInDB<Mitra>('mitra', { ...targetM, statusKerjaSama: nextStatus === 'active' ? 'aktif' : 'nonaktif' });
+      }
+    }
     reloadAll();
-    triggerToast('success', u.status === 'active' ? `Admin "${u.name}" dinonaktifkan.` : `Admin "${u.name}" diaktifkan.`);
+    triggerToast('success', nextStatus === 'active' ? `Akun "${u.name}" diaktifkan.` : `Akun "${u.name}" dinonaktifkan.`);
   };
 
   const handleDeleteAdmin = (u: UserType) => {
@@ -1361,9 +1443,10 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       ? (sanitizedBody.replace(/<[^>]*>/g, '').trim().length > 0 || /<img/i.test(sanitizedBody))
       : eBody.trim().length > 0;
 
-    if (eJenis !== 'program' && !hasContent) {
-      setSaveError('Isi konten (body) wajib diisi.');
-      triggerToast('error', 'Judul dan isi konten wajib diisi.');
+    const isBodyRequired = eJenis === 'berita';
+    if (isBodyRequired && !hasContent) {
+      setSaveError('Isi konten berita wajib diisi.');
+      triggerToast('error', 'Judul dan isi berita wajib diisi.');
       return;
     }
     if (THUMB_REQUIRED[eJenis] && !eThumbnail) {
@@ -2188,7 +2271,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                       </button>
                     ))}
 
-                    {/* Card khusus Konseling Karir (bukan jenis konten, tapi konfigurasi dedicated) */}
+                    {/* Card khusus Konseling Karir */}
                     <button
                       type="button"
                       onClick={() => setActiveTab('konseling')}
@@ -2197,6 +2280,28 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                       <div className="text-emerald-600 group-hover:scale-110 transition"><span className="inline-flex w-9 h-9 rounded-lg bg-emerald-50 ring-1 ring-emerald-100 items-center justify-center"><HeartHandshake className="w-4 h-4" /></span></div>
                       <div className="font-bold text-slate-800 mt-3 tracking-tight">Konseling Karir</div>
                       <div className="text-[11px] text-slate-400 mt-1">→ Buka pengaturan layanan konseling</div>
+                    </button>
+
+                    {/* Card khusus Campus Hiring */}
+                    <button
+                      type="button"
+                      onClick={() => { setActiveTab('campus-hiring'); setKontenSub('riwayat'); }}
+                      className="text-left border border-blue-200 hover:border-blue-400 hover:bg-blue-50/50 hover:shadow-sm rounded-xl p-4 transition group"
+                    >
+                      <div className="text-blue-600 group-hover:scale-110 transition"><span className="inline-flex w-9 h-9 rounded-lg bg-blue-50 ring-1 ring-blue-100 items-center justify-center"><Building2 className="w-4 h-4" /></span></div>
+                      <div className="font-bold text-slate-800 mt-3 tracking-tight">Campus Hiring</div>
+                      <div className="text-[11px] text-slate-400 mt-1">→ Kelola rekrutmen &amp; wawancara kampus</div>
+                    </button>
+
+                    {/* Card khusus Job Fair & Bursa Kerja */}
+                    <button
+                      type="button"
+                      onClick={() => { setActiveTab('job-fair'); setKontenSub('riwayat'); }}
+                      className="text-left border border-indigo-200 hover:border-indigo-400 hover:bg-indigo-50/50 hover:shadow-sm rounded-xl p-4 transition group"
+                    >
+                      <div className="text-indigo-600 group-hover:scale-110 transition"><span className="inline-flex w-9 h-9 rounded-lg bg-indigo-50 ring-1 ring-indigo-100 items-center justify-center"><Megaphone className="w-4 h-4" /></span></div>
+                      <div className="font-bold text-slate-800 mt-3 tracking-tight">Job Fair &amp; Bursa Kerja</div>
+                      <div className="text-[11px] text-slate-400 mt-1">→ Kelola pameran bursa kerja akbar</div>
                     </button>
                   </div>
                 </div>
@@ -2597,7 +2702,9 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                   ) : (
                     <>
                       <div className="space-y-2">
-                        <label className="text-xs font-medium text-slate-500">Isi Konten (Gaya Medium + Format Word)</label>
+                        <label className="text-xs font-medium text-slate-500">
+                          Isi Konten (Gaya Medium + Format Word) {eJenis !== 'berita' && '(Opsional — kosongkan jika hanya ingin mengunggah flyer/poster event)'}
+                        </label>
                         <div className="flex flex-wrap items-center gap-1.5 border border-slate-200 rounded-t-xl p-2 bg-slate-50 relative">
                           <ToolbarBtn icon={<Bold className="w-4 h-4" />} label="Bold" onMouseDown={(e) => e.preventDefault()} onClick={() => document.execCommand('bold')} />
                           <ToolbarBtn icon={<Italic className="w-4 h-4" />} label="Italic" onMouseDown={(e) => e.preventDefault()} onClick={() => document.execCommand('italic')} />
@@ -5228,6 +5335,1064 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                     </div>
                   </div>
                 )}
+              </div>
+            );
+          })()}
+
+          {/* ══════════════════════════════════════════
+              KELOLA HERO SLIDER BERANDA UTAMA
+          ══════════════════════════════════════════ */}
+          {activeTab === 'hero-slider' && (() => {
+            const openSlideModal = (item?: HeroSlideItem) => {
+              if (item) {
+                setEditSlideId(item.id);
+                setSlideTitle(item.title);
+                setSlideImageUrl(item.imageUrl);
+                setSlideTargetUrl(item.targetUrl || 'lowongan');
+                setSlideAlt(item.alt || '');
+                setSlideIsActive(item.isActive !== false);
+              } else {
+                setEditSlideId(null);
+                setSlideTitle('');
+                setSlideImageUrl('');
+                setSlideTargetUrl('lowongan');
+                setSlideAlt('');
+                setSlideIsActive(true);
+              }
+              setShowSlideForm(true);
+            };
+
+            const handleSaveSlide = (e: React.FormEvent) => {
+              e.preventDefault();
+              if (!slideTitle.trim()) {
+                triggerToast('error', 'Judul / Label slide wajib diisi.');
+                return;
+              }
+              if (!slideImageUrl.trim()) {
+                triggerToast('error', 'URL Gambar / Poster wajib diisi atau diunggah.');
+                return;
+              }
+
+              let currentList = getHeroSlides();
+              const now = new Date().toISOString();
+
+              if (editSlideId) {
+                currentList = currentList.map((item) =>
+                  item.id === editSlideId
+                    ? {
+                        ...item,
+                        title: slideTitle.trim(),
+                        imageUrl: slideImageUrl.trim(),
+                        targetUrl: slideTargetUrl.trim(),
+                        alt: slideAlt.trim() || slideTitle.trim(),
+                        isActive: slideIsActive
+                      }
+                    : item
+                );
+              } else {
+                const maxOrder = currentList.reduce((max, i) => Math.max(max, i.order || 0), 0);
+                const newSlide: HeroSlideItem = {
+                  id: `slide_${Date.now()}`,
+                  title: slideTitle.trim(),
+                  imageUrl: slideImageUrl.trim(),
+                  targetUrl: slideTargetUrl.trim(),
+                  alt: slideAlt.trim() || slideTitle.trim(),
+                  isActive: slideIsActive,
+                  order: maxOrder + 1,
+                  createdAt: now
+                };
+                currentList.push(newSlide);
+              }
+
+              saveHeroSlides(currentList);
+              reloadAll();
+              if (onReloadData) onReloadData();
+              setShowSlideForm(false);
+              triggerToast('success', editSlideId ? 'Slide diperbarui.' : 'Slide baru berhasil ditambahkan.');
+            };
+
+            const handleDeleteSlide = (item: HeroSlideItem) => {
+              if (confirm(`Hapus slide "${item.title}"?`)) {
+                const currentList = getHeroSlides().filter((i) => i.id !== item.id);
+                saveHeroSlides(currentList);
+                reloadAll();
+                if (onReloadData) onReloadData();
+                triggerToast('success', 'Slide berhasil dihapus.');
+              }
+            };
+
+            const handleToggleActive = (item: HeroSlideItem) => {
+              const currentList = getHeroSlides().map((i) =>
+                i.id === item.id ? { ...i, isActive: !i.isActive } : i
+              );
+              saveHeroSlides(currentList);
+              reloadAll();
+              if (onReloadData) onReloadData();
+              triggerToast('success', `Status slide "${item.title}" diubah.`);
+            };
+
+            const handleMoveOrder = (index: number, direction: 'up' | 'down') => {
+              const currentList = [...getHeroSlides()];
+              const targetIndex = direction === 'up' ? index - 1 : index + 1;
+              if (targetIndex < 0 || targetIndex >= currentList.length) return;
+
+              // Swap order values
+              const tempOrder = currentList[index].order;
+              currentList[index].order = currentList[targetIndex].order;
+              currentList[targetIndex].order = tempOrder;
+
+              // Sort array
+              currentList.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
+              saveHeroSlides(currentList);
+              reloadAll();
+              if (onReloadData) onReloadData();
+              triggerToast('success', 'Urutan slide diperbarui.');
+            };
+
+            const handleSlideImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                if (file.size > 3 * 1024 * 1024) {
+                  triggerToast('error', 'Ukuran file gambar maksimal 3MB.');
+                  return;
+                }
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                  setSlideImageUrl(ev.target?.result as string);
+                  triggerToast('success', 'File gambar berhasil dimuat.');
+                };
+                reader.readAsDataURL(file);
+              }
+            };
+
+            return (
+              <div className="space-y-6" id="adm-hero-slider">
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <div>
+                    <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+                      <ImageIcon className="w-6 h-6 text-[#0077C6]" /> Kelola Hero Slider Beranda Utama
+                    </h1>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Atur poster promo, urutan slide, status tampil, dan link tujuan saat slide diklik.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => openSlideModal()}
+                    className="bg-[#0077C6] hover:bg-[#1E3A8A] text-white px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" /> Tambah Banner Slide
+                  </button>
+                </div>
+
+                {/* Form Modal */}
+                {showSlideForm && (
+                  <form onSubmit={handleSaveSlide} className="bg-white rounded-2xl border border-slate-200 shadow-md p-6 space-y-4 animate-fade-in">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <h3 className="font-extrabold text-slate-800 text-lg">
+                        {editSlideId ? 'Edit Banner Slide' : 'Tambah Banner Slide Baru'}
+                      </h3>
+                      <button type="button" onClick={() => setShowSlideForm(false)} className="text-slate-400 hover:text-slate-600">
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700">Judul / Label Slide *</label>
+                        <input
+                          type="text"
+                          value={slideTitle}
+                          onChange={(e) => setSlideTitle(e.target.value)}
+                          placeholder="misal: Banner Job Fair CDC 2026"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700">Target Navigasi / Link Tujuan *</label>
+                        <select
+                          value={slideTargetUrl}
+                          onChange={(e) => setSlideTargetUrl(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        >
+                          <option value="lowongan">Halaman Katalog Lowongan Kerja &amp; Magang</option>
+                          <option value="berita">Halaman Berita &amp; Artikel</option>
+                          <option value="tracer-study">Halaman Tracer Study</option>
+                          <option value="layanan-bimbingan-karir">Layanan Bimbingan Karir</option>
+                          <option value="layanan-magang">Layanan Magang &amp; Kerja</option>
+                          <option value="konseling">Bimbingan &amp; Konseling Karir</option>
+                          <option value="campus-hiring">Campus Hiring</option>
+                          <option value="mou">MoU &amp; Kerjasama</option>
+                          <option value="custom">Link Eksternal Kustom (URL HTTP/HTTPS)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {slideTargetUrl === 'custom' && (
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700">URL Eksternal Kustom *</label>
+                        <input
+                          type="url"
+                          value={slideTargetUrl}
+                          onChange={(e) => setSlideTargetUrl(e.target.value)}
+                          placeholder="https://..."
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        />
+                      </div>
+                    )}
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700">Gambar Banner Slide (Upload File / Input URL) *</label>
+                      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+                        <input
+                          type="text"
+                          value={slideImageUrl}
+                          onChange={(e) => setSlideImageUrl(e.target.value)}
+                          placeholder="/poster-cdc-web-umk-1.svg atau https://..."
+                          className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        />
+                        <label className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200 shrink-0">
+                          <Upload className="w-4 h-4 text-blue-600" /> Upload File
+                          <input type="file" accept="image/*" onChange={handleSlideImageUpload} className="hidden" />
+                        </label>
+                      </div>
+                    </div>
+
+                    {slideImageUrl && (
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-500">Pratinjau Banner</label>
+                        <div className="w-full aspect-[21/9] max-h-48 rounded-xl overflow-hidden border border-slate-200 bg-slate-900">
+                          <img src={slideImageUrl} alt="Pratinjau" className="w-full h-full object-cover" />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between pt-2">
+                      <label className="flex items-center gap-2 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={slideIsActive}
+                          onChange={(e) => setSlideIsActive(e.target.checked)}
+                          className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-xs font-bold text-slate-700">Aktif &amp; Tampilkan di Slider Beranda</span>
+                      </label>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowSlideForm(false)}
+                          className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold"
+                        >
+                          Batal
+                        </button>
+                        <button
+                          type="submit"
+                          className="bg-[#0077C6] hover:bg-[#1E3A8A] text-white px-5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm"
+                        >
+                          <Save className="w-4 h-4" /> Simpan Slide
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                )}
+
+                {/* List Slide Cards */}
+                <div className="space-y-3">
+                  {heroSlides.length === 0 ? (
+                    <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-500 text-sm">
+                      Belum ada slide hero terdaftar. Klik "+ Tambah Banner Slide" untuk membuat banner slider beranda.
+                    </div>
+                  ) : (
+                    heroSlides.map((item, idx) => (
+                      <div
+                        key={item.id}
+                        className={`bg-white rounded-2xl border ${item.isActive !== false ? 'border-slate-200' : 'border-slate-200 opacity-60 bg-slate-50'} p-4 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition hover:border-blue-300`}
+                      >
+                        <div className="flex items-center gap-4 min-w-0 flex-1">
+                          <div className="w-24 h-14 sm:w-32 sm:h-18 rounded-xl overflow-hidden bg-slate-900 border border-slate-200 shrink-0">
+                            <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
+                          </div>
+                          <div className="min-w-0 flex-1 space-y-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-xs font-bold text-slate-900 truncate">{item.title}</span>
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${item.isActive !== false ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
+                                {item.isActive !== false ? 'Aktif' : 'Sembunyi'}
+                              </span>
+                              <span className="text-[10px] font-mono text-slate-400">Urutan: #{item.order}</span>
+                            </div>
+                            <p className="text-xs text-slate-500 truncate">
+                              Target: <strong className="text-slate-700">{item.targetUrl || 'lowongan'}</strong>
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0">
+                          <button
+                            onClick={() => handleMoveOrder(idx, 'up')}
+                            disabled={idx === 0}
+                            className="p-1.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-30 text-slate-700 rounded-lg transition"
+                            title="Naikkan Urutan"
+                          >
+                            <ChevronUp className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleMoveOrder(idx, 'down')}
+                            disabled={idx === heroSlides.length - 1}
+                            className="p-1.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-30 text-slate-700 rounded-lg transition"
+                            title="Turunkan Urutan"
+                          >
+                            <ChevronDown className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleToggleActive(item)}
+                            className={`p-1.5 rounded-lg transition ${item.isActive !== false ? 'bg-amber-50 text-amber-700 hover:bg-amber-100' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'}`}
+                            title={item.isActive !== false ? 'Sembunyikan' : 'Tampilkan'}
+                          >
+                            {item.isActive !== false ? <Ban className="w-4 h-4" /> : <Check className="w-4 h-4" />}
+                          </button>
+                          <button
+                            onClick={() => openSlideModal(item)}
+                            className="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition"
+                            title="Edit Slide"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteSlide(item)}
+                            className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition"
+                            title="Hapus Slide"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* ══════════════════════════════════════════
+              KELOLA CAMPUS HIRING
+          ══════════════════════════════════════════ */}
+          {activeTab === 'campus-hiring' && (() => {
+            const openChModal = (item?: CampusHiringItem) => {
+              if (item) {
+                setEditChId(item.id);
+                setChJudul(item.judul);
+                setChPerusahaan(item.namaPerusahaan);
+                setChLogoUrl(item.logoPerusahaan || '');
+                setChBannerUrl(item.bannerUrl || '');
+                setChTanggal(item.tanggal || '');
+                setChWaktu(item.waktu || '08:30 - 15:00 WITA');
+                setChLokasi(item.lokasi || 'Aula Gedung Rektorat Lt. 2 UM Kendari');
+                setChTipe(item.tipe || 'on-campus');
+                setChLinkVirtual(item.linkVirtual || '');
+                setChPosisiStr((item.posisiBuka || []).join(', '));
+                setChSyaratStr((item.persyaratan || []).join('\n'));
+                setChKuota(String(item.kuota || 100));
+                setChDeskripsi(item.deskripsi || '');
+                setChStatus(item.status || 'buka');
+              } else {
+                setEditChId(null);
+                setChJudul('');
+                setChPerusahaan('');
+                setChLogoUrl('');
+                setChBannerUrl('');
+                setChTanggal('');
+                setChWaktu('08:30 - 15:00 WITA');
+                setChLokasi('Aula Gedung Rektorat Lt. 2 UM Kendari');
+                setChTipe('on-campus');
+                setChLinkVirtual('');
+                setChPosisiStr('');
+                setChSyaratStr('');
+                setChKuota('100');
+                setChDeskripsi('');
+                setChStatus('buka');
+              }
+              setShowChForm(true);
+            };
+
+            const handleSaveCh = (e: React.FormEvent) => {
+              e.preventDefault();
+              if (!chJudul.trim() || !chPerusahaan.trim() || !chTanggal.trim()) {
+                triggerToast('error', 'Judul, Nama Perusahaan, dan Tanggal Pelaksanaan wajib diisi.');
+                return;
+              }
+
+              let currentList = getCampusHiring();
+              const now = new Date().toISOString();
+              const posArray = chPosisiStr.split(',').map((s) => s.trim()).filter(Boolean);
+              const reqArray = chSyaratStr.split('\n').map((s) => s.trim()).filter(Boolean);
+
+              if (editChId) {
+                currentList = currentList.map((item) =>
+                  item.id === editChId
+                    ? {
+                        ...item,
+                        judul: chJudul.trim(),
+                        namaPerusahaan: chPerusahaan.trim(),
+                        logoPerusahaan: chLogoUrl.trim() || undefined,
+                        bannerUrl: chBannerUrl.trim() || undefined,
+                        tanggal: chTanggal,
+                        waktu: chWaktu.trim(),
+                        lokasi: chLokasi.trim(),
+                        tipe: chTipe,
+                        linkVirtual: chTipe === 'virtual' ? chLinkVirtual.trim() : undefined,
+                        posisiBuka: posArray,
+                        persyaratan: reqArray,
+                        kuota: Number(chKuota) || 100,
+                        deskripsi: chDeskripsi.trim() || undefined,
+                        status: chStatus
+                      }
+                    : item
+                );
+              } else {
+                const newItem: CampusHiringItem = {
+                  id: `ch_${Date.now()}`,
+                  judul: chJudul.trim(),
+                  namaPerusahaan: chPerusahaan.trim(),
+                  logoPerusahaan: chLogoUrl.trim() || undefined,
+                  bannerUrl: chBannerUrl.trim() || undefined,
+                  tanggal: chTanggal,
+                  waktu: chWaktu.trim(),
+                  lokasi: chLokasi.trim(),
+                  tipe: chTipe,
+                  linkVirtual: chTipe === 'virtual' ? chLinkVirtual.trim() : undefined,
+                  posisiBuka: posArray,
+                  persyaratan: reqArray,
+                  kuota: Number(chKuota) || 100,
+                  terdaftarCount: 0,
+                  deskripsi: chDeskripsi.trim() || undefined,
+                  status: chStatus,
+                  createdAt: now
+                };
+                currentList.unshift(newItem);
+              }
+
+              saveCampusHiring(currentList);
+              reloadAll();
+              if (onReloadData) onReloadData();
+              setShowChForm(false);
+              triggerToast('success', editChId ? 'Agenda Campus Hiring diperbarui.' : 'Agenda Campus Hiring baru berhasil dipublikasikan.');
+            };
+
+            const handleDeleteCh = (item: CampusHiringItem) => {
+              if (confirm(`Hapus agenda Campus Hiring "${item.judul}"?`)) {
+                const currentList = getCampusHiring().filter((i) => i.id !== item.id);
+                saveCampusHiring(currentList);
+                reloadAll();
+                if (onReloadData) onReloadData();
+                triggerToast('success', 'Agenda berhasil dihapus.');
+              }
+            };
+
+            const handleChBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                if (file.size > 3 * 1024 * 1024) {
+                  triggerToast('error', 'Ukuran file gambar maksimal 3MB.');
+                  return;
+                }
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                  setChBannerUrl(ev.target?.result as string);
+                  triggerToast('success', 'Banner berhasil dimuat.');
+                };
+                reader.readAsDataURL(file);
+              }
+            };
+
+            return (
+              <div className="space-y-6" id="adm-campus-hiring">
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <div>
+                    <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+                      <Building2 className="w-6 h-6 text-[#0077C6]" /> Kelola Campus Hiring CDC UMK
+                    </h1>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Publikasikan jadwal rekrutmen &amp; wawancara langsung perusahaan mitra di kampus UM Kendari.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => openChModal()}
+                    className="bg-[#0077C6] hover:bg-[#1E3A8A] text-white px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" /> Tambah Campus Hiring
+                  </button>
+                </div>
+
+                {/* Form Modal */}
+                {showChForm && (
+                  <form onSubmit={handleSaveCh} className="bg-white rounded-2xl border border-slate-200 shadow-md p-6 space-y-4 animate-fade-in">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <h3 className="font-extrabold text-slate-800 text-lg">
+                        {editChId ? 'Edit Agenda Campus Hiring' : 'Tambah Agenda Campus Hiring Baru'}
+                      </h3>
+                      <button type="button" onClick={() => setShowChForm(false)} className="text-slate-400 hover:text-slate-600">
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5 md:col-span-2">
+                        <label className="text-xs font-bold text-slate-700">Judul Rekrutmen / Event *</label>
+                        <input
+                          type="text"
+                          value={chJudul}
+                          onChange={(e) => setChJudul(e.target.value)}
+                          placeholder="misal: On-Campus Recruitment PT Bank Central Asia Tbk 2026"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700">Nama Perusahaan Mitra *</label>
+                        <input
+                          type="text"
+                          value={chPerusahaan}
+                          onChange={(e) => setChPerusahaan(e.target.value)}
+                          placeholder="misal: PT Indofood Sukses Makmur Tbk"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700">Tipe Pelaksanaan *</label>
+                        <select
+                          value={chTipe}
+                          onChange={(e) => setChTipe(e.target.value as 'on-campus' | 'virtual')}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        >
+                          <option value="on-campus">On-Campus (Wawancara Langsung di Kampus)</option>
+                          <option value="virtual">Virtual Recruitment (Daring via Zoom/Meet)</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700">Tanggal Pelaksanaan *</label>
+                        <input
+                          type="date"
+                          value={chTanggal}
+                          onChange={(e) => setChTanggal(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700">Jam / Waktu Pelaksanaan</label>
+                        <input
+                          type="text"
+                          value={chWaktu}
+                          onChange={(e) => setChWaktu(e.target.value)}
+                          placeholder="misal: 08:30 - 15:00 WITA"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5 md:col-span-2">
+                        <label className="text-xs font-bold text-slate-700">Lokasi / Venue Pelaksanaan *</label>
+                        <input
+                          type="text"
+                          value={chLokasi}
+                          onChange={(e) => setChLokasi(e.target.value)}
+                          placeholder="misal: Aula Rektorat Lt. 2 Universitas Muhammadiyah Kendari"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        />
+                      </div>
+
+                      {chTipe === 'virtual' && (
+                        <div className="space-y-1.5 md:col-span-2">
+                          <label className="text-xs font-bold text-slate-700">Link Zoom / Google Meet (Virtual)</label>
+                          <input
+                            type="url"
+                            value={chLinkVirtual}
+                            onChange={(e) => setChLinkVirtual(e.target.value)}
+                            placeholder="https://zoom.us/j/..."
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                          />
+                        </div>
+                      )}
+
+                      <div className="space-y-1.5 md:col-span-2">
+                        <label className="text-xs font-bold text-slate-700">Posisi Lowongan Dibuka (Dipisah Koma)</label>
+                        <input
+                          type="text"
+                          value={chPosisiStr}
+                          onChange={(e) => setChPosisiStr(e.target.value)}
+                          placeholder="misal: Management Trainee, Customer Service, Field Officer"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5 md:col-span-2">
+                        <label className="text-xs font-bold text-slate-700">Persyaratan &amp; Berkas (Satu per baris Enter)</label>
+                        <textarea
+                          value={chSyaratStr}
+                          onChange={(e) => setChSyaratStr(e.target.value)}
+                          rows={4}
+                          placeholder={'Lulusan S1/D3 Semua Jurusan (IPK Min 3.00)\nMembawa CV Terbaru & Pasfoto 4x6\nFormat berpakaian rapi kemeja formal'}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700">Kuota Kursi Peserta</label>
+                        <input
+                          type="number"
+                          value={chKuota}
+                          onChange={(e) => setChKuota(e.target.value)}
+                          placeholder="100"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700">Status Agenda</label>
+                        <select
+                          value={chStatus}
+                          onChange={(e) => setChStatus(e.target.value as 'buka' | 'proses' | 'selesai')}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        >
+                          <option value="buka">Pendaftaran Dibuka</option>
+                          <option value="proses">Seleksi Berlangsung</option>
+                          <option value="selesai">Selesai</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-1.5 md:col-span-2">
+                        <label className="text-xs font-bold text-slate-700">Banner / Poster Promo (Upload / Input URL)</label>
+                        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+                          <input
+                            type="text"
+                            value={chBannerUrl}
+                            onChange={(e) => setChBannerUrl(e.target.value)}
+                            placeholder="/poster-cdc-web-umk-1.svg atau https://..."
+                            className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                          />
+                          <label className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200 shrink-0">
+                            <Upload className="w-4 h-4 text-blue-600" /> Upload Poster
+                            <input type="file" accept="image/*" onChange={handleChBannerUpload} className="hidden" />
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5 md:col-span-2">
+                        <label className="text-xs font-bold text-slate-700">Deskripsi Singkat Event</label>
+                        <textarea
+                          value={chDeskripsi}
+                          onChange={(e) => setChDeskripsi(e.target.value)}
+                          rows={3}
+                          placeholder="Penjelasan singkat alur seleksi & rekrutmen..."
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowChForm(false)}
+                        className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold"
+                      >
+                        Batal
+                      </button>
+                      <button
+                        type="submit"
+                        className="bg-[#0077C6] hover:bg-[#1E3A8A] text-white px-5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm"
+                      >
+                        <Save className="w-4 h-4" /> Simpan Campus Hiring
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {/* List Campus Hiring Cards */}
+                <div className="space-y-3">
+                  {campusHiringItems.length === 0 ? (
+                    <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-500 text-sm">
+                      Belum ada agenda Campus Hiring terdaftar. Klik "+ Tambah Campus Hiring" untuk membuat agenda rekrutmen kampus.
+                    </div>
+                  ) : (
+                    campusHiringItems.map((item) => (
+                      <div
+                        key={item.id}
+                        className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition hover:border-blue-300"
+                      >
+                        <div className="flex items-center gap-4 min-w-0 flex-1">
+                          {item.bannerUrl && (
+                            <div className="w-24 h-16 rounded-xl overflow-hidden bg-slate-900 border border-slate-200 shrink-0">
+                              <img src={item.bannerUrl} alt={item.judul} className="w-full h-full object-cover" />
+                            </div>
+                          )}
+                          <div className="min-w-0 flex-1 space-y-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-xs font-bold text-slate-900 truncate">{item.judul}</span>
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700">
+                                {item.namaPerusahaan}
+                              </span>
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${item.status === 'buka' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-700'}`}>
+                                {item.status}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-500 truncate">
+                              📅 {item.tanggal} ({item.waktu}) · 📍 {item.lokasi}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0">
+                          <button
+                            onClick={() => openChModal(item)}
+                            className="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition"
+                            title="Edit"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCh(item)}
+                            className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition"
+                            title="Hapus"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* ══════════════════════════════════════════
+              KELOLA JOB FAIR & BURSA KERJA
+          ══════════════════════════════════════════ */}
+          {activeTab === 'job-fair' && (() => {
+            const openJfModal = (item?: JobFairItem) => {
+              if (item) {
+                setEditJfId(item.id);
+                setJfJudul(item.judul);
+                setJfTagline(item.tagline || '');
+                setJfBannerUrl(item.bannerUrl || '');
+                setJfTglMulai(item.tanggalMulai || '');
+                setJfTglSelesai(item.tanggalSelesai || '');
+                setJfWaktu(item.waktu || '08:00 - 16:00 WITA');
+                setJfLokasi(item.lokasi || 'Auditorium Utama UM Kendari');
+                setJfHtm(item.htm || 'Gratis Khusus Mahasiswa & Alumni UM Kendari');
+                setJfDeskripsi(item.deskripsi || '');
+                setJfPerusahaanStr((item.perusahaanPeserta || []).map((c) => c.nama).join(', '));
+                setJfStatus(item.status || 'buka');
+              } else {
+                setEditJfId(null);
+                setJfJudul('');
+                setJfTagline('');
+                setJfBannerUrl('');
+                setJfTglMulai('');
+                setJfTglSelesai('');
+                setJfWaktu('08:00 - 16:00 WITA');
+                setJfLokasi('Auditorium Utama UM Kendari');
+                setJfHtm('Gratis Khusus Mahasiswa & Alumni UM Kendari');
+                setJfDeskripsi('');
+                setJfPerusahaanStr('');
+                setJfStatus('buka');
+              }
+              setShowJfForm(true);
+            };
+
+            const handleSaveJf = (e: React.FormEvent) => {
+              e.preventDefault();
+              if (!jfJudul.trim() || !jfTglMulai.trim()) {
+                triggerToast('error', 'Judul Job Fair dan Tanggal Mulai wajib diisi.');
+                return;
+              }
+
+              let currentList = getJobFair();
+              const now = new Date().toISOString();
+              const compList = jfPerusahaanStr.split(',').map((s, idx) => ({
+                id: `p_${idx}_${Date.now()}`,
+                nama: s.trim()
+              })).filter((c) => c.nama.length > 0);
+
+              if (editJfId) {
+                currentList = currentList.map((item) =>
+                  item.id === editJfId
+                    ? {
+                        ...item,
+                        judul: jfJudul.trim(),
+                        tagline: jfTagline.trim() || undefined,
+                        bannerUrl: jfBannerUrl.trim() || undefined,
+                        tanggalMulai: jfTglMulai,
+                        tanggalSelesai: jfTglSelesai || jfTglMulai,
+                        waktu: jfWaktu.trim(),
+                        lokasi: jfLokasi.trim(),
+                        htm: jfHtm.trim(),
+                        perusahaanPeserta: compList.length > 0 ? compList : item.perusahaanPeserta,
+                        deskripsi: jfDeskripsi.trim() || undefined,
+                        status: jfStatus
+                      }
+                    : item
+                );
+              } else {
+                const newItem: JobFairItem = {
+                  id: `jf_${Date.now()}`,
+                  judul: jfJudul.trim(),
+                  tagline: jfTagline.trim() || undefined,
+                  bannerUrl: jfBannerUrl.trim() || undefined,
+                  tanggalMulai: jfTglMulai,
+                  tanggalSelesai: jfTglSelesai || jfTglMulai,
+                  waktu: jfWaktu.trim(),
+                  lokasi: jfLokasi.trim(),
+                  htm: jfHtm.trim(),
+                  perusahaanPeserta: compList,
+                  deskripsi: jfDeskripsi.trim() || undefined,
+                  status: jfStatus,
+                  createdAt: now
+                };
+                currentList.unshift(newItem);
+              }
+
+              saveJobFair(currentList);
+              reloadAll();
+              if (onReloadData) onReloadData();
+              setShowJfForm(false);
+              triggerToast('success', editJfId ? 'Job Fair diperbarui.' : 'Job Fair baru berhasil dipublikasikan.');
+            };
+
+            const handleDeleteJf = (item: JobFairItem) => {
+              if (confirm(`Hapus Job Fair "${item.judul}"?`)) {
+                const currentList = getJobFair().filter((i) => i.id !== item.id);
+                saveJobFair(currentList);
+                reloadAll();
+                if (onReloadData) onReloadData();
+                triggerToast('success', 'Job Fair berhasil dihapus.');
+              }
+            };
+
+            const handleJfBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                if (file.size > 3 * 1024 * 1024) {
+                  triggerToast('error', 'Ukuran file gambar maksimal 3MB.');
+                  return;
+                }
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                  setJfBannerUrl(ev.target?.result as string);
+                  triggerToast('success', 'Banner berhasil dimuat.');
+                };
+                reader.readAsDataURL(file);
+              }
+            };
+
+            return (
+              <div className="space-y-6" id="adm-job-fair">
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <div>
+                    <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+                      <Megaphone className="w-6 h-6 text-emerald-600" /> Kelola Job Fair &amp; Bursa Kerja CDC UMK
+                    </h1>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Publikasikan pameran bursa kerja akbar (Career Expo) beserta daftar perusahaan mitra peserta.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => openJfModal()}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" /> Tambah Job Fair
+                  </button>
+                </div>
+
+                {/* Form Modal */}
+                {showJfForm && (
+                  <form onSubmit={handleSaveJf} className="bg-white rounded-2xl border border-slate-200 shadow-md p-6 space-y-4 animate-fade-in">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <h3 className="font-extrabold text-slate-800 text-lg">
+                        {editJfId ? 'Edit Job Fair & Career Expo' : 'Tambah Job Fair & Career Expo Baru'}
+                      </h3>
+                      <button type="button" onClick={() => setShowJfForm(false)} className="text-slate-400 hover:text-slate-600">
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5 md:col-span-2">
+                        <label className="text-xs font-bold text-slate-700">Judul Event Job Fair *</label>
+                        <input
+                          type="text"
+                          value={jfJudul}
+                          onChange={(e) => setJfJudul(e.target.value)}
+                          placeholder="misal: UMK Mega Career Expo & Job Fair Nasional 2026"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700">Tagline / Sub-Judul Event</label>
+                        <input
+                          type="text"
+                          value={jfTagline}
+                          onChange={(e) => setJfTagline(e.target.value)}
+                          placeholder="misal: Langkah Awal Karir Impianmu Dimulai dari Sini!"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700">HTM / Tiket Masuk</label>
+                        <input
+                          type="text"
+                          value={jfHtm}
+                          onChange={(e) => setJfHtm(e.target.value)}
+                          placeholder="Gratis Khusus Mahasiswa & Alumni UM Kendari"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700">Tanggal Mulai Event *</label>
+                        <input
+                          type="date"
+                          value={jfTglMulai}
+                          onChange={(e) => setJfTglMulai(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700">Tanggal Selesai Event</label>
+                        <input
+                          type="date"
+                          value={jfTglSelesai}
+                          onChange={(e) => setJfTglSelesai(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5 md:col-span-2">
+                        <label className="text-xs font-bold text-slate-700">Lokasi / Venue Event *</label>
+                        <input
+                          type="text"
+                          value={jfLokasi}
+                          onChange={(e) => setJfLokasi(e.target.value)}
+                          placeholder="Auditorium Utama & Lapangan Indoor UM Kendari"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5 md:col-span-2">
+                        <label className="text-xs font-bold text-slate-700">Daftar Perusahaan Peserta (Dipisah Koma)</label>
+                        <input
+                          type="text"
+                          value={jfPerusahaanStr}
+                          onChange={(e) => setJfPerusahaanStr(e.target.value)}
+                          placeholder="PT Bank BCA, PT Indofood, PT Telkom Indonesia, PT Vale Indonesia, PT Astra International"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5 md:col-span-2">
+                        <label className="text-xs font-bold text-slate-700">Banner / Poster Utama Event (Upload / Input URL)</label>
+                        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+                          <input
+                            type="text"
+                            value={jfBannerUrl}
+                            onChange={(e) => setJfBannerUrl(e.target.value)}
+                            placeholder="/poster-cdc-web-umk-2.svg atau https://..."
+                            className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                          />
+                          <label className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200 shrink-0">
+                            <Upload className="w-4 h-4 text-emerald-600" /> Upload Poster
+                            <input type="file" accept="image/*" onChange={handleJfBannerUpload} className="hidden" />
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5 md:col-span-2">
+                        <label className="text-xs font-bold text-slate-700">Deskripsi Event</label>
+                        <textarea
+                          value={jfDeskripsi}
+                          onChange={(e) => setJfDeskripsi(e.target.value)}
+                          rows={3}
+                          placeholder="Penjelasan deskripsi pameran bursa kerja..."
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowJfForm(false)}
+                        className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold"
+                      >
+                        Batal
+                      </button>
+                      <button
+                        type="submit"
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm"
+                      >
+                        <Save className="w-4 h-4" /> Simpan Job Fair
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {/* List Job Fair Cards */}
+                <div className="space-y-3">
+                  {jobFairItems.length === 0 ? (
+                    <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-500 text-sm">
+                      Belum ada agenda Job Fair terdaftar. Klik "+ Tambah Job Fair" untuk membuat event bursa kerja.
+                    </div>
+                  ) : (
+                    jobFairItems.map((item) => (
+                      <div
+                        key={item.id}
+                        className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition hover:border-emerald-300"
+                      >
+                        <div className="flex items-center gap-4 min-w-0 flex-1">
+                          {item.bannerUrl && (
+                            <div className="w-24 h-16 rounded-xl overflow-hidden bg-slate-900 border border-slate-200 shrink-0">
+                              <img src={item.bannerUrl} alt={item.judul} className="w-full h-full object-cover" />
+                            </div>
+                          )}
+                          <div className="min-w-0 flex-1 space-y-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-xs font-bold text-slate-900 truncate">{item.judul}</span>
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 uppercase">
+                                {item.status}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-500 truncate">
+                              📅 {item.tanggalMulai} – {item.tanggalSelesai} · 📍 {item.lokasi} · 🏢 {item.perusahaanPeserta?.length || 0} Perusahaan
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0">
+                          <button
+                            onClick={() => openJfModal(item)}
+                            className="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition"
+                            title="Edit"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteJf(item)}
+                            className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition"
+                            title="Hapus"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             );
           })()}

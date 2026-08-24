@@ -91,7 +91,7 @@ export const LAYANAN_MENU: LayananMenuOption[] = [
   },
   {
     id: 'career-fair',
-    label: 'Job Fair & Bursa Kerja',
+    label: 'Job Fair',
     shortLabel: 'Job Fair',
     description: 'Bursa kerja tahunan yang mempertemukan mahasiswa dan alumni UMK dengan puluhan perusahaan mitra.',
     icon: CalendarDays,

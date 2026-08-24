@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { getHeroSlides } from '../data';
+import { HeroSlideItem } from '../types';
 
 interface HeroSliderProps {
   setTab: (tab: string) => void;
@@ -10,48 +12,34 @@ interface HeroSliderProps {
 }
 
 export default function HeroSlider({ setTab }: HeroSliderProps) {
+  const [slides, setSlides] = useState<HeroSlideItem[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [direction, setDirection] = useState<number>(1);
   const [isPaused, setIsPaused] = useState(false);
 
   const SLIDE_DURATION = 5000; // 5 seconds per slide
 
-  const slides = [
-    {
-      id: 'slide-1',
-      imageUrl: '/poster-cdc-web-umk-1.svg',
-      alt: 'Poster CDC WEB UMK - Slide 1',
-    },
-    {
-      id: 'slide-2',
-      imageUrl: '/poster-cdc-web-umk-2.svg',
-      alt: 'Poster CDC WEB UMK - Slide 2',
-    },
-    {
-      id: 'slide-3',
-      imageUrl: '/PENGEMBANGAN%20KARIR.svg',
-      alt: 'Pengembangan Karir - Slide 3',
-    },
-    {
-      id: 'slide-4',
-      imageUrl: '/TENTANG%20TRACER%20baru.svg',
-      alt: 'Tentang Tracer - Slide 4',
-    },
-    {
-      id: 'slide-5',
-      imageUrl: '/KONSELING%20KARIR%20slide%20ke%205.svg',
-      alt: 'Konseling Karir - Slide 5',
-    },
-  ];
+  useEffect(() => {
+    const loaded = getHeroSlides().filter((s) => s.isActive !== false).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    setSlides(loaded);
+  }, []);
 
   const totalSlides = slides.length;
 
+  useEffect(() => {
+    if (currentSlide >= totalSlides && totalSlides > 0) {
+      setCurrentSlide(0);
+    }
+  }, [totalSlides, currentSlide]);
+
   const nextSlide = () => {
+    if (totalSlides === 0) return;
     setDirection(1);
     setCurrentSlide((prev) => (prev + 1) % totalSlides);
   };
 
   const prevSlide = () => {
+    if (totalSlides === 0) return;
     setDirection(-1);
     setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
   };
@@ -61,24 +49,40 @@ export default function HeroSlider({ setTab }: HeroSliderProps) {
     setCurrentSlide(index);
   };
 
-  // Preload all slide images on mount to avoid decoding flash/blink during slide change
+  // Preload slide images to avoid flash
   useEffect(() => {
     slides.forEach((slide) => {
-      const img = new Image();
-      img.src = slide.imageUrl;
+      if (slide.imageUrl) {
+        const img = new Image();
+        img.src = slide.imageUrl;
+      }
     });
-  }, []);
+  }, [slides]);
 
   // Auto-play timer
   useEffect(() => {
-    if (isPaused) return;
+    if (isPaused || totalSlides <= 1) return;
 
     const timer = setInterval(() => {
       nextSlide();
     }, SLIDE_DURATION);
 
     return () => clearInterval(timer);
-  }, [currentSlide, isPaused]);
+  }, [currentSlide, isPaused, totalSlides]);
+
+  const handleSlideClick = (slide: HeroSlideItem) => {
+    if (!slide.targetUrl) {
+      setTab('lowongan');
+      return;
+    }
+    if (slide.targetUrl.startsWith('http://') || slide.targetUrl.startsWith('https://')) {
+      window.open(slide.targetUrl, '_blank');
+    } else {
+      setTab(slide.targetUrl);
+    }
+  };
+
+  if (totalSlides === 0) return null;
 
   // Ultra-smooth GPU-accelerated slide variants
   const slideVariants = {
@@ -104,7 +108,7 @@ export default function HeroSlider({ setTab }: HeroSliderProps) {
     }),
   };
 
-  const current = slides[currentSlide];
+  const current = slides[currentSlide] || slides[0];
 
   return (
     <section
@@ -117,7 +121,7 @@ export default function HeroSlider({ setTab }: HeroSliderProps) {
       <div className="carousel-inner w-full relative overflow-hidden">
         {/* Invisible Height Keeper to guarantee ZERO layout shift / container collapse */}
         <img
-          src={slides[0].imageUrl}
+          src={slides[0]?.imageUrl || ''}
           className="w-full h-auto block opacity-0 pointer-events-none select-none aria-hidden"
           alt=""
           aria-hidden="true"
@@ -134,51 +138,57 @@ export default function HeroSlider({ setTab }: HeroSliderProps) {
               animate="center"
               exit="exit"
               className="carousel-item active absolute inset-0 w-full h-full cursor-pointer transform-gpu"
-              onClick={() => setTab('lowongan')}
+              onClick={() => handleSlideClick(current)}
             >
               <img
                 src={current.imageUrl}
                 className="w-full h-full object-cover block m-0 p-0"
-                alt={current.alt}
+                alt={current.alt || current.title}
               />
             </motion.div>
           </AnimatePresence>
         </div>
 
         {/* FLOATING PREVIOUS CONTROL */}
-        <button
-          onClick={prevSlide}
-          aria-label="Previous Slide"
-          className="carousel-control-prev absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-20 p-2.5 sm:p-3.5 rounded-full bg-transparent hover:bg-white/20 text-white transition-all hover:scale-110 active:scale-95 drop-shadow-lg"
-        >
-          <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8 drop-shadow-md" />
-          <span className="sr-only">Previous</span>
-        </button>
+        {totalSlides > 1 && (
+          <button
+            onClick={prevSlide}
+            aria-label="Previous Slide"
+            className="carousel-control-prev absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-20 p-2.5 sm:p-3.5 rounded-full bg-transparent hover:bg-white/20 text-white transition-all hover:scale-110 active:scale-95 drop-shadow-lg"
+          >
+            <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8 drop-shadow-md" />
+            <span className="sr-only">Previous</span>
+          </button>
+        )}
 
         {/* FLOATING NEXT CONTROL */}
-        <button
-          onClick={nextSlide}
-          aria-label="Next Slide"
-          className="carousel-control-next absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-20 p-2.5 sm:p-3.5 rounded-full bg-transparent hover:bg-white/20 text-white transition-all hover:scale-110 active:scale-95 drop-shadow-lg"
-        >
-          <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8 drop-shadow-md" />
-          <span className="sr-only">Next</span>
-        </button>
+        {totalSlides > 1 && (
+          <button
+            onClick={nextSlide}
+            aria-label="Next Slide"
+            className="carousel-control-next absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-20 p-2.5 sm:p-3.5 rounded-full bg-transparent hover:bg-white/20 text-white transition-all hover:scale-110 active:scale-95 drop-shadow-lg"
+          >
+            <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8 drop-shadow-md" />
+            <span className="sr-only">Next</span>
+          </button>
+        )}
 
         {/* FLOATING SLIDE INDICATORS */}
-        <div className="absolute bottom-3 sm:bottom-5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-slate-950/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 shadow-lg">
-          {slides.map((s, idx) => (
-            <button
-              key={s.id}
-              onClick={() => goToSlide(idx)}
-              className={`h-2.5 rounded-full transition-all duration-300 ${idx === currentSlide
-                ? 'w-7 bg-emerald-400'
-                : 'w-2.5 bg-white/40 hover:bg-white/70'
-                }`}
-              aria-label={`Go to slide ${idx + 1}`}
-            />
-          ))}
-        </div>
+        {totalSlides > 1 && (
+          <div className="absolute bottom-3 sm:bottom-5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-slate-950/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 shadow-lg">
+            {slides.map((s, idx) => (
+              <button
+                key={s.id}
+                onClick={() => goToSlide(idx)}
+                className={`h-2.5 rounded-full transition-all duration-300 ${idx === currentSlide
+                  ? 'w-7 bg-emerald-400'
+                  : 'w-2.5 bg-white/40 hover:bg-white/70'
+                  }`}
+                aria-label={`Go to slide ${idx + 1}`}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

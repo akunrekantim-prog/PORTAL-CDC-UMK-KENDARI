@@ -94,6 +94,7 @@ export interface EventLayananItem {
   registeredCount?: number;
   registrationLink?: string;
   status: 'buka' | 'segera' | 'selesai';
+  uploadedAt?: string; // ISO waktu upload (tie-breaker sorting)
 }
 
 export interface KontenKarir {
@@ -663,4 +664,60 @@ export interface CdcClubConfig {
   subtitle: string;          // deskripsi di bawah judul
   buttonText: string;        // teks tombol (mis. "Gabung Komunitas")
   buttonUrl: string;         // URL tujuan saat tombol diklik
+}
+
+export interface HeroSlideItem {
+  id: string;
+  title: string;
+  imageUrl: string;
+  targetUrl?: string; // Tautan tab e.g. "lowongan", "berita", "tracer-study" atau URL eksternal "https://..."
+  alt?: string;
+  isActive: boolean;
+  order: number;
+  createdAt: string;
+}
+
+export interface CampusHiringItem {
+  id: string;
+  judul: string;
+  namaPerusahaan: string;
+  logoPerusahaan?: string;
+  bannerUrl?: string; // Poster 9:16 atau 16:9
+  tanggal: string; // YYYY-MM-DD
+  waktu?: string; // e.g. "08:30 - 15:00 WITA"
+  lokasi: string; // e.g. "Aula Rektorat Lt. 2 UM Kendari"
+  tipe: 'on-campus' | 'virtual';
+  linkVirtual?: string;
+  persyaratan: string[];
+  posisiBuka: string[];
+  kuota?: number;
+  terdaftarCount?: number;
+  linkFormDaftar?: string;
+  deskripsi?: string;
+  status: 'buka' | 'proses' | 'selesai';
+  createdAt: string;
+}
+
+export interface JobFairCompany {
+  id: string;
+  nama: string;
+  logo?: string;
+  bidang?: string;
+}
+
+export interface JobFairItem {
+  id: string;
+  judul: string; // e.g. "UMK Career Expo & Job Fair 2026"
+  tagline?: string;
+  bannerUrl?: string;
+  tanggalMulai: string; // YYYY-MM-DD
+  tanggalSelesai: string; // YYYY-MM-DD
+  waktu?: string;
+  lokasi: string;
+  htm: string; // e.g. "Gratis Khusus Mahasiswa & Alumni UMK"
+  perusahaanPeserta: JobFairCompany[];
+  deskripsi?: string;
+  linkPendaftaranTiket?: string;
+  status: 'buka' | 'berlangsung' | 'selesai';
+  createdAt: string;
 }

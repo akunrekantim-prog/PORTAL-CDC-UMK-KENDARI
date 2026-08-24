@@ -172,8 +172,9 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
   // Selected Job for Full JobDetail Page View
   const [selectedJobForDetail, setSelectedJobForDetail] = useState<Lowongan | null>(null);
 
-  // Saved Jobs State
-  const [savedJobIds, setSavedJobIds] = useState<string[]>(() => getSavedJobIds());
+  // Current session user ID & Saved Jobs State
+  const currentUserId = localStorage.getItem('cdc_session_id') || '';
+  const [savedJobIds, setSavedJobIds] = useState<string[]>(() => getSavedJobIds(currentUserId || undefined));
 
   // Click Outside Listener for Popups
   const popupRef = useRef<HTMLDivElement>(null);
@@ -686,8 +687,8 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          toggleSaveJob(item.id);
-                          setSavedJobIds(getSavedJobIds());
+                          toggleSaveJob(item.id, currentUserId || undefined);
+                          setSavedJobIds(getSavedJobIds(currentUserId || undefined));
                         }}
                         className={`absolute top-3 right-3 w-8 h-8 rounded-full border transition z-10 cursor-pointer flex items-center justify-center ${
                           savedJobIds.includes(item.id)

@@ -1,4 +1,5 @@
 export { PageHeader } from './PageHeader';
+export { FlatHeader } from './FlatHeader';
 export { Section } from './Section';
 export { Card } from './Card';
 export { StepList } from './StepList';
