@@ -6,6 +6,35 @@ Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 
 ---
 
+## Tanggal: 24 Agustus 2026 (Sesi Arya — 2)
+**Oleh: ARYA APRIAWAN**
+**Fokus Pekerjaan:** Audit Integrasi Admin Menu Layanan, Konfirmasi Ketetapan Tes Potensi Minat Kerja, dan Pembersihan File Orphan Sisa Menu Layanan Lama.
+
+### Ringkasan Perubahan
+1. **Audit Integrasi Admin Seluruh Menu Layanan (7/8 terintegrasi penuh):**
+   - ✅ Workshop / Softskill / Seminar → via Konten Karir → Pembuatan Konten (jenis workshop/softskill/seminar).
+   - ✅ Job Fair → tab admin "Job Fair" (`saveJobFair`).
+   - ✅ Campus Hiring → tab admin "Campus Hiring" (`saveCampusHiring`).
+   - ✅ Konseling Karir → tab admin "Bimbingan & Konseling" (`saveKonselingConfig`).
+   - ✅ Internship/Magang → Form Lowongan (tipe: magang).
+   - Dengan ketetapan **Tes Potensi Minat Kerja dikecualikan** (link Klob Meter bersifat tetap), seluruh menu Layanan kini 100% terintegrasi admin.
+2. **Penghapusan File Orphan Menu Layanan Lama (4 file):**
+   - `CaraPasang.tsx`, `ExitSurvey.tsx`, `JobPlacement.tsx`, `BursaKerja.tsx` — terverifikasi **0 referensi** (tidak dirender di PublicLayout, tidak terdaftar di Header/MegaMenu/LAYANAN_MENU).
+   - Isi Bursa Kerja telah terwakili oleh Job Fair & Campus Hiring.
+   - Hasil: menu Layanan final 8 item — Campus Hiring, Konseling Karir, Tes Potensi Minat Kerja, Workshop, Softskill, Seminar, Job Fair, Internship.
+
+### File Diubah
+- **[DELETE]** `src/components/layanan/CaraPasang.tsx`
+- **[DELETE]** `src/components/layanan/ExitSurvey.tsx`
+- **[DELETE]** `src/components/layanan/JobPlacement.tsx`
+- **[DELETE]** `src/components/layanan/BursaKerja.tsx`
+
+### Verifikasi
+- ✅ `npx tsc --noEmit` — 0 error terkait file yang dihapus
+- ✅ `npm run build` — passed (✓ built in ~16s)
+
+---
+
 ## Tanggal: 24 Agustus 2026 (Sesi Arya)
 **Oleh: ARYA APRIAWAN**
 **Fokus Pekerjaan:** Perombakan Card Layout & Halaman Detail Menu Layanan (Job Fair, Campus Hiring, Workshop/Softskill/Seminar), Penghapusan Box Gradient PageHeader Seluruh Menu Layanan, Sorting Otomatis Terbaru, dan Animasi Scroll Masuk Card.
