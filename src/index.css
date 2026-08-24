@@ -143,4 +143,21 @@ ol.list-paren > li::before { content: counter(lp) ") "; position: absolute; left
   color: transparent !important;
 }
 
+/* Animasi reveal poster 9:16 di thumbnail list lowongan/magang:
+   crop window berjalan dari atas ke bawah & kembali (loop), sehingga
+   seluruh bagian poster tampak sedikit demi sedikit. */
+@keyframes poster-reveal-pan {
+  0%   { object-position: center top; }
+  50%  { object-position: center bottom; }
+  100% { object-position: center top; }
+}
+.poster-reveal {
+  object-fit: cover;
+  object-position: center top;
+  animation: poster-reveal-pan 7s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .poster-reveal { animation: none; object-position: center top; }
+}
+
 

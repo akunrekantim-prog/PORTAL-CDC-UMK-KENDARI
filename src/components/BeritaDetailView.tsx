@@ -19,6 +19,10 @@ import { Berita } from '../types';
 import Header from './Header';
 import { Footer } from './Footer';
 import { renderContentMarkdown } from '../markdown';
+import {
+  getApprovedKomentarBerita,
+  insertKomentarBerita
+} from '../data';
 
 interface BeritaDetailViewProps {
   berita: Berita;
@@ -47,21 +51,28 @@ export default function BeritaDetailView({
   onNavigateToLogin,
   onNavigateToRegister,
 }: BeritaDetailViewProps) {
-  // Form Komentar State
-  const [comments, setComments] = useState<CommentItem[]>([
-    {
-      id: 'c1',
-      nama: 'Ahmad Fauzi',
-      email: 'ahmad@example.com',
-      komentar: 'Sangat menginspirasi! Edukasi keuangan seperti ini sangat dibutuhkan oleh calon alumni dan mahasiswa tingkat akhir sebelum memasuki dunia kerja.',
-      date: '12 Agustus 2026, 14.30'
-    }
-  ]);
+  // Komentar yang SUDAH DISETUJUI ADMIN (dari DB, persisten per berita)
+  const [comments, setComments] = useState<CommentItem[]>(() =>
+    getApprovedKomentarBerita(berita.slug).map(k => ({
+      id: k.id,
+      nama: k.nama,
+      email: k.email,
+      komentar: k.komentar,
+      date: new Intl.DateTimeFormat('id-ID', {
+        day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
+      }).format(new Date(k.createdAt))
+    }))
+  );
+  // ID komentar yang USER ini kirim di sesi ini (status pending) —
+  // hanya untuk soft-notice "menunggu persetujuan", tidak tampil ke user lain.
+  const [myPendingIds, setMyPendingIds] = useState<string[]>([]);
+  const [myPendingNotice, setMyPendingNotice] = useState(false);
   const [inputKomentar, setInputKomentar] = useState('');
   const [inputNama, setInputNama] = useState('');
   const [inputEmail, setInputEmail] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+
 
   // Komputasi Berita Terkait (Maksimal 3 Card berdasarkan relevansi Scope & Judul)
   const relatedBeritaList = useMemo(() => {
@@ -147,21 +158,28 @@ export default function BeritaDetailView({
       return;
     }
 
-    const newComm: CommentItem = {
-      id: `comm_${Date.now()}`,
+    // Simpan ke DB dengan status PENDING — baru tayang setelah admin menyetujui.
+    const newId = `kmt_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    insertKomentarBerita({
+      id: newId,
+      beritaSlug: berita.slug,
+      beritaJudul: berita.title,
       nama: inputNama.trim(),
       email: inputEmail.trim(),
       komentar: inputKomentar.trim(),
-      date: 'Baru saja'
-    };
+      createdAt: new Date().toISOString(),
+      status: 'pending'
+    });
 
-    setComments(prev => [newComm, ...prev]);
+    // Soft-notice di sesi ini: user lihat sendiri bahwa komentarnya menunggu moderasi.
+    setMyPendingIds(prev => [newId, ...prev]);
+    setMyPendingNotice(true);
     setInputKomentar('');
     if (!rememberMe) {
       setInputNama('');
       setInputEmail('');
     }
-    setToastMsg('Komentar Anda berhasil dikirim dan ditambahkan!');
+    setToastMsg('Komentar Anda berhasil dikirim dan menunggu persetujuan admin sebelum tayang.');
     setTimeout(() => setToastMsg(null), 3500);
   };
 
@@ -497,6 +515,16 @@ export default function BeritaDetailView({
                     </button>
                   </div>
                 </form>
+
+                {/* Notice: komentar user ini sedang menunggu moderasi admin */}
+                {myPendingNotice && (
+                  <div className="pt-4 flex items-start gap-2 text-xs sm:text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-2xl p-3.5">
+                    <Clock className="w-4 h-4 mt-0.5 shrink-0" />
+                    <span>
+                      Komentar Anda berhasil dikirim dan sedang <strong>menunggu persetujuan admin</strong> sebelum ditampilkan di halaman ini. Terima kasih atas partisipasinya.
+                    </span>
+                  </div>
+                )}
 
                 {/* Submitted Comments List */}
                 {comments.length > 0 && (

@@ -12,8 +12,8 @@ import {
   Twitter,
   Linkedin
 } from 'lucide-react';
-import { getFromDB } from '../data';
-import { Lowongan, SocialMediaItem } from '../types';
+import { getFromDB, getCdcClubConfig } from '../data';
+import { Lowongan, SocialMediaItem, CdcClubConfig } from '../types';
 
 const POPULAR_LINKS = [
   'Loker BPJS Kesehatan 2026',
@@ -75,16 +75,26 @@ export const Footer: React.FC<FooterProps> = ({ onSelectLowongan, setTab }) => {
               Berkomitmen menjembatani lulusan dengan dunia kerja profesional.
             </p>
 
-            {/* CDC Club mini-badge */}
-            <div className="flex items-center gap-3 bg-rose-900/30 border border-rose-800/40 rounded-xl px-4 py-3">
-              <div className="bg-rose-600 p-2 rounded-lg">
-                <Users className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <div className="text-white font-extrabold text-xs">CDC UM KENDARI CLUB</div>
-                <div className="text-rose-400 text-[10px]">Komunitas alumni aktif & berkembang</div>
-              </div>
-            </div>
+            {/* CDC Club mini-badge (1 toggle dgn card beranda) */}
+            {(() => {
+              const club = getCdcClubConfig();
+              if (!club.published) return null;
+              const openClub = () => { if (club.buttonUrl) window.open(club.buttonUrl, '_blank', 'noopener,noreferrer'); };
+              return (
+                <button
+                  onClick={openClub}
+                  className="flex items-center gap-3 bg-rose-900/30 border border-rose-800/40 rounded-xl px-4 py-3 w-full text-left hover:bg-rose-900/50 transition-colors"
+                >
+                  <div className="bg-rose-600 p-2 rounded-lg">
+                    <Users className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-white font-extrabold text-xs whitespace-pre-line">{club.title}</div>
+                    <div className="text-rose-400 text-[10px]">{club.subtitle}</div>
+                  </div>
+                </button>
+              );
+            })()}
 
             {/* Dynamic Social icons */}
             {socialMediaList.length > 0 && (

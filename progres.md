@@ -6,7 +6,58 @@ Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 
 ---
 
-## Tanggal: 23 Agustus 2026 (Sesi 3)
+## Tanggal: 24 Agustus 2026
+**Oleh: Mirzat L. Teori**
+**Fokus Pekerjaan:** Moderasi Komentar Berita, Perbaikan Redirect Pembuatan Konten, Fix Simpan Workshop/Softskill/Seminar, Kelola CDC UM Kendari Club (Admin), Thumbnail Lowongan Admin = Poster 9:16 Animasi Reveal (Logo Dihapus), & Pembersihan Field Logo Instansi di Form Lowongan Admin.
+
+### Ringkasan Perubahan
+1. **Moderasi Komentar Berita (Wajib Approval Admin):**
+   - Menambah tabel `komentar_berita` di localStorage (`src/data.ts`) beserta helper CRUD (`getKomentarBerita`, `addKomentarBerita`, `updateKomentarBerita`, `deleteKomentarBerita`, `getKomentarByBerita`).
+   - Menambah interface `KomentarBerita` & type `StatusKomentar` (`src/types.ts`).
+   - Mengintegrasikan form komentar di `BeritaDetailView.tsx` ke database (status `pending`, hanya `approved` yang tampil publik).
+   - Menambah tab **INTERAKSI PUBLIK → Moderasi Komentar Berita** di `AdminDashboard.tsx`: daftar komentar, filter status, tombol Approve/Reject/Hapus, dan badge jumlah menunggu.
+2. **Fix Redirect Keluar Pembuatan Konten:**
+   - Menghapus `setKontenSub('riwayat')` pada aksi Batal/Tutup editor konten karir sehingga admin tetap diam di tab **Pembuatan Konten** (tidak loncat ke Riwayat).
+3. **Fix Simpan Konten Workshop / Softskill / Seminar:**
+   - Menambah `onInput` sinkronisasi `contentEditable` editor ke state `eBody` pada form non-berita di `AdminDashboard.tsx`, sehingga isi rich-text tersimpan saat klik Simpan (sebelumnya body kosong → gagal tersimpan).
+4. **Kelola CDC UM Kendari Club (Admin):**
+   - Menambah interface `CdcClubConfig` + `DEFAULT_CDC_CLUB_CONFIG` (`src/types.ts`) dan helper `getCdcClubConfig`/`saveCdcClubConfig` (`src/data.ts`, key `cdc_umk_cdc_club_config`).
+   - Menambah panel **CDC UM Kendari Club** di tab Media Sosial `AdminDashboard.tsx`: 1 toggle `Tampil` yang mengontrol sekaligus card beranda & badge footer, teks judul/deskripsi/teks tombol & URL tujuan dapat diedit, tombol Simpan.
+   - `PublicLayout.tsx`: card beranda menjadi conditional (`published` false → `return null`), teks & URL dinamis.
+   - `Footer.tsx`: badge footer conditional & dapat diklik (`window.open` URL).
+5. **Thumbnail Lowongan Admin = Poster 9:16 Animasi Reveal (Logo Dihapus):**
+   - `src/index.css`: menambah `@keyframes poster-reveal-pan` (object-position center top ↔ bottom loop 7s) + class `.poster-reveal` (object-cover + animasi). Menghormati `prefers-reduced-motion`.
+   - `PublicLayout.tsx` (card beranda & sidebar JobDetail): cabang `sumber === 'admin'` menampilkan **poster** (flyer/imageUrl/flyers/bannerImage) dengan class `poster-reveal`. **Fallback logo dihapus** untuk admin.
+   - `JobDetail.tsx`: detail menampilkan poster utuh (`object-contain`), tanpa fallback logo.
+   - **Lowongan MITRA tetap menampilkan LOGO** (revert ke tampilan semula sesuai permintaan).
+   - `AdminDashboard.tsx` (list lowongan admin): thumbnail pakai `poster-reveal`.
+6. **Pembersihan Field "Logo Instansi" di Form Lowongan Admin:**
+   - Menghapus seluruh blok UI **Logo Instansi** (upload File/URL + preview) dari form Lowongan admin `AdminDashboard.tsx`.
+   - Menghapus state `lLogoUrl`, `lLogoUploadType`, handler `handleLowonganLogo`, dan pemakaiannya (load/reset).
+   - Save handler lowongan admin: `companyLogo: undefined` (admin tidak menyimpan logo; thumbnail murni dari poster).
+   - Form Lowongan admin kini hanya memiliki **Poster / Flyer (9:16)** sebagai media visual tunggal.
+
+### File Diubah
+- `src/types.ts` (interface `KomentarBerita`, `StatusKomentar`, `CdcClubConfig` + `DEFAULT_CDC_CLUB_CONFIG`)
+- `src/data.ts` (CRUD `komentar_berita`, helper `CdcClubConfig`, key `cdc_umk_cdc_club_config`)
+- `src/components/BeritaDetailView.tsx` (integrasi komentar ke DB)
+- `src/components/AdminDashboard.tsx` (moderasi panel, fix redirect, fix onInput, panel CDC Club, poster-reveal list, hapus field Logo Instansi)
+- `src/components/PublicLayout.tsx` (card beranda & sidebar: admin = poster reveal tanpa logo; mitra = logo; CDC Club card conditional)
+- `src/components/Footer.tsx` (badge CDC Club conditional + clickable)
+- `src/components/JobDetail.tsx` (detail poster utuh tanpa fallback logo)
+- `src/index.css` (keyframe `poster-reveal-pan` + class `.poster-reveal`)
+- `progres.md` (update progres)
+
+### Verifikasi
+- ✅ `npm run build` — passed (0 error)
+- ✅ Mitra di beranda: 7 img `object-contain` (logo), 0 `poster-reveal` → mitra balik ke logo
+- ✅ Field `Logo Instansi` = 0 match di `AdminDashboard.tsx` (field dihapus)
+- ✅ CSS keyframe `poster-reveal-pan` terdaftar & aktif di stylesheet
+- ✅ Admin lowongan: thumbnail = poster 9:16 animasi reveal, tanpa logo
+
+---
+
+
 **Oleh: Developer Fachrul Alam Sanuddin**
 **Fokus Pekerjaan:** Revisi Desain Detail Card Event Layanan (Workshop, Softskill, Seminar) mengikuti Layout Editorial Halaman Berita & Artikel.
 

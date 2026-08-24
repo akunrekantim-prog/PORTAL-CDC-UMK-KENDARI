@@ -642,3 +642,25 @@ export interface HelpdeskConfig {
   whatsappNumber: string;
   whatsappNote: string;
 }
+
+export type StatusKomentar = 'pending' | 'approved' | 'rejected';
+
+export interface KomentarBerita {
+  id: string;
+  beritaSlug: string; // slug berita tujuan (Berita.slug / KontenKarir -> 'kk-<id>')
+  beritaJudul: string; // judul berita (snapshot, agar admin mudah baca)
+  nama: string;
+  email: string;
+  komentar: string;
+  createdAt: string; // ISO
+  status: StatusKomentar;
+}
+
+export interface CdcClubConfig {
+  id: string;
+  published: boolean;        // true = card beranda + badge footer tampil
+  title: string;             // baris judul (mis. "CDC UM KENDARI CLUB")
+  subtitle: string;          // deskripsi di bawah judul
+  buttonText: string;        // teks tombol (mis. "Gabung Komunitas")
+  buttonUrl: string;         // URL tujuan saat tombol diklik
+}

@@ -28,7 +28,10 @@ import {
   VisiMisiConfig,
   AnggotaTim,
   SocialMediaItem,
-  HelpdeskConfig
+  HelpdeskConfig,
+  KomentarBerita,
+  StatusKomentar,
+  CdcClubConfig
 } from './types';
 
 // Daftar Fakultas Resmi Universitas Muhammadiyah Kendari (UM Kendari)
@@ -1437,7 +1440,8 @@ export type DBKey =
   | 'laporan_kinerja'
   | 'mou_stakeholder'
   | 'galeri_items'
-  | 'social_media';
+  | 'social_media'
+  | 'komentar_berita';
 
 const DEFAULT_SEEDS = {
   users: SEED_USERS,
@@ -1773,6 +1777,37 @@ export function applyForJob(userId: string, job: Lowongan, extraData?: any) {
 }
 
 /* ─────────────────────────────────────────────────────────────────
+   KOMENTAR BERITA HELPERS (moderasi admin)
+───────────────────────────────────────────────────────────────── */
+export function getKomentarBerita(): KomentarBerita[] {
+  return getFromDB<KomentarBerita>('komentar_berita');
+}
+
+/** Komentar yang sudah disetujui admin — untuk render publik. */
+export function getApprovedKomentarBerita(slug: string): KomentarBerita[] {
+  return getKomentarBerita()
+    .filter(k => k.beritaSlug === slug && k.status === 'approved')
+    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
+}
+
+export function insertKomentarBerita(item: KomentarBerita): KomentarBerita {
+  return insertToDB<KomentarBerita>('komentar_berita', item);
+}
+
+export function updateKomentarBeritaStatus(id: string, status: StatusKomentar): KomentarBerita | null {
+  const all = getKomentarBerita();
+  const idx = all.findIndex(k => k.id === id);
+  if (idx === -1) return null;
+  const updated = { ...all[idx], status };
+  updateInDB<KomentarBerita>('komentar_berita', updated);
+  return updated;
+}
+
+export function deleteKomentarBerita(id: string): void {
+  deleteInDB<KomentarBerita>('komentar_berita', id);
+}
+
+/* ─────────────────────────────────────────────────────────────────
    BOOKMARK / SAVED JOBS HELPERS
 ───────────────────────────────────────────────────────────────── */
 export function getSavedJobIds(): string[] {
@@ -2031,6 +2066,38 @@ export function saveKonselingConfig(config: KonselingConfig): void {
     updatedAt: new Date().toISOString()
   };
   localStorage.setItem('cdc_umk_konseling_config', JSON.stringify(updated));
+}
+
+/* =========================================================
+ *  CDC UM KENDARI CLUB (card beranda + badge footer, 1 toggle)
+ * =======================================================*/
+export const DEFAULT_CDC_CLUB_CONFIG: CdcClubConfig = {
+  id: 'cdc_club_config_default',
+  published: true,
+  title: 'CDC UM KENDARI CLUB',
+  subtitle: 'Bergabunglah dengan komunitas alumni tangguh yang tersebar di seluruh nusantara.',
+  buttonText: 'Gabung Komunitas',
+  buttonUrl: 'https://umkendari.ac.id'
+};
+
+export function getCdcClubConfig(): CdcClubConfig {
+  const saved = localStorage.getItem('cdc_umk_cdc_club_config');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed && typeof parsed === 'object') {
+        return { ...DEFAULT_CDC_CLUB_CONFIG, ...parsed };
+      }
+    } catch (e) {
+      console.error('Error parsing cdc club config:', e);
+    }
+  }
+  return DEFAULT_CDC_CLUB_CONFIG;
+}
+
+export function saveCdcClubConfig(config: CdcClubConfig): void {
+  const updated = { ...config, updatedAt: new Date().toISOString() } as CdcClubConfig & { updatedAt?: string };
+  localStorage.setItem('cdc_umk_cdc_club_config', JSON.stringify(updated));
 }
 
 /* =========================================================

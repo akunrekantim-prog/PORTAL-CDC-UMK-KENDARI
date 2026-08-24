@@ -34,7 +34,9 @@ import {
   AnggotaTim,
   SocialMediaItem,
   Pengumuman,
-  HelpdeskConfig
+  HelpdeskConfig,
+  KomentarBerita,
+  CdcClubConfig
 } from '../types';
 import {
   getFromDB,
@@ -51,7 +53,12 @@ import {
   getAnggotaTim,
   saveAnggotaTim,
   getHelpdeskConfig,
-  saveHelpdeskConfig
+  saveHelpdeskConfig,
+  getKomentarBerita,
+  updateKomentarBeritaStatus,
+  deleteKomentarBerita,
+  getCdcClubConfig,
+  saveCdcClubConfig
 } from '../data';
 import {
   LayoutDashboard,
@@ -67,6 +74,7 @@ import {
   CalendarDays,
   Layers,
   Building2,
+  MessageSquare,
   UserCog,
   Plus,
   Search,
@@ -133,7 +141,7 @@ interface AdminDashboardProps {
   onReloadData?: () => void;
 }
 
-type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin' | 'keanggotaan' | 'visi-misi' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'media-sosial';
+type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin' | 'keanggotaan' | 'visi-misi' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'media-sosial' | 'komentar';
 type KontenSubTab = 'riwayat' | 'pembuatan';
 type MitraSubTab = 'approval' | 'list';
 
@@ -345,6 +353,9 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
 
   // Form states Galeri Kegiatan
   const [galeriItems, setGaleriItems] = useState<GaleriItem[]>([]);
+  const [komentarList, setKomentarList] = useState<KomentarBerita[]>([]);
+  const [komentarFilter, setKomentarFilter] = useState<'semua' | 'pending' | 'approved' | 'rejected'>('pending');
+  const [cdcClubCfg, setCdcClubCfg] = useState<CdcClubConfig>(getCdcClubConfig());
   const [showGalForm, setShowGalForm] = useState(false);
   const [editGalId, setEditGalId] = useState<string | null>(null);
   const [galJudul, setGalJudul] = useState('');
@@ -450,6 +461,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
     setLapItems(getFromDB<LaporanKinerja>('laporan_kinerja'));
     setMouItems(getFromDB<MouStakeholder>('mou_stakeholder'));
     setGaleriItems(getFromDB<GaleriItem>('galeri_items'));
+    setKomentarList(getKomentarBerita());
+    setCdcClubCfg(getCdcClubConfig());
     setAdminWaNum(getAdminWaPrestasi());
     setAnggotaList(getAnggotaTim());
     setSocMedList(getFromDB<SocialMediaItem>('social_media'));
@@ -493,6 +506,12 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       ]
     },
     {
+      group: 'INTERAKSI PUBLIK',
+      items: [
+        { id: 'komentar', label: 'Moderasi Komentar Berita', icon: <MessageSquare className="w-4 h-4" /> }
+      ]
+    },
+    {
       group: 'MANAJEMEN WEB',
       collapsible: true,
       items: [
@@ -514,6 +533,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
    * =======================================================*/
   const pendingMitra = mitra.filter((m) => m.statusKerjaSama === 'pending');
   const totalMenunggu = pendingMitra.length;
+  const pendingKomentarCount = komentarList.filter((k) => k.status === 'pending').length;
 
   // Aktivitas terkini (gabungan, 8 terbaru)
   const aktivitas = [
@@ -993,9 +1013,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const [lKualifikasi, setLKualifikasi] = useState('');
   const [lKeahlian, setLKeahlian] = useState('');
   const [lBenefit, setLBenefit] = useState('');
-  const [lLogoUrl, setLLogoUrl] = useState('');
   const [lPosterUrl, setLPosterUrl] = useState('');
-  const [lLogoUploadType, setLLogoUploadType] = useState<'file' | 'url'>('file');
   const [lPosterUploadType, setLPosterUploadType] = useState<'file' | 'url'>('file');
   const [lLinkEksternal, setLLinkEksternal] = useState('');
   const [lCtaEnabled, setLCtaEnabled] = useState(false);
@@ -1036,7 +1054,6 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       setLKualifikasi(Array.isArray(item.kualifikasi) ? item.kualifikasi.join('\n') : '');
       setLKeahlian(Array.isArray(item.keahlian) ? item.keahlian.join('\n') : '');
       setLBenefit(Array.isArray(item.benefit) ? item.benefit.join('\n') : '');
-      setLLogoUrl(item.companyLogo || '');
       setLPosterUrl(item.flyer || item.imageUrl || item.bannerImage || (item.flyers && item.flyers[0]) || '');
       setLLinkEksternal(item.linkEksternal || '');
       setLCtaEnabled(item.ctaEnabled === true);
@@ -1049,10 +1066,9 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       setLJudul(''); setLTipe('magang'); setLNamaInstansi(''); setLKategori('');
       setLLokasi(''); setLGaji('Kompetitif'); setLKuota(''); setLDeadline('');
       setLDeskripsi(''); setLTanggungJawab(''); setLKualifikasi(''); setLKeahlian(''); setLBenefit('');
-      setLLogoUrl(''); setLPosterUrl(''); setLLinkEksternal(''); setLCtaEnabled(false); setLCtaLabel('Daftar Sekarang'); setLJenisPekerjaan('full-time'); setLStatus('draft');
+      setLPosterUrl(''); setLLinkEksternal(''); setLCtaEnabled(false); setLCtaLabel('Daftar Sekarang'); setLJenisPekerjaan('full-time'); setLStatus('draft');
       setLIsPinned(false);
     }
-    setLLogoUploadType('file');
     setLPosterUploadType('file');
     setEditorOpen(false);
     setKontenSub('pembuatan');
@@ -1065,10 +1081,6 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
     setKontenSub('riwayat');
   };
 
-  const handleLowonganLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) setLLogoUrl(await readFileAsDataUrl(file));
-  };
   const handleLowonganPoster = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -1094,7 +1106,6 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
     const parseLines = (txt: string): string[] =>
       txt.split('\n').map((s) => s.trim()).filter((s) => s.length > 0);
 
-    const logoTarget = lLogoUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop';
     const existing = editLowonganId ? lowongan.find((j) => j.id === editLowonganId) : null;
 
     const newLow: Lowongan = {
@@ -1104,7 +1115,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       judul: lJudul.trim(),
       tipe: lTipe,
       namaInstansi: lNamaInstansi.trim(),
-      companyLogo: logoTarget,
+      companyLogo: undefined,
       imageUrl: lPosterUrl || undefined,
       flyer: lPosterUrl || undefined,
       bannerImage: lPosterUrl || undefined,
@@ -1653,6 +1664,9 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                         >
                           <span className={`transition-transform duration-200 ${active ? 'text-white scale-110' : 'text-slate-400 group-hover:text-[#0077C6]'}`}>{menu.icon}</span>
                           <span className="text-[13px] font-semibold">{menu.label}</span>
+                          {menu.id === 'komentar' && pendingKomentarCount > 0 && (
+                            <span className="ml-auto bg-amber-100 text-amber-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full">{pendingKomentarCount}</span>
+                          )}
                           {active
                             ? <span className="ml-auto w-2 h-2 rounded-full bg-white" />
                             : <span className="ml-auto w-1.5 h-1.5 rounded-full bg-transparent group-hover:bg-blue-300 transition" />}
@@ -2049,7 +2063,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                       {adminLowongan.map((l) => (
                         <div key={l.id} className="bg-blue-50/40 rounded-xl border border-blue-200 shadow-sm p-4 flex items-center gap-4">
                           {l.flyer || l.imageUrl ? (
-                            <img src={l.flyer || l.imageUrl} alt="" className="w-16 h-20 object-cover rounded-xl flex-shrink-0" />
+                            <img src={l.flyer || l.imageUrl} alt="" className="w-16 h-20 poster-reveal rounded-xl flex-shrink-0" />
                           ) : (
                             <div className="w-16 h-20 flex-shrink-0 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600"><Briefcase className="w-5 h-5" /></div>
                           )}
@@ -2263,25 +2277,9 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
 
                     {/* 2. Media Visual */}
                     <div className="space-y-4 pt-2">
-                      <h5 className="font-bold text-slate-800 text-xs uppercase tracking-wider border-b border-slate-100 pb-2">2. Visual Media</h5>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2 bg-slate-50/70 p-4 rounded-xl border border-slate-150">
-                          <div className="flex items-center justify-between">
-                            <label className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5"><Building2 className="w-4 h-4 text-blue-600" /> Logo Instansi</label>
-                            <div className="flex bg-white rounded-lg p-0.5 border border-slate-200 text-[11px] font-bold">
-                              <button type="button" onClick={() => setLLogoUploadType('file')} className={`px-2 py-1 rounded transition ${lLogoUploadType === 'file' ? 'bg-slate-800 text-white' : 'text-slate-500'}`}>File</button>
-                              <button type="button" onClick={() => setLLogoUploadType('url')} className={`px-2 py-1 rounded transition ${lLogoUploadType === 'url' ? 'bg-slate-800 text-white' : 'text-slate-500'}`}>URL</button>
-                            </div>
-                          </div>
-                          {lLogoUploadType === 'file' ? (
-                            <input type="file" accept="image/*" onChange={handleLowonganLogo} className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer" />
-                          ) : (
-                            <input type="url" value={lLogoUrl} onChange={(e) => setLLogoUrl(e.target.value)} placeholder="https://..." className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white" />
-                          )}
-                          {lLogoUrl && <img src={lLogoUrl} alt="" className="w-12 h-12 object-contain rounded-lg border border-slate-200 bg-white p-1" />}
-                        </div>
-
-                        <div className="space-y-2 bg-slate-50/70 p-4 rounded-xl border border-slate-150">
+                    <h5 className="font-bold text-slate-800 text-xs uppercase tracking-wider border-b border-slate-100 pb-2">2. Visual Media</h5>
+                    <div className="space-y-4">
+                      <div className="space-y-2 bg-slate-50/70 p-4 rounded-xl border border-slate-150">
                           <div className="flex items-center justify-between">
                             <label className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5"><ImageIcon className="w-4 h-4 text-blue-600" /> Poster / Flyer (9:16)</label>
                             <div className="flex bg-white rounded-lg p-0.5 border border-slate-200 text-[11px] font-bold">
@@ -2355,7 +2353,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                 <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-5" id="adm-konten-editor">
                   <div className="flex items-center justify-between">
                     <h2 className="font-bold text-slate-800">{editId ? 'Edit Konten' : 'Buat Konten'} — <span className="text-blue-600">{JENIS_LABEL[eJenis]}</span></h2>
-                    <button onClick={() => { setEditorOpen(false); setKontenSub('riwayat'); }} className="text-slate-400 hover:text-slate-700"><X className="w-5 h-5" /></button>
+                    <button onClick={() => { setEditorOpen(false); }} className="text-slate-400 hover:text-slate-700"><X className="w-5 h-5" /></button>
                   </div>
 
                   {saveError && (
@@ -2746,6 +2744,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                           ref={beritaEditRef}
                           contentEditable
                           suppressContentEditableWarning
+                          onInput={(e) => setEBody((e.target as HTMLDivElement).innerHTML)}
                           onMouseDown={() => { saveSelection(); setBeritaPop(null); }}
                           onMouseUp={saveSelection}
                           onKeyUp={saveSelection}
@@ -2775,7 +2774,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                       )}
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={() => { setEditorOpen(false); setKontenSub('riwayat'); }} className="px-4 py-2 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100">Batal</button>
+                      <button onClick={() => { setEditorOpen(false); }} className="px-4 py-2 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100">Batal</button>
                       <button onClick={handleSaveKonten} className="bg-slate-950 hover:bg-slate-800 text-white px-5 py-2 rounded-xl text-sm font-bold flex items-center gap-1.5"><Save className="w-4 h-4" /> Simpan</button>
                     </div>
                   </div>
@@ -5911,6 +5910,193 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                     </div>
                   </div>
                 )}
+              </div>
+            );
+          })()}
+
+          {/* ============== MODERASI KOMENTAR BERITA ============== */}
+          {activeTab === 'komentar' && (
+            <div className="space-y-6" id="adm-komentar">
+              {(() => {
+            const fmt = (iso?: string) =>
+              iso ? new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(iso)) : '-';
+            const list = [...komentarList]
+              .filter((k) => komentarFilter === 'semua' || k.status === komentarFilter)
+              .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
+            const counts = {
+              semua: komentarList.length,
+              pending: komentarList.filter((k) => k.status === 'pending').length,
+              approved: komentarList.filter((k) => k.status === 'approved').length,
+              rejected: komentarList.filter((k) => k.status === 'rejected').length,
+            };
+            const doApprove = (id: string) => { updateKomentarBeritaStatus(id, 'approved'); reloadAll(); triggerToast('success', 'Komentar disetujui & akan tayang di publik.'); };
+            const doReject = (id: string) => { updateKomentarBeritaStatus(id, 'rejected'); reloadAll(); triggerToast('error', 'Komentar ditolak.'); };
+            const doDelete = (id: string) => { deleteKomentarBerita(id); reloadAll(); triggerToast('error', 'Komentar dihapus.'); };
+            const tabs: { id: typeof komentarFilter; label: string }[] = [
+              { id: 'pending', label: `Menunggu (${counts.pending})` },
+              { id: 'approved', label: `Disetujui (${counts.approved})` },
+              { id: 'rejected', label: `Ditolak (${counts.rejected})` },
+              { id: 'semua', label: `Semua (${counts.semua})` },
+            ];
+            return (
+              <>
+                <div className="anim-fade-up">
+                  <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Moderasi Komentar Berita</h1>
+                  <p className="text-sm text-slate-500 mt-0.5">Komentar dari pengunjung akan tampil di halaman Berita &amp; Artikel hanya setelah Anda menyetujui.</p>
+                </div>
+
+                {/* Filter Tabs */}
+                <div className="flex flex-wrap gap-2">
+                  {tabs.map((t) => (
+                    <button
+                      key={t.id}
+                      onClick={() => setKomentarFilter(t.id)}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition ${komentarFilter === t.id ? 'bg-[#1E3A8A] text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Table */}
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                  {list.length === 0 ? (
+                    <div className="p-10 text-center text-sm text-slate-400">Tidak ada komentar pada filter ini.</div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="bg-slate-50 text-left text-[11px] uppercase tracking-wider text-slate-500">
+                            <th className="px-4 py-3 font-bold">Pengirim</th>
+                            <th className="px-4 py-3 font-bold">Komentar</th>
+                            <th className="px-4 py-3 font-bold">Berita</th>
+                            <th className="px-4 py-3 font-bold">Tanggal</th>
+                            <th className="px-4 py-3 font-bold">Status</th>
+                            <th className="px-4 py-3 font-bold text-right">Aksi</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {list.map((k) => (
+                            <tr key={k.id} className="align-top hover:bg-slate-50/60">
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                <div className="font-semibold text-slate-800 text-xs">{k.nama}</div>
+                                <div className="text-[11px] text-slate-400">{k.email}</div>
+                              </td>
+                              <td className="px-4 py-3 max-w-xs">
+                                <p className="text-slate-700 text-xs sm:text-sm leading-relaxed">{k.komentar}</p>
+                              </td>
+                              <td className="px-4 py-3 max-w-[180px]">
+                                <span className="text-xs text-slate-600 line-clamp-2">{k.beritaJudul}</span>
+                              </td>
+                              <td className="px-4 py-3 whitespace-nowrap text-[11px] text-slate-400">{fmt(k.createdAt)}</td>
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                {k.status === 'pending' && <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">Menunggu</span>}
+                                {k.status === 'approved' && <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">Disetujui</span>}
+                                {k.status === 'rejected' && <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700">Ditolak</span>}
+                              </td>
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                <div className="flex items-center justify-end gap-1.5">
+                                  {k.status !== 'approved' && (
+                                    <button onClick={() => doApprove(k.id)} className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition">Setujui</button>
+                                  )}
+                                  {k.status !== 'rejected' && (
+                                    <button onClick={() => doReject(k.id)} className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-amber-500 hover:bg-amber-600 text-white transition">Tolak</button>
+                                  )}
+                                  <button onClick={() => doDelete(k.id)} className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-rose-500 hover:bg-rose-600 text-white transition">Hapus</button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </>
+            );
+              })()}
+            </div>
+          )}
+
+          {/* ============== CDC UM KENDARI CLUB (1 toggle: card beranda + badge footer) ============== */}
+          {activeTab === 'media-sosial' && (() => {
+            const saveClub = () => {
+              saveCdcClubConfig(cdcClubCfg);
+              triggerToast('success', 'Pengaturan CDC UM Kendari Club tersimpan.');
+            };
+            return (
+              <div className="space-y-4" id="adm-cdc-club">
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <Users className="w-5 h-5 text-rose-600" /> CDC UM Kendari Club
+                      </h3>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Satu pengaturan mengontrol card di beranda &amp; badge di footer sekaligus.
+                        Nonaktifkan untuk menyembunyikan keduanya.
+                      </p>
+                    </div>
+                    <label className="flex items-center gap-2 cursor-pointer select-none shrink-0">
+                      <input
+                        type="checkbox"
+                        checked={cdcClubCfg.published}
+                        onChange={(e) => setCdcClubCfg({ ...cdcClubCfg, published: e.target.checked })}
+                        className="w-5 h-5 rounded border-slate-300 text-rose-600 focus:ring-rose-500"
+                      />
+                      <span className="text-sm font-bold text-slate-700">{cdcClubCfg.published ? 'Tampil' : 'Sembunyi'}</span>
+                    </label>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-slate-500">Judul (baris 1 &amp; 2 dipisah Enter)</label>
+                      <textarea
+                        value={cdcClubCfg.title}
+                        onChange={(e) => setCdcClubCfg({ ...cdcClubCfg, title: e.target.value })}
+                        rows={2}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm"
+                        placeholder="CDC UM KENDARI CLUB"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-slate-500">Deskripsi</label>
+                      <textarea
+                        value={cdcClubCfg.subtitle}
+                        onChange={(e) => setCdcClubCfg({ ...cdcClubCfg, subtitle: e.target.value })}
+                        rows={2}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-slate-500">Teks Tombol</label>
+                      <input
+                        value={cdcClubCfg.buttonText}
+                        onChange={(e) => setCdcClubCfg({ ...cdcClubCfg, buttonText: e.target.value })}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm"
+                        placeholder="Gabung Komunitas"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-slate-500">URL Tujuan Tombol</label>
+                      <input
+                        value={cdcClubCfg.buttonUrl}
+                        onChange={(e) => setCdcClubCfg({ ...cdcClubCfg, buttonUrl: e.target.value })}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm"
+                        placeholder="https://..."
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end mt-4">
+                    <button
+                      onClick={saveClub}
+                      className="bg-rose-600 hover:bg-rose-700 text-white px-5 py-2 rounded-xl text-sm font-bold flex items-center gap-1.5"
+                    >
+                      <Save className="w-4 h-4" /> Simpan CDC Club
+                    </button>
+                  </div>
+                </div>
               </div>
             );
           })()}

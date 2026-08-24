@@ -13,8 +13,8 @@ import {
   MessageCircle, Send, Linkedin, Copy
 } from 'lucide-react';
 
-import { Lowongan, Berita, Pengumuman, KontenKarir } from '../types';
-import { sortJobsByNewest, formatDateDisplay, isJobDeadlinePassed, getFromDB, trackAndGetVisitorCount, getAdminWaPrestasi, getVisiMisiConfig } from '../data';
+import { Lowongan, Berita, Pengumuman, KontenKarir, CdcClubConfig } from '../types';
+import { sortJobsByNewest, formatDateDisplay, isJobDeadlinePassed, getFromDB, trackAndGetVisitorCount, getAdminWaPrestasi, getVisiMisiConfig, getCdcClubConfig } from '../data';
 import { motion, AnimatePresence } from 'motion/react';
 import Header from './Header';
 import { Footer } from './Footer';
@@ -564,17 +564,17 @@ export default function PublicLayout({
                         >
                           <div>
                             {item.sumber === 'admin' ? (
-                              /* Poster Image Container (Khusus Input Admin: Full-bleed, Zoom-in Center Crop) */
+                              /* Poster Image Container (Khusus Input Admin: Full-bleed, Zoom-in Center Crop + animasi reveal) */
                               <div className="w-full h-48 sm:h-52 relative overflow-hidden bg-slate-900 border-b border-slate-100">
                                 {(() => {
-                                  const posterSrc = item.flyer || item.imageUrl || (item.flyers && item.flyers.length > 0 ? item.flyers[0] : null) || item.bannerImage || item.companyLogo;
+                                  const posterSrc = item.flyer || item.imageUrl || (item.flyers && item.flyers.length > 0 ? item.flyers[0] : null) || item.bannerImage;
                                   if (posterSrc) {
                                     return (
                                       <>
                                         <img
                                           src={posterSrc}
                                           alt={item.judul || item.namaInstansi}
-                                          className="w-full h-full object-cover object-center scale-110 group-hover:scale-125 transition-transform duration-500"
+                                          className="w-full h-full poster-reveal scale-110 group-hover:scale-125 transition-transform duration-500"
                                           onError={(e) => {
                                             (e.currentTarget as HTMLElement).style.display = 'none';
                                           }}
@@ -937,30 +937,37 @@ export default function PublicLayout({
               <aside className="lg:col-span-4 space-y-6 lg:pt-0">
 
                 {/* CDC Club banner */}
-                <div className="bg-gradient-to-br from-rose-600 to-red-700 rounded-2xl p-6 text-white
-                                shadow-lg relative overflow-hidden">
-                  <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
-                    <Users className="w-48 h-48" />
-                  </div>
-                  <div className="relative z-10 text-center space-y-3">
-                    <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mx-auto">
-                      <Users className="w-7 h-7 text-white" />
+                {(() => {
+                  const club = getCdcClubConfig();
+                  if (!club.published) return null;
+                  const openClub = () => { if (club.buttonUrl) window.open(club.buttonUrl, '_blank', 'noopener,noreferrer'); };
+                  return (
+                  <div className="bg-gradient-to-br from-rose-600 to-red-700 rounded-2xl p-6 text-white
+                                  shadow-lg relative overflow-hidden">
+                    <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
+                      <Users className="w-48 h-48" />
                     </div>
-                    <h4 className="font-extrabold text-lg leading-tight">
-                      CDC UM KENDARI<br />CLUB
-                    </h4>
-                    <p className="text-rose-100 text-xs leading-relaxed">
-                      Bergabunglah dengan komunitas alumni tangguh yang tersebar di seluruh nusantara.
-                    </p>
-                    <button
-                      onClick={() => (onNavigateToRegister ? onNavigateToRegister('alumni') : onNavigateToLogin())}
-                      className="bg-white text-rose-700 font-extrabold text-xs
-                                 px-5 py-2 rounded-full hover:bg-rose-50 transition-colors"
-                    >
-                      Gabung Komunitas
-                    </button>
+                    <div className="relative z-10 text-center space-y-3">
+                      <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mx-auto">
+                        <Users className="w-7 h-7 text-white" />
+                      </div>
+                      <h4 className="font-extrabold text-lg leading-tight whitespace-pre-line">
+                        {club.title}
+                      </h4>
+                      <p className="text-rose-100 text-xs leading-relaxed">
+                        {club.subtitle}
+                      </p>
+                      <button
+                        onClick={openClub}
+                        className="bg-white text-rose-700 font-extrabold text-xs
+                                   px-5 py-2 rounded-full hover:bg-rose-50 transition-colors"
+                      >
+                        {club.buttonText}
+                      </button>
+                    </div>
                   </div>
-                </div>
+                  );
+                })()}
 
                 {/* Popular Info widget (Dinamis dari info terpin & terpublikasi, KHUSUS non-lowongan/non-internship) */}
                 {(() => {
@@ -1536,7 +1543,6 @@ export default function PublicLayout({
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {paginatedLowongan.map(item => {
                     const hasLogo = Boolean(item.companyLogo);
-
                     return (
                       <div
                         key={item.id}
@@ -1545,17 +1551,17 @@ export default function PublicLayout({
                       >
                         <div>
                           {item.sumber === 'admin' ? (
-                            /* Poster Image Container (Khusus Input Admin: Full-bleed, Zoom-in Center Crop) */
+                            /* Poster Image Container (Khusus Input Admin: Full-bleed, Zoom-in Center Crop + animasi reveal) */
                             <div className="w-full h-48 sm:h-52 relative overflow-hidden bg-slate-900 border-b border-slate-100">
                               {(() => {
-                                const posterSrc = item.flyer || item.imageUrl || (item.flyers && item.flyers.length > 0 ? item.flyers[0] : null) || item.bannerImage || item.companyLogo;
+                                const posterSrc = item.flyer || item.imageUrl || (item.flyers && item.flyers.length > 0 ? item.flyers[0] : null) || item.bannerImage;
                                 if (posterSrc) {
                                   return (
                                     <>
                                       <img
                                         src={posterSrc}
                                         alt={item.judul || item.namaInstansi}
-                                        className="w-full h-full object-cover object-center scale-110 group-hover:scale-125 transition-transform duration-500"
+                                        className="w-full h-full poster-reveal scale-110 group-hover:scale-125 transition-transform duration-500"
                                         onError={(e) => {
                                           (e.currentTarget as HTMLElement).style.display = 'none';
                                         }}
