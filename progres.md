@@ -6,7 +6,51 @@ Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 
 ---
 
-<<<<<<< HEAD
+## Tanggal: 24 Agustus 2026 (Sesi Arya)
+**Oleh: ARYA APRIAWAN**
+**Fokus Pekerjaan:** Perombakan Card Layout & Halaman Detail Menu Layanan (Job Fair, Campus Hiring, Workshop/Softskill/Seminar), Penghapusan Box Gradient PageHeader Seluruh Menu Layanan, Sorting Otomatis Terbaru, dan Animasi Scroll Masuk Card.
+
+### Ringkasan Perubahan
+1. **Penghapusan Dropdown Sort Terbaru/Terlama (`EventCardLayout.tsx`):**
+   - Dropdown urutkan (Terbaru/Terlama/A-Z/Z-A) dihapus dari control panel; urutan default otomatis **Terbaru**.
+   - Search input melebar (8 kolom) dan filter Periode/Tahun menjadi 4 kolom.
+2. **Logic Sorting Anti-Kebalik (`EventCardLayout.tsx`, `src/types.ts`):**
+   - Field baru `uploadedAt?: string` pada `EventLayananItem`.
+   - Sorting: tanggal kegiatan utama, tie-breaker waktu upload (`createdAt`) — konten yang baru diupload admin dijamin tampil paling atas meski tanggal event seri.
+3. **Halaman Detail Editorial untuk Job Fair & Campus Hiring:**
+   - File baru `ui/ShareableDetailPage.tsx`: layout editorial penuh bergaya Detail Berita & Artikel — breadcrumb, judul besar, metadata strip ikon emas (kategori, tanggal, Oleh: Admin Website), cover banner 21:9, floating share sidebar kiri + horizontal share bar bawah (Facebook, X, WhatsApp, Telegram, LinkedIn).
+   - Klik card Job Fair/Campus Hiring kini membuka halaman detail penuh (bukan modal pop-up). Tab "Detail Konten" dan "E-Pass Tiket"/"Form Pendaftaran" dipertahankan di dalam halaman detail.
+4. **Penghapusan Box Gradient PageHeader di SEMUA Menu Layanan:**
+   - File baru `ui/FlatHeader.tsx` (eyebrow small-caps + judul besar slate-900 + deskripsi, tanpa wadah/box).
+   - `BursaKerja.tsx`, `CaraPasang.tsx`, `ExitSurvey.tsx`, `JobPlacement.tsx`, `TesMinat.tsx` beralih dari `PageHeader` (gradient banner) ke `FlatHeader`.
+   - Kotak krem subtitle & kotak panel kontrol pencarian di `EventCardLayout.tsx` dihapus — semua menyatu background putih.
+5. **Redesign Card Layout Job Fair & Campus Hiring (mengikuti pola bersih EventCardLayout):**
+   - Thumbnail 16:9 di atas (poster/logo perusahaan, hover zoom halus).
+   - Body: eyebrow uppercase → judul bold → tanggal · waktu → lokasi (teks netral, tanpa pill badge warna).
+   - Footer garis tipis hanya "by Admin Website"; info terdaftar/kuota booth dihilangkan dari card.
+   - Buang semua pill badge hijau/kuning/ungu, chip posisi, kotak metadata berwarna, dan tombol solid "Lihat Detail Konten" (seluruh card klikable).
+6. **Animasi Scroll Masuk (framer-motion `whileInView`):**
+   - Card fade-in + geser naik 28px saat masuk viewport, delay bertahap per kolom 0.08s, `once: true`, ease curve `[0.22, 1, 0.36, 1]`. Diterapkan di EventCardLayout, CareerFair, CampusHiring.
+7. **Perbaikan Bug & Audit Menu Layanan:**
+   - FIX header ganda: CareerFair & CampusHiring kini sinkron `setIsDetailActive` via `useLayanan()` sehingga judul container disembunyikan saat detail terbuka.
+   - Hapus dead code lightbox poster di CareerFair & duplikasi blok return detail di EventCardLayout.
+   - Hilangkan duplikasi judul besar (judul cukup dari LayananContainer; dalam halaman tersisa eyebrow + deskripsi).
+   - Rename label "Job Fair & Bursa Kerja" → "Job Fair" (LayananContainer, MegaMenu, CareerFair).
+   - Bersihkan conflict marker lama pada `progres.md` dan import tak terpakai.
+
+### File Diubah / Ditambah
+- **[BARU]** `src/components/layanan/ui/ShareableDetailPage.tsx`
+- **[BARU]** `src/components/layanan/ui/FlatHeader.tsx`
+- **[MODIFY]** `src/components/layanan/ui/EventCardLayout.tsx`, `ui/index.tsx`
+- **[MODIFY]** `src/components/layanan/CareerFair.tsx`, `CampusHiring.tsx`, `BursaKerja.tsx`, `CaraPasang.tsx`, `ExitSurvey.tsx`, `JobPlacement.tsx`, `TesMinat.tsx`, `LayananContainer.tsx`
+- **[MODIFY]** `src/components/MegaMenu.tsx`, `src/types.ts`
+
+### Verifikasi
+- ✅ `npx tsc --noEmit` — bersih untuk folder layanan
+- ✅ `npm run build` — passed (✓ built in ~13s, 0 error)
+
+---
+
 ## Tanggal: 24 Agustus 2026
 **Oleh: Mirzat L. Teori**
 **Fokus Pekerjaan:** Moderasi Komentar Berita, Perbaikan Redirect Pembuatan Konten, Fix Simpan Workshop/Softskill/Seminar, Kelola CDC UM Kendari Club (Admin), Thumbnail Lowongan Admin = Poster 9:16 Animasi Reveal (Logo Dihapus), & Pembersihan Field Logo Instansi di Form Lowongan Admin.
@@ -59,7 +103,9 @@ Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 ---
 
 
-=======
+
+---
+
 ## Tanggal: 23-24 Agustus 2026 (Sesi 4)
 **Oleh: Developer Fachrul Alam Sanuddin**
 **Fokus Pekerjaan:** Animasi Counter Angka Beranda, Penyesuaian Visitor Counter Live Hosting (Start 0 & Session Deduplication), Tampilan Foto Berita Mobile Full-Width (100% Rata Kiri-Kanan), Integrasi Dinamis 3 Sub-Menu Layanan (Workshop, Softskill, Seminar) pada Section Program & Pengumuman Beranda, dan Penambahan Akses Campus Hiring di Widget Layanan Cepat Beranda.
@@ -101,7 +147,6 @@ Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 ---
 
 ## Tanggal: 23 Agustus 2026 (Sesi 3)
->>>>>>> 49368ea3bcdc87e6f654acb5e16519656876386d
 **Oleh: Developer Fachrul Alam Sanuddin**
 **Fokus Pekerjaan:** Revisi Desain Detail Card Event Layanan (Workshop, Softskill, Seminar) mengikuti Layout Editorial Halaman Berita & Artikel.
 
@@ -825,7 +870,6 @@ Hasil verifikasi:
 - [x] Verifikasi kompilasi build produksi `npm run build` (0 error)
 - [x] Pencatatan laporan progres lengkap di `progres.md` (7 Agustus 2026)
 
-<<<<<<< HEAD
 ### ✅ Status Verifikasi Runtime
 - Build produksi lolos (`npm run build` → exit 0).
 - Diuji via browser (`vite preview` + fast-role Admin CDC → Konten Karir → Pembuatan → Berita & Artikel): ribbon 19 kontrol muncul lengkap. Ketik "Ini teks uji coba format" → seleksi semua → klik **Bold** → textarea jadi `**Ini teks uji coba format**` dan preview render `<strong>` (bold terbukti). Klik **Align Center** → textarea jadi `**...**[block align=center spacing=1]\n[/block]` dan preview render 2 paragraf (block terbungkus terbukti). Mekanisme shared helper (`wrapInline`/`wrapInlineArg`/`toggleLinePrefix`/`changeCase`/`fontSizeAdjust`/`clearFormatting`/`wrapBlock`) dipakai seluruh tombol, sehingga Italic/Underline/Strike/Sub/Sup/Case/FontSize/Clear/List/Spacing/Color/Highlight berjalan dengan logika sama.

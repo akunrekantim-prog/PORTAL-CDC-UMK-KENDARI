@@ -1,19 +1,16 @@
 import React from 'react';
 import { Award, Building2, Users, FileText, CheckCircle } from 'lucide-react';
-import { PageHeader, Card, MetaList, Divider } from './ui';
+import { FlatHeader, Card, MetaList, Divider } from './ui';
 
 const MITRA = ['Bank Sultra', 'Kalla Group', 'PT Telkom Indonesia', 'BPJS Kesehatan', 'Perum BULOG', 'dan mitra lainnya'];
 
 export default function JobPlacement() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-12 space-y-10" id="layanan-job-placement">
-      <PageHeader
-        badge="Penyaluran Kerja"
+      <FlatHeader
+        eyebrow="Penyaluran Kerja"
         title="Job Placement Program"
-        description="Program akselerasi penyaluran kerja langsung dengan instansi BUMN, kementerian, dan perusahaan mitra premium CDC UM Kendari."
-        accent="blue"
-        icon={Award}
-      />
+        description="Program akselerasi penyaluran kerja langsung dengan instansi BUMN, kementerian, dan perusahaan mitra premium CDC UM Kendari."/>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-7 space-y-6">

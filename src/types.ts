@@ -94,6 +94,7 @@ export interface EventLayananItem {
   registeredCount?: number;
   registrationLink?: string;
   status: 'buka' | 'segera' | 'selesai';
+  uploadedAt?: string; // ISO waktu upload (tie-breaker sorting)
 }
 
 export interface KontenKarir {

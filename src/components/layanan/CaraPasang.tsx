@@ -1,16 +1,14 @@
 import React from 'react';
 import { Building2, FileText, CheckCircle } from 'lucide-react';
-import { PageHeader, Card, MetaList, Divider } from './ui';
+import { FlatHeader, Card, MetaList, Divider } from './ui';
 
 export default function CaraPasang() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-12 space-y-10" id="layanan-cara-pasang">
-      <PageHeader
-        badge="Mitra Perusahaan"
+      <FlatHeader
+        eyebrow="Mitra Perusahaan"
         title="Pemasangan Informasi Lowongan Kerja"
         description="Temukan lulusan terbaik Universitas Muhammadiyah Kendari dengan mempublikasikan lowongan perusahaan Anda di Portal CDC."
-        accent="emerald"
-        icon={Building2}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

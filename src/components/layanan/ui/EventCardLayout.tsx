@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Search, Calendar, Filter, X, Layers, ArrowUpDown } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Search, Calendar, Filter, X, Layers } from 'lucide-react';
 import { EventLayananItem, KontenKarir } from '../../../types';
 import EventDetailView from '../EventDetailView';
 import { useLayanan } from '../LayananContainer';
@@ -44,7 +45,8 @@ const mapKontenToEvent = (k: KontenKarir): EventLayananItem => ({
   quota: k.kuotaEvent,
   registeredCount: k.terdaftar,
   registrationLink: k.linkDaftar,
-  status: k.statusEvent || 'buka'
+  status: k.statusEvent || 'buka',
+  uploadedAt: k.createdAt
 });
 
 export default function EventCardLayout({
@@ -60,7 +62,7 @@ export default function EventCardLayout({
   const { setIsDetailActive } = useLayanan();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedYear, setSelectedYear] = useState<string>('semua');
-  const [sortBy, setSortBy] = useState<'terbaru' | 'terlama' | 'az' | 'za'>('terbaru');
+  const [sortBy] = useState<'terbaru' | 'terlama' | 'az' | 'za'>('terbaru');
   const [selectedEvent, setSelectedEvent] = useState<EventLayananItem | null>(null);
 
   // Sync detail state to LayananContainer & optional prop callback
@@ -136,13 +138,22 @@ export default function EventCardLayout({
       return matchesSearch && matchesYear;
     });
 
-    // Sorting logic
+    // Sorting logic: tanggal kegiatan utama; tie-breaker = waktu upload
+    // terbaru (yang baru diupload admin selalu tampil paling atas)
     list = [...list].sort((a, b) => {
       if (sortBy === 'terbaru') {
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
+        const dateDiff = new Date(b.date).getTime() - new Date(a.date).getTime();
+        if (dateDiff !== 0) return dateDiff;
+        return (
+          new Date(b.uploadedAt || 0).getTime() - new Date(a.uploadedAt || 0).getTime()
+        );
       }
       if (sortBy === 'terlama') {
-        return new Date(a.date).getTime() - new Date(b.date).getTime();
+        const dateDiff = new Date(a.date).getTime() - new Date(b.date).getTime();
+        if (dateDiff !== 0) return dateDiff;
+        return (
+          new Date(a.uploadedAt || 0).getTime() - new Date(b.uploadedAt || 0).getTime()
+        );
       }
       if (sortBy === 'az') {
         return a.title.localeCompare(b.title);
@@ -175,10 +186,9 @@ export default function EventCardLayout({
   const resetFilters = () => {
     setSearchQuery('');
     setSelectedYear('semua');
-    setSortBy('terbaru');
   };
 
-  const hasActiveFilters = searchQuery !== '' || selectedYear !== 'semua' || sortBy !== 'terbaru';
+  const hasActiveFilters = searchQuery !== '' || selectedYear !== 'semua';
 
   const formatDateIndo = (dateStr: string) => {
     if (!dateStr) return '';
@@ -194,34 +204,20 @@ export default function EventCardLayout({
     }
   };
 
-  // Jika sedang melihat detail, tampilkan EventDetailView penuh
-  if (selectedEvent) {
-    return (
-      <EventDetailView
-        event={selectedEvent}
-        categoryLabel={pageTitle}
-        onBack={handleBackFromDetail}
-        setTab={setTab}
-      />
-    );
-  }
-
   return (
     <div className="w-full space-y-8" id="event-card-layout-root">
-      {/* Penjelasan Sub-Menu */}
+      {/* Penjelasan Sub-Menu (flat, tanpa wadah) */}
       {subtitle && (
-        <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 sm:p-5">
-          <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-normal">
-            {subtitle}
-          </p>
-        </div>
+        <p className="text-slate-500 text-sm sm:text-base leading-relaxed max-w-2xl -mt-2">
+          {subtitle}
+        </p>
       )}
 
-      {/* Control Panel: Search Bar + Filter Periode + Dropdown Urutkan + Badge Total */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-4 sm:p-5 space-y-4 overflow-hidden">
+      {/* Control Panel: Search Bar + Filter Periode (flat tanpa wadah) */}
+      <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-4 items-center">
           {/* 1. Main Search Input (Lebih Luas & Modern) */}
-          <div className="md:col-span-6 lg:col-span-6 relative">
+          <div className="md:col-span-8 lg:col-span-8 relative">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
               type="text"
@@ -242,7 +238,7 @@ export default function EventCardLayout({
           </div>
 
           {/* 2. Filter Periode / Tahun */}
-          <div className="md:col-span-3 lg:col-span-3 min-w-0">
+          <div className="md:col-span-4 lg:col-span-4 min-w-0">
             <Dropdown
               value={selectedYear}
               onChange={(v) => setSelectedYear(v)}
@@ -250,21 +246,6 @@ export default function EventCardLayout({
               options={[
                 { value: 'semua', label: 'Semua Periode' },
                 ...availableYears.map(y => ({ value: y, label: `Tahun ${y}` }))
-              ]}
-            />
-          </div>
-
-          {/* 3. Dropdown Pengurutan (Sort By) */}
-          <div className="md:col-span-3 lg:col-span-3 min-w-0">
-            <Dropdown
-              value={sortBy}
-              onChange={(v) => setSortBy(v as any)}
-              className="w-full"
-              options={[
-                { value: 'terbaru', label: '📅 Terbaru' },
-                { value: 'terlama', label: '⏳ Terlama' },
-                { value: 'az', label: '🔤 Judul (A - Z)' },
-                { value: 'za', label: '🔡 Judul (Z - A)' }
               ]}
             />
           </div>
@@ -298,11 +279,19 @@ export default function EventCardLayout({
       {/* Grid List Event Cards */}
       {filteredEvents.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredEvents.map((item) => (
-            <div
+          {filteredEvents.map((item, idx) => (
+            <motion.div
               key={item.id}
               role="button"
               tabIndex={0}
+              initial={{ opacity: 0, y: 28 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{
+                duration: 0.45,
+                delay: (idx % 3) * 0.08,
+                ease: [0.22, 1, 0.36, 1]
+              }}
               onClick={() => handleSelectEvent(item)}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSelectEvent(item); } }}
               className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md hover:border-slate-300 transition-all flex flex-col h-full cursor-pointer"
@@ -336,7 +325,7 @@ export default function EventCardLayout({
                   </span>
                 </div>
               </div>
-            </div>
+              </motion.div>
           ))}
         </div>
       ) : (

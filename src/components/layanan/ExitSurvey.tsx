@@ -1,17 +1,14 @@
 import React from 'react';
 import { FileText, Clock, CheckCircle, Users, Award } from 'lucide-react';
-import { PageHeader, Card, MetaList, Divider } from './ui';
+import { FlatHeader, Card, MetaList, Divider } from './ui';
 
 export default function ExitSurvey() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-12 space-y-10" id="layanan-exit-survey">
-      <PageHeader
-        badge="Tracer Kuesioner"
+      <FlatHeader
+        eyebrow="Tracer Kuesioner"
         title="Data Exit Survey Lulusan"
-        description="Kuisioner wajib bagi calon wisudawan UM Kendari untuk pemetaan penyerapan lulusan di dunia kerja."
-        accent="emerald"
-        icon={FileText}
-      />
+        description="Kuisioner wajib bagi calon wisudawan UM Kendari untuk pemetaan penyerapan lulusan di dunia kerja."/>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-7 space-y-6">

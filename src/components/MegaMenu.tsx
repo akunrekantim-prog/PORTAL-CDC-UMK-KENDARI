@@ -129,7 +129,7 @@ const LAYANAN_ITEMS: MenuItem[] = [
   },
   {
     icon: CalendarDays,
-    label: 'Job Fair & Bursa Kerja',
+    label: 'Job Fair',
     description: 'Pameran karir tahunan UM Kendari dengan puluhan perusahaan rekruter',
     tab: 'career-fair',
   },

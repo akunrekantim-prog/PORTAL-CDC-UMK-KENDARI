@@ -1,51 +1,66 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import {
-  Megaphone,
-  Calendar,
-  Clock,
-  MapPin,
-  Building2,
   Ticket,
-  CheckCircle,
-  QrCode,
   ArrowRight,
-  Send,
-  X,
-  Maximize2,
-  ChevronRight
+  ArrowLeft
 } from 'lucide-react';
-import { PageHeader, Section } from './ui';
+import { Section } from './ui';
+import ShareableDetailPage from './ui/ShareableDetailPage';
+import { useLayanan } from './LayananContainer';
 import { getJobFair } from '../../data';
 import { JobFairItem } from '../../types';
+
+const formatDateDisplay = (dateStart: string, dateEnd?: string) => {
+  try {
+    const d1 = new Date(dateStart);
+    if (isNaN(d1.getTime())) return dateStart;
+    const f1 = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(d1);
+    if (!dateEnd || dateEnd === dateStart) return f1;
+    const d2 = new Date(dateEnd);
+    const f2 = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(d2);
+    return `${f1} – ${f2}`;
+  } catch {
+    return dateStart;
+  }
+};
 
 export default function CareerFair() {
   const [items, setItems] = useState<JobFairItem[]>([]);
   const [selectedFair, setSelectedFair] = useState<JobFairItem | null>(null);
-  const [activeModalStep, setActiveModalStep] = useState<'detail' | 'ticket'>('detail');
-  const [lightboxPoster, setLightboxPoster] = useState<string | null>(null);
-
+  const [activeDetailStep, setActiveDetailStep] = useState<'detail' | 'ticket'>('detail');
   // Ticket registration states
   const [ticketNama, setTicketNama] = useState('');
-  const [ticketNim, setTicketNim] = useState('');
   const [ticketEmail, setTicketEmail] = useState('');
   const [ticketHp, setTicketHp] = useState('');
   const [ticketInstansi, setTicketInstansi] = useState('Universitas Muhammadiyah Kendari');
   const [ticketSuccess, setTicketSuccess] = useState(false);
   const [ticketCode, setTicketCode] = useState('');
+  const { setIsDetailActive } = useLayanan();
 
   useEffect(() => {
     setItems(getJobFair());
   }, []);
 
-  const handleOpenFairModal = (fair: JobFairItem) => {
+  // Sinkronkan status detail agar header container disembunyikan saat detail terbuka
+  useEffect(() => {
+    setIsDetailActive(selectedFair !== null);
+  }, [selectedFair, setIsDetailActive]);
+
+  const handleOpenFairDetail = (fair: JobFairItem) => {
     setSelectedFair(fair);
-    setActiveModalStep('detail');
+    setActiveDetailStep('detail');
     setTicketSuccess(false);
     setTicketNama('');
-    setTicketNim('');
     setTicketEmail('');
     setTicketHp('');
     setTicketInstansi('Universitas Muhammadiyah Kendari');
+    window.scrollTo(0, 0);
+  };
+
+  const handleBackToList = () => {
+    setSelectedFair(null);
+    window.scrollTo(0, 0);
   };
 
   const handleSubmitTicket = (e: React.FormEvent) => {
@@ -59,355 +74,292 @@ export default function CareerFair() {
     setTicketSuccess(true);
   };
 
-  const formatDateDisplay = (dateStart: string, dateEnd?: string) => {
-    try {
-      const d1 = new Date(dateStart);
-      if (isNaN(d1.getTime())) return dateStart;
-      const f1 = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(d1);
-      if (!dateEnd || dateEnd === dateStart) return f1;
-      const d2 = new Date(dateEnd);
-      const f2 = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(d2);
-      return `${f1} – ${f2}`;
-    } catch {
-      return dateStart;
-    }
-  };
+  // ===== HALAMAN DETAIL PENUH (gaya editorial Berita & Artikel) =====
+  if (selectedFair) {
+    const metaRows: { label: string; value: string }[] = [
+      { label: 'Tanggal', value: formatDateDisplay(selectedFair.tanggalMulai, selectedFair.tanggalSelesai) },
+      ...(selectedFair.waktu ? [{ label: 'Waktu', value: selectedFair.waktu }] : []),
+      { label: 'Lokasi', value: selectedFair.lokasi },
+      { label: 'HTM', value: selectedFair.htm }
+    ];
 
-  return (
-    <div className="max-w-6xl mx-auto px-4 py-8 sm:py-12 space-y-10" id="layanan-career-fair">
-      <PageHeader
-        badge="Bursa Kerja & Expo"
-        title="Job Fair & Career Expo CDC UM Kendari"
-        description="Daftar pameran bursa kerja akbar menghadirkan puluhan perusahaan BUMN & Swasta Nasional."
-        accent="emerald"
-        icon={Megaphone}
-      />
+    return (
+      <div id="layanan-career-fair-detail">
+        <ShareableDetailPage
+          title={selectedFair.judul}
+          categoryLabel="Job Fair"
+          imageUrl={selectedFair.bannerUrl || '/poster-cdc-web-umk-2.svg'}
+          onBack={handleBackToList}
+          metaItems={[
+            <span key="tgl">{formatDateDisplay(selectedFair.tanggalMulai, selectedFair.tanggalSelesai)}</span>
+          ]}
+        >
+          <div className="space-y-8">
 
-      {/* MODEL CARD LOWONGAN GRID LIST */}
-      <Section title="Daftar Event Job Fair">
-        {items.length === 0 ? (
-          <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center text-slate-400">
-            Belum ada agenda Job Fair yang dipublikasikan.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {items.map((fair) => (
-              <div
-                key={fair.id}
-                onClick={() => handleOpenFairModal(fair)}
-                className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-xl hover:border-emerald-300 transition-all duration-300 flex flex-col justify-between space-y-5 group cursor-pointer"
+            {/* Tab Navigasi — teks biasa dengan underline aktif */}
+            <div className="flex items-center gap-6 border-b border-slate-200">
+              <button
+                onClick={() => setActiveDetailStep('detail')}
+                className={`pb-3 -mb-px text-xs font-bold tracking-wide border-b-2 transition-colors cursor-pointer ${
+                  activeDetailStep === 'detail'
+                    ? 'text-slate-900 border-slate-900'
+                    : 'text-slate-400 border-transparent hover:text-slate-600'
+                }`}
               >
-                {/* Top Header */}
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-emerald-900 border border-emerald-200 flex items-center justify-center shrink-0 overflow-hidden shadow-xs text-white">
-                        <Megaphone className="w-6 h-6" />
-                      </div>
-                      <div>
-                        {fair.tagline && <span className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider block">{fair.tagline}</span>}
-                        <span className="text-xs text-slate-400 font-medium">Job Fair Resmi CDC UMK</span>
-                      </div>
-                    </div>
+                DETAIL KONTEN &amp; PERUSAHAAN
+              </button>
+              <button
+                onClick={() => { setActiveDetailStep('ticket'); setTicketSuccess(false); }}
+                className={`pb-3 -mb-px text-xs font-bold tracking-wide border-b-2 transition-colors cursor-pointer ${
+                  activeDetailStep === 'ticket'
+                    ? 'text-slate-900 border-slate-900'
+                    : 'text-slate-400 border-transparent hover:text-slate-600'
+                }`}
+              >
+                E-PASS TIKET MASUK
+              </button>
+            </div>
 
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0">
-                      {fair.status === 'berlangsung' ? '🔥 Berlangsung' : 'Pendaftaran Tiket'}
-                    </span>
+            {activeDetailStep === 'detail' ? (
+              <div className="space-y-10">
+                {/* Metadata sebagai tabel definisi, bukan kartu-kartu */}
+                <dl className="divide-y divide-slate-100 border-y border-slate-100">
+                  {metaRows.map((row) => (
+                    <div key={row.label} className="grid grid-cols-[120px_1fr] sm:grid-cols-[160px_1fr] py-3 text-sm">
+                      <dt className="font-bold text-slate-900">{row.label}</dt>
+                      <dd className="text-slate-600 leading-relaxed">{row.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+
+                {selectedFair.deskripsi && (
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Deskripsi</h4>
+                    <p className="text-sm sm:text-base text-slate-700 leading-relaxed whitespace-pre-line">
+                      {selectedFair.deskripsi}
+                    </p>
                   </div>
+                )}
 
-                  {/* Title */}
-                  <h3 className="text-base sm:text-lg font-extrabold text-slate-900 leading-snug group-hover:text-emerald-600 transition-colors">
-                    {fair.judul}
-                  </h3>
-
-                  {/* Metadata List Badges */}
-                  <div className="space-y-2 bg-slate-50/80 p-3.5 rounded-xl border border-slate-100 text-xs text-slate-600 font-medium">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>{formatDateDisplay(fair.tanggalMulai, fair.tanggalSelesai)} {fair.waktu ? `(${fair.waktu})` : ''}</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <MapPin className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
-                      <span className="leading-snug">{fair.lokasi}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-emerald-700 font-bold">
-                      <Ticket className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>HTM: {fair.htm}</span>
-                    </div>
+                {selectedFair.perusahaanPeserta && selectedFair.perusahaanPeserta.length > 0 && (
+                  <div className="space-y-4">
+                    <h4 className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">
+                      Perusahaan Peserta — {selectedFair.perusahaanPeserta.length}
+                    </h4>
+                    <ul className="divide-y divide-slate-100 border-t border-slate-100">
+                      {selectedFair.perusahaanPeserta.map((comp, idx) => (
+                        <li key={comp.id} className="flex items-baseline gap-4 py-3">
+                          <span className="text-xs text-slate-300 font-bold tabular-nums w-7 shrink-0">
+                            {String(idx + 1).padStart(2, '0')}
+                          </span>
+                          <span className="text-sm font-semibold text-slate-800">{comp.nama}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                </div>
+                )}
 
-                {/* Bottom Footer */}
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-xs text-slate-500 font-medium flex items-center gap-1">
-                    <Building2 className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Perusahaan Peserta: <strong>{fair.perusahaanPeserta?.length || 0}+ Booth</strong></span>
-                  </span>
-
+                <div className="pt-2 flex justify-end">
                   <button
-                    onClick={(e) => { e.stopPropagation(); handleOpenFairModal(fair); }}
-                    className="bg-emerald-600 group-hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-2xs"
+                    onClick={() => { setActiveDetailStep('ticket'); setTicketSuccess(false); }}
+                    className="inline-flex items-center gap-2 bg-slate-900 hover:bg-black text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer"
                   >
-                    <span>Lihat Detail Konten</span>
-                    <ChevronRight className="w-4 h-4" />
+                    <span>Dapatkan E-Pass Masuk</span>
+                    <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
               </div>
+            ) : (
+              /* Langkah Tiket */
+              <div className="max-w-lg">
+                {ticketSuccess ? (
+                  <div className="space-y-5">
+                    <div className="border-y border-slate-200 py-6 text-center space-y-2">
+                      <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-emerald-700">E-Pass Terbit</p>
+                      <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">Tiket Masuk Job Fair</h3>
+                      <p className="text-2xl font-black font-mono tracking-[0.08em] text-slate-900 tabular-nums">
+                        {ticketCode}
+                      </p>
+                    </div>
+
+                    <dl className="divide-y divide-slate-100 border-y border-slate-100 text-sm">
+                      <div className="flex justify-between gap-4 py-2.5"><dt className="text-slate-500">Nama</dt><dd className="font-semibold text-slate-800 text-right">{ticketNama}</dd></div>
+                      <div className="flex justify-between gap-4 py-2.5"><dt className="text-slate-500">Instansi</dt><dd className="font-semibold text-slate-800 text-right">{ticketInstansi}</dd></div>
+                      <div className="flex justify-between gap-4 py-2.5"><dt className="text-slate-500">Event</dt><dd className="font-semibold text-slate-800 text-right">{selectedFair.judul}</dd></div>
+                      <div className="flex justify-between gap-4 py-2.5"><dt className="text-slate-500">Lokasi</dt><dd className="font-semibold text-slate-800 text-right">{selectedFair.lokasi}</dd></div>
+                    </dl>
+
+                    <button
+                      onClick={handleBackToList}
+                      className="w-full bg-slate-900 hover:bg-black text-white py-2.5 rounded-xl text-xs font-bold transition-colors"
+                    >
+                      Selesai
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSubmitTicket} className="space-y-5">
+                    <div className="space-y-1">
+                      <h4 className="text-base font-extrabold text-slate-900 tracking-tight">Form Penerbitan E-Pass</h4>
+                      <p className="text-xs text-slate-500">Lengkapi data singkat untuk klaim tiket masuk.</p>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="space-y-1.5">
+                        <label htmlFor="jf-nama" className="text-xs font-bold text-slate-700">Nama Lengkap *</label>
+                        <input
+                          id="jf-nama"
+                          type="text"
+                          required
+                          value={ticketNama}
+                          onChange={(e) => setTicketNama(e.target.value)}
+                          placeholder="nama anda"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-400 text-sm outline-none transition-colors"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label htmlFor="jf-instansi" className="text-xs font-bold text-slate-700">Instansi / Prodi</label>
+                        <input
+                          id="jf-instansi"
+                          type="text"
+                          value={ticketInstansi}
+                          onChange={(e) => setTicketInstansi(e.target.value)}
+                          placeholder="Universitas Muhammadiyah Kendari"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-400 text-sm outline-none transition-colors"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label htmlFor="jf-email" className="text-xs font-bold text-slate-700">Email *</label>
+                          <input
+                            id="jf-email"
+                            type="email"
+                            required
+                            value={ticketEmail}
+                            onChange={(e) => setTicketEmail(e.target.value)}
+                            placeholder="nama@email.com"
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-400 text-sm outline-none transition-colors"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label htmlFor="jf-hp" className="text-xs font-bold text-slate-700">No. WhatsApp *</label>
+                          <input
+                            id="jf-hp"
+                            type="tel"
+                            required
+                            value={ticketHp}
+                            onChange={(e) => setTicketHp(e.target.value)}
+                            placeholder="08123456789"
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-400 text-sm outline-none transition-colors"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-4 flex items-center justify-between border-t border-slate-100">
+                      <button
+                        type="button"
+                        onClick={() => setActiveDetailStep('detail')}
+                        className="text-xs font-bold text-slate-500 hover:text-slate-800 inline-flex items-center gap-1 cursor-pointer"
+                      >
+                        <ArrowLeft className="w-3.5 h-3.5" /> Kembali
+                      </button>
+                      <button
+                        type="submit"
+                        className="bg-slate-900 hover:bg-black text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-colors"
+                      >
+                        Terbitkan E-Pass
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            )}
+          </div>
+        </ShareableDetailPage>
+      </div>
+    );
+  }
+
+  // ===== DAFTAR CARD =====
+  return (
+    <div className="max-w-6xl mx-auto px-4 py-8 sm:py-12 space-y-10" id="layanan-career-fair">
+      {/* Deskripsi flat — judul sudah ditampilkan LayananContainer di atas */}
+      <div className="-mt-4 space-y-2">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
+          Job Fair &amp; Expo
+        </p>
+        <p className="text-sm sm:text-base text-slate-500 leading-relaxed max-w-2xl">
+          Daftar pameran bursa kerja akbar menghadirkan puluhan perusahaan BUMN &amp; Swasta Nasional.
+        </p>
+      </div>
+
+      <Section title="Daftar Event Job Fair">
+        {items.length === 0 ? (
+          <div className="bg-white p-12 rounded-2xl border border-dashed border-slate-200 text-center text-sm text-slate-400">
+            Belum ada agenda Job Fair yang dipublikasikan.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {items.map((fair, idx) => (
+              <motion.div
+                key={fair.id}
+                role="button"
+                tabIndex={0}
+                initial={{ opacity: 0, y: 28 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.15 }}
+                transition={{
+                  duration: 0.45,
+                  delay: (idx % 3) * 0.08,
+                  ease: [0.22, 1, 0.36, 1]
+                }}
+                onClick={() => handleOpenFairDetail(fair)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleOpenFairDetail(fair); } }}
+                className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md hover:border-slate-300 transition-all flex flex-col h-full cursor-pointer"
+              >
+                {/* Thumbnail / Poster */}
+                <div className="relative aspect-[16/9] bg-slate-100 overflow-hidden border-b border-slate-100">
+                  <img
+                    src={fair.bannerUrl || '/poster-cdc-web-umk-2.svg'}
+                    alt={fair.judul}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                  />
+                </div>
+
+                {/* Card Body */}
+                <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                  <div className="space-y-2">
+                    {fair.tagline && (
+                      <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 line-clamp-1">
+                        {fair.tagline}
+                      </p>
+                    )}
+                    <h3 className="font-bold text-slate-900 text-base line-clamp-2 leading-snug group-hover:text-[#0077C6] transition-colors">
+                      {fair.judul}
+                    </h3>
+                    <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">
+                      {formatDateDisplay(fair.tanggalMulai, fair.tanggalSelesai)}{fair.waktu ? ` · ${fair.waktu}` : ''}
+                    </p>
+                    <p className="text-xs text-slate-500 leading-snug line-clamp-2">
+                      {fair.lokasi}
+                    </p>
+                  </div>
+
+                  {/* Metadata Footer */}
+                  <div className="pt-3 border-t border-slate-100 text-xs text-slate-500 flex items-center justify-end gap-2">
+                    <span className="text-slate-400 font-medium whitespace-nowrap">
+                      by Admin Website
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
             ))}
           </div>
         )}
       </Section>
-
-      {/* JOB FAIR DETAIL & TICKET MODAL */}
-      {selectedFair && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-md animate-fade-in">
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-4xl w-full overflow-hidden flex flex-col md:flex-row max-h-[92vh] relative">
-            
-            <button
-              onClick={() => setSelectedFair(null)}
-              className="absolute top-4 right-4 z-20 bg-slate-900/60 hover:bg-slate-900 text-white p-2 rounded-full backdrop-blur-sm transition"
-              title="Tutup"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            {/* Left Side: Poster (supports 9:16) */}
-            <div className="md:w-5/12 bg-slate-950 relative min-h-[250px] md:min-h-full flex items-center justify-center overflow-hidden border-b md:border-b-0 md:border-r border-slate-200">
-              <img
-                src={selectedFair.bannerUrl || '/poster-cdc-web-umk-2.svg'}
-                alt={selectedFair.judul}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-black/30" />
-              
-              {selectedFair.bannerUrl && (
-                <button
-                  onClick={() => setLightboxPoster(selectedFair.bannerUrl || '')}
-                  className="absolute bottom-4 left-4 bg-black/60 hover:bg-black text-white px-3 py-1.5 rounded-xl text-[11px] font-bold flex items-center gap-1.5 backdrop-blur-md border border-white/20 transition"
-                >
-                  <Maximize2 className="w-3.5 h-3.5" /> Perbesar Poster
-                </button>
-              )}
-            </div>
-
-            {/* Right Side: Detail Content & Ticket Switch */}
-            <div className="md:w-7/12 p-6 sm:p-8 space-y-6 overflow-y-auto max-h-[90vh] md:max-h-[92vh]">
-              
-              <div className="space-y-2 border-b border-slate-100 pb-4">
-                {selectedFair.tagline && (
-                  <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider block">{selectedFair.tagline}</span>
-                )}
-                <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 leading-snug">
-                  {selectedFair.judul}
-                </h2>
-              </div>
-
-              {/* Tab Navigation inside Modal */}
-              <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-                <button
-                  onClick={() => setActiveModalStep('detail')}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition ${activeModalStep === 'detail' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}
-                >
-                  Detail Konten &amp; Perusahaan
-                </button>
-                <button
-                  onClick={() => { setActiveModalStep('ticket'); setTicketSuccess(false); }}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition ${activeModalStep === 'ticket' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}
-                >
-                  Klaim E-Pass Tiket Masuk
-                </button>
-              </div>
-
-              {activeModalStep === 'detail' ? (
-                <div className="space-y-5">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-700 bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span><strong>Tanggal:</strong> {formatDateDisplay(selectedFair.tanggalMulai, selectedFair.tanggalSelesai)}</span>
-                    </div>
-                    {selectedFair.waktu && (
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span><strong>Jam:</strong> {selectedFair.waktu}</span>
-                      </div>
-                    )}
-                    <div className="flex items-start gap-2 sm:col-span-2">
-                      <MapPin className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
-                      <span><strong>Lokasi:</strong> {selectedFair.lokasi}</span>
-                    </div>
-                    <div className="flex items-center gap-2 sm:col-span-2 text-emerald-700 font-bold">
-                      <Ticket className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>HTM: {selectedFair.htm}</span>
-                    </div>
-                  </div>
-
-                  {selectedFair.deskripsi && (
-                    <div className="space-y-1.5">
-                      <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Deskripsi Konten</h4>
-                      <p className="text-xs sm:text-sm text-slate-600 leading-relaxed whitespace-pre-line">
-                        {selectedFair.deskripsi}
-                      </p>
-                    </div>
-                  )}
-
-                  {selectedFair.perusahaanPeserta && selectedFair.perusahaanPeserta.length > 0 && (
-                    <div className="space-y-2">
-                      <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                        <Building2 className="w-3.5 h-3.5 text-emerald-600" /> Perusahaan Peserta ({selectedFair.perusahaanPeserta.length}+ Perusahaan)
-                      </h4>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                        {selectedFair.perusahaanPeserta.map((comp) => (
-                          <div key={comp.id} className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 text-center truncate">
-                            {comp.nama}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="pt-4 border-t border-slate-100 flex justify-end">
-                    <button
-                      onClick={() => { setActiveModalStep('ticket'); setTicketSuccess(false); }}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl text-xs font-extrabold flex items-center gap-2 shadow-md transition cursor-pointer"
-                    >
-                      <Ticket className="w-4 h-4" />
-                      <span>Lanjut Dapatkan E-Pass Masuk</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                /* Ticket Step */
-                <div>
-                  {ticketSuccess ? (
-                    <div className="text-center py-6 space-y-4">
-                      <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
-                        <QrCode className="w-8 h-8" />
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">E-Pass Pengunjung Terbit</span>
-                        <h3 className="text-xl font-extrabold text-slate-900">Tiket Masuk Job Fair</h3>
-                        <div className="text-2xl font-black font-mono tracking-wider text-emerald-700 bg-emerald-50 py-2 rounded-xl border border-emerald-200">
-                          {ticketCode}
-                        </div>
-                      </div>
-
-                      <div className="bg-slate-50 p-4 rounded-2xl text-left border border-slate-200 text-xs text-slate-600 space-y-1">
-                        <div>👤 <strong>Nama:</strong> {ticketNama}</div>
-                        <div>🏛️ <strong>Instansi/Prodi:</strong> {ticketInstansi}</div>
-                        <div>📅 <strong>Event:</strong> {selectedFair.judul}</div>
-                        <div>📍 <strong>Lokasi:</strong> {selectedFair.lokasi}</div>
-                      </div>
-
-                      <button
-                        onClick={() => setSelectedFair(null)}
-                        className="w-full bg-slate-900 hover:bg-black text-white py-2.5 rounded-xl text-xs font-bold transition"
-                      >
-                        Selesai &amp; Simpan E-Pass
-                      </button>
-                    </div>
-                  ) : (
-                    <form onSubmit={handleSubmitTicket} className="space-y-4">
-                      <div className="space-y-1">
-                        <h4 className="text-sm font-extrabold text-slate-900">Form Penerbitan E-Pass Masuk</h4>
-                        <p className="text-xs text-slate-500">Lengkapi data singkat untuk klaim tiket masuk.</p>
-                      </div>
-
-                      <div className="space-y-3">
-                        <div className="space-y-1">
-                          <label className="text-xs font-bold text-slate-700">Nama Lengkap *</label>
-                          <input
-                            type="text"
-                            required
-                            value={ticketNama}
-                            onChange={(e) => setTicketNama(e.target.value)}
-                            placeholder="nama anda"
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-300"
-                          />
-                        </div>
-
-                        <div className="space-y-1">
-                          <label className="text-xs font-bold text-slate-700">Instansi / Prodi</label>
-                          <input
-                            type="text"
-                            value={ticketInstansi}
-                            onChange={(e) => setTicketInstansi(e.target.value)}
-                            placeholder="Universitas Muhammadiyah Kendari"
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-300"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-700">Email *</label>
-                            <input
-                              type="email"
-                              required
-                              value={ticketEmail}
-                              onChange={(e) => setTicketEmail(e.target.value)}
-                              placeholder="nama@email.com"
-                              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-300"
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-700">No. WhatsApp *</label>
-                            <input
-                              type="tel"
-                              required
-                              value={ticketHp}
-                              onChange={(e) => setTicketHp(e.target.value)}
-                              placeholder="08123456789"
-                              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-300"
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="pt-3 flex items-center justify-between border-t border-slate-100">
-                        <button
-                          type="button"
-                          onClick={() => setActiveModalStep('detail')}
-                          className="text-xs font-bold text-slate-500 hover:text-slate-800"
-                        >
-                          &larr; Kembali ke Detail
-                        </button>
-                        <button
-                          type="submit"
-                          className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm"
-                        >
-                          <Send className="w-3.5 h-3.5" /> Terbitkan E-Pass Saya
-                        </button>
-                      </div>
-                    </form>
-                  )}
-                </div>
-              )}
-
-            </div>
-
-          </div>
-        </div>
-      )}
-
-      {/* LIGHTBOX POSTER PREVIEW */}
-      {lightboxPoster && (
-        <div
-          onClick={() => setLightboxPoster(null)}
-          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 cursor-pointer animate-fade-in"
-        >
-          <div className="relative max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl border border-white/20 shadow-2xl">
-            <img src={lightboxPoster} alt="Poster Perbesar" className="w-full h-full object-contain" />
-            <button
-              onClick={() => setLightboxPoster(null)}
-              className="absolute top-3 right-3 bg-black/60 text-white p-2 rounded-full"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }

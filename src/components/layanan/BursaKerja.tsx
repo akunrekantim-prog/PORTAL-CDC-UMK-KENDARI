@@ -1,6 +1,6 @@
 import React from 'react';
 import { Building2, MapPin, Search, FileText, CheckCircle } from 'lucide-react';
-import { PageHeader, Card, MetaList, Divider, InfoRow, PillRow } from './ui';
+import { FlatHeader, Card, MetaList, Divider, InfoRow, PillRow } from './ui';
 
 const TOOLS = [
   'Formulir pengajuan digital',
@@ -16,13 +16,10 @@ const MECHANISMS = [
 export default function BursaKerja() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-12 space-y-10" id="layanan-bursa-kerja">
-      <PageHeader
-        badge="Bursa Kerja"
+      <FlatHeader
+        eyebrow="Bursa Kerja"
         title="Bursa Kerja"
-        description="Kegiatan event karir yang mempertemukan lulusan dengan perusahaan, meliputi Campus Hiring setiap bulan dan Job Fair UMK."
-        accent="blue"
-        icon={Search}
-      />
+        description="Kegiatan event karir yang mempertemukan lulusan dengan perusahaan, meliputi Campus Hiring setiap bulan dan Job Fair UMK."/>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-7 space-y-6">

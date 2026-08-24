@@ -1,5 +1,5 @@
 import React from 'react';
-import { PageHeader, Card } from './ui';
+import { FlatHeader, Card } from './ui';
 import { ExternalLink, Brain, CheckCircle, Target, ArrowUpRight } from 'lucide-react';
 
 export default function TesMinat() {
@@ -7,11 +7,10 @@ export default function TesMinat() {
 
   return (
     <div className="space-y-8" id="layanan-tes-minat">
-      <PageHeader
-        badge="Psikologi & Minat Karir"
+      <FlatHeader
+        eyebrow="Psikologi & Minat Karir"
         title="Tes Potensi Minat Kerja"
         description="Tes Potensi Minat Kerja adalah sarana untuk mengidentifikasi preferensi kerja alami Anda berdasarkan psikologi minat untuk arah karier yang lebih sesuai."
-        accent="blue"
       />
 
       {/* Main Klob Meter Call To Action Card */}
