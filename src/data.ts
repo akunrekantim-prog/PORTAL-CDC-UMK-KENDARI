@@ -1773,12 +1773,24 @@ export function registerUser(
       workRights: 'WNI (Hak Kerja Penuh)',
       opportunityType: '',
       preferredStartDate: '',
+      gender: '',
+      industries: '',
+      locations: '',
+      university: 'Universitas Muhammadiyah Kendari',
       skills: [],
       experiences: [],
       certificates: [],
-      qualifications: []
+      qualifications: [],
+      languages: []
     };
     insertToDB<Mahasiswa>('mahasiswa', newMahasiswa);
+
+    // Initialize clean empty bookmarks for new user
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(`cdc_saved_job_ids_${userId}`, JSON.stringify([]));
+      }
+    } catch { }
   } else if (role === 'mitra') {
     const mtrPayload = payload as RegisterMitraPayload;
     const newMitra: Mitra = {
@@ -1879,46 +1891,11 @@ export function applyForJob(userId: string, job: Lowongan, extraData?: any) {
     tanggalSelesai: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     status: 'under_review',
     createdAt: new Date().toISOString(),
-    ipk: student?.ipk || '3.85 / 4.00',
-    skills: student?.skills || ['JavaScript', 'React.js', 'UI/UX Design', 'Node.js', 'Python', 'Git & GitHub', 'HTML/CSS', 'Tailwind CSS'],
-    experiences: student?.experiences || [
-      {
-        id: '1',
-        position: 'Fullstack Web Developer Intern',
-        company: 'PT Go Digital Kendari',
-        period: '2026 - Sekarang',
-        description: 'Mengembangkan dan memelihara aplikasi portal akademik kampus dan integrasi RESTful API backend.'
-      },
-      {
-        id: '2',
-        position: 'Anggota Divisi IT & Komunikasi',
-        company: 'Himpunan Mahasiswa Teknik Informatika UMK',
-        period: '2024 - 2025',
-        description: 'Mengelola situs web kegiatan mahasiswa dan publikasi digital kampus.'
-      }
-    ],
-    certificates: student?.certificates || [
-      {
-        id: 'cert_1',
-        name: 'Sertifikat Kompetensi Fullstack Web Developer - BNSP',
-        issuer: 'BNSP',
-        year: '2025'
-      },
-      {
-        id: 'cert_2',
-        name: 'Google IT Support Professional Certificate',
-        issuer: 'Google / Coursera',
-        year: '2024'
-      }
-    ],
-    qualifications: student?.qualifications || [
-      {
-        id: '1',
-        institution: 'UNIVERSITAS MUHAMMADIYAH KENDARI',
-        level: 'Sarjana (S1) - Teknik Informatika / Computer Science',
-        year: '2026'
-      }
-    ]
+    ipk: student?.ipk || '',
+    skills: student?.skills || [],
+    experiences: student?.experiences || [],
+    certificates: student?.certificates || [],
+    qualifications: student?.qualifications || []
   };
 
   insertToDB<PengajuanMagang>('pengajuan_magang', newPengajuan);
@@ -1957,25 +1934,31 @@ export function deleteKomentarBerita(id: string): void {
 }
 
 /* ─────────────────────────────────────────────────────────────────
-   BOOKMARK / SAVED JOBS HELPERS
+   BOOKMARK / SAVED JOBS HELPERS (ISOLATED PER USER)
 ───────────────────────────────────────────────────────────────── */
-export function getSavedJobIds(): string[] {
+export function getSavedJobIds(userId?: string): string[] {
   try {
-    const raw = localStorage.getItem('cdc_saved_job_ids');
+    if (typeof localStorage === 'undefined') return [];
+    const currentUserId = userId || localStorage.getItem('cdc_session_id');
+    const storageKey = currentUserId ? `cdc_saved_job_ids_${currentUserId}` : 'cdc_saved_job_ids_guest';
+    const raw = localStorage.getItem(storageKey);
     return raw ? JSON.parse(raw) : [];
   } catch {
     return [];
   }
 }
 
-export function getValidSavedJobs(): Lowongan[] {
-  const savedIds = getSavedJobIds();
+export function getValidSavedJobs(userId?: string): Lowongan[] {
+  const savedIds = getSavedJobIds(userId);
   const allJobs = getFromDB<Lowongan>('lowongan');
   return allJobs.filter(job => savedIds.includes(job.id));
 }
 
-export function toggleSaveJob(jobId: string): boolean {
-  const current = getSavedJobIds();
+export function toggleSaveJob(jobId: string, userId?: string): boolean {
+  if (typeof localStorage === 'undefined') return false;
+  const currentUserId = userId || localStorage.getItem('cdc_session_id');
+  const storageKey = currentUserId ? `cdc_saved_job_ids_${currentUserId}` : 'cdc_saved_job_ids_guest';
+  const current = getSavedJobIds(userId);
   let next: string[];
   let isSaved = false;
   if (current.includes(jobId)) {
@@ -1985,8 +1968,12 @@ export function toggleSaveJob(jobId: string): boolean {
     next = [...current, jobId];
     isSaved = true;
   }
-  localStorage.setItem('cdc_saved_job_ids', JSON.stringify(next));
-  localStorage.setItem(`saved_job_${jobId}`, isSaved ? 'true' : 'false');
+  localStorage.setItem(storageKey, JSON.stringify(next));
+  if (currentUserId) {
+    localStorage.setItem(`saved_job_${currentUserId}_${jobId}`, isSaved ? 'true' : 'false');
+  } else {
+    localStorage.setItem(`saved_job_${jobId}`, isSaved ? 'true' : 'false');
+  }
   return isSaved;
 }
 

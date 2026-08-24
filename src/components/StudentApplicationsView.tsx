@@ -49,11 +49,9 @@ export const StudentApplicationsView: React.FC<StudentApplicationsViewProps> = (
   const allApplications = getFromDB<PengajuanMagang>('pengajuan_magang');
   const myApplications = allApplications.filter(a => 
     a.userId === user.id || 
-    a.namaMahasiswa === user.name || 
-    (mahasiswaData && a.nim === mahasiswaData.nim) ||
+    (mahasiswaData && a.nim && a.nim === mahasiswaData.nim) ||
     a.mahasiswaId === `mhs_${user.id}` ||
-    a.mahasiswaId === mahasiswaData?.id ||
-    (user.role === 'mahasiswa' && (a.userId === 'usr_mhs_demo' || a.userId === '2'))
+    (mahasiswaData && a.mahasiswaId === mahasiswaData.id)
   );
 
   // Calculate statistics

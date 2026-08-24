@@ -4,37 +4,37 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  User as UserType, 
-  Mitra, 
+import {
+  User as UserType,
+  Mitra,
   Mahasiswa,
-  Lowongan, 
-  PengajuanMagang, 
+  Lowongan,
+  PengajuanMagang,
   SurveiLulusan,
   SelectionHistoryLog
 } from '../types';
-import { 
-  getFromDB, 
-  saveToDB, 
-  insertToDB, 
+import {
+  getFromDB,
+  saveToDB,
+  insertToDB,
   updateInDB,
   deleteInDB,
   formatDateDisplay
 } from '../data';
-import { 
-  Building2, 
-  Briefcase, 
-  Users, 
-  FileText, 
-  CheckCircle, 
-  AlertCircle, 
-  Plus, 
-  Trash2, 
-  Globe, 
-  Phone, 
-  MapPin, 
-  Clock, 
-  Star, 
+import {
+  Building2,
+  Briefcase,
+  Users,
+  FileText,
+  CheckCircle,
+  AlertCircle,
+  Plus,
+  Trash2,
+  Globe,
+  Phone,
+  MapPin,
+  Clock,
+  Star,
   ArrowRight,
   Info,
   Upload,
@@ -182,21 +182,21 @@ const handleDownloadPdf = (url?: string, filename?: string) => {
   }
 };
 
-function PdfViewerPreview({ 
-  berkasUrl, 
-  fileName, 
+function PdfViewerPreview({
+  berkasUrl,
+  fileName,
   studentName = "Pelamar",
   prodi = "Teknik Informatika"
-}: { 
-  berkasUrl?: string; 
-  fileName?: string; 
+}: {
+  berkasUrl?: string;
+  fileName?: string;
   studentName?: string;
   prodi?: string;
 }) {
   const activeUrl = berkasUrl && berkasUrl !== '#' ? berkasUrl : DEFAULT_SAMPLE_PDF_DATA_URL;
   const isImg = activeUrl.startsWith('data:image/');
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  
+
   const [numPages, setNumPages] = useState<number>(1);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [scale, setScale] = useState<number>(1.2);
@@ -359,9 +359,8 @@ function PdfViewerPreview({
 
         <canvas
           ref={canvasRef}
-          className={`max-w-full bg-white shadow-lg rounded-md transition-opacity duration-200 ${
-            loadingPdf || useFallback ? 'hidden' : 'block'
-          }`}
+          className={`max-w-full bg-white shadow-lg rounded-md transition-opacity duration-200 ${loadingPdf || useFallback ? 'hidden' : 'block'
+            }`}
         />
 
         {useFallback && !loadingPdf && (
@@ -400,7 +399,7 @@ function PdfViewerPreview({
 
 export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDashboardProps) {
   const [activeTab, setActiveTab] = useState<'ringkasan' | 'profil' | 'lowongan' | 'pelamar' | 'survei'>('ringkasan');
-  
+
   // Data States
   const [mitraData, setMitraData] = useState<Mitra | null>(null);
   const [myJobs, setMyJobs] = useState<Lowongan[]>([]);
@@ -542,8 +541,8 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
     // Load related postings
     const lowongans = getFromDB<Lowongan>('lowongan');
-    const partnerPostings = lowongans.filter(l => 
-      l.mitraId === mit.id || 
+    const partnerPostings = lowongans.filter(l =>
+      l.mitraId === mit.id ||
       (mit.namaInstansi && l.namaInstansi && l.namaInstansi.toLowerCase().trim() === mit.namaInstansi.toLowerCase().trim())
     );
     setMyJobs(partnerPostings);
@@ -874,7 +873,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
     const target = allAppls.find(a => a.id === applId);
     if (target) {
       const todayFormatted = formatDate(new Date().toISOString().split('T')[0]);
-      
+
       let label = `Status diubah menjadi ${decision.toUpperCase()}`;
       if (decision === 'seleksi_administrasi') label = 'Masuk seleksi administrasi';
       else if (decision === 'interview') label = 'Lolos ke tahap interview';
@@ -1022,13 +1021,12 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans" id="mtr-dashboard">
       {/* LOCAL TOAST NOTIFIER */}
       {message && (
-        <div 
+        <div
           id="mtr-toast"
-          className={`fixed top-4 right-4 z-50 p-4 rounded-2xl shadow-xl border text-sm max-w-md flex items-center gap-3 transition-all animate-fadeIn ${
-            message.type === 'success' 
-              ? 'bg-emerald-50 text-emerald-900 border-emerald-300 font-semibold' 
+          className={`fixed top-4 right-4 z-50 p-4 rounded-2xl shadow-xl border text-sm max-w-md flex items-center gap-3 transition-all animate-fadeIn ${message.type === 'success'
+              ? 'bg-emerald-50 text-emerald-900 border-emerald-300 font-semibold'
               : 'bg-rose-50 text-rose-900 border-rose-300 font-semibold'
-          }`}
+            }`}
         >
           {message.type === 'success' ? (
             <div className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-xs">
@@ -1066,7 +1064,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
               <div className="font-bold text-xs text-slate-100 leading-none">{namaInstansi || user.name}</div>
               <div className="text-emerald-400 text-[11px] font-semibold leading-tight mt-0.5">PIC: {kontakPerson || user.name}</div>
             </div>
-            <button 
+            <button
               onClick={onLogout}
               className="bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-4 py-2 rounded-xl text-xs font-bold border border-slate-700/80 transition active:scale-95 cursor-pointer"
               id="mtr-btn-logout"
@@ -1079,7 +1077,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
       {/* DASHBOARD WEB CORE GRID */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-8" id="mtr-grid-layout">
-        
+
         {/* SIDEBAR NAVIGATION CONTROLS */}
         <aside className="lg:col-span-3 space-y-6" id="mtr-sidebar">
           <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-xs space-y-6">
@@ -1118,11 +1116,10 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                       setActiveTab(menu.id as any);
                       setShowAddJob(false);
                     }}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                      isActive
+                    className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all cursor-pointer ${isActive
                         ? 'bg-[#0077C6] text-white shadow-md shadow-blue-500/20'
                         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
-                    }`}
+                      }`}
                   >
                     <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
                     {menu.label}
@@ -1152,7 +1149,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
         {/* CORE CONTENT DISPLAY BOARD */}
         <main className="lg:col-span-9 space-y-8" id="mtr-dashboard-main">
-          
+
           {/* POLISHED VERIFIED PARTNER HEADER BANNER CARD */}
           {(activeTab === 'ringkasan' || activeTab === 'lowongan') && (
             <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6" id="mtr-welcome-banner">
@@ -1180,14 +1177,14 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 </div>
 
                 <div className="flex items-center gap-3 shrink-0 self-start md:self-center">
-                  <button 
-                    onClick={() => setActiveTab('profil')} 
+                  <button
+                    onClick={() => setActiveTab('profil')}
                     className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-2 cursor-pointer shadow-2xs"
                   >
                     <FileText className="w-4 h-4 text-slate-500" /> Edit Profil
                   </button>
-                  <button 
-                    onClick={() => { setActiveTab('lowongan'); setShowAddJob(true); }} 
+                  <button
+                    onClick={() => { setActiveTab('lowongan'); setShowAddJob(true); }}
                     className="bg-gradient-to-r from-[#0077C6] to-[#005FA3] hover:from-blue-700 hover:to-blue-800 text-white font-extrabold px-5 py-2.5 rounded-xl text-xs transition shadow-sm flex items-center gap-2 cursor-pointer active:scale-95"
                   >
                     <Plus className="w-4 h-4" /> Posting Lowongan
@@ -1308,15 +1305,15 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                               </div>
                             </div>
                           </div>
-                          
+
                           <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
-                            <button 
+                            <button
                               onClick={() => setSelectedApplicantDoc(appl)}
                               className="bg-white hover:bg-slate-50 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold border border-slate-200 transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
                             >
                               <FileText className="w-3.5 h-3.5 text-emerald-600" /> Lihat Berkas
                             </button>
-                            <button 
+                            <button
                               onClick={() => {
                                 setSelectedApplicantDoc(appl);
                               }}
@@ -1346,8 +1343,8 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5" id="profile-inputs">
                   <div className="space-y-1.5 col-span-1 sm:col-span-2">
                     <label className="text-xs font-bold text-slate-700">Nama Lengkap Instansi / Perusahaan *</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       required
                       value={namaInstansi}
                       onChange={(e) => setNamaInstansi(e.target.value)}
@@ -1358,8 +1355,8 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-700">Sektor Industri Kemitraan</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={bidangIndustri}
                       onChange={(e) => setBidangIndustri(e.target.value)}
                       placeholder="Contoh: Teknologi Informasi & Software"
@@ -1369,8 +1366,8 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-700">Nama Petugas Penghubung / PIC *</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       required
                       value={kontakPerson}
                       onChange={(e) => setKontakPerson(e.target.value)}
@@ -1380,8 +1377,8 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-700">Nomor Telepon / Hotline *</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       required
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
@@ -1391,8 +1388,8 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-700">Situs Web Resmi (Website URL)</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={website}
                       onChange={(e) => setWebsite(e.target.value)}
                       placeholder="https://example.com"
@@ -1403,7 +1400,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700">Alamat Lengkap Kantor Pusat / Regional *</label>
-                  <textarea 
+                  <textarea
                     value={alamat}
                     onChange={(e) => setAlamat(e.target.value)}
                     rows={3}
@@ -1413,7 +1410,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 </div>
 
                 <div className="pt-5 border-t border-slate-100 flex justify-end">
-                  <button 
+                  <button
                     type="submit"
                     className="bg-[#0077C6] hover:bg-blue-700 text-white px-6 py-3 rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-2 cursor-pointer active:scale-95"
                   >
@@ -1464,7 +1461,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
             return (
               <div className="space-y-6" id="mtr-panel-lowongan">
-                
+
                 {/* TOP BAR HEADER & POSTING BUTTON */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
@@ -1473,7 +1470,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                       Kelola kuota, batas tanggal pendaftaran, serta publikasi lowongan magang atau kerja.
                     </p>
                   </div>
-                  <button 
+                  <button
                     onClick={() => setShowAddJob(!showAddJob)}
                     className="bg-[#0055D4] hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 shadow-xs shrink-0 cursor-pointer active:scale-95"
                   >
@@ -1486,7 +1483,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 {!showAddJob && (
                   <div className="bg-white relative">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3 items-center">
-                      
+
                       {/* 1. SEARCH BOX */}
                       <div className="sm:col-span-2 md:col-span-6 relative">
                         <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -1576,16 +1573,16 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                     </div>
 
                     <form onSubmit={handleAddJobPosting} className="space-y-6 text-xs" id="add-job-form">
-                      
+
                       {/* BAGIAN 1: INFORMASI UTAMA REKRUTMEN */}
                       <div className="space-y-4">
                         <h5 className="font-bold text-slate-800 text-xs uppercase tracking-wider border-b border-slate-100 pb-2">1. Informasi Utama Rekrutmen</h5>
-                        
+
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                           <div className="space-y-1.5 sm:col-span-2">
                             <label className="text-xs font-bold text-slate-700">Judul Rekrutmen Karir / Posisi Pekerjaan *</label>
-                            <input 
-                              type="text" 
+                            <input
+                              type="text"
                               required
                               value={judul}
                               onChange={(e) => setJudul(e.target.value)}
@@ -1596,7 +1593,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
                           <div className="space-y-1.5">
                             <label className="text-xs font-bold text-slate-700">Tipe Lowongan *</label>
-                            <select 
+                            <select
                               value={tipe}
                               onChange={(e) => setTipe(e.target.value as any)}
                               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm bg-white font-normal transition"
@@ -1619,15 +1616,14 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                               {JOB_SPECIALIZATIONS.map((spec) => {
                                 const isChecked = selectedKategori.includes(spec);
                                 return (
-                                  <label 
-                                    key={spec} 
-                                    className={`flex items-center gap-2.5 p-2.5 rounded-xl border text-xs font-semibold transition cursor-pointer select-none ${
-                                      isChecked 
-                                        ? 'bg-white border-[#10B981] text-slate-900 shadow-xs ring-1 ring-[#10B981]/30 font-bold' 
+                                  <label
+                                    key={spec}
+                                    className={`flex items-center gap-2.5 p-2.5 rounded-xl border text-xs font-semibold transition cursor-pointer select-none ${isChecked
+                                        ? 'bg-white border-[#10B981] text-slate-900 shadow-xs ring-1 ring-[#10B981]/30 font-bold'
                                         : 'bg-white/60 border-slate-200 text-slate-600 hover:bg-white hover:border-slate-300'
-                                    }`}
+                                      }`}
                                   >
-                                    <input 
+                                    <input
                                       type="checkbox"
                                       checked={isChecked}
                                       onChange={() => handleCategoryToggle(spec)}
@@ -1642,8 +1638,8 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
                           <div className="space-y-1.5">
                             <label className="text-xs font-bold text-slate-700">Lokasi Penempatan Kerja *</label>
-                            <input 
-                              type="text" 
+                            <input
+                              type="text"
                               required
                               value={lokasi}
                               onChange={(e) => setLokasi(e.target.value)}
@@ -1654,8 +1650,8 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
                           <div className="space-y-1.5">
                             <label className="text-xs font-bold text-slate-700">Kisaran Gaji / Insentif (Opsional)</label>
-                            <input 
-                              type="text" 
+                            <input
+                              type="text"
                               value={gaji}
                               onChange={(e) => setGaji(e.target.value)}
                               placeholder="Contoh: Rp 3.500.000 - Rp 5.000.000 / Kompetitif"
@@ -1665,8 +1661,8 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
                           <div className="space-y-1.5">
                             <label className="text-xs font-bold text-slate-700">Rencana Kuota Penerimaan (Orang)</label>
-                            <input 
-                              type="number" 
+                            <input
+                              type="number"
                               min="1"
                               placeholder="Contoh: 3"
                               value={kuota}
@@ -1685,8 +1681,8 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
                           <div className="space-y-1.5">
                             <label className="text-xs font-bold text-slate-700">Batas Tanggal Pendaftaran (Deadline) *</label>
-                            <input 
-                              type="date" 
+                            <input
+                              type="date"
                               required
                               value={deadline}
                               onChange={(e) => setDeadline(e.target.value)}
@@ -1699,9 +1695,9 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                       {/* BAGIAN 2: MEDIA VISUAL */}
                       <div className="space-y-4 pt-2">
                         <h5 className="font-bold text-slate-800 text-xs uppercase tracking-wider border-b border-slate-100 pb-2">2. Visual Media (Logo Perusahaan & Poster Lowongan)</h5>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          
+
                           {/* 1. LOGO PERUSAHAAN */}
                           <div className="space-y-3 bg-slate-50/70 p-4 rounded-2xl border border-slate-150">
                             <div className="flex items-center justify-between">
@@ -1736,7 +1732,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                                 />
                               </div>
                             ) : (
-                              <input 
+                              <input
                                 type="url"
                                 value={companyLogoUrl}
                                 onChange={(e) => setCompanyLogoUrl(e.target.value)}
@@ -1787,7 +1783,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                                 />
                               </div>
                             ) : (
-                              <input 
+                              <input
                                 type="url"
                                 value={posterUrl}
                                 onChange={(e) => setPosterUrl(e.target.value)}
@@ -1810,11 +1806,11 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                       {/* BAGIAN 3: DETAIL ISI & PERSYARATAN PEKERJAAN */}
                       <div className="space-y-4 pt-2">
                         <h5 className="font-bold text-slate-800 text-xs uppercase tracking-wider border-b border-slate-100 pb-2">3. Detail Konten & Kriteria Lowongan</h5>
-                        
+
                         <div className="space-y-4">
                           <div className="space-y-1.5">
                             <label className="text-xs font-bold text-slate-700">Deskripsi Ringkas Pekerjaan (Opsional)</label>
-                            <textarea 
+                            <textarea
                               value={deskripsi}
                               onChange={(e) => setDeskripsi(e.target.value)}
                               rows={3}
@@ -1825,7 +1821,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
                           <div className="space-y-1.5">
                             <label className="text-xs font-bold text-slate-700">Tanggung Jawab Pekerjaan (Satu baris untuk setiap poin)</label>
-                            <textarea 
+                            <textarea
                               value={tanggungJawab}
                               onChange={(e) => setTanggungJawab(e.target.value)}
                               rows={3}
@@ -1836,7 +1832,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
                           <div className="space-y-1.5">
                             <label className="text-xs font-bold text-slate-700">Kualifikasi & Persyaratan (Satu baris untuk setiap poin)</label>
-                            <textarea 
+                            <textarea
                               value={kualifikasi}
                               onChange={(e) => setKualifikasi(e.target.value)}
                               rows={3}
@@ -1847,7 +1843,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
                           <div className="space-y-1.5">
                             <label className="text-xs font-bold text-slate-700">Keahlian & Technical Skills yang Dibutuhkan (Satu baris untuk setiap poin)</label>
-                            <textarea 
+                            <textarea
                               value={keahlian}
                               onChange={(e) => setKeahlian(e.target.value)}
                               rows={2}
@@ -1858,7 +1854,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
                           <div className="space-y-1.5">
                             <label className="text-xs font-bold text-slate-700">Benefit & Fasilitas Kompensasi (Satu baris untuk setiap poin)</label>
-                            <textarea 
+                            <textarea
                               value={benefit}
                               onChange={(e) => setBenefit(e.target.value)}
                               rows={3}
@@ -1871,14 +1867,14 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
                       {/* ACTION BUTTONS */}
                       <div className="pt-5 border-t border-slate-100 flex justify-end gap-3">
-                        <button 
+                        <button
                           type="button"
                           onClick={resetJobForm}
                           className="bg-slate-100 text-slate-700 hover:bg-slate-200 px-5 py-2.5 rounded-xl text-xs font-semibold transition"
                         >
                           Batal
                         </button>
-                        <button 
+                        <button
                           type="submit"
                           className="bg-[#0077C6] hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-2 cursor-pointer active:scale-95"
                         >
@@ -1908,14 +1904,13 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                           return (
                             <div key={job.id} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs hover:shadow-md transition flex flex-col justify-between group relative" id={`job-box-${job.id}`}>
                               <div className="space-y-3.5">
-                                
+
                                 {/* Top Badges Row */}
                                 <div className="flex items-center justify-between gap-2">
-                                  <span className={`px-3 py-1 rounded-md font-extrabold text-[10px] uppercase tracking-wider border ${
-                                    isMagang 
-                                      ? 'bg-emerald-50/80 text-emerald-800 border-emerald-200/60' 
+                                  <span className={`px-3 py-1 rounded-md font-extrabold text-[10px] uppercase tracking-wider border ${isMagang
+                                      ? 'bg-emerald-50/80 text-emerald-800 border-emerald-200/60'
                                       : 'bg-indigo-50/80 text-indigo-700 border-indigo-200/60'
-                                  }`}>
+                                    }`}>
                                     {isMagang ? 'PROGRAM MAGANG' : 'LOWONGAN KERJA'}
                                   </span>
 
@@ -1936,10 +1931,10 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                                 {/* Logo & Info Header */}
                                 <div className="flex items-start gap-3.5 pt-1">
                                   {job.companyLogo ? (
-                                    <img 
-                                      src={job.companyLogo} 
+                                    <img
+                                      src={job.companyLogo}
                                       alt={displayTitle}
-                                      className="w-14 h-14 object-contain rounded-2xl border border-slate-200 shrink-0 bg-slate-50 p-1.5 shadow-2xs" 
+                                      className="w-14 h-14 object-contain rounded-2xl border border-slate-200 shrink-0 bg-slate-50 p-1.5 shadow-2xs"
                                     />
                                   ) : (
                                     <div className={`w-14 h-14 rounded-2xl ${getCompanyBadgeColor(job.namaInstansi || namaInstansi || 'Instansi')} flex flex-col items-center justify-center p-1 shrink-0 shadow-2xs`}>
@@ -1967,13 +1962,13 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                               {/* Actions Bar */}
                               <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 mt-4">
                                 <div className="flex items-center gap-2">
-                                  <button 
+                                  <button
                                     onClick={() => handleEditJob(job)}
                                     className="bg-white hover:bg-slate-50 text-slate-700 px-3.5 py-1.5 rounded-lg font-bold text-xs transition flex items-center gap-1.5 border border-slate-200 shadow-2xs"
                                   >
                                     <Edit3 className="w-3.5 h-3.5 text-emerald-600" /> Edit Detail
                                   </button>
-                                  <button 
+                                  <button
                                     onClick={() => handleToggleJobStatus(job.id, job.status)}
                                     className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-1.5 rounded-lg font-bold text-xs transition"
                                   >
@@ -1981,7 +1976,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                                   </button>
                                 </div>
 
-                                <button 
+                                <button
                                   onClick={() => handleDeleteJob(job.id)}
                                   className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 p-2 rounded-lg transition"
                                   title="Hapus Lowongan"
@@ -2012,11 +2007,10 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                             <button
                               key={pageNum}
                               onClick={() => setJobCurrentPage(pageNum)}
-                              className={`px-3.5 py-1.5 rounded-lg font-bold text-xs transition ${
-                                isActive
+                              className={`px-3.5 py-1.5 rounded-lg font-bold text-xs transition ${isActive
                                   ? 'bg-[#0055D4] text-white shadow-xs'
                                   : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-2xs'
-                              }`}
+                                }`}
                             >
                               {pageNum}
                             </button>
@@ -2417,180 +2411,179 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
                       {/* DESKTOP TABLE VIEW (>= lg) */}
                       <div className="hidden lg:block overflow-x-auto rounded-2xl border border-slate-200/90 shadow-2xs" id="applicants-table-container">
-                      <table className="w-full text-left border-collapse text-xs sm:text-sm">
-                        <thead>
-                          <tr className="bg-slate-100/70 border-b border-slate-200 text-slate-600 font-extrabold text-xs uppercase tracking-wider">
-                            <th className="py-4 px-4">Pelamar</th>
-                            <th className="py-4 px-4">Pendidikan</th>
-                            <th className="py-4 px-4">Posisi yang Dilamar</th>
-                            <th className="py-4 px-4">Tanggal Melamar</th>
-                            <th className="py-4 px-4">Status Seleksi</th>
-                            <th className="py-4 px-4 text-right">Aksi</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 text-slate-700" id="applicants-table-body">
-                          {paginatedAppls.map((appl) => {
-                            const studentRecord = getFromDB<Mahasiswa>('mahasiswa').find(
-                              s => s.userId === appl.userId || s.id === appl.mahasiswaId || (appl.nim && s.nim === appl.nim)
-                            );
-                            const photoUrl = studentRecord?.photoUrl;
-
-                            return (
-                              <tr key={appl.id} className="hover:bg-slate-50/80 transition duration-150">
-                                <td className="py-4 px-4 font-bold text-slate-900">
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-9 h-9 shrink-0">
-                                      {photoUrl ? (
-                                        <img src={photoUrl} alt={appl.namaMahasiswa} className="w-9 h-9 object-cover rounded-2xl border border-slate-200 shadow-2xs" />
-                                      ) : (
-                                        <div className="w-9 h-9 bg-[#1B365D] text-white rounded-2xl flex items-center justify-center font-black text-xs shadow-2xs border border-slate-700/50">
-                                          {appl.namaMahasiswa ? appl.namaMahasiswa.charAt(0).toUpperCase() : 'M'}
-                                        </div>
-                                      )}
-                                    </div>
-                                  <div>
-                                    <div className="font-extrabold text-slate-900">{appl.namaMahasiswa}</div>
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="py-4 px-4 text-slate-600 font-medium">{appl.programStudi || '-'}</td>
-                              <td className="py-4 px-4 font-semibold text-slate-800">{getJobTitle(appl.tujuanMagang, namaInstansi)}</td>
-                              <td className="py-4 px-4 text-slate-500 font-medium text-xs whitespace-nowrap">
-                                {formatDate(appl.createdAt || appl.tanggalMulai)}
-                              </td>
-                              <td className="py-4 px-4 whitespace-nowrap">
-                                {renderStatusBadge(appl.status)}
-                              </td>
-                              <td className="py-4 px-4 text-right whitespace-nowrap space-x-2">
-                                <button 
-                                  onClick={() => handleOpenApplicantDetail(appl)}
-                                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 px-3 py-1.5 rounded-lg font-bold text-xs transition inline-flex items-center gap-1 cursor-pointer"
-                                >
-                                  <FileText className="w-3.5 h-3.5 text-slate-500" /> Lihat Detail
-                                </button>
-                                {(() => {
-                                  const s = (appl.status || '').toLowerCase();
-
-                                  // Status 1: MENUNGGU REVIEW -> [Mulai Review]
-                                  if (s === 'submitted' || s === 'under_review' || s === 'menunggu_review' || s === 'draft') {
-                                    return (
-                                      <button
-                                        onClick={() => handleUpdateApplicantStatus(appl.id, 'seleksi_administrasi', `Status pelamar ${appl.namaMahasiswa} kini Seleksi Administrasi.`)}
-                                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg font-bold text-xs transition shadow-2xs cursor-pointer inline-flex items-center gap-1"
-                                      >
-                                        <ArrowRight className="w-3.5 h-3.5" /> Mulai Review
-                                      </button>
-                                    );
-                                  }
-
-                                  // Status 2: SELEKSI ADMINISTRASI -> [Lolos ke Interview], [Tolak]
-                                  if (s === 'seleksi_administrasi' || s === 'revision') {
-                                    return (
-                                      <>
-                                        <button
-                                          onClick={() => handleOpenInterviewModal(appl)}
-                                          className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg font-bold text-xs transition shadow-2xs cursor-pointer inline-flex items-center gap-1"
-                                        >
-                                          <CheckCircle className="w-3.5 h-3.5" /> Lolos ke Interview
-                                        </button>
-                                        <button
-                                          onClick={() => setConfirmModal({ type: 'reject', applicant: appl })}
-                                          className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-3 py-1.5 rounded-lg font-bold text-xs transition cursor-pointer"
-                                        >
-                                          Tolak
-                                        </button>
-                                      </>
-                                    );
-                                  }
-
-                                  // Status 3: INTERVIEW -> [Lihat Jadwal], [Terima], [Tolak]
-                                  if (s === 'interview') {
-                                    return (
-                                      <>
-                                        <button
-                                          onClick={() => handleOpenApplicantDetail(appl)}
-                                          className="bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 px-3 py-1.5 rounded-lg font-bold text-xs transition cursor-pointer inline-flex items-center gap-1"
-                                        >
-                                          <Calendar className="w-3.5 h-3.5" /> Lihat Jadwal
-                                        </button>
-                                        <button
-                                          onClick={() => setConfirmModal({ type: 'accept', applicant: appl })}
-                                          className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-bold text-xs transition shadow-2xs cursor-pointer inline-flex items-center gap-1"
-                                        >
-                                          <CheckCircle className="w-3.5 h-3.5" /> Terima
-                                        </button>
-                                        <button
-                                          onClick={() => setConfirmModal({ type: 'reject', applicant: appl })}
-                                          className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-3 py-1.5 rounded-lg font-bold text-xs transition cursor-pointer"
-                                        >
-                                          Tolak
-                                        </button>
-                                      </>
-                                    );
-                                  }
-
-                                  // Status 4 & 5: DITERIMA / DITOLAK -> hanya [Lihat Detail]
-                                  return null;
-                                })()}
-                              </td>
+                        <table className="w-full text-left border-collapse text-xs sm:text-sm">
+                          <thead>
+                            <tr className="bg-slate-100/70 border-b border-slate-200 text-slate-600 font-extrabold text-xs uppercase tracking-wider">
+                              <th className="py-4 px-4">Pelamar</th>
+                              <th className="py-4 px-4">Pendidikan</th>
+                              <th className="py-4 px-4">Posisi yang Dilamar</th>
+                              <th className="py-4 px-4">Tanggal Melamar</th>
+                              <th className="py-4 px-4">Status Seleksi</th>
+                              <th className="py-4 px-4 text-right">Aksi</th>
                             </tr>
-                          );
-                        })}
-                        </tbody>
-                      </table>
-                    </div>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 text-slate-700" id="applicants-table-body">
+                            {paginatedAppls.map((appl) => {
+                              const studentRecord = getFromDB<Mahasiswa>('mahasiswa').find(
+                                s => s.userId === appl.userId || s.id === appl.mahasiswaId || (appl.nim && s.nim === appl.nim)
+                              );
+                              const photoUrl = studentRecord?.photoUrl;
 
-                  {/* PAGINATION CONTROLS FOOTER */}
-                  {filteredAppls.length > 0 && (
-                    <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100 text-xs font-semibold text-slate-600">
-                      <div>
-                        {totalItems === 0
-                          ? 'Menampilkan 0 dari 0 pelamar'
-                          : `Menampilkan ${startIndex + 1}–${endIndex} dari ${totalItems} pelamar`}
+                              return (
+                                <tr key={appl.id} className="hover:bg-slate-50/80 transition duration-150">
+                                  <td className="py-4 px-4 font-bold text-slate-900">
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-9 h-9 shrink-0">
+                                        {photoUrl ? (
+                                          <img src={photoUrl} alt={appl.namaMahasiswa} className="w-9 h-9 object-cover rounded-2xl border border-slate-200 shadow-2xs" />
+                                        ) : (
+                                          <div className="w-9 h-9 bg-[#1B365D] text-white rounded-2xl flex items-center justify-center font-black text-xs shadow-2xs border border-slate-700/50">
+                                            {appl.namaMahasiswa ? appl.namaMahasiswa.charAt(0).toUpperCase() : 'M'}
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div>
+                                        <div className="font-extrabold text-slate-900">{appl.namaMahasiswa}</div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="py-4 px-4 text-slate-600 font-medium">{appl.programStudi || '-'}</td>
+                                  <td className="py-4 px-4 font-semibold text-slate-800">{getJobTitle(appl.tujuanMagang, namaInstansi)}</td>
+                                  <td className="py-4 px-4 text-slate-500 font-medium text-xs whitespace-nowrap">
+                                    {formatDate(appl.createdAt || appl.tanggalMulai)}
+                                  </td>
+                                  <td className="py-4 px-4 whitespace-nowrap">
+                                    {renderStatusBadge(appl.status)}
+                                  </td>
+                                  <td className="py-4 px-4 text-right whitespace-nowrap space-x-2">
+                                    <button
+                                      onClick={() => handleOpenApplicantDetail(appl)}
+                                      className="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 px-3 py-1.5 rounded-lg font-bold text-xs transition inline-flex items-center gap-1 cursor-pointer"
+                                    >
+                                      <FileText className="w-3.5 h-3.5 text-slate-500" /> Lihat Detail
+                                    </button>
+                                    {(() => {
+                                      const s = (appl.status || '').toLowerCase();
+
+                                      // Status 1: MENUNGGU REVIEW -> [Mulai Review]
+                                      if (s === 'submitted' || s === 'under_review' || s === 'menunggu_review' || s === 'draft') {
+                                        return (
+                                          <button
+                                            onClick={() => handleUpdateApplicantStatus(appl.id, 'seleksi_administrasi', `Status pelamar ${appl.namaMahasiswa} kini Seleksi Administrasi.`)}
+                                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg font-bold text-xs transition shadow-2xs cursor-pointer inline-flex items-center gap-1"
+                                          >
+                                            <ArrowRight className="w-3.5 h-3.5" /> Mulai Review
+                                          </button>
+                                        );
+                                      }
+
+                                      // Status 2: SELEKSI ADMINISTRASI -> [Lolos ke Interview], [Tolak]
+                                      if (s === 'seleksi_administrasi' || s === 'revision') {
+                                        return (
+                                          <>
+                                            <button
+                                              onClick={() => handleOpenInterviewModal(appl)}
+                                              className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg font-bold text-xs transition shadow-2xs cursor-pointer inline-flex items-center gap-1"
+                                            >
+                                              <CheckCircle className="w-3.5 h-3.5" /> Lolos ke Interview
+                                            </button>
+                                            <button
+                                              onClick={() => setConfirmModal({ type: 'reject', applicant: appl })}
+                                              className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-3 py-1.5 rounded-lg font-bold text-xs transition cursor-pointer"
+                                            >
+                                              Tolak
+                                            </button>
+                                          </>
+                                        );
+                                      }
+
+                                      // Status 3: INTERVIEW -> [Lihat Jadwal], [Terima], [Tolak]
+                                      if (s === 'interview') {
+                                        return (
+                                          <>
+                                            <button
+                                              onClick={() => handleOpenApplicantDetail(appl)}
+                                              className="bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 px-3 py-1.5 rounded-lg font-bold text-xs transition cursor-pointer inline-flex items-center gap-1"
+                                            >
+                                              <Calendar className="w-3.5 h-3.5" /> Lihat Jadwal
+                                            </button>
+                                            <button
+                                              onClick={() => setConfirmModal({ type: 'accept', applicant: appl })}
+                                              className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-bold text-xs transition shadow-2xs cursor-pointer inline-flex items-center gap-1"
+                                            >
+                                              <CheckCircle className="w-3.5 h-3.5" /> Terima
+                                            </button>
+                                            <button
+                                              onClick={() => setConfirmModal({ type: 'reject', applicant: appl })}
+                                              className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-3 py-1.5 rounded-lg font-bold text-xs transition cursor-pointer"
+                                            >
+                                              Tolak
+                                            </button>
+                                          </>
+                                        );
+                                      }
+
+                                      // Status 4 & 5: DITERIMA / DITOLAK -> hanya [Lihat Detail]
+                                      return null;
+                                    })()}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
                       </div>
 
-                      <div className="flex items-center gap-1.5 font-bold">
-                        <button
-                          type="button"
-                          disabled={safeCurrentPage <= 1}
-                          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                          className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
-                        >
-                          &lt;
-                        </button>
+                      {/* PAGINATION CONTROLS FOOTER */}
+                      {filteredAppls.length > 0 && (
+                        <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100 text-xs font-semibold text-slate-600">
+                          <div>
+                            {totalItems === 0
+                              ? 'Menampilkan 0 dari 0 pelamar'
+                              : `Menampilkan ${startIndex + 1}–${endIndex} dari ${totalItems} pelamar`}
+                          </div>
 
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-                          <button
-                            key={pageNum}
-                            type="button"
-                            onClick={() => setCurrentPage(pageNum)}
-                            className={`px-3 py-1.5 rounded-lg border text-xs font-bold transition cursor-pointer ${
-                              safeCurrentPage === pageNum
-                                ? 'bg-[#0077C6] text-white border-[#0077C6] shadow-2xs'
-                                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                            }`}
-                          >
-                            {pageNum}
-                          </button>
-                        ))}
+                          <div className="flex items-center gap-1.5 font-bold">
+                            <button
+                              type="button"
+                              disabled={safeCurrentPage <= 1}
+                              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                              className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                            >
+                              &lt;
+                            </button>
 
-                        <button
-                          type="button"
-                          disabled={safeCurrentPage >= totalPages}
-                          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                          className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
-                        >
-                          &gt;
-                        </button>
-                      </div>
-                    </div>
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                              <button
+                                key={pageNum}
+                                type="button"
+                                onClick={() => setCurrentPage(pageNum)}
+                                className={`px-3 py-1.5 rounded-lg border text-xs font-bold transition cursor-pointer ${safeCurrentPage === pageNum
+                                    ? 'bg-[#0077C6] text-white border-[#0077C6] shadow-2xs'
+                                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                                  }`}
+                              >
+                                {pageNum}
+                              </button>
+                            ))}
+
+                            <button
+                              type="button"
+                              disabled={safeCurrentPage >= totalPages}
+                              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                              className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                            >
+                              &gt;
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
-                </>
-              )}
-            </div>
-          </div>
-        );
-      })()}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* TAB 5: SURVEI PENGGUNA LULUSAN (FR-MTR-06) */}
           {activeTab === 'survei' && (
@@ -2603,7 +2596,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
               <form onSubmit={handleSubmitSurvey} className="space-y-6" id="survey-feedback-form">
                 <div className="space-y-1.5 text-xs font-bold">
                   <label className="text-slate-700 text-xs">Pilih Alumni Terkait (Karyawan/Magang) *</label>
-                  <select 
+                  <select
                     required
                     value={selectedAlumniId}
                     onChange={(e) => setSelectedAlumniId(e.target.value)}
@@ -2619,7 +2612,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 {/* FIVE CORE DIMENSIONS RATING FOR SURVEI_LULUSAN */}
                 <div className="space-y-3 border-t border-slate-100 pt-5" id="survei-ratings">
                   <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider mb-2">Skor Evaluasi (Skala 1 - 5)</h4>
-                  
+
                   {[
                     { label: 'Kualitas Umum Kinerja Lulusan', state: kualitasLulusan, setter: setKualitasLulusan },
                     { label: 'Kemampuan Teknis Keilmuan', state: kemampuanTeknis, setter: setKemampuanTeknis },
@@ -2647,7 +2640,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700">Masukan & Saran Konstruktif untuk Pengembangan Kurikulum *</label>
-                  <textarea 
+                  <textarea
                     required
                     value={surveiSaran}
                     onChange={(e) => setSurveiSaran(e.target.value)}
@@ -2658,7 +2651,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 </div>
 
                 <div className="pt-5 border-t border-slate-100 flex justify-end">
-                  <button 
+                  <button
                     type="submit"
                     className="bg-[#10B981] hover:bg-emerald-600 text-white px-6 py-3 rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-2"
                   >
@@ -2729,22 +2722,20 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                   <button
                     type="button"
                     onClick={() => setInterviewMethod('online')}
-                    className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
-                      interviewMethod === 'online'
+                    className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${interviewMethod === 'online'
                         ? 'bg-blue-50 text-[#0077C6] border-[#0077C6] ring-2 ring-[#0077C6]/20'
                         : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-                    }`}
+                      }`}
                   >
                     Online (Google Meet)
                   </button>
                   <button
                     type="button"
                     onClick={() => setInterviewMethod('offline')}
-                    className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
-                      interviewMethod === 'offline'
+                    className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${interviewMethod === 'offline'
                         ? 'bg-blue-50 text-[#0077C6] border-[#0077C6] ring-2 ring-[#0077C6]/20'
                         : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-                    }`}
+                      }`}
                   >
                     Offline (Tatap Muka)
                   </button>
@@ -2812,7 +2803,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
       {selectedApplicantDoc && (
         <div className="fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-fadeIn">
           <div className="bg-white max-w-4xl w-full rounded-3xl border border-slate-200 shadow-2xl overflow-hidden my-6 max-h-[92vh] flex flex-col">
-            
+
             {/* Modal Header */}
             {(() => {
               const studentRecord = getFromDB<Mahasiswa>('mahasiswa').find(
@@ -2837,31 +2828,31 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                       <span className="text-emerald-400 font-extrabold text-[10px] uppercase tracking-wider block mb-0.5">
                         DETAIL PELAMAR • {jobTitleText}
                       </span>
-                  <h3 className="text-lg sm:text-xl font-extrabold text-white leading-tight">
-                    {selectedApplicantDoc.namaMahasiswa}
-                  </h3>
-                  <p className="text-slate-300 text-xs mt-0.5 font-medium">
-                    {(() => {
-                      const studentRecord = getFromDB<Mahasiswa>('mahasiswa').find(s => s.nim === selectedApplicantDoc.nim || s.userId === selectedApplicantDoc.userId || s.id === selectedApplicantDoc.mahasiswaId);
-                      const roleLabel = studentRecord?.userStatusType || (selectedApplicantDoc.nim ? 'Mahasiswa' : 'Job Seeker');
-                      return `${roleLabel} · ${selectedApplicantDoc.programStudi || 'Sistem dan Teknologi Informasi'}`;
-                    })()}
-                  </p>
+                      <h3 className="text-lg sm:text-xl font-extrabold text-white leading-tight">
+                        {selectedApplicantDoc.namaMahasiswa}
+                      </h3>
+                      <p className="text-slate-300 text-xs mt-0.5 font-medium">
+                        {(() => {
+                          const studentRecord = getFromDB<Mahasiswa>('mahasiswa').find(s => s.nim === selectedApplicantDoc.nim || s.userId === selectedApplicantDoc.userId || s.id === selectedApplicantDoc.mahasiswaId);
+                          const roleLabel = studentRecord?.userStatusType || (selectedApplicantDoc.nim ? 'Mahasiswa' : 'Job Seeker');
+                          return `${roleLabel} · ${selectedApplicantDoc.programStudi || 'Sistem dan Teknologi Informasi'}`;
+                        })()}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setSelectedApplicantDoc(null)}
+                    className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition shrink-0 cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
                 </div>
-              </div>
-                <button
-                  onClick={() => setSelectedApplicantDoc(null)}
-                  className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition shrink-0 cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            );
-          })()}
+              );
+            })()}
 
             {/* Modal Body (Scrollable) */}
             <div className="p-6 sm:p-8 space-y-6 text-xs sm:text-sm overflow-y-auto flex-1">
-              
+
               {/* 1. PROFIL PELAMAR & LOWONGAN YANG DILAMAR */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* PROFIL PELAMAR */}
@@ -2889,8 +2880,8 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                       return null;
                     })()}
                     <div className="flex items-center justify-between">
-                      <span className="text-slate-500 font-medium">Pendidikan:</span>
-                      <span className="font-semibold text-slate-800">{selectedApplicantDoc.programStudi || 'Teknik Informatika'}</span>
+                      <span className="text-slate-500 font-medium">Program Studi:</span>
+                      <span className="font-semibold text-slate-800">{selectedApplicantDoc.programStudi || 'Belum Diisi'}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-slate-500 font-medium">Universitas:</span>
@@ -2986,54 +2977,33 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 );
 
                 // Education / Qualifications
-                const qualifications = selectedApplicantDoc.qualifications || applicantProfile?.qualifications || [
-                  {
-                    id: '1',
-                    institution: 'Universitas Muhammadiyah Kendari (UMK)',
-                    level: `Sarjana (S1) - ${selectedApplicantDoc.programStudi || 'Teknik Informatika'}`,
-                    year: '2026'
-                  }
-                ];
-                const ipkDisplay = selectedApplicantDoc.ipk || applicantProfile?.ipk || '3.85 / 4.00';
+                const qualifications = (selectedApplicantDoc.qualifications && selectedApplicantDoc.qualifications.length > 0)
+                  ? selectedApplicantDoc.qualifications
+                  : (applicantProfile?.qualifications && applicantProfile.qualifications.length > 0)
+                    ? applicantProfile.qualifications
+                    : [];
+                const ipkDisplay = selectedApplicantDoc.ipk || applicantProfile?.ipk || '';
 
                 // Skills
-                const skillsList = selectedApplicantDoc.skills || applicantProfile?.skills || [
-                  'JavaScript', 'React.js', 'UI/UX Design', 'Node.js', 'Python', 'Git & GitHub', 'HTML/CSS', 'Tailwind CSS'
-                ];
+                const skillsList = (selectedApplicantDoc.skills && selectedApplicantDoc.skills.length > 0)
+                  ? selectedApplicantDoc.skills
+                  : (applicantProfile?.skills && applicantProfile.skills.length > 0)
+                    ? applicantProfile.skills
+                    : [];
 
                 // Experiences
-                const experiencesList = selectedApplicantDoc.experiences || applicantProfile?.experiences || [
-                  {
-                    id: '1',
-                    position: 'Fullstack Web Developer Intern',
-                    company: 'PT Go Digital Kendari',
-                    period: '2026 - Sekarang',
-                    description: 'Mengembangkan dan memelihara aplikasi portal akademik kampus dan integrasi RESTful API backend.'
-                  },
-                  {
-                    id: '2',
-                    position: 'Anggota Divisi IT & Komunikasi',
-                    company: 'Himpunan Mahasiswa Teknik Informatika UMK',
-                    period: '2024 - 2025',
-                    description: 'Mengelola situs web kegiatan mahasiswa dan publikasi digital kampus.'
-                  }
-                ];
+                const experiencesList = (selectedApplicantDoc.experiences && selectedApplicantDoc.experiences.length > 0)
+                  ? selectedApplicantDoc.experiences
+                  : (applicantProfile?.experiences && applicantProfile.experiences.length > 0)
+                    ? applicantProfile.experiences
+                    : [];
 
                 // Certificates
-                const certificatesList = selectedApplicantDoc.certificates || applicantProfile?.certificates || [
-                  {
-                    id: 'cert_1',
-                    name: 'Sertifikat Kompetensi Fullstack Web Developer - BNSP',
-                    issuer: 'BNSP',
-                    year: '2025'
-                  },
-                  {
-                    id: 'cert_2',
-                    name: 'Google IT Support Professional Certificate',
-                    issuer: 'Google / Coursera',
-                    year: '2024'
-                  }
-                ];
+                const certificatesList = (selectedApplicantDoc.certificates && selectedApplicantDoc.certificates.length > 0)
+                  ? selectedApplicantDoc.certificates
+                  : (applicantProfile?.certificates && applicantProfile.certificates.length > 0)
+                    ? applicantProfile.certificates
+                    : [];
 
                 return (
                   <div className="space-y-5">
@@ -3045,18 +3015,22 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                           <GraduationCap className="w-4 h-4 text-emerald-600" /> PENDIDIKAN
                         </h4>
                         <div className="space-y-1.5 text-xs">
-                          {qualifications.map((q, idx) => (
-                            <div key={q.id || idx} className="border-b border-slate-100 last:border-0 pb-1.5 last:pb-0">
-                              <div className="font-bold text-slate-900">{q.institution}</div>
-                              <div className="text-slate-600 font-medium">{q.level} ({q.year})</div>
-                              {q.ipk && (
-                                <div className="text-emerald-700 font-mono font-bold text-[11px] mt-0.5">
-                                  IPK: {q.ipk}
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                          {!qualifications.some(q => q.ipk) && (
+                          {qualifications.length === 0 ? (
+                            <p className="text-xs text-slate-500 italic">Belum ada riwayat pendidikan yang tercantum.</p>
+                          ) : (
+                            qualifications.map((q, idx) => (
+                              <div key={q.id || idx} className="border-b border-slate-100 last:border-0 pb-1.5 last:pb-0">
+                                <div className="font-bold text-slate-900">{q.institution}</div>
+                                <div className="text-slate-600 font-medium">{q.level} ({q.year})</div>
+                                {q.ipk && (
+                                  <div className="text-emerald-700 font-mono font-bold text-[11px] mt-0.5">
+                                    IPK: {q.ipk}
+                                  </div>
+                                )}
+                              </div>
+                            ))
+                          )}
+                          {qualifications.length > 0 && ipkDisplay && !qualifications.some(q => q.ipk) && (
                             <div className="text-slate-500 text-[11px] font-mono pt-1">
                               IPK: <span className="font-bold text-emerald-600">{ipkDisplay}</span>
                             </div>
@@ -3070,11 +3044,15 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                           <Code className="w-4 h-4 text-indigo-600" /> SKILL & KEAHLIAN
                         </h4>
                         <div className="flex flex-wrap gap-1.5 pt-0.5">
-                          {skillsList.map((sk, idx) => (
-                            <span key={idx} className="px-2.5 py-1 bg-slate-100 text-slate-700 font-bold rounded-lg text-[11px] border border-slate-200">
-                              {sk}
-                            </span>
-                          ))}
+                          {skillsList.length === 0 ? (
+                            <p className="text-xs text-slate-500 italic">Belum ada keahlian yang dicantumkan.</p>
+                          ) : (
+                            skillsList.map((sk, idx) => (
+                              <span key={idx} className="px-2.5 py-1 bg-slate-100 text-slate-700 font-bold rounded-lg text-[11px] border border-slate-200">
+                                {sk}
+                              </span>
+                            ))
+                          )}
                         </div>
                       </div>
                     </div>
@@ -3237,11 +3215,10 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
       {confirmModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
           <div className="bg-white max-w-md w-full rounded-3xl border border-slate-200 shadow-2xl p-6 sm:p-7 space-y-5 text-center my-8">
-            <div className={`w-14 h-14 rounded-2xl mx-auto flex items-center justify-center ${
-              confirmModal.type === 'accept' 
-                ? 'bg-emerald-100 text-emerald-600' 
+            <div className={`w-14 h-14 rounded-2xl mx-auto flex items-center justify-center ${confirmModal.type === 'accept'
+                ? 'bg-emerald-100 text-emerald-600'
                 : 'bg-rose-100 text-rose-600'
-            }`}>
+              }`}>
               {confirmModal.type === 'accept' ? (
                 <CheckCircle className="w-7 h-7" />
               ) : (
@@ -3254,18 +3231,18 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 {confirmModal.type === 'accept' ? 'Konfirmasi Penerimaan Pelamar' : 'Konfirmasi Penolakan Pelamar'}
               </h3>
               <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
-                {confirmModal.type === 'accept' 
-                  ? `Apakah Anda yakin ingin menerima ${confirmModal.applicant.namaMahasiswa} sebagai peserta?` 
+                {confirmModal.type === 'accept'
+                  ? `Apakah Anda yakin ingin menerima ${confirmModal.applicant.namaMahasiswa} sebagai peserta?`
                   : `Apakah Anda yakin ingin menolak pelamar ini?`}
               </p>
               {(() => {
                 const student = getFromDB<Mahasiswa>('mahasiswa').find(
-                  s => s.userId === confirmModal.applicant.userId || 
-                       s.id === confirmModal.applicant.mahasiswaId || 
-                       (confirmModal.applicant.nim && s.nim === confirmModal.applicant.nim)
+                  s => s.userId === confirmModal.applicant.userId ||
+                    s.id === confirmModal.applicant.mahasiswaId ||
+                    (confirmModal.applicant.nim && s.nim === confirmModal.applicant.nim)
                 );
                 const isMahasiswa = student?.userStatusType === 'Mahasiswa';
-                const subtitleLabel = isMahasiswa && confirmModal.applicant.nim 
+                const subtitleLabel = isMahasiswa && confirmModal.applicant.nim
                   ? ` • NIM: ${confirmModal.applicant.nim}`
                   : ` • ${confirmModal.applicant.programStudi || 'Job Seeker'}`;
                 return (
@@ -3317,21 +3294,20 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
       {/* POPUP MODAL DI TENGAH DENGAN TOMBOL OK */}
       {alertPopup && (
-        <div 
+        <div
           className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn"
           onClick={() => setAlertPopup(null)}
         >
-          <div 
+          <div
             className="bg-white max-w-sm w-full rounded-3xl border border-slate-200 shadow-2xl p-6 sm:p-7 space-y-4 text-center my-8 animate-scaleUp"
             onClick={e => e.stopPropagation()}
           >
-            <div className={`w-16 h-16 rounded-2xl mx-auto flex items-center justify-center shadow-xs ${
-              alertPopup.type === 'success'
+            <div className={`w-16 h-16 rounded-2xl mx-auto flex items-center justify-center shadow-xs ${alertPopup.type === 'success'
                 ? 'bg-blue-50 text-[#0077C6]'
                 : alertPopup.type === 'error'
-                ? 'bg-rose-100 text-rose-600'
-                : 'bg-blue-100 text-blue-600'
-            }`}>
+                  ? 'bg-rose-100 text-rose-600'
+                  : 'bg-blue-100 text-blue-600'
+              }`}>
               {alertPopup.type === 'success' ? (
                 <CheckCircle className="w-8 h-8 text-[#0077C6]" />
               ) : alertPopup.type === 'error' ? (
@@ -3355,11 +3331,10 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 type="button"
                 autoFocus
                 onClick={() => setAlertPopup(null)}
-                className={`w-full py-3 px-5 rounded-xl text-white font-extrabold text-xs shadow-md transition-all cursor-pointer active:scale-95 ${
-                  alertPopup.type === 'error'
+                className={`w-full py-3 px-5 rounded-xl text-white font-extrabold text-xs shadow-md transition-all cursor-pointer active:scale-95 ${alertPopup.type === 'error'
                     ? 'bg-rose-600 hover:bg-rose-700'
                     : 'bg-[#0077C6] hover:bg-blue-700'
-                }`}
+                  }`}
               >
                 OK
               </button>

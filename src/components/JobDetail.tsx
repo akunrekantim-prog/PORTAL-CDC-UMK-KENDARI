@@ -70,9 +70,14 @@ export const JobDetail: React.FC<JobDetailProps> = ({
   const coverImage = flyersList[0];
   const logoUrl = job.companyLogo || defaultLogo;
 
+  // Active student user lookup
+  const activeUserId = localStorage.getItem('cdc_session_id') || '';
+  const studentsList = getFromDB<Mahasiswa>('mahasiswa');
+  const activeStudent = studentsList.find(s => s.userId === activeUserId) || (activeUserId ? studentsList.find(s => s.userId === '2') : undefined);
+
   // React States for Interactivity
   const [isSaved, setIsSaved] = useState<boolean>(() => {
-    return getSavedJobIds().includes(job.id);
+    return getSavedJobIds(activeUserId || undefined).includes(job.id);
   });
   const [isApplyModalOpen, setIsApplyModalOpen] = useState<boolean>(false);
 
@@ -102,11 +107,6 @@ export const JobDetail: React.FC<JobDetailProps> = ({
     }
   };
 
-  // Active student user lookup
-  const activeUserId = localStorage.getItem('cdc_session_id') || '2';
-  const studentsList = getFromDB<Mahasiswa>('mahasiswa');
-  const activeStudent = studentsList.find(s => s.userId === activeUserId) || studentsList[0];
-
   // Fetch all jobs for "Postingan Terbaru" widget
   const allLowongan = getFromDB<Lowongan>('lowongan');
   const recentJobs = allLowongan
@@ -126,7 +126,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
   };
 
   const handleToggleSave = () => {
-    const nextState = toggleSaveJob(job.id);
+    const nextState = toggleSaveJob(job.id, activeUserId || undefined);
     setIsSaved(nextState);
     triggerToast(nextState ? 'Lowongan berhasil disimpan ke favorit!' : 'Lowongan dihapus dari favorit.');
   };
