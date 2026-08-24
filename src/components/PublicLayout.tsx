@@ -34,16 +34,17 @@ import GaleriView from './layanan/GaleriView';
 import Keanggotaan from './layanan/Keanggotaan';
 import LayananContainer from './layanan/LayananContainer';
 import HeroSlider from './HeroSlider';
-import { 
+import {
   JobSearchMasterDetail,
-  INDONESIAN_PROVINCES, 
-  isIndonesianLocation, 
-  JOB_SPECIALIZATIONS, 
-  getCompanyBadgeColor, 
-  getCompanyInitials 
+  INDONESIAN_PROVINCES,
+  isIndonesianLocation,
+  JOB_SPECIALIZATIONS,
+  getCompanyBadgeColor,
+  getCompanyInitials
 } from './JobSearchMasterDetail';
 import Dropdown from './Dropdown';
 import SocialShareBar from './ui/SocialShareBar';
+import { stripHtmlTags } from '../markdown';
 
 /* ─── Types ─────────────────────────────────── */
 interface PublicLayoutProps {
@@ -177,10 +178,10 @@ export default function PublicLayout({
 }: PublicLayoutProps) {
   // Gambar Visi & Misi (bisa diubah admin via Manajemen Web → Visi & Misi)
   const [visiMisiUrl, setVisiMisiUrl] = useState<string>(() => getVisiMisiConfig().imageUrl);
-  
+
   // Event Detail Direct Access State
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
-  
+
   // Job Info Search & Filter States
   const [jobKeyword, setJobKeyword] = useState('');
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
@@ -441,105 +442,107 @@ export default function PublicLayout({
               </div>
             </div>
 
+            {/* ══ PENGUMUMAN KHUSUS / SANGAT PENTING (FULL WIDTH BANNER) ════════ */}
+            {(() => {
+              const importantAnn = publishedPengumuman.find(p => p.isImportant) || publishedPengumuman[0];
+              if (!importantAnn || importantAnn.isImportant === false) return null;
+
+              const isPosterMode = importantAnn.displayType === 'poster' && !!importantAnn.posterUrl;
+
+              return (
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-2">
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="overflow-hidden rounded-3xl border border-emerald-200/80 shadow-md bg-gradient-to-br from-emerald-50/90 via-white to-emerald-50/40 relative"
+                  >
+                    {isPosterMode ? (
+                      /* Mode Poster / Gambar Visual */
+                      <div className="relative group overflow-hidden bg-slate-950">
+                        <img
+                          src={importantAnn.posterUrl}
+                          alt={importantAnn.title}
+                          className="w-full max-h-[380px] object-cover object-center group-hover:scale-102 transition-transform duration-500 cursor-pointer"
+                          onClick={() => setSelectedPosterModal(importantAnn.posterUrl!)}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent flex flex-col justify-end p-6 text-white">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="bg-amber-400 text-slate-950 text-[10px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider shadow-xs flex items-center gap-1">
+                              <Megaphone className="w-3.5 h-3.5 text-slate-950 animate-pulse" /> PENGUMUMAN SANGAT PENTING
+                            </span>
+                          </div>
+                          <h3 className="text-xl sm:text-2xl font-black leading-snug text-white drop-shadow-xs">
+                            {importantAnn.title}
+                          </h3>
+                          {importantAnn.content && (
+                            <p className="text-slate-200 text-xs sm:text-sm mt-1.5 line-clamp-2 leading-relaxed max-w-3xl">
+                              {stripHtmlTags(importantAnn.content)}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-3 mt-4 flex-wrap">
+                            <button
+                              onClick={() => setSelectedPosterModal(importantAnn.posterUrl!)}
+                              className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white text-xs font-extrabold px-3.5 py-2 rounded-xl border border-white/30 transition flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <Eye className="w-3.5 h-3.5" /> Perbesar Poster
+                            </button>
+                            {importantAnn.linkUrl && (
+                              <a
+                                href={importantAnn.linkUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="bg-[#10B981] hover:bg-emerald-500 text-white text-xs font-black px-4 py-2 rounded-xl transition shadow-md flex items-center gap-1.5 cursor-pointer"
+                              >
+                                {importantAnn.linkLabel || 'Buka Tautan'} <ExternalLink className="w-3.5 h-3.5" />
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      /* Mode Badge / Banner Teks */
+                      <div className="p-6 sm:p-7 flex flex-col sm:flex-row items-start gap-5 relative">
+                        <div className="bg-emerald-500 text-slate-950 p-3.5 rounded-2xl shadow-sm shrink-0 flex items-center justify-center">
+                          <Megaphone className="w-7 h-7 animate-pulse text-slate-950" />
+                        </div>
+                        <div className="flex-1 space-y-2">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+                              PENGUMUMAN PENTING
+                            </span>
+                          </div>
+                          <h3 className="text-lg sm:text-xl font-black text-slate-900 leading-snug">
+                            {importantAnn.title}
+                          </h3>
+                          <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+                            {stripHtmlTags(importantAnn.content)}
+                          </p>
+                          {importantAnn.linkUrl && (
+                            <div className="pt-2">
+                              <a
+                                href={importantAnn.linkUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 bg-[#10B981] hover:bg-emerald-600 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-xs transition cursor-pointer"
+                              >
+                                {importantAnn.linkLabel || 'Buka Tautan'} <ExternalLink className="w-3.5 h-3.5" />
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+                </div>
+              );
+            })()}
+
             {/* ══ MAIN CONTENT + SIDEBAR ══════════════════════════════════ */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-20
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-20
                             grid grid-cols-1 lg:grid-cols-12 gap-10">
 
               {/* ── LEFT / MAIN COLUMN ────────────────────────────────── */}
               <div className="lg:col-span-8 space-y-14">
-
-                {/* ── PENGUMUMAN KHUSUS / SANGAT PENTING ──────────────── */}
-                {(() => {
-                  const importantAnn = publishedPengumuman.find(p => p.isImportant) || publishedPengumuman[0];
-                  if (!importantAnn || importantAnn.isImportant === false) return null;
-
-                  const isPosterMode = importantAnn.displayType === 'poster' && !!importantAnn.posterUrl;
-
-                  return (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="overflow-hidden rounded-3xl border border-emerald-200/80 shadow-md bg-gradient-to-br from-emerald-50/90 via-white to-emerald-50/40 relative"
-                    >
-                      {isPosterMode ? (
-                        /* Mode Poster / Gambar Visual */
-                        <div className="relative group overflow-hidden bg-slate-950">
-                          <img
-                            src={importantAnn.posterUrl}
-                            alt={importantAnn.title}
-                            className="w-full max-h-[380px] object-cover object-center group-hover:scale-102 transition-transform duration-500 cursor-pointer"
-                            onClick={() => setSelectedPosterModal(importantAnn.posterUrl!)}
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent flex flex-col justify-end p-6 text-white">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="bg-amber-400 text-slate-950 text-[10px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider shadow-xs flex items-center gap-1">
-                                <Megaphone className="w-3.5 h-3.5 text-slate-950 animate-pulse" /> PENGUMUMAN SANGAT PENTING
-                              </span>
-                            </div>
-                            <h3 className="text-xl sm:text-2xl font-black leading-snug text-white drop-shadow-xs">
-                              {importantAnn.title}
-                            </h3>
-                            {importantAnn.content && (
-                              <p className="text-slate-200 text-xs sm:text-sm mt-1.5 line-clamp-2 leading-relaxed max-w-3xl">
-                                {importantAnn.content}
-                              </p>
-                            )}
-                            <div className="flex items-center gap-3 mt-4 flex-wrap">
-                              <button
-                                onClick={() => setSelectedPosterModal(importantAnn.posterUrl!)}
-                                className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white text-xs font-extrabold px-3.5 py-2 rounded-xl border border-white/30 transition flex items-center gap-1.5 cursor-pointer"
-                              >
-                                <Eye className="w-3.5 h-3.5" /> Perbesar Poster
-                              </button>
-                              {importantAnn.linkUrl && (
-                                <a
-                                  href={importantAnn.linkUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="bg-[#10B981] hover:bg-emerald-500 text-white text-xs font-black px-4 py-2 rounded-xl transition shadow-md flex items-center gap-1.5 cursor-pointer"
-                                >
-                                  {importantAnn.linkLabel || 'Buka Tautan'} <ExternalLink className="w-3.5 h-3.5" />
-                                </a>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        /* Mode Badge / Banner Teks */
-                        <div className="p-6 sm:p-7 flex flex-col sm:flex-row items-start gap-5 relative">
-                          <div className="bg-emerald-500 text-slate-950 p-3.5 rounded-2xl shadow-sm shrink-0 flex items-center justify-center">
-                            <Megaphone className="w-7 h-7 animate-pulse text-slate-950" />
-                          </div>
-                          <div className="flex-1 space-y-2">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-wider">
-                                PENGUMUMAN PENTING
-                              </span>
-                            </div>
-                            <h3 className="text-lg sm:text-xl font-black text-slate-900 leading-snug">
-                              {importantAnn.title}
-                            </h3>
-                            <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-                              {importantAnn.content}
-                            </p>
-                            {importantAnn.linkUrl && (
-                              <div className="pt-2">
-                                <a
-                                  href={importantAnn.linkUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-2 bg-[#10B981] hover:bg-emerald-600 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-xs transition cursor-pointer"
-                                >
-                                  {importantAnn.linkLabel || 'Buka Tautan'} <ExternalLink className="w-3.5 h-3.5" />
-                                </a>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </motion.div>
-                  );
-                })()}
 
                 {/* ── JOB LISTINGS ───────────────────────────────────── */}
                 <section id="job-listings">
@@ -577,7 +580,7 @@ export default function PublicLayout({
                                         <img
                                           src={posterSrc}
                                           alt={item.judul || item.namaInstansi}
-                                          className="w-full h-full poster-reveal scale-110 group-hover:scale-125 transition-transform duration-500"
+                                          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
                                           onError={(e) => {
                                             (e.currentTarget as HTMLElement).style.display = 'none';
                                           }}
@@ -800,7 +803,7 @@ export default function PublicLayout({
                                     </h3>
 
                                     <p className="text-slate-200 text-xs sm:text-sm leading-relaxed line-clamp-2">
-                                      {item.body}
+                                      {stripHtmlTags(item.body)}
                                     </p>
 
                                     <div className="flex items-center justify-between pt-3 border-t border-white/15 mt-3 flex-wrap gap-2">
@@ -853,7 +856,7 @@ export default function PublicLayout({
                                     {item.judul}
                                   </h3>
                                   <p className="text-slate-600 text-xs sm:text-sm leading-relaxed line-clamp-3">
-                                    {item.body}
+                                    {stripHtmlTags(item.body)}
                                   </p>
                                   <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-3 border-t border-slate-100 mt-3">
                                     <span className="whitespace-nowrap font-medium text-slate-400">by {(!item.createdByName || item.createdByName.toLowerCase().includes('admin')) ? 'Admin Website' : item.createdByName}</span>
@@ -904,7 +907,7 @@ export default function PublicLayout({
                                   </h3>
 
                                   <p className="text-slate-500 text-xs leading-relaxed line-clamp-2">
-                                    {item.body}
+                                    {stripHtmlTags(item.body)}
                                   </p>
 
                                   <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
@@ -968,7 +971,7 @@ export default function PublicLayout({
                                            group-hover:text-[#1E3A8A] transition-colors">
                               {item.title}
                             </h4>
-                            <p className="text-slate-500 text-xs line-clamp-2 leading-relaxed">{item.excerpt}</p>
+                            <p className="text-slate-500 text-xs line-clamp-2 leading-relaxed">{stripHtmlTags(item.excerpt)}</p>
                             <div className="text-xs text-slate-400 font-medium pt-1">
                               Oleh {item.penulis} · {formatDateDisplay(item.createdAt)}
                             </div>
@@ -993,30 +996,30 @@ export default function PublicLayout({
                   if (!club.published) return null;
                   const openClub = () => { if (club.buttonUrl) window.open(club.buttonUrl, '_blank', 'noopener,noreferrer'); };
                   return (
-                  <div className="bg-gradient-to-br from-rose-600 to-red-700 rounded-2xl p-6 text-white
+                    <div className="bg-gradient-to-br from-rose-600 to-red-700 rounded-2xl p-6 text-white
                                   shadow-lg relative overflow-hidden">
-                    <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
-                      <Users className="w-48 h-48" />
-                    </div>
-                    <div className="relative z-10 text-center space-y-3">
-                      <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mx-auto">
-                        <Users className="w-7 h-7 text-white" />
+                      <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
+                        <Users className="w-48 h-48" />
                       </div>
-                      <h4 className="font-extrabold text-lg leading-tight whitespace-pre-line">
-                        {club.title}
-                      </h4>
-                      <p className="text-rose-100 text-xs leading-relaxed">
-                        {club.subtitle}
-                      </p>
-                      <button
-                        onClick={openClub}
-                        className="bg-white text-rose-700 font-extrabold text-xs
+                      <div className="relative z-10 text-center space-y-3">
+                        <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mx-auto">
+                          <Users className="w-7 h-7 text-white" />
+                        </div>
+                        <h4 className="font-extrabold text-lg leading-tight whitespace-pre-line">
+                          {club.title}
+                        </h4>
+                        <p className="text-rose-100 text-xs leading-relaxed">
+                          {club.subtitle}
+                        </p>
+                        <button
+                          onClick={openClub}
+                          className="bg-white text-rose-700 font-extrabold text-xs
                                    px-5 py-2 rounded-full hover:bg-rose-50 transition-colors"
-                      >
-                        {club.buttonText}
-                      </button>
+                        >
+                          {club.buttonText}
+                        </button>
+                      </div>
                     </div>
-                  </div>
                   );
                 })()}
 
@@ -1072,11 +1075,11 @@ export default function PublicLayout({
                   const popularDisplayList: PopularDisplayItem[] = dynamicPopularItems.length > 0
                     ? dynamicPopularItems.slice(0, 7)
                     : POPULAR_LINKS.map(link => ({
-                        label: link.label,
-                        thumbnail: link.thumbnail,
-                        kategori: link.kategori,
-                        action: () => setTab('lowongan')
-                      }));
+                      label: link.label,
+                      thumbnail: link.thumbnail,
+                      kategori: link.kategori,
+                      action: () => setTab('lowongan')
+                    }));
 
                   return (
                     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -1109,9 +1112,8 @@ export default function PublicLayout({
                                   />
                                 ) : null}
                                 <div
-                                  className={`w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 text-[#1E3A8A] ${
-                                    item.thumbnail ? 'hidden' : 'flex'
-                                  }`}
+                                  className={`w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 text-[#1E3A8A] ${item.thumbnail ? 'hidden' : 'flex'
+                                    }`}
                                 >
                                   <FileText className="w-5 h-5 text-[#1E3A8A]" />
                                 </div>
@@ -1298,7 +1300,7 @@ export default function PublicLayout({
             {/* WHITE SEARCH & FILTER BAR CONTAINER */}
             <div className="bg-white relative" ref={jobPopupRef}>
               <div className="flex flex-col md:flex-row items-stretch gap-2.5 md:gap-3">
-                
+
                 {/* TEXTBOX: Kata kunci, jabatan, atau perusahaan */}
                 <div className="flex-1 bg-white text-slate-900 rounded-xl flex items-center px-3.5 py-2.5 border border-slate-300 focus-within:ring-2 focus-within:ring-blue-500/30 focus-within:border-blue-400 hover:border-blue-300 transition shadow-2xs">
                   <Search className="w-4 h-4 text-slate-400 shrink-0 mr-2.5" />
@@ -1321,16 +1323,14 @@ export default function PublicLayout({
                   <button
                     type="button"
                     onClick={() => setOpenPopup(openPopup === 'location' ? null : 'location')}
-                    className={`w-full bg-white rounded-xl flex items-center justify-between px-3.5 py-2.5 border transition text-xs md:text-sm font-medium text-left shadow-2xs cursor-pointer ${
-                      openPopup === 'location' || selectedLocations.length > 0
-                        ? 'border-blue-400 bg-blue-50/40 text-blue-900 ring-2 ring-blue-500/30'
-                        : 'border-slate-300 text-slate-700 hover:border-blue-300 hover:bg-blue-50/40'
-                    }`}
+                    className={`w-full bg-white rounded-xl flex items-center justify-between px-3.5 py-2.5 border transition text-xs md:text-sm font-medium text-left shadow-2xs cursor-pointer ${openPopup === 'location' || selectedLocations.length > 0
+                      ? 'border-blue-400 bg-blue-50/40 text-blue-900 ring-2 ring-blue-500/30'
+                      : 'border-slate-300 text-slate-700 hover:border-blue-300 hover:bg-blue-50/40'
+                      }`}
                   >
                     <div className="flex items-center min-w-0 pr-2">
-                      <MapPin className={`w-4 h-4 shrink-0 mr-2.5 transition-colors ${
-                        selectedLocations.length > 0 ? 'text-blue-600' : 'text-slate-400'
-                      }`} />
+                      <MapPin className={`w-4 h-4 shrink-0 mr-2.5 transition-colors ${selectedLocations.length > 0 ? 'text-blue-600' : 'text-slate-400'
+                        }`} />
                       <span className={`truncate ${selectedLocations.length > 0 ? 'font-bold text-slate-800' : 'text-slate-600'}`}>
                         {selectedLocations.length === 0
                           ? 'Semua Lokasi'
@@ -1355,7 +1355,7 @@ export default function PublicLayout({
                             <MapPin className="w-3.5 h-3.5 text-[#0077C6]" /> Lokasi Pekerjaan
                           </span>
                           {selectedLocations.length > 0 && (
-                            <button 
+                            <button
                               onClick={() => setSelectedLocations([])}
                               className="text-[11px] font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-0.5 rounded-lg transition cursor-pointer"
                             >
@@ -1383,66 +1383,66 @@ export default function PublicLayout({
                         </div>
 
                         <div className="max-h-72 overflow-y-auto nice-scrollbar p-2.5 space-y-2.5">
-                        {(!locationSearch || 'lainnya (luar negeri)'.includes(locationSearch.toLowerCase()) || 'luar negeri'.includes(locationSearch.toLowerCase()) || 'lainnya'.includes(locationSearch.toLowerCase())) && (
-                          <div className="pb-2.5 border-b border-slate-200 mb-2">
-                            <label className="flex items-center gap-2 font-bold text-slate-900 cursor-pointer hover:bg-slate-50 p-1.5 rounded transition">
-                              <input
-                                type="checkbox"
-                                checked={selectedLocations.includes('LAINNYA (LUAR NEGERI)')}
-                                onChange={() => toggleCheckboxOption(setSelectedLocations, 'LAINNYA (LUAR NEGERI)')}
-                                className="rounded text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
-                              />
-                              <span className="flex items-center gap-1.5 text-blue-700 font-extrabold">
-                                <Globe className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                                <span>LAINNYA (LUAR NEGERI)</span>
-                              </span>
-                            </label>
-                            <p className="text-[10px] text-slate-400 pl-7 font-normal">Lokasi pekerjaan luar negeri (Jepang, Jerman, Tokyo, dll.)</p>
-                          </div>
-                        )}
-                        {INDONESIAN_PROVINCES.map((prov) => {
-                          const filteredCities = prov.cities.filter(c => 
-                            c.toLowerCase().includes(locationSearch.toLowerCase()) || 
-                            prov.province.toLowerCase().includes(locationSearch.toLowerCase())
-                          );
-
-                          if (locationSearch && !prov.province.toLowerCase().includes(locationSearch.toLowerCase()) && filteredCities.length === 0) {
-                            return null;
-                          }
-
-                          const isProvChecked = selectedLocations.includes(prov.province);
-
-                          return (
-                            <div key={prov.province} className="space-y-1">
-                              <label className="flex items-center gap-2 font-bold text-slate-900 cursor-pointer hover:bg-slate-50 p-1 rounded">
+                          {(!locationSearch || 'lainnya (luar negeri)'.includes(locationSearch.toLowerCase()) || 'luar negeri'.includes(locationSearch.toLowerCase()) || 'lainnya'.includes(locationSearch.toLowerCase())) && (
+                            <div className="pb-2.5 border-b border-slate-200 mb-2">
+                              <label className="flex items-center gap-2 font-bold text-slate-900 cursor-pointer hover:bg-slate-50 p-1.5 rounded transition">
                                 <input
                                   type="checkbox"
-                                  checked={isProvChecked}
-                                  onChange={() => toggleCheckboxOption(setSelectedLocations, prov.province)}
+                                  checked={selectedLocations.includes('LAINNYA (LUAR NEGERI)')}
+                                  onChange={() => toggleCheckboxOption(setSelectedLocations, 'LAINNYA (LUAR NEGERI)')}
                                   className="rounded text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
                                 />
-                                <span>{prov.province}</span>
+                                <span className="flex items-center gap-1.5 text-blue-700 font-extrabold">
+                                  <Globe className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                                  <span>LAINNYA (LUAR NEGERI)</span>
+                                </span>
                               </label>
-
-                              <div className="pl-5 space-y-1 border-l border-slate-100 ml-2">
-                                {filteredCities.map((city) => {
-                                  const isCityChecked = selectedLocations.includes(city);
-                                  return (
-                                    <label key={city} className="flex items-center gap-2 font-normal text-slate-700 cursor-pointer hover:bg-slate-50 p-0.5 rounded">
-                                      <input
-                                        type="checkbox"
-                                        checked={isCityChecked}
-                                        onChange={() => toggleCheckboxOption(setSelectedLocations, city)}
-                                        className="rounded text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
-                                      />
-                                      <span>{city}</span>
-                                    </label>
-                                  );
-                                })}
-                              </div>
+                              <p className="text-[10px] text-slate-400 pl-7 font-normal">Lokasi pekerjaan luar negeri (Jepang, Jerman, Tokyo, dll.)</p>
                             </div>
-                          );
-                        })}
+                          )}
+                          {INDONESIAN_PROVINCES.map((prov) => {
+                            const filteredCities = prov.cities.filter(c =>
+                              c.toLowerCase().includes(locationSearch.toLowerCase()) ||
+                              prov.province.toLowerCase().includes(locationSearch.toLowerCase())
+                            );
+
+                            if (locationSearch && !prov.province.toLowerCase().includes(locationSearch.toLowerCase()) && filteredCities.length === 0) {
+                              return null;
+                            }
+
+                            const isProvChecked = selectedLocations.includes(prov.province);
+
+                            return (
+                              <div key={prov.province} className="space-y-1">
+                                <label className="flex items-center gap-2 font-bold text-slate-900 cursor-pointer hover:bg-slate-50 p-1 rounded">
+                                  <input
+                                    type="checkbox"
+                                    checked={isProvChecked}
+                                    onChange={() => toggleCheckboxOption(setSelectedLocations, prov.province)}
+                                    className="rounded text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
+                                  />
+                                  <span>{prov.province}</span>
+                                </label>
+
+                                <div className="pl-5 space-y-1 border-l border-slate-100 ml-2">
+                                  {filteredCities.map((city) => {
+                                    const isCityChecked = selectedLocations.includes(city);
+                                    return (
+                                      <label key={city} className="flex items-center gap-2 font-normal text-slate-700 cursor-pointer hover:bg-slate-50 p-0.5 rounded">
+                                        <input
+                                          type="checkbox"
+                                          checked={isCityChecked}
+                                          onChange={() => toggleCheckboxOption(setSelectedLocations, city)}
+                                          className="rounded text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
+                                        />
+                                        <span>{city}</span>
+                                      </label>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </motion.div>
                     )}
@@ -1454,16 +1454,14 @@ export default function PublicLayout({
                   <button
                     type="button"
                     onClick={() => setOpenPopup(openPopup === 'specialization' ? null : 'specialization')}
-                    className={`w-full bg-white rounded-xl flex items-center justify-between px-3.5 py-2.5 border transition text-xs md:text-sm font-medium text-left shadow-2xs cursor-pointer ${
-                      openPopup === 'specialization' || selectedSpecializations.length > 0
-                        ? 'border-blue-400 bg-blue-50/40 text-blue-900 ring-2 ring-blue-500/30'
-                        : 'border-slate-300 text-slate-700 hover:border-blue-300 hover:bg-blue-50/40'
-                    }`}
+                    className={`w-full bg-white rounded-xl flex items-center justify-between px-3.5 py-2.5 border transition text-xs md:text-sm font-medium text-left shadow-2xs cursor-pointer ${openPopup === 'specialization' || selectedSpecializations.length > 0
+                      ? 'border-blue-400 bg-blue-50/40 text-blue-900 ring-2 ring-blue-500/30'
+                      : 'border-slate-300 text-slate-700 hover:border-blue-300 hover:bg-blue-50/40'
+                      }`}
                   >
                     <div className="flex items-center min-w-0 pr-2">
-                      <Users className={`w-4 h-4 shrink-0 mr-2.5 transition-colors ${
-                        selectedSpecializations.length > 0 ? 'text-blue-600' : 'text-slate-400'
-                      }`} />
+                      <Users className={`w-4 h-4 shrink-0 mr-2.5 transition-colors ${selectedSpecializations.length > 0 ? 'text-blue-600' : 'text-slate-400'
+                        }`} />
                       <span className={`truncate ${selectedSpecializations.length > 0 ? 'font-bold text-slate-800' : 'text-slate-600'}`}>
                         {selectedSpecializations.length === 0
                           ? 'Semua Spesialisasi'
@@ -1488,7 +1486,7 @@ export default function PublicLayout({
                             <Briefcase className="w-3.5 h-3.5 text-[#0077C6]" /> Spesialisasi Pekerjaan
                           </span>
                           {selectedSpecializations.length > 0 && (
-                            <button 
+                            <button
                               onClick={() => setSelectedSpecializations([])}
                               className="text-[11px] font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-0.5 rounded-lg transition cursor-pointer"
                             >
@@ -1516,7 +1514,7 @@ export default function PublicLayout({
                         </div>
 
                         <div className="max-h-72 overflow-y-auto nice-scrollbar p-2.5 space-y-1">
-                          {JOB_SPECIALIZATIONS.filter(spec => 
+                          {JOB_SPECIALIZATIONS.filter(spec =>
                             spec.toLowerCase().includes(specializationSearch.toLowerCase())
                           ).map((spec) => {
                             const isChecked = selectedSpecializations.includes(spec);
@@ -1554,7 +1552,7 @@ export default function PublicLayout({
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-semibold text-slate-600 pt-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <span>Menampilkan {totalLowonganCount > 0 ? jobStartIndex + 1 : 0}-{jobEndIndex} dari <strong className="text-[#0055D4] font-extrabold">{totalLowonganCount} lowongan</strong></span>
-                
+
                 {hasActiveJobFilters && (
                   <button
                     onClick={clearAllJobFilters}
@@ -1613,7 +1611,7 @@ export default function PublicLayout({
                                       <img
                                         src={posterSrc}
                                         alt={item.judul || item.namaInstansi}
-                                        className="w-full h-full poster-reveal scale-110 group-hover:scale-125 transition-transform duration-500"
+                                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
                                         onError={(e) => {
                                           (e.currentTarget as HTMLElement).style.display = 'none';
                                         }}
@@ -1866,7 +1864,7 @@ export default function PublicLayout({
                             </h3>
 
                             <p className="text-slate-500 text-xs leading-relaxed line-clamp-3">
-                              {item.excerpt}
+                              {stripHtmlTags(item.excerpt)}
                             </p>
                           </div>
                         </div>

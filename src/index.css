@@ -7,46 +7,71 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
   /* Redefine Slate to be warm clay, sand, alabaster and soft earth */
-  --color-slate-50: #FAF8F5; /* Alabaster cream */
-  --color-slate-100: #F3EFE9; /* Warm light sand */
-  --color-slate-150: #EAE4D9; /* Dry linen border */
-  --color-slate-200: #E6DFD3; /* Soft clay outline */
-  --color-slate-205: #DDD5C6; /* Mid sand outline */
-  --color-slate-300: #CDC3B0; /* Pale warm soil */
-  --color-slate-400: #A89B85; /* Muted stone brown */
-  --color-slate-500: #887C68; /* Charcoal clay */
+  --color-slate-50: #FAF8F5;
+  /* Alabaster cream */
+  --color-slate-100: #F3EFE9;
+  /* Warm light sand */
+  --color-slate-150: #EAE4D9;
+  /* Dry linen border */
+  --color-slate-200: #E6DFD3;
+  /* Soft clay outline */
+  --color-slate-205: #DDD5C6;
+  /* Mid sand outline */
+  --color-slate-300: #CDC3B0;
+  /* Pale warm soil */
+  --color-slate-400: #A89B85;
+  /* Muted stone brown */
+  --color-slate-500: #887C68;
+  /* Charcoal clay */
   --color-slate-550: #716654;
-  --color-slate-600: #625644; /* Dark dry earth */
+  --color-slate-600: #625644;
+  /* Dark dry earth */
   --color-slate-650: #504637;
   --color-slate-700: #4B4132;
   --color-slate-750: #3C3326;
-  --color-slate-800: #2D271E; /* Rich dark espresso brown */
-  --color-slate-900: #1C1914; /* Deep rich dark bark */
+  --color-slate-800: #2D271E;
+  /* Rich dark espresso brown */
+  --color-slate-900: #1C1914;
+  /* Deep rich dark bark */
   --color-slate-950: #100E0A;
 
   /* Redefine Emerald to be vibrant moss, soft sage, and deep pine */
-  --color-emerald-50: #F4F7F3; /* Sage fog */
-  --color-emerald-100: #E3EADF; /* Moss dust */
-  --color-emerald-150: #D0DCBE; /* Muted pistachio border */
-  --color-emerald-200: #C2D3BD; /* Soft leaf green */
-  --color-emerald-300: #96B591; /* Gentle sage leaf */
+  --color-emerald-50: #F4F7F3;
+  /* Sage fog */
+  --color-emerald-100: #E3EADF;
+  /* Moss dust */
+  --color-emerald-150: #D0DCBE;
+  /* Muted pistachio border */
+  --color-emerald-200: #C2D3BD;
+  /* Soft leaf green */
+  --color-emerald-300: #96B591;
+  /* Gentle sage leaf */
   --color-emerald-450: #5F8F61;
-  --color-emerald-500: #3F6741; /* Primary Botanical Forest Green */
-  --color-emerald-600: #315133; /* Deep moss green */
+  --color-emerald-500: #3F6741;
+  /* Primary Botanical Forest Green */
+  --color-emerald-600: #315133;
+  /* Deep moss green */
   --color-emerald-650: #274028;
-  --color-emerald-700: #1F331D; /* Deep Forest Pine - text-[#1F331D] from Design HTML */
-  --color-emerald-800: #182817; /* Quiet night forest */
+  --color-emerald-700: #1F331D;
+  /* Deep Forest Pine - text-[#1F331D] from Design HTML */
+  --color-emerald-800: #182817;
+  /* Quiet night forest */
   --color-emerald-950: #0C150C;
 
   /* Redefine Blue to be quiet mineral water/lake slate */
-  --color-blue-50: #F2F6F5; /* Morning mist stream */
-  --color-blue-100: #DCE5E3; /* Ice river sand */
-  --color-blue-200: #B9CAC6; /* Clay water */
-  --color-blue-500: #557F75; /* Quiet mineral blue-green */
+  --color-blue-50: #F2F6F5;
+  /* Morning mist stream */
+  --color-blue-100: #DCE5E3;
+  /* Ice river sand */
+  --color-blue-200: #B9CAC6;
+  /* Clay water */
+  --color-blue-500: #557F75;
+  /* Quiet mineral blue-green */
   --color-blue-600: #41635B;
   --color-blue-650: #345049;
   --color-blue-700: #293F3A;
-  --color-blue-900: #121F1C; /* Mineral dark slate */
+  --color-blue-900: #121F1C;
+  /* Mineral dark slate */
   --color-blue-950: #09100E;
 }
 
@@ -60,32 +85,105 @@
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
 /* Hide scrollbar for IE, Edge and Firefox */
 .no-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
 /* Thin refined scrollbar (dropdown/panel) */
-.nice-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-.nice-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.nice-scrollbar::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 9999px; }
-.nice-scrollbar::-webkit-scrollbar-thumb:hover { background: #0077C6; }
-.nice-scrollbar { scrollbar-width: thin; scrollbar-color: #CBD5E1 transparent; }
+.nice-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.nice-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.nice-scrollbar::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+
+.nice-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #0077C6;
+}
+
+.nice-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #CBD5E1 transparent;
+}
 
 /* Styling isi berita WYSIWYG (HTML dari editor admin) */
-.prose-berita { color: #334155; font-size: 0.95rem; line-height: 1.75; }
-.prose-berita h1 { font-size: 1.6rem; font-weight: 800; color: #0F172A; margin: 1.25rem 0 0.75rem; line-height: 1.25; }
-.prose-berita h2 { font-size: 1.3rem; font-weight: 800; color: #0F172A; margin: 1.1rem 0 0.6rem; line-height: 1.3; }
-.prose-berita p { margin: 0.65rem 0; }
-.prose-berita strong { font-weight: 700; color: #0F172A; }
-.prose-berita em { font-style: italic; }
-.prose-berita u { text-decoration: underline; }
-.prose-berita a { color: #0077C6; text-decoration: underline; }
-.prose-berita ul { list-style: disc; padding-left: 0.5cm; margin: 0.6rem 0; }
-.prose-berita ol { list-style: decimal; padding-left: 0.5cm; margin: 0.6rem 0; }
-.prose-berita li { margin: 0.25rem 0; }
-.prose-berita img { max-width: 100%; border-radius: 0.75rem; }
+.prose-berita {
+  color: #334155;
+  font-size: 0.95rem;
+  line-height: 1.75;
+}
+
+.prose-berita h1 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 1.25rem 0 0.75rem;
+  line-height: 1.25;
+}
+
+.prose-berita h2 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 1.1rem 0 0.6rem;
+  line-height: 1.3;
+}
+
+.prose-berita p {
+  margin: 0.65rem 0;
+}
+
+.prose-berita strong {
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.prose-berita em {
+  font-style: italic;
+}
+
+.prose-berita u {
+  text-decoration: underline;
+}
+
+.prose-berita a {
+  color: #0077C6;
+  text-decoration: underline;
+}
+
+.prose-berita ul {
+  list-style: disc;
+  padding-left: 0.5cm;
+  margin: 0.6rem 0;
+}
+
+.prose-berita ol {
+  list-style: decimal;
+  padding-left: 0.5cm;
+  margin: 0.6rem 0;
+}
+
+.prose-berita li {
+  margin: 0.25rem 0;
+}
+
+.prose-berita img {
+  max-width: 100%;
+  border-radius: 0.75rem;
+}
+
 .prose-berita img[style*="float: left"],
 .prose-berita img[style*="float:left"],
 .prose-berita img.img-float-left {
@@ -94,6 +192,7 @@
   margin-bottom: 1rem;
   margin-top: 0.5rem;
 }
+
 .prose-berita img[style*="float: right"],
 .prose-berita img[style*="float:right"],
 .prose-berita img.img-float-right {
@@ -102,7 +201,9 @@
   margin-bottom: 1rem;
   margin-top: 0.5rem;
 }
+
 @media (max-width: 640px) {
+
   .prose-berita img,
   .prose-berita img[style],
   .prose img,
@@ -118,25 +219,102 @@
     margin-bottom: 1rem !important;
   }
 }
-.prose-berita hr { border: 0; border-top: 1px solid #E6DFD3; margin: 1.2rem 0; }
+
+.prose-berita hr {
+  border: 0;
+  border-top: 1px solid #E6DFD3;
+  margin: 1.2rem 0;
+}
+
 /* Numbering gaya "1) 2) 3)" (Angka Arab + kurung tutup) */
-ol.list-paren { list-style: none; padding-left: 0.5cm; counter-reset: lp; }
-ol.list-paren > li { counter-increment: lp; position: relative; }
-ol.list-paren > li::before { content: counter(lp) ") "; position: absolute; left: -0.5cm; color: #0077C6; font-weight: 700; }
+ol.list-paren {
+  list-style: none;
+  padding-left: 0.5cm;
+  counter-reset: lp;
+}
+
+ol.list-paren>li {
+  counter-increment: lp;
+  position: relative;
+}
+
+ol.list-paren>li::before {
+  content: counter(lp) ") ";
+  position: absolute;
+  left: -0.5cm;
+  color: #0077C6;
+  font-weight: 700;
+}
+
 /* Fallback jika class tidak kebawa: marker teks di awal <li> tetap rapi */
 /* Editor WYSIWYG juga harus indent 0.5cm sama dengan tampilan publik */
-.prose ul, .prose ol { padding-left: 0.5cm; margin: 0.6rem 0; }
-.prose li { margin: 0.25rem 0; }
-.prose blockquote { border-left: 4px solid #0077C6; padding-left: 1rem; font-style: italic; color: #475569; margin: 0.8rem 0; }
-.prose h1 { font-size: 1.6rem; font-weight: 800; color: #0F172A; margin: 1.25rem 0 0.75rem; line-height: 1.25; }
-.prose h2 { font-size: 1.3rem; font-weight: 800; color: #0F172A; margin: 1.1rem 0 0.6rem; line-height: 1.3; }
-.prose a { color: #0077C6; text-decoration: underline; }
+.prose ul,
+.prose ol {
+  padding-left: 0.5cm;
+  margin: 0.6rem 0;
+}
+
+.prose li {
+  margin: 0.25rem 0;
+}
+
+.prose blockquote {
+  border-left: 4px solid #0077C6;
+  padding-left: 1rem;
+  font-style: italic;
+  color: #475569;
+  margin: 0.8rem 0;
+}
+
+.prose h1 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 1.25rem 0 0.75rem;
+  line-height: 1.25;
+}
+
+.prose h2 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 1.1rem 0 0.6rem;
+  line-height: 1.3;
+}
+
+.prose a {
+  color: #0077C6;
+  text-decoration: underline;
+}
+
 /* Numbering gaya "1) 2) 3)" di editor */
-.prose ol.list-paren { list-style: none; padding-left: 0.5cm; counter-reset: lp; }
-.prose ol.list-paren > li { counter-increment: lp; position: relative; }
-.prose ol.list-paren > li::before { content: counter(lp) ") "; position: absolute; left: -0.5cm; color: #0077C6; font-weight: 700; }
-.prose-berita ul li::marker { color: #0077C6; }
-.prose-berita ol li::marker { color: #0077C6; }
+.prose ol.list-paren {
+  list-style: none;
+  padding-left: 0.5cm;
+  counter-reset: lp;
+}
+
+.prose ol.list-paren>li {
+  counter-increment: lp;
+  position: relative;
+}
+
+.prose ol.list-paren>li::before {
+  content: counter(lp) ") ";
+  position: absolute;
+  left: -0.5cm;
+  color: #0077C6;
+  font-weight: 700;
+}
+
+.prose-berita ul li::marker {
+  color: #0077C6;
+}
+
+.prose-berita ol li::marker {
+  color: #0077C6;
+}
+
 /* Proteksi CSS agar gambar dan elemen tanpa teks tidak memicu titik biru liar */
 .prose-berita li:empty::marker,
 .prose-berita li:has(img:only-child)::marker,
@@ -148,18 +326,10 @@ ol.list-paren > li::before { content: counter(lp) ") "; position: absolute; left
 /* Animasi reveal poster 9:16 di thumbnail list lowongan/magang:
    crop window berjalan dari atas ke bawah & kembali (loop), sehingga
    seluruh bagian poster tampak sedikit demi sedikit. */
-@keyframes poster-reveal-pan {
-  0%   { object-position: center top; }
-  50%  { object-position: center bottom; }
-  100% { object-position: center top; }
-}
+/* Tampilan poster statis di thumbnail list lowongan/magang:
+   Fokus gambar di posisi tengah (center) tanpa animasi naik-turun. */
 .poster-reveal {
   object-fit: cover;
-  object-position: center top;
-  animation: poster-reveal-pan 7s ease-in-out infinite;
+  object-position: center center;
+  animation: none !important;
 }
-@media (prefers-reduced-motion: reduce) {
-  .poster-reveal { animation: none; object-position: center top; }
-}
-
-

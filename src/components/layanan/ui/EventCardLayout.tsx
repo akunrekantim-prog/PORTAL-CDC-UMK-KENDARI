@@ -4,6 +4,7 @@ import { EventLayananItem, KontenKarir } from '../../../types';
 import EventDetailView from '../EventDetailView';
 import { useLayanan } from '../LayananContainer';
 import Dropdown from '../../Dropdown';
+import { stripHtmlTags } from '../../../markdown';
 
 interface EventCardLayoutProps {
   category: 'workshop' | 'softskill' | 'seminar';
@@ -16,17 +17,9 @@ interface EventCardLayoutProps {
   setTab?: (tab: string) => void;
 }
 
-// Bersihkan teks markdown sederhana dari body konten admin agar tampil
+// Bersihkan teks HTML dan markdown sederhana dari body konten admin agar tampil
 // rapi di kartu preview
-const cleanText = (s: string = ''): string =>
-  s
-    .replace(/\n/g, ' ')
-    .replace(/\\n/g, ' ')
-    .replace(/\[\/[a-z]+\]/gi, '')
-    .replace(/\[[a-z]+(?::[^\]]*)?\]/gi, '')
-    .replace(/[#>*_`~\\]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
+const cleanText = (s: string = ''): string => stripHtmlTags(s);
 
 const mapKontenToEvent = (k: KontenKarir): EventLayananItem => ({
   id: `kk_${k.id}`,

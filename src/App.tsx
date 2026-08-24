@@ -43,7 +43,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { renderContentMarkdown } from './markdown';
+import { renderContentMarkdown, stripHtmlTags } from './markdown';
 
 export default function App() {
   // Routes States
@@ -75,7 +75,7 @@ export default function App() {
     id: k.id,
     title: k.judul,
     slug: `kk-${k.id}`,
-    excerpt: (k.body || '').replace(/<[^>]*>/g, '').replace(/&[a-z]+;/gi, ' ').replace(/\s+/g, ' ').trim().slice(0, 160),
+    excerpt: stripHtmlTags(k.body || '').slice(0, 160),
     content: k.body || '',
     coverImageUrl: k.thumbnail,
     status: k.status,

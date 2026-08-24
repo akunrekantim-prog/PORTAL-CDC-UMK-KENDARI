@@ -1661,44 +1661,44 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                 const isCollapsible = !!section.collapsible;
                 const isOpen = expandedGroups[section.group] ?? true;
                 return (
-                <div key={section.group} className={idx > 0 ? 'mt-4 pt-3 border-t border-slate-100' : ''}>
-                  {isCollapsible ? (
-                    <button
-                      type="button"
-                      onClick={() => setExpandedGroups((g) => ({ ...g, [section.group]: !isOpen }))}
-                      className="w-full flex items-center justify-between px-1 mb-1.5 group"
-                    >
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-slate-500 transition">{section.group}</span>
-                      <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isOpen ? '' : '-rotate-90'}`} />
-                    </button>
-                  ) : (
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 px-1">{section.group}</div>
-                  )}
-                  {isOpen && (
-                  <div className="flex flex-col gap-1">
-                    {section.items.map((menu) => {
-                      const active = activeTab === menu.id;
-                      return (
-                        <button
-                          key={menu.id}
-                          id={`adm-tab-${menu.id}`}
-                          onClick={() => setActiveTab(menu.id)}
-                          className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 ${active ? 'bg-[#1E3A8A] text-white shadow-md shadow-blue-900/10' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}`}
-                        >
-                          <span className={`transition-transform duration-200 ${active ? 'text-white scale-110' : 'text-slate-400 group-hover:text-[#0077C6]'}`}>{menu.icon}</span>
-                          <span className="text-[13px] font-semibold">{menu.label}</span>
-                          {menu.id === 'komentar' && pendingKomentarCount > 0 && (
-                            <span className="ml-auto bg-amber-100 text-amber-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full">{pendingKomentarCount}</span>
-                          )}
-                          {active
-                            ? <span className="ml-auto w-2 h-2 rounded-full bg-white" />
-                            : <span className="ml-auto w-1.5 h-1.5 rounded-full bg-transparent group-hover:bg-blue-300 transition" />}
-                        </button>
-                      );
-                    })}
+                  <div key={section.group} className={idx > 0 ? 'mt-4 pt-3 border-t border-slate-100' : ''}>
+                    {isCollapsible ? (
+                      <button
+                        type="button"
+                        onClick={() => setExpandedGroups((g) => ({ ...g, [section.group]: !isOpen }))}
+                        className="w-full flex items-center justify-between px-1 mb-1.5 group"
+                      >
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-slate-500 transition">{section.group}</span>
+                        <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isOpen ? '' : '-rotate-90'}`} />
+                      </button>
+                    ) : (
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 px-1">{section.group}</div>
+                    )}
+                    {isOpen && (
+                      <div className="flex flex-col gap-1">
+                        {section.items.map((menu) => {
+                          const active = activeTab === menu.id;
+                          return (
+                            <button
+                              key={menu.id}
+                              id={`adm-tab-${menu.id}`}
+                              onClick={() => setActiveTab(menu.id)}
+                              className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 ${active ? 'bg-[#1E3A8A] text-white shadow-md shadow-blue-900/10' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}`}
+                            >
+                              <span className={`transition-transform duration-200 ${active ? 'text-white scale-110' : 'text-slate-400 group-hover:text-[#0077C6]'}`}>{menu.icon}</span>
+                              <span className="text-[13px] font-semibold">{menu.label}</span>
+                              {menu.id === 'komentar' && pendingKomentarCount > 0 && (
+                                <span className="ml-auto bg-amber-100 text-amber-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full">{pendingKomentarCount}</span>
+                              )}
+                              {active
+                                ? <span className="ml-auto w-2 h-2 rounded-full bg-white" />
+                                : <span className="ml-auto w-1.5 h-1.5 rounded-full bg-transparent group-hover:bg-blue-300 transition" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
-                  )}
-                </div>
                 );
               })}
             </nav>
@@ -1920,8 +1920,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                             type="button"
                             onClick={() => setAnnDisplayType('badge')}
                             className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 border ${annDisplayType === 'badge'
-                                ? 'bg-emerald-500 text-slate-950 border-emerald-400 font-extrabold'
-                                : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200'
+                              ? 'bg-emerald-500 text-slate-950 border-emerald-400 font-extrabold'
+                              : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200'
                               }`}
                           >
                             <span>Banner Teks & Badge</span>
@@ -1930,8 +1930,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                             type="button"
                             onClick={() => setAnnDisplayType('poster')}
                             className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 border ${annDisplayType === 'poster'
-                                ? 'bg-emerald-500 text-slate-950 border-emerald-400 font-extrabold'
-                                : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200'
+                              ? 'bg-emerald-500 text-slate-950 border-emerald-400 font-extrabold'
+                              : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200'
                               }`}
                           >
                             <span>Poster Gambar</span>
@@ -2086,7 +2086,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                       {adminLowongan.map((l) => (
                         <div key={l.id} className="bg-blue-50/40 rounded-xl border border-blue-200 shadow-sm p-4 flex items-center gap-4">
                           {l.flyer || l.imageUrl ? (
-                            <img src={l.flyer || l.imageUrl} alt="" className="w-16 h-20 poster-reveal rounded-xl flex-shrink-0" />
+                            <img src={l.flyer || l.imageUrl} alt="" className="w-16 h-20 object-cover object-center rounded-xl flex-shrink-0" />
                           ) : (
                             <div className="w-16 h-20 flex-shrink-0 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600"><Briefcase className="w-5 h-5" /></div>
                           )}
@@ -2154,8 +2154,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                               title={k.isPinned ? "Lepas Sematan (Unpin)" : "Sematkan ke Popular Info (Pin)"}
                               onClick={() => handleTogglePinKonten(k)}
                               className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${k.isPinned
-                                  ? 'bg-amber-100 text-amber-800 border border-amber-300'
-                                  : 'bg-slate-100 hover:bg-amber-50 text-slate-600 hover:text-amber-700'
+                                ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                                : 'bg-slate-100 hover:bg-amber-50 text-slate-600 hover:text-amber-700'
                                 }`}
                             >
                               <Pin className={`w-3.5 h-3.5 ${k.isPinned ? 'fill-amber-600 text-amber-600' : ''}`} />
@@ -2300,9 +2300,9 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
 
                     {/* 2. Media Visual */}
                     <div className="space-y-4 pt-2">
-                    <h5 className="font-bold text-slate-800 text-xs uppercase tracking-wider border-b border-slate-100 pb-2">2. Visual Media</h5>
-                    <div className="space-y-4">
-                      <div className="space-y-2 bg-slate-50/70 p-4 rounded-xl border border-slate-150">
+                      <h5 className="font-bold text-slate-800 text-xs uppercase tracking-wider border-b border-slate-100 pb-2">2. Visual Media</h5>
+                      <div className="space-y-4">
+                        <div className="space-y-2 bg-slate-50/70 p-4 rounded-xl border border-slate-150">
                           <div className="flex items-center justify-between">
                             <label className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5"><ImageIcon className="w-4 h-4 text-blue-600" /> Poster / Flyer (9:16)</label>
                             <div className="flex bg-white rounded-lg p-0.5 border border-slate-200 text-[11px] font-bold">
@@ -2455,11 +2455,10 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                             <button
                               type="button"
                               onClick={() => setELayoutType('card')}
-                              className={`p-3 rounded-xl text-xs font-bold transition flex items-center justify-start gap-2.5 border cursor-pointer ${
-                                eLayoutType === 'card'
+                              className={`p-3 rounded-xl text-xs font-bold transition flex items-center justify-start gap-2.5 border cursor-pointer ${eLayoutType === 'card'
                                   ? 'bg-[#1E3A8A] text-white border-[#1E3A8A] shadow-xs'
                                   : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-                              }`}
+                                }`}
                             >
                               <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${eLayoutType === 'card' ? 'border-white bg-white/20' : 'border-slate-400'}`}>
                                 {eLayoutType === 'card' && <div className="w-2 h-2 rounded-full bg-white" />}
@@ -2472,11 +2471,10 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                             <button
                               type="button"
                               onClick={() => setELayoutType('badge')}
-                              className={`p-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2.5 border cursor-pointer ${
-                                eLayoutType === 'badge'
+                              className={`p-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2.5 border cursor-pointer ${eLayoutType === 'badge'
                                   ? 'bg-[#1E3A8A] text-white border-[#1E3A8A] shadow-xs'
                                   : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-                              }`}
+                                }`}
                             >
                               <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${eLayoutType === 'badge' ? 'border-white bg-white/20' : 'border-slate-400'}`}>
                                 {eLayoutType === 'badge' && <div className="w-2 h-2 rounded-full bg-white" />}
@@ -4581,7 +4579,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
 
                         <div className="col-span-2">
                           <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${item.tipeMedia === 'youtube' ? 'bg-red-100 text-red-700' :
-                              item.tipeMedia === 'poster' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'
+                            item.tipeMedia === 'poster' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'
                             }`}>
                             {item.tipeMedia === 'youtube' ? 'Youtube' : item.tipeMedia === 'poster' ? 'Poster' : 'PDF'}
                           </span>
@@ -5730,8 +5728,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                         <div className="flex items-center gap-2">
                           <span
                             className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${item.isActive
-                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                : 'bg-slate-100 text-slate-500 border border-slate-200'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : 'bg-slate-100 text-slate-500 border border-slate-200'
                               }`}
                           >
                             {item.isActive ? '● Tampil di Footer' : '○ Tersembunyi'}
@@ -5913,102 +5911,102 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
           {activeTab === 'komentar' && (
             <div className="space-y-6" id="adm-komentar">
               {(() => {
-            const fmt = (iso?: string) =>
-              iso ? new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(iso)) : '-';
-            const list = [...komentarList]
-              .filter((k) => komentarFilter === 'semua' || k.status === komentarFilter)
-              .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
-            const counts = {
-              semua: komentarList.length,
-              pending: komentarList.filter((k) => k.status === 'pending').length,
-              approved: komentarList.filter((k) => k.status === 'approved').length,
-              rejected: komentarList.filter((k) => k.status === 'rejected').length,
-            };
-            const doApprove = (id: string) => { updateKomentarBeritaStatus(id, 'approved'); reloadAll(); triggerToast('success', 'Komentar disetujui & akan tayang di publik.'); };
-            const doReject = (id: string) => { updateKomentarBeritaStatus(id, 'rejected'); reloadAll(); triggerToast('error', 'Komentar ditolak.'); };
-            const doDelete = (id: string) => { deleteKomentarBerita(id); reloadAll(); triggerToast('error', 'Komentar dihapus.'); };
-            const tabs: { id: typeof komentarFilter; label: string }[] = [
-              { id: 'pending', label: `Menunggu (${counts.pending})` },
-              { id: 'approved', label: `Disetujui (${counts.approved})` },
-              { id: 'rejected', label: `Ditolak (${counts.rejected})` },
-              { id: 'semua', label: `Semua (${counts.semua})` },
-            ];
-            return (
-              <>
-                <div className="anim-fade-up">
-                  <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Moderasi Komentar Berita</h1>
-                  <p className="text-sm text-slate-500 mt-0.5">Komentar dari pengunjung akan tampil di halaman Berita &amp; Artikel hanya setelah Anda menyetujui.</p>
-                </div>
-
-                {/* Filter Tabs */}
-                <div className="flex flex-wrap gap-2">
-                  {tabs.map((t) => (
-                    <button
-                      key={t.id}
-                      onClick={() => setKomentarFilter(t.id)}
-                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition ${komentarFilter === t.id ? 'bg-[#1E3A8A] text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}`}
-                    >
-                      {t.label}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Table */}
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                  {list.length === 0 ? (
-                    <div className="p-10 text-center text-sm text-slate-400">Tidak ada komentar pada filter ini.</div>
-                  ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="bg-slate-50 text-left text-[11px] uppercase tracking-wider text-slate-500">
-                            <th className="px-4 py-3 font-bold">Pengirim</th>
-                            <th className="px-4 py-3 font-bold">Komentar</th>
-                            <th className="px-4 py-3 font-bold">Berita</th>
-                            <th className="px-4 py-3 font-bold">Tanggal</th>
-                            <th className="px-4 py-3 font-bold">Status</th>
-                            <th className="px-4 py-3 font-bold text-right">Aksi</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {list.map((k) => (
-                            <tr key={k.id} className="align-top hover:bg-slate-50/60">
-                              <td className="px-4 py-3 whitespace-nowrap">
-                                <div className="font-semibold text-slate-800 text-xs">{k.nama}</div>
-                                <div className="text-[11px] text-slate-400">{k.email}</div>
-                              </td>
-                              <td className="px-4 py-3 max-w-xs">
-                                <p className="text-slate-700 text-xs sm:text-sm leading-relaxed">{k.komentar}</p>
-                              </td>
-                              <td className="px-4 py-3 max-w-[180px]">
-                                <span className="text-xs text-slate-600 line-clamp-2">{k.beritaJudul}</span>
-                              </td>
-                              <td className="px-4 py-3 whitespace-nowrap text-[11px] text-slate-400">{fmt(k.createdAt)}</td>
-                              <td className="px-4 py-3 whitespace-nowrap">
-                                {k.status === 'pending' && <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">Menunggu</span>}
-                                {k.status === 'approved' && <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">Disetujui</span>}
-                                {k.status === 'rejected' && <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700">Ditolak</span>}
-                              </td>
-                              <td className="px-4 py-3 whitespace-nowrap">
-                                <div className="flex items-center justify-end gap-1.5">
-                                  {k.status !== 'approved' && (
-                                    <button onClick={() => doApprove(k.id)} className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition">Setujui</button>
-                                  )}
-                                  {k.status !== 'rejected' && (
-                                    <button onClick={() => doReject(k.id)} className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-amber-500 hover:bg-amber-600 text-white transition">Tolak</button>
-                                  )}
-                                  <button onClick={() => doDelete(k.id)} className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-rose-500 hover:bg-rose-600 text-white transition">Hapus</button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                const fmt = (iso?: string) =>
+                  iso ? new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(iso)) : '-';
+                const list = [...komentarList]
+                  .filter((k) => komentarFilter === 'semua' || k.status === komentarFilter)
+                  .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
+                const counts = {
+                  semua: komentarList.length,
+                  pending: komentarList.filter((k) => k.status === 'pending').length,
+                  approved: komentarList.filter((k) => k.status === 'approved').length,
+                  rejected: komentarList.filter((k) => k.status === 'rejected').length,
+                };
+                const doApprove = (id: string) => { updateKomentarBeritaStatus(id, 'approved'); reloadAll(); triggerToast('success', 'Komentar disetujui & akan tayang di publik.'); };
+                const doReject = (id: string) => { updateKomentarBeritaStatus(id, 'rejected'); reloadAll(); triggerToast('error', 'Komentar ditolak.'); };
+                const doDelete = (id: string) => { deleteKomentarBerita(id); reloadAll(); triggerToast('error', 'Komentar dihapus.'); };
+                const tabs: { id: typeof komentarFilter; label: string }[] = [
+                  { id: 'pending', label: `Menunggu (${counts.pending})` },
+                  { id: 'approved', label: `Disetujui (${counts.approved})` },
+                  { id: 'rejected', label: `Ditolak (${counts.rejected})` },
+                  { id: 'semua', label: `Semua (${counts.semua})` },
+                ];
+                return (
+                  <>
+                    <div className="anim-fade-up">
+                      <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Moderasi Komentar Berita</h1>
+                      <p className="text-sm text-slate-500 mt-0.5">Komentar dari pengunjung akan tampil di halaman Berita &amp; Artikel hanya setelah Anda menyetujui.</p>
                     </div>
-                  )}
-                </div>
-              </>
-            );
+
+                    {/* Filter Tabs */}
+                    <div className="flex flex-wrap gap-2">
+                      {tabs.map((t) => (
+                        <button
+                          key={t.id}
+                          onClick={() => setKomentarFilter(t.id)}
+                          className={`px-3.5 py-2 rounded-xl text-xs font-bold transition ${komentarFilter === t.id ? 'bg-[#1E3A8A] text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}`}
+                        >
+                          {t.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Table */}
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                      {list.length === 0 ? (
+                        <div className="p-10 text-center text-sm text-slate-400">Tidak ada komentar pada filter ini.</div>
+                      ) : (
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="bg-slate-50 text-left text-[11px] uppercase tracking-wider text-slate-500">
+                                <th className="px-4 py-3 font-bold">Pengirim</th>
+                                <th className="px-4 py-3 font-bold">Komentar</th>
+                                <th className="px-4 py-3 font-bold">Berita</th>
+                                <th className="px-4 py-3 font-bold">Tanggal</th>
+                                <th className="px-4 py-3 font-bold">Status</th>
+                                <th className="px-4 py-3 font-bold text-right">Aksi</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                              {list.map((k) => (
+                                <tr key={k.id} className="align-top hover:bg-slate-50/60">
+                                  <td className="px-4 py-3 whitespace-nowrap">
+                                    <div className="font-semibold text-slate-800 text-xs">{k.nama}</div>
+                                    <div className="text-[11px] text-slate-400">{k.email}</div>
+                                  </td>
+                                  <td className="px-4 py-3 max-w-xs">
+                                    <p className="text-slate-700 text-xs sm:text-sm leading-relaxed">{k.komentar}</p>
+                                  </td>
+                                  <td className="px-4 py-3 max-w-[180px]">
+                                    <span className="text-xs text-slate-600 line-clamp-2">{k.beritaJudul}</span>
+                                  </td>
+                                  <td className="px-4 py-3 whitespace-nowrap text-[11px] text-slate-400">{fmt(k.createdAt)}</td>
+                                  <td className="px-4 py-3 whitespace-nowrap">
+                                    {k.status === 'pending' && <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">Menunggu</span>}
+                                    {k.status === 'approved' && <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">Disetujui</span>}
+                                    {k.status === 'rejected' && <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700">Ditolak</span>}
+                                  </td>
+                                  <td className="px-4 py-3 whitespace-nowrap">
+                                    <div className="flex items-center justify-end gap-1.5">
+                                      {k.status !== 'approved' && (
+                                        <button onClick={() => doApprove(k.id)} className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition">Setujui</button>
+                                      )}
+                                      {k.status !== 'rejected' && (
+                                        <button onClick={() => doReject(k.id)} className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-amber-500 hover:bg-amber-600 text-white transition">Tolak</button>
+                                      )}
+                                      <button onClick={() => doDelete(k.id)} className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-rose-500 hover:bg-rose-600 text-white transition">Hapus</button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                );
               })()}
             </div>
           )}

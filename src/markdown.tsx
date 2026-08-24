@@ -1,6 +1,44 @@
 import React from 'react';
 
 /**
+ * Membersihkan tag HTML & entity sehingga menghasilkan teks polos (plain text)
+ * Sangat berguna untuk ringkasan/preview pada Card Layout (Program, Pengumuman, Berita, dll).
+ */
+export function stripHtmlTags(raw?: string): string {
+  if (!raw) return '';
+
+  // Ganti tag penutup paragraf/break dengan spasi agar kata tidak menempel
+  const cleanMarkup = raw
+    .replace(/<br\s*\/?>/gi, ' ')
+    .replace(/<\/(p|div|li|h[1-6])>/gi, ' ');
+
+  let text = cleanMarkup;
+
+  // Gunakan DOMParser jika tersedia di lingkungan browser
+  if (typeof window !== 'undefined' && typeof DOMParser !== 'undefined') {
+    try {
+      const doc = new DOMParser().parseFromString(cleanMarkup, 'text/html');
+      text = doc.body.textContent || doc.body.innerText || '';
+    } catch {
+      text = cleanMarkup.replace(/<[^>]*>/g, '');
+    }
+  } else {
+    text = cleanMarkup.replace(/<[^>]*>/g, '');
+  }
+
+  // Bersihkan karakter entity HTML dan spasi berlebih
+  return text
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
  * Render ringkas untuk isi konten berita/admin/layanan (format Medium-style & GitHub Markdown):
  * - Baris "# " => Heading 1 / Title
  * - Baris "## " => Heading 2
