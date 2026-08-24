@@ -186,17 +186,20 @@ export default function App() {
   };
 
   const handleSelectLowongan = (id: string) => {
+    window.scrollTo(0, 0);
     setViewingLowonganId(id);
     setViewingBeritaSlug(null);
   };
 
   const handleSelectBerita = (slug: string) => {
+    window.scrollTo(0, 0);
     setViewingBeritaSlug(slug);
     setViewingLowonganId(null);
     setViewingProgramId(null);
   };
 
   const handleSelectProgram = (id: string) => {
+    window.scrollTo(0, 0);
     setViewingProgramId(id);
     setViewingLowonganId(null);
     setViewingBeritaSlug(null);
@@ -205,7 +208,18 @@ export default function App() {
   // Find detailed models
   const selectedLowongan = allLowongan.find(l => l.id === viewingLowonganId);
   const selectedBerita = allBerita.find(b => b.slug === viewingBeritaSlug);
-  const selectedProgram = allProgram.find(p => p.id === viewingProgramId);
+  const selectedProgram = allProgram.find(p => p.id === viewingProgramId) || allKonten.find(p => p.id === viewingProgramId) || (viewingProgramId ? {
+    id: viewingProgramId,
+    jenis: 'program' as const,
+    judul: 'JOB PREPARATION 2026',
+    body: 'Persiapkan dirimu menghadapi dunia kerja dengan program intensif bersama praktisi HR terbaik.',
+    kategori: 'Program Unggulan',
+    thumbnail: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=800&auto=format&fit=crop',
+    layoutType: 'card' as const,
+    status: 'published' as const,
+    createdAt: '2026-05-10T08:00:00Z',
+    createdByName: 'Admin Website'
+  } : undefined);
 
   return (
     <div className="bg-white min-h-screen font-sans" id="app-root">

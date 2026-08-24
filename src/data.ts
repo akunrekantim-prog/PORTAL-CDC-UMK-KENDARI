@@ -862,6 +862,48 @@ export const SEED_KONTEN_KARIR: KontenKarir[] = [
     updatedAt: '2026-06-10T10:00:00Z',
     createdBy: 'usr_admin',
     createdByName: 'Admin Website'
+  },
+  {
+    id: 'kk_seed_ws1',
+    jenis: 'workshop',
+    judul: 'Workshop UI/UX Design & Interactive Prototyping Figma 2026',
+    body: 'Pelatihan praktis pembuatan wireframe, Design System, hingga Interactive Prototype aplikasi berbasis industri dengan alat Figma bersama praktisi profesional.',
+    penulis: 'CDC UM Kendari & Studio Kreatif',
+    thumbnail: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=800&auto=format&fit=crop',
+    kategori: 'Workshop',
+    status: 'published',
+    createdAt: '2026-08-18T09:00:00Z',
+    updatedAt: '2026-08-18T09:00:00Z',
+    createdBy: 'usr_admin',
+    createdByName: 'Admin Website'
+  },
+  {
+    id: 'kk_seed_ss1',
+    jenis: 'softskill',
+    judul: 'Pelatihan Softskill Public Speaking & Persuasi Komunikasi Karir',
+    body: 'Membangun kepercayaan diri saat presentasi, wawancara kerja, dan komunikasi profesional di dunia industri modern.',
+    penulis: 'CDC UM Kendari',
+    thumbnail: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=800&auto=format&fit=crop',
+    kategori: 'Softskill',
+    status: 'published',
+    createdAt: '2026-08-19T10:00:00Z',
+    updatedAt: '2026-08-19T10:00:00Z',
+    createdBy: 'usr_admin',
+    createdByName: 'Admin Website'
+  },
+  {
+    id: 'kk_seed_sm1',
+    jenis: 'seminar',
+    judul: 'Seminar Nasional Strategi Menembus BUMN & Perusahaan Multinasional',
+    body: 'Pemaparan komprehensif mengenai alur seleksi Rekrutmen Bersama BUMN, psikotes, dan tips wawancara langsung bersama praktisi HR.',
+    penulis: 'CDC UM Kendari',
+    thumbnail: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=800&auto=format&fit=crop',
+    kategori: 'Seminar',
+    status: 'published',
+    createdAt: '2026-08-20T11:00:00Z',
+    updatedAt: '2026-08-20T11:00:00Z',
+    createdBy: 'usr_admin',
+    createdByName: 'Admin Website'
   }
 ];
 
@@ -901,7 +943,20 @@ export const SEED_EVENT_LAYANAN: EventLayananItem[] = [
     time: '09:00 - 15:00 WITA',
     location: 'Lab Komputer Gd. Rektorat Lt. 3 UMK',
     image: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=800&auto=format&fit=crop',
-    description: 'Pelatihan praktis pembuatan wireframe, Design System, hingga Interactive Prototype aplikasi berbasis industri dengan alat Figma.',
+    description: `### Tingkatkan Daya Saing Digital Anda Bersama Praktisi Industri
+
+Career Development Center Universitas Muhammadiyah Kendari (CDC UM Kendari) bekerja sama dengan Digital Creative Studio menyelenggarakan **Workshop UI/UX Design & Prototyping Figma** yang dirancang khusus bagi mahasiswa dan calon alumni yang ingin mendalami industri desain produk digital modern.
+
+Perkembangan transformasi digital saat ini menuntut talenta-talenta muda untuk memiliki pemahaman mendalam terkait *User-Centered Design*, arsitektur informasi, serta kemampuan merealisasikan konsep ide ke dalam bentuk prototipe interaktif yang siap diuji oleh pengguna.
+
+#### Pokok Materi Pembelajaran:
+1. **Dasar & Prinsip UI/UX Modern:** Memahami perbedaan UI dan UX, metodologi *Design Thinking*, serta riset pengguna (*user persona & journey map*).
+2. **Wireframing & Low-Fidelity Prototyping:** Teknik sketsa alur aplikasi cepat sebelum masuk tahap visual styling.
+3. **Membangun Design System di Figma:** Menggunakan auto-layout, components, variants, token warna, dan tipografi konsisten standar industri.
+4. **Interactive High-Fidelity Prototyping:** Membuat animasi transisi antar halaman dan interaksi mikro (*micro-interactions*).
+5. **Usability Testing & Design Handoff:** Menyiapkan aset dan dokumentasi desain untuk kolaborasi bersama tim pengembang perangkat lunak (*software engineers*).
+
+Kegiatan ini dilengkapi dengan sesi praktik langsung (*hands-on lab*) dan telaah portfolio desain. Pastikan Anda telah membawa laptop dan menginstal akun Figma sebelum menghadiri sesi pelatihan.`,
     speaker: 'Ahmad Fauzi, S.Kom. (Senior Product Designer)',
     quota: 50,
     registeredCount: 38,
@@ -917,7 +972,19 @@ export const SEED_EVENT_LAYANAN: EventLayananItem[] = [
     time: '13:30 - 16:30 WITA',
     location: 'Aula Utama Universitas Muhammadiyah Kendari',
     image: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=800&auto=format&fit=crop',
-    description: 'Panduan menyusun Curriculum Vitae berstandar parser Applicant Tracking System (ATS) dan membuat portfolio karir yang dilirik recruiter.',
+    description: `### Kunci Menembus Seleksi Berkas Perusahaan Nasional & Multinasional
+
+Dalam era digitalisasi rekrutmen, lebih dari 80% perusahaan besar menggunakan sistem otomatis *Applicant Tracking System* (ATS) untuk menyaring ribuan berkas lamaran kerja yang masuk. Kesalahan dalam struktur format atau pemilihan kata kunci dapat menyebabkan berkas lamaran gugur sebelum sempat dibaca oleh staf HRD.
+
+CDC UM Kendari menghadirkan **Workshop Pembuatan CV ATS Friendly & Portfolio Digital** guna membimbing mahasiswa tingkat akhir dan alumni UMK dalam menyusun berkas lamaran yang profesional, relevan, serta memiliki peluang lolos saring tertinggi.
+
+#### Topik Utama Pembahasan:
+- **Cara Kerja Mesin ATS:** Memahami algoritma *keyword extraction*, formatting tabel, dan struktur heading dokumen yang disukai bot ATS.
+- **Formula Penulisan Action Verbs & STAR Method:** Mengubah deskripsi pengalaman organisasi/magang menjadi pencapaian terukur (*quantifiable achievements*).
+- **Kurasi Portfolio Karir Digital:** Panduan membuat halaman portfolio web sederhana dan tautan GitHub/LinkedIn/Drive yang tertata rapi.
+- **Bedah CV Langsung (Live Review):** Uji coba parsing CV menggunakan scanner ATS dan umpan balik langsung dari konsultan rekrutmen.
+
+Workshop ini sangat dianjurkan bagi Anda yang sedang mempersiapkan diri melamar program Management Trainee (MT), magang industri bersertifikat, maupun rekrutmen BUMN/swasta.`,
     speaker: 'Nurlia, S.Psi., M.Psi. (Talent Acquisition Specialist)',
     quota: 100,
     registeredCount: 84,
@@ -933,7 +1000,19 @@ export const SEED_EVENT_LAYANAN: EventLayananItem[] = [
     time: '08:30 - 16:00 WITA',
     location: 'Auditorium KH. Ahmad Dahlan UMK',
     image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=800&auto=format&fit=crop',
-    description: 'Trik cepat membangun aplikasi web responsif dan siap deploy menggunakan ekosistem React.js, Vite, dan Tailwind CSS.',
+    description: `### Akselerasi Keterampilan Full-Stack Web Frontend Anda
+
+Kebutuhan industri teknologi terhadap pengembang web yang menguasai ekosistem JavaScript modern seperti **React.js** dan utilitas CSS **Tailwind CSS** terus meningkat pesat. 
+
+Workshop intensif ini dipandu oleh instruktur dan praktisi industri untuk memberikan pemahaman menyeluruh tentang cara membangun antarmuka web performa tinggi, modular, dan responsif dari awal hingga siap dipublikasikan (*production deploy*).
+
+#### Agenda Workshop:
+1. **Fundamental React Modern:** Component architecture, JSX, React Hooks (\`useState\`, \`useEffect\`, \`useMemo\`), serta pengelolaan state aplikasi.
+2. **Styling Cepat dengan Tailwind CSS:** Utility-first workflow, responsivitas breakpoint mobile/desktop, dan integrasi ikon.
+3. **Konsumsi REST API Asinkron:** Pengambilan data live (*data fetching*), penanganan status loading & error, serta optimasi caching.
+4. **Deploy Aplikasi ke Cloud:** Mempublikasikan proyek ke platform Vercel / Netlify dengan domain kustom.
+
+Peserta akan mendapatkan studi kasus nyata pembuatan dashboard portal terpadu serta sertifikat resmi pelatihan keterampilan teknologi.`,
     speaker: 'Rahmat Hidayat, M.T. (Software Engineer Lead)',
     quota: 60,
     registeredCount: 15,
@@ -949,7 +1028,16 @@ export const SEED_EVENT_LAYANAN: EventLayananItem[] = [
     time: '09:00 - 12:00 WITA',
     location: 'Zoom Meeting Online',
     image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=800&auto=format&fit=crop',
-    description: 'Berbagi pengalaman dan metodologi ideasi produk inovatif untuk memenangkan berbagai ajang kompetisi teknologi nasional.',
+    description: `### Rahasia Juara Kompetisi Inovasi Teknologi Nasional
+
+Mengikuti ajang kompetisi inovasi digital seperti Hackathon, Gemastik, dan program Digital Talent Scholarship merupakan salah satu batu loncatan tercepat bagi mahasiswa untuk membangun rekam jejak (*track record*) prestasi yang diakui secara nasional.
+
+Workshop ini mengupas tuntas pengalaman para juara dalam merumuskan ide produk inovatif, memvalidasi masalah di lapangan, membangun MVP (*Minimum Viable Product*) dalam waktu singkat, serta menyajikan presentasi pitching yang memukau dewan juri.
+
+#### Materi Pembahasan:
+- **Ideation & Problem Framing:** Mengidentifikasi masalah nyata masyarakat lokal/nasional yang memiliki nilai dampak sosial dan ekonomi tinggi.
+- **Rapid Prototyping:** Memilih arsitektur teknologi yang cepat dieksekusi dalam batas waktu kompetisi 24–48 jam.
+- **The Art of Pitching:** Struktur deck presentasi 3 menit yang memikat perhatian investor dan juri penilai.`,
     speaker: 'Rizal Triputra, S.T. (Tech Entrepreneur)',
     quota: 200,
     registeredCount: 200,
@@ -967,7 +1055,17 @@ export const SEED_EVENT_LAYANAN: EventLayananItem[] = [
     time: '09:00 - 15:00 WITA',
     location: 'Gedung Ketenagakerjaan & Karir UMK',
     image: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=800&auto=format&fit=crop',
-    description: 'Mengatasi rasa gugup saat berbicara di depan umum, teknik penyampaian ide bisnis 3 menit, serta bahasa tubuh yang efektif.',
+    description: `### Kuasai Panggung dan Tingkatkan Kepercayaan Diri Profesional
+
+Kemampuan berkomunikasi secara lugas, meyakinkan, dan percaya diri di hadapan publik merupakan keterampilan paling dicari oleh para pemimpin perusahaan. Seringkali ide cemerlang gagal tersampaikan hanya karena rasa gugup dan bahasa tubuh yang kurang terlatih.
+
+CDC UM Kendari menyelenggarakan **Pelatihan Public Speaking & Pitching Presentasi Karir** guna membekali para mahasiswa dengan metodologi komunikasi efektif yang dapat diterapkan saat presentasi kerja, wawancara direksi, maupun memimpin rapat tim.
+
+#### Agenda & Sesi Praktik:
+1. **Mindset & Overcoming Stage Fright:** Teknik pernapasan diafragma, manajemen ketegangan mental, dan peningkatan intonasi suara.
+2. **Struktur Penyampaian Pesan (Hook, Story, Call to Action):** Merangkai alur pembicaraan yang mudah dicerna dan berkesan bagi audiens.
+3. **Bahasa Tubuh & Kontak Mata:** Memaksimalkan ekspresi wajah, postur tubuh tegap, serta artikulasi yang berwibawa.
+4. **Sesi Simulasi Langsung:** Setiap peserta diberikan kesempatan praktik pitching 2 menit di depan kelas dengan evaluasi personal.`,
     speaker: 'Dra. Endang Lestari, M.Si. (Professional Communication Trainer)',
     quota: 80,
     registeredCount: 65,
@@ -983,7 +1081,17 @@ export const SEED_EVENT_LAYANAN: EventLayananItem[] = [
     time: '08:30 - 15:30 WITA',
     location: 'Hall Sains & Technopark UMK',
     image: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=800&auto=format&fit=crop',
-    description: 'Menganalisis potensi komoditas daerah Sulawesi Tenggara menjadi unit usaha rintisan (startup) yang siap berkompetisi nasional.',
+    description: `### Menggali Potensi Daerah Menjadi Peluang Wirausaha Unggul
+
+Provinsi Sulawesi Tenggara menyimpan kekayaan komoditas alam yang melimpah, mulai dari sektor maritim, pertanian, perkebunan mete dan kelapa, hingga industri kreatif berbasis kearifan lokal. Mahasiswa sebagai agen perubahan memiliki potensi besar untuk menjadi wirausahawan muda (*sociopreneurs*).
+
+Pelatihan ini memadukan konsep Business Model Canvas (BMC) dengan analisis rantai pasok lokal untuk melahirkan model bisnis yang berkelanjutan dan siap bersaing di pasar nasional.
+
+#### Topik Utama:
+- **Analisis Peluang Pasar Lokal & Digital:** Menemukan celah pasar komoditas daerah yang belum tergarap optimal.
+- **Perancangan Business Model Canvas (BMC):** Menyusun proporsi nilai, struktur biaya, saluran distribusi, dan segmen pelanggan.
+- **Strategi Pemasaran Digital & Branding:** Pemanfaatan media sosial, marketplace, dan kemasan produk modern.
+- **Akses Permodalan & Inkubasi:** Pengenalan program hibah wirausaha mahasiswa (P2MW) dan jaringan investor UMKM.`,
     speaker: 'Ir. H. Sudirman, M.M. (Pengusaha & Facilitator UMKM)',
     quota: 120,
     registeredCount: 40,
@@ -999,7 +1107,16 @@ export const SEED_EVENT_LAYANAN: EventLayananItem[] = [
     time: '09:00 - 14:00 WITA',
     location: 'Ruang Seminar Perpustakaan UMK',
     image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=800&auto=format&fit=crop',
-    description: 'Pendekatan analisis akar masalah (root cause analysis) dan kerangka berpikir logis saat menyelesaikan konflik profesional.',
+    description: `### Mengasah Ketajaman Logika Analitis dan Pengambilan Keputusan
+
+Di lingkungan profesional yang dinamis, tantangan kerja kerap kali muncul tanpa solusi yang langsung terlihat. Kemampuan berpikir kritis (*critical thinking*) dan pemecahan masalah secara terstruktur (*problem solving*) menjadi pembeda utama antara karyawan biasa dan talenta berprestasi tinggi.
+
+Pelatihan ini melatih peserta untuk membedakan antara asumsi dan fakta, membedah akar permasalahan yang kompleks, serta merumuskan opsi solusi yang logis dan terukur.
+
+#### Silabus Pelatihan:
+- **Kerangka Root Cause Analysis (5-Whys & Fishbone Diagram):** Teknik mengidentifikasi penyebab mendasar dari suatu hambatan operasional.
+- **Cognitive Bias & Logical Fallacies:** Menghindari jebakan bias berpikir saat mengevaluasi data dan argumen tim.
+- **Decision Matrix Analysis:** Memberikan bobot prioritas terhadap beberapa alternatif solusi sebelum eksekusi.`,
     speaker: 'Dr. Hj. Wa Ode Sitti, M.Pd.',
     quota: 75,
     registeredCount: 10,
@@ -1017,7 +1134,17 @@ export const SEED_EVENT_LAYANAN: EventLayananItem[] = [
     time: '08:00 - 12:30 WITA',
     location: 'Auditorium Utama Universitas Muhammadiyah Kendari',
     image: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=800&auto=format&fit=crop',
-    description: 'Membahas pergeseran pasar kerja nasional, skill kunci beradaptasi dengan teknologi Kecerdasan Buatan, dan ekspektasi industri modern.',
+    description: `### Menjawab Tantangan & Memanfaatkan Peluang di Era Kecerdasan Buatan
+
+Lanskap ketenagakerjaan global tengah mengalami disrupsi masif seiring pesatnya kemajuan teknologi Generative Artificial Intelligence (Gen-AI) dan otomatisasi industri. Pekerjaan-pekerjaan repetitif mulai terotomasi, sementara kebutuhan akan talenta yang mampu berkolaborasi dengan AI semakin meningkat.
+
+**Seminar Nasional CDC UM Kendari 2026** mempertemukan para akademisi, pimpinan HR korporasi, serta pakar teknologi untuk mengupas tuntas transformasi kompetensi yang wajib dikuasai generasi muda agar tetap unggul dan berdaya saing tinggi.
+
+#### Poin-Poin Seminar:
+1. **Peta Kebutuhan Karir Masa Depan (Future of Jobs Report):** Memetakan profesi-profesi baru yang bertumbuh pesat di kawasan Asia Pasifik.
+2. **AI Augmentation vs Human Skills:** Mengapa kecerdasan emosional, kreativitas, dan kepemimpinan etis semakin bernilai tinggi di era mesin cerdas.
+3. **Pemanfaatan AI untuk Produktivitas Karir:** Penggunaan alat bantu AI secara etis dalam riset, sintesis data, dan otomatisasi tugas harian.
+4. **Tanya Jawab & Diskusi Panel:** Sesi interaktif langsung bersama narasumber pimpinan HR korporat.`,
     speaker: 'Prof. Dr. Supriyadi, M.Sc. (Chief HR Officer & Practical Researcher)',
     quota: 300,
     registeredCount: 245,
@@ -1033,7 +1160,16 @@ export const SEED_EVENT_LAYANAN: EventLayananItem[] = [
     time: '09:00 - 13:00 WITA',
     location: 'Ballroom Syariah Kendari & Hybrid Zoom',
     image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=800&auto=format&fit=crop',
-    description: 'Tips dan strategi sukses menghadapi tahapan seleksi TKD, AKHLAK, dan Wawancara Direksi dalam Rekrutmen Bersama BUMN.',
+    description: `### Strategi Tembus Seleksi Rekrutmen Bersama BUMN (RBB)
+
+BUMN terus menjadi destinasi karir impian bagi ratusan ribu lulusan perguruan tinggi di seluruh Indonesia. Proses seleksi yang ketat dan bertingkat menuntut persiapan yang terencana matang sejak masa perkuliahan.
+
+CDC UM Kendari bekerja sama dengan forum HR BUMN menggelar seminar edukasi karir guna membedah tahapan seleksi resmi Rekrutmen Bersama BUMN 2026.
+
+#### Materi Eksklusif:
+- **Kiat Sukses Tes Kemampuan Dasar (TKD):** Trik menjawab soal numerik, penalaran verbal, dan figural dengan efisiensi waktu tinggi.
+- **Memahami Core Values AKHLAK:** Implementasi nilai Amanah, Kompeten, Harmonis, Loyal, Adaptif, dan Kolaboratif dalam studi kasus tes situasi kerja (*situational judgment test*).
+- **Strategi Wawancara Direksi & User:** Panduan menjawab pertanyaan behavioral dan studi kelayakan proyek secara meyakinkan.`,
     speaker: 'Tim HR Business Partner Perbankan & Energi BUMN',
     quota: 500,
     registeredCount: 310,
@@ -1049,7 +1185,16 @@ export const SEED_EVENT_LAYANAN: EventLayananItem[] = [
     time: '08:30 - 12:00 WITA',
     location: 'Gedung Rektorat Lantai 4 UMK',
     image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=800&auto=format&fit=crop',
-    description: 'Membuka peluang studi lanjut S2/S3 dengan beasiswa LPDP, AAS, dan Chevening serta kiat menembus skor kemahiran bahasa Inggris.',
+    description: `### Wujudkan Impian Studi S2/S3 di Universitas Top Dunia
+
+Melanjutkan studi pascasarjana ke luar negeri dengan pendanaan beasiswa penuh (*fully-funded scholarship*) seperti LPDP, Australia Awards Scholarship (AAS), Chevening, maupun Erasmus+ kini semakin terbuka lebar bagi lulusan UM Kendari.
+
+Seminar ini menghadirkan para *awardee* beasiswa dan konsultan pendidikan internasional untuk berbagi peta jalan (*roadmap*) persiapan dokumen, esai kontribusi, serta kiat mencapai skor kemahiran bahasa Inggris yang dipersyaratkan.
+
+#### Sesi Pembahasan:
+- **Memilih Skema Beasiswa yang Tepat:** Karakteristik dan jadwal pembukaan program beasiswa pemerintah dan donor internasional.
+- **Menulis Personal Statement & Study Plan yang Kuat:** Menghubungkan latar belakang akademis dengan kontribusi nyata pasca kelulusan.
+- **Kiat Efektif Meraih Skor Target IELTS/TOEFL:** Strategi penguasaan sesi *Listening*, *Reading*, *Writing Task 2*, dan *Speaking*.`,
     speaker: 'Awardee LPDP & Alumni University of Melbourne',
     quota: 250,
     registeredCount: 20,

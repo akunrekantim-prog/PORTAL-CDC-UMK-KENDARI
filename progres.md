@@ -1,11 +1,12 @@
 # Progres Pengerjaan — Portal CDC UM Kendari
 
-Periode: 23 Agustus 2026  
+Periode: 23–24 Agustus 2026  
 Branch: `main`  
 Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 
 ---
 
+<<<<<<< HEAD
 ## Tanggal: 24 Agustus 2026
 **Oleh: Mirzat L. Teori**
 **Fokus Pekerjaan:** Moderasi Komentar Berita, Perbaikan Redirect Pembuatan Konten, Fix Simpan Workshop/Softskill/Seminar, Kelola CDC UM Kendari Club (Admin), Thumbnail Lowongan Admin = Poster 9:16 Animasi Reveal (Logo Dihapus), & Pembersihan Field Logo Instansi di Form Lowongan Admin.
@@ -58,6 +59,49 @@ Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 ---
 
 
+=======
+## Tanggal: 23-24 Agustus 2026 (Sesi 4)
+**Oleh: Developer Fachrul Alam Sanuddin**
+**Fokus Pekerjaan:** Animasi Counter Angka Beranda, Penyesuaian Visitor Counter Live Hosting (Start 0 & Session Deduplication), Tampilan Foto Berita Mobile Full-Width (100% Rata Kiri-Kanan), Integrasi Dinamis 3 Sub-Menu Layanan (Workshop, Softskill, Seminar) pada Section Program & Pengumuman Beranda, dan Penambahan Akses Campus Hiring di Widget Layanan Cepat Beranda.
+
+### Ringkasan Perubahan
+1. **Animasi Counter Angka Beranda (`PublicLayout.tsx`):**
+   - Membuat komponen `AnimatedCounterStat` menggunakan `window.requestAnimationFrame` dan kurva `easeOutCubic` 60 FPS.
+   - Ke-4 statistik beranda (**20.000+ Alumni**, **10 Mitra Perusahaan**, **Total Pengunjung**, **10+ Tahun Pengalaman**) bergerak naik secara mulus dari `0` menuju angka aktual dengan format titik desimal Indonesia (`toLocaleString('id-ID')`).
+2. **Visitor Counter Live Hosting (`data.ts`):**
+   - Menyesuaikan `BASE_VISITOR_COUNT = 0` untuk rilis *live hosting*.
+   - Menerapkan deduplikasi sesi peramban (`sessionStorage`), menjamin perhitungan bertambah 1 per pengunjung tanpa menghabiskan kuota database server (0% efek beban database).
+3. **Tampilan Foto Berita Mobile Full-Width (`index.css`):**
+   - Memperbarui aturan CSS `@media (max-width: 640px)` untuk `.prose-berita img` dan `.prose img`.
+   - Di perangkat seluler/HP (< 640px), seluruh foto berita (baik yang di-set *Float Left*, *Float Right*, maupun *Center*) otomatis membentang **100% full-width rata kiri-kanan** memenuhi lebar wadah artikel berita.
+4. **Integrasi Dinamis 3 Sub-Menu Layanan di Section Program & Pengumuman (`PublicLayout.tsx` & `data.ts`):**
+   - Section **PROGRAM & PENGUMUMAN** di Beranda Utama kini menyedot publikasi terbaru dari **Workshop**, **Pelatihan Softskill**, dan **Seminar** secara otomatis.
+   - Diurutkan berdasarkan **tanggal rilis paling terbaru** (`createdAt`/`updatedAt` descending).
+   - Memasang Badge Label Kustom per Card: **WORKSHOP**, **SOFTSKILL**, **SEMINAR**, **PROGRAM**, **PENGUMUMAN**.
+   - Mengklik Card Workshop/Softskill/Seminar langsung mengarahkan pengunjung ke halaman detail sub-menu layanan terkait.
+   - Menambahkan seed dummy published untuk `workshop`, `softskill`, dan `seminar` di `SEED_KONTEN_KARIR`.
+5. **Penambahan Akses Campus Hiring pada Widget Layanan Cepat (`PublicLayout.tsx`):**
+   - Menambahkan tombol navigasi cepat `{ label: 'Campus Hiring - Recruitment', tab: 'campus-hiring' }` pada sidebar widget **Layanan Cepat** di Beranda Utama.
+6. **Git Pull & Push Synchronization:**
+   - Melakukan `git pull origin main`, menyelesaikan resolusi merge conflict secara bersih, dan me-push seluruh perubahan terbaru ke GitHub remote `main`.
+
+### File Diubah
+- `src/components/PublicLayout.tsx` (Animasi counter, integrasi 3 sub-menu layanan, badge kustom & akses Campus Hiring Layanan Cepat)
+- `src/data.ts` (Reset BASE_VISITOR_COUNT = 0 & seed dummy workshop, softskill, seminar)
+- `src/index.css` (Responsif foto berita mobile 100% full-width)
+- `src/types.ts` (Penyelarasan union type JenisKonten 'pengumuman')
+- `src/components/AdminDashboard.tsx` (Penyelarasan dictionary JenisKonten 'pengumuman')
+- `src/components/layanan/EventDetailView.tsx` & `src/components/layanan/ui/EventCardLayout.tsx` (Merge resolution)
+- `progres.md` (Update progres)
+
+### Verifikasi
+- ✅ `npx tsc --noEmit` — passed (0 error)
+- ✅ Git commit & push — sukses ter-sync dengan `origin/main`
+
+---
+
+## Tanggal: 23 Agustus 2026 (Sesi 3)
+>>>>>>> 49368ea3bcdc87e6f654acb5e16519656876386d
 **Oleh: Developer Fachrul Alam Sanuddin**
 **Fokus Pekerjaan:** Revisi Desain Detail Card Event Layanan (Workshop, Softskill, Seminar) mengikuti Layout Editorial Halaman Berita & Artikel.
 
@@ -1931,4 +1975,115 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 - [x] Penghapusan sub-menu "Laporan Monev Tracer Study" dari dropdown Tracer Study
 - [x] Verifikasi struktur menu tersisa (Panduan, Form Kuesioner, Laporan)
 - [x] Pencatatan laporan progres di `progres.md` atas nama ARYA APRIAWAN
+
+
+## Tanggal: 24 Agustus 2026
+**Developer:** ARYA APRIAWAN
+**Fokus Pekerjaan:** Revisi Menu Tracer Study — Rename Sub-Menu & Penghapusan "Laporan Tracer Study"
+
+---
+
+### 🚀 Ringkasan Perubahan
+
+#### 1. Revisi Dropdown Menu Tracer Study (`Header.tsx`)
+- **Rename sub-menu pertama**: "Panduan Tracer Study" → **"Tracer Study"**, dan mengarah langsung ke halaman utama `https://tracerstudy.umkendari.ac.id/` (sebelumnya `/page/panduan`).
+- **Penghapusan sub-menu "Laporan Tracer Study"** (`https://tracerstudy.umkendari.ac.id/page/laporan`) dari dropdown.
+- Struktur sub-menu Tracer Study setelah revisi (2 item):
+  1. **Tracer Study** → `https://tracerstudy.umkendari.ac.id/`
+  2. **Form Kuesioner Tracer Study** → `https://tracerstudy.umkendari.ac.id/page/survey`
+
+#### 2. Perbaikan Type Error `AdminDashboard.tsx`
+- Menambahkan `'konseling'` ke union type `AdminTab` sehingga error TypeScript pada penggunaan `setActiveTab('konseling')` terselesaikan.
+
+### ✅ Verifikasi
+- [x] `npm run lint` → PASS (exit 0, tanpa error)
+- [x] `npm run build` → PASS (vite build sukses, built in ~10.8s)
+
+### 📁 File Diubah
+- **[MODIFY]** `src/components/Header.tsx` — rename + retarget sub-menu Tracer Study, hapus "Laporan Tracer Study"
+- **[MODIFY]** `src/components/AdminDashboard.tsx` — tambah `'konseling'` pada type `AdminTab`
+- **[MODIFY]** `progres.md` — pencatatan laporan progres tanggal 24 Agustus 2026 oleh ARYA APRIAWAN
+
+---
+
+## Tanggal: 24 Agustus 2026 (Sesi 2)
+**Developer:** ARYA APRIAWAN  
+**Fokus Pekerjaan:** Revisi Total Card Layout & Detail Kegiatan Menu Layanan (Workshop, Softskill, Seminar), Pembaruan Panel Kontrol Pencarian, serta Penyesuaian Form Admin Dashboard
+
+---
+
+### 🚀 Ringkasan Perubahan
+
+#### 1. Perombakan Card Layout Menu Layanan (`EventCardLayout.tsx`)
+- **Pembersihan Informasi pada Kartu:**
+  - Menghilangkan badge status *"Pendaftaran Dibuka / Segera Hadir / Selesai"*.
+  - Menghilangkan informasi *Lokasi*, *Pembicara / Narasumber*, dan *Kuota Peserta* pada kartu (informasi ini sudah termuat di pamflet dan deskripsi kegiatan).
+  - Tampilan kartu kini lebih bersih dan elegan: Cover pamflet/poster (aspek 16:9 hover-zoom), judul kegiatan tebal (2 baris), footer kartu berisi tanggal pelaksanaan (ikon kalender) di kiri dan *"by Admin Website"* di kanan.
+- **Pembaruan Panel Kontrol Pencarian & Filter:**
+  - Menghilangkan 2 kotak input tanggal manual (`dd/mm/yyyy s/d dd/mm/yyyy`).
+  - Menggantinya dengan 3 fitur kontrol modern:
+    1. **Kolom Pencarian (*Search Bar*) Luas & Responsif** dengan tombol hapus `X`.
+    2. **Dropdown Filter Periode / Tahun** (Semua Periode, Tahun 2026, Tahun 2025, dll. diekstrak dinamis).
+    3. **Dropdown Pengurutan (*Sort By*)**: Terbaru, Terlama, Judul (A - Z), Judul (Z - A).
+    4. **Badge Total Kegiatan**: Menampilkan jumlah kegiatan hasil pencarian (`📦 Menampilkan X Kegiatan`) beserta tombol *Reset Filter*.
+
+#### 2. Standarisasi Tampilan Detail Kegiatan (`EventDetailView.tsx`)
+- Merombak tampilan pop-up modal menjadi tampilan halaman artikel detail penuh yang **sama persis** dengan format *Berita & Artikel*:
+  - **Navigasi Atas**: Tombol `< Kembali ke [Nama Sub-Menu Layanan]`.
+  - **Breadcrumb**: `Beranda > [Nama Sub-Menu Layanan] > [Judul Kegiatan]`.
+  - **Floating Sticky Social Share Bar (Desktop Kiri)**: Facebook, X / Twitter, WhatsApp, Telegram, LinkedIn.
+  - **Judul Artikel Utama**: Teks besar, tegas, dan tebal.
+  - **Strip Metadata Berikon Emas**: 🏷️ Kategori Sub-Menu, 🕒 Tanggal & Waktu Pelaksanaan, 👤 Oleh: Admin Website *(tanpa lokasi, narasumber, kuota, atau status)*.
+  - **Cover Pamflet Utama**: Gambar poster kegiatan resolusi penuh dengan sudut melengkung dan bayangan halus.
+  - **Isi Artikel / Deskripsi Kegiatan**: Render teks kaya (*rich markdown*) dengan heading, poin materi, dan daftar bernomor.
+  - **Bilah Share Bawah**: 5 tombol sosial media di bawah artikel.
+  - **Fitur Dihilangkan Sesuai Instruksi**: Form *"Tinggalkan Komentar"* dan seksi *"Berita Terkait"* dihilangkan sepenuhnya.
+
+#### 3. Penyesuaian Sinkronisasi Wrapper Layanan (`LayananContainer.tsx`)
+- Menambahkan `LayananContext` (`isDetailActive`, `setIsDetailActive`) agar header besar dan breadcrumb umum dari `LayananContainer` otomatis disembunyikan saat pengguna sedang membaca halaman detail kegiatan.
+- Memperbaiki stabilitas `motion.div` agar komponen kartu tidak ter-*unmount* saat kartu diklik.
+
+#### 4. Penyesuaian Form Input Panel Admin (`AdminDashboard.tsx`)
+- **Pembersihan Field Form Konten Layanan (Workshop, Softskill, Seminar):**
+  - ❌ Menghilangkan input *Tempat / Lokasi*.
+  - ❌ Menghilangkan input *Pembicara / Narasumber*.
+  - ❌ Menghilangkan input *Kuota Peserta*.
+  - ❌ Menghilangkan input *Sudah Terdaftar*.
+  - ❌ Menghilangkan input *Link Pendaftaran (URL eksternal)*.
+  - ❌ Menghilangkan dropdown *Status Pendaftaran (Pendaftaran Dibuka / Segera Hadir / Selesai)*.
+- **Field yang Dipertahankan & Ditingkatkan:**
+  - ✅ Judul Konten / Kegiatan.
+  - ✅ Tanggal Pelaksanaan * (Wajib).
+  - ✅ Waktu Pelaksanaan (mis. `09:00 - 14:00 WITA`).
+  - ✅ Upload Pamflet / Thumbnail Poster.
+  - ✅ Isi Konten / Deskripsi Lengkap (Editor WYSIWYG / Format Word).
+  - ✅ Status Publikasi (Draft / Published) & Pin ke Popular Info.
+- **Perbaikan Bug Penyimpanan WYSIWYG:**
+  - Memperbaiki logika `handleSaveKonten` agar otomatis membaca konten HTML/WYSIWYG dari `beritaEditRef` untuk jenis `workshop`, `softskill`, dan `seminar` sehingga tidak terjadi error *"Isi konten (body) wajib diisi"*.
+
+#### 5. Pembaruan Data Dummy Kegiatan (`src/data.ts`) & Parser Markdown (`src/markdown.tsx`)
+- Memperkaya seluruh data dummy `SEED_EVENT_LAYANAN` dengan deskripsi markdown artikel yang realistis, komprehensif, dan terstruktur.
+- Memperluas `renderContentMarkdown` pada `src/markdown.tsx` agar mendukung heading `###`, `####`, daftar bernomor (`1.`, `2.`), dan bullet points.
+
+---
+
+### 📁 File Diubah
+- **[MODIFY]** `src/components/layanan/EventDetailView.tsx` — layout detail kegiatan baru ala Berita & Artikel
+- **[MODIFY]** `src/components/layanan/ui/EventCardLayout.tsx` — perombakan kartu, panel kontrol pencarian, periode, sort, dan total badge
+- **[MODIFY]** `src/components/layanan/LayananContainer.tsx` — integrasi context visibilitas header dan stabilitas navigasi
+- **[MODIFY]** `src/components/AdminDashboard.tsx` — pembersihan 6 field form layanan dan perbaikan simpan WYSIWYG
+- **[MODIFY]** `src/data.ts` — pengayaan teks dummy event layanan format markdown
+- **[MODIFY]** `src/markdown.tsx` — dukungan rendering heading dan list markdown
+- **[MODIFY]** `progres.md` — pencatatan lengkap seluruh progres pengerjaan sesi ini oleh ARYA APRIAWAN
+
+### 📋 Checklist Selesai Sesi Ini
+- [x] Penghapusan status pendaftaran, lokasi, pembicara, kuota dari Card Layout Layanan
+- [x] Pembuatan layout detail kegiatan identik dengan Berita & Artikel tanpa komentar dan tanpa berita terkait
+- [x] Penggantian filter tanggal dengan Search Bar Luas, Dropdown Periode Tahun, Dropdown Urutkan, dan Total Badge
+- [x] Penyesuaian Form Admin Workshop/Softskill/Seminar (menghapus 6 field yang tidak diperlukan)
+- [x] Perbaikan penyimpanan upload konten layanan di Panel Admin
+- [x] Pembaruan data dummy realistis di `SEED_EVENT_LAYANAN`
+- [x] Verifikasi browser testing berhasil tanpa error
+- [x] Pencatatan laporan progres di `progres.md` atas nama ARYA APRIAWAN
+- [x] Git commit dan push ke GitHub repository
 

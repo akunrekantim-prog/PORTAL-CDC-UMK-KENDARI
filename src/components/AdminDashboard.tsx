@@ -141,7 +141,7 @@ interface AdminDashboardProps {
   onReloadData?: () => void;
 }
 
-type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin' | 'keanggotaan' | 'visi-misi' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'media-sosial' | 'komentar';
+type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin' | 'keanggotaan' | 'visi-misi' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'media-sosial' | 'komentar' | 'konseling';
 type KontenSubTab = 'riwayat' | 'pembuatan';
 type MitraSubTab = 'approval' | 'list';
 
@@ -149,6 +149,7 @@ const JENIS_LABEL: Record<JenisKonten, string> = {
   berita: 'Berita & Artikel',
   lowongan: 'Lowongan (Magang/Kerja)',
   program: 'Program & Pengumuman',
+  pengumuman: 'Pengumuman Penting',
   workshop: 'Workshop & Pelatihan Karir',
   softskill: 'Pelatihan Softskill & Kewirausahaan',
   seminar: 'Seminar Sukses Berkarir',
@@ -159,6 +160,7 @@ const JENIS_ICON: Record<JenisKonten, React.ReactNode> = {
   berita: <Newspaper className="w-4 h-4" />,
   lowongan: <Briefcase className="w-4 h-4" />,
   program: <Megaphone className="w-4 h-4" />,
+  pengumuman: <Megaphone className="w-4 h-4" />,
   workshop: <GraduationCap className="w-4 h-4" />,
   softskill: <Award className="w-4 h-4" />,
   seminar: <GraduationCap className="w-4 h-4" />,
@@ -170,9 +172,10 @@ const THUMB_REQUIRED: Record<JenisKonten, boolean> = {
   berita: true,    // 16:9 — wajib upload poster
   lowongan: true,  // 9:16
   program: true,     // thumbnail wajib (header kartu)
-  workshop: false,  // opsional — fallback ke gambar default di EventCardLayout
-  softskill: false, // opsional
-  seminar: false,    // opsional
+  pengumuman: false, // opsional
+  workshop: true,   // poster pamflet kegiatan
+  softskill: true,  // poster pamflet kegiatan
+  seminar: true,    // poster pamflet kegiatan
   presentasi: true   // wajib upload poster/dokumentasi
 };
 
@@ -990,6 +993,17 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
     setEditorOpen(true);
   };
 
+  // Sinkronisasi isi editor WYSIWYG saat mode edit dibuka
+  useEffect(() => {
+    if (editorOpen && beritaEditRef.current) {
+      if (editId) {
+        beritaEditRef.current.innerHTML = eBody || '';
+      } else if (!eBody) {
+        // Konten baru jika kosong
+      }
+    }
+  }, [editorOpen, editId]);
+
   const [kontenJenisBaru, setKontenJenisBaru] = useState<JenisKonten | null>(null);
 
   /* =========================================================
@@ -1335,11 +1349,19 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       triggerToast('error', 'Judul wajib diisi.');
       return;
     }
-    const rawBody = eJenis === 'berita' ? (beritaEditRef.current?.innerHTML || '') : eBody;
+    const isWysiwyg = eJenis === 'berita' || eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar';
+    const rawBody = (isWysiwyg && beritaEditRef.current)
+      ? (beritaEditRef.current.innerHTML || '')
+      : eBody;
     // Sanitasi tag list kosong (ul/ol tanpa isi teks) agar tidak meninggalkan titik liar
     const sanitizedBody = rawBody.replace(/<(ul|ol)[^>]*>\s*(<li>\s*(<br\s*\/?>)?\s*<\/li>\s*)*<\/\1>/gi, '').trim();
 
-    if (eJenis !== 'program' && !sanitizedBody) {
+    // Periksa apakah ada konten teks atau gambar
+    const hasContent = isWysiwyg
+      ? (sanitizedBody.replace(/<[^>]*>/g, '').trim().length > 0 || /<img/i.test(sanitizedBody))
+      : eBody.trim().length > 0;
+
+    if (eJenis !== 'program' && !hasContent) {
       setSaveError('Isi konten (body) wajib diisi.');
       triggerToast('error', 'Judul dan isi konten wajib diisi.');
       return;
@@ -1355,11 +1377,12 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       return;
     }
     const now = new Date().toISOString();
+    const finalBody = isWysiwyg ? sanitizedBody : eBody;
     const base: KontenKarir = {
       id: editId || `kk_${Date.now()}`,
       jenis: eJenis,
       judul: eJudul.trim(),
-      body: eJenis === 'berita' ? sanitizedBody : eBody,
+      body: finalBody,
       penulis: eJenis === 'berita' ? (ePenulis.trim() || user.name) : undefined,
       namaInstansi: eJenis === 'lowongan' ? eNamaInstansi.trim() : undefined,
       tipe: eJenis === 'lowongan' ? eTipe : undefined,
@@ -2478,34 +2501,6 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                         <div className="space-y-1.5">
                           <label className="text-xs font-medium text-slate-500">Waktu (mis. 09:00 - 14:00 WITA)</label>
                           <input value={eWaktu} onChange={(e) => setEWaktu(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="09:00 - 14:00 WITA" />
-                        </div>
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-medium text-slate-500">Tempat / Lokasi</label>
-                          <input value={eLokasiEvent} onChange={(e) => setELokasiEvent(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="Ruang Seminar Perpustakaan UMK" />
-                        </div>
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-medium text-slate-500">Pembicara / Narasumber</label>
-                          <input value={ePembicara} onChange={(e) => setEPembicara(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="Dr. Hj. Wa Ode Sitti, M.Pd." />
-                        </div>
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-medium text-slate-500">Kuota Peserta</label>
-                          <input value={eKuotaEvent} onChange={(e) => setEKuotaEvent(e.target.value)} type="number" min="1" className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="75" />
-                        </div>
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-medium text-slate-500">Sudah Terdaftar</label>
-                          <input value={eTerdaftar} onChange={(e) => setETerdaftar(e.target.value)} type="number" min="0" className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="0" />
-                        </div>
-                        <div className="space-y-1.5 sm:col-span-2">
-                          <label className="text-xs font-medium text-slate-500">Link Pendaftaran (URL eksternal, mis. Google Form)</label>
-                          <input value={eLinkDaftar} onChange={(e) => setELinkDaftar(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="https://bit.ly/..." />
-                        </div>
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-medium text-slate-500">Status Pendaftaran</label>
-                          <Dropdown value={eStatusEvent} onChange={(v) => setEStatusEvent(v as any)} className="w-full" options={[
-                            { value: 'buka', label: 'Pendaftaran Dibuka' },
-                            { value: 'segera', label: 'Segera Hadir' },
-                            { value: 'selesai', label: 'Selesai' }
-                          ]} />
                         </div>
                       </div>
                     )}

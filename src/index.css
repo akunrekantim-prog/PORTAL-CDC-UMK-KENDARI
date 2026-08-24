@@ -103,17 +103,19 @@
   margin-top: 0.5rem;
 }
 @media (max-width: 640px) {
-  .prose-berita img[style*="float: left"],
-  .prose-berita img[style*="float:left"],
-  .prose-berita img[style*="float: right"],
-  .prose-berita img[style*="float:right"],
-  .prose-berita img.img-float-left,
-  .prose-berita img.img-float-right {
+  .prose-berita img,
+  .prose-berita img[style],
+  .prose img,
+  .prose img[style] {
     float: none !important;
-    margin: 1rem auto !important;
     display: block !important;
     width: 100% !important;
+    max-width: 100% !important;
     height: auto !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    margin-top: 1rem !important;
+    margin-bottom: 1rem !important;
   }
 }
 .prose-berita hr { border: 0; border-top: 1px solid #E6DFD3; margin: 1.2rem 0; }

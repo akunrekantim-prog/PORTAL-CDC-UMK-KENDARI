@@ -77,7 +77,7 @@ export interface Mahasiswa {
   university?: string;
 }
 
-export type JenisKonten = 'berita' | 'lowongan' | 'program' | 'workshop' | 'softskill' | 'seminar' | 'presentasi';
+export type JenisKonten = 'berita' | 'lowongan' | 'program' | 'pengumuman' | 'workshop' | 'softskill' | 'seminar' | 'presentasi';
 
 export interface EventLayananItem {
   id: string;

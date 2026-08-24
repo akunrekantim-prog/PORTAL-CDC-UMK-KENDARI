@@ -178,6 +178,9 @@ export default function PublicLayout({
   // Gambar Visi & Misi (bisa diubah admin via Manajemen Web → Visi & Misi)
   const [visiMisiUrl, setVisiMisiUrl] = useState<string>(() => getVisiMisiConfig().imageUrl);
   
+  // Event Detail Direct Access State
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  
   // Job Info Search & Filter States
   const [jobKeyword, setJobKeyword] = useState('');
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
@@ -675,12 +678,48 @@ export default function PublicLayout({
                     PROGRAM &amp; PENGUMUMAN
                   </h3>
                   {(() => {
-                    const dbPrograms = getFromDB<KontenKarir>('konten_karir').filter(
-                      k => k.jenis === 'program' && k.status !== 'draft'
-                    );
+                    const dbPrograms = getFromDB<KontenKarir>('konten_karir')
+                      .filter(k => ['program', 'pengumuman', 'workshop', 'softskill', 'seminar'].includes(k.jenis) && k.status === 'published')
+                      .sort((a, b) => new Date(b.createdAt || b.updatedAt || 0).getTime() - new Date(a.createdAt || a.updatedAt || 0).getTime());
 
                     // Combine default/demo items with published DB items if any
                     const itemsToRender = dbPrograms.length > 0 ? dbPrograms : [
+                      {
+                        id: 'evt_ws_001',
+                        jenis: 'workshop' as const,
+                        judul: 'Workshop UI/UX Design & Prototyping Figma 2026',
+                        body: 'Pelatihan praktis pembuatan wireframe, Design System, hingga Interactive Prototype aplikasi berbasis industri bersama praktisi.',
+                        kategori: 'Workshop',
+                        thumbnail: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=800&auto=format&fit=crop',
+                        layoutType: 'card' as const,
+                        status: 'published' as const,
+                        createdAt: '2026-08-18T09:00:00Z',
+                        createdByName: 'Admin Website'
+                      },
+                      {
+                        id: 'evt_ss_001',
+                        jenis: 'softskill' as const,
+                        judul: 'Pelatihan Softskill Public Speaking & Persuasi Komunikasi Karir',
+                        body: 'Membangun kepercayaan diri saat presentasi, wawancara kerja, dan komunikasi profesional di dunia industri modern.',
+                        kategori: 'Softskill',
+                        thumbnail: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=800&auto=format&fit=crop',
+                        layoutType: 'card' as const,
+                        status: 'published' as const,
+                        createdAt: '2026-08-19T10:00:00Z',
+                        createdByName: 'Admin Website'
+                      },
+                      {
+                        id: 'evt_sm_001',
+                        jenis: 'seminar' as const,
+                        judul: 'Seminar Nasional Strategi Menembus BUMN & Perusahaan Multinasional',
+                        body: 'Pemaparan komprehensif mengenai alur seleksi Rekrutmen Bersama BUMN, psikotes, dan tips wawancara langsung bersama HR.',
+                        kategori: 'Seminar',
+                        thumbnail: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=800&auto=format&fit=crop',
+                        layoutType: 'card' as const,
+                        status: 'published' as const,
+                        createdAt: '2026-08-20T11:00:00Z',
+                        createdByName: 'Admin Website'
+                      },
                       {
                         id: 'demo_prog_1',
                         jenis: 'program' as const,
@@ -692,33 +731,45 @@ export default function PublicLayout({
                         status: 'published' as const,
                         createdAt: '2026-05-10T08:00:00Z',
                         createdByName: 'Admin Website'
-                      },
-                      {
-                        id: 'demo_prog_2',
-                        jenis: 'program' as const,
-                        judul: 'Selamat & Sukses Pimpinan UMK',
-                        body: 'Pimpinan Universitas Muhammadiyah Kendari Periode 2026–2030. Semoga amanah & membawa kemajuan.',
-                        kategori: 'Pengumuman',
-                        thumbnail: 'https://images.unsplash.com/photo-1531545514256-b1400bc00f31?q=80&w=800&auto=format&fit=crop',
-                        layoutType: 'card' as const,
-                        status: 'published' as const,
-                        createdAt: '2026-05-12T09:00:00Z',
-                        createdByName: 'Admin Website'
                       }
                     ];
+
+                    const getDisplayBadge = (item: KontenKarir) => {
+                      if (item.jenis === 'workshop') return 'WORKSHOP';
+                      if (item.jenis === 'softskill') return 'SOFTSKILL';
+                      if (item.jenis === 'seminar') return 'SEMINAR';
+                      if (item.jenis === 'program') return 'PROGRAM';
+                      if (item.jenis === 'pengumuman') return 'PENGUMUMAN';
+                      return (item.kategori || 'PROGRAM').toUpperCase();
+                    };
+
+                    const handleCardItemClick = (item: KontenKarir) => {
+                      window.scrollTo(0, 0);
+                      if (item.jenis === 'workshop' || item.jenis === 'softskill' || item.jenis === 'seminar') {
+                        setSelectedEventId(item.id);
+                        setTab(item.jenis);
+                      } else if (onSelectProgram) {
+                        onSelectProgram(item.id);
+                      } else if (onNavigateToRegister) {
+                        onNavigateToRegister('alumni');
+                      } else if (onNavigateToLogin) {
+                        onNavigateToLogin();
+                      }
+                    };
 
                     return (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         {itemsToRender.map(item => {
                           const isBadgeLayout = item.layoutType === 'badge';
+                          const badgeLabel = getDisplayBadge(item);
 
                           if (isBadgeLayout) {
                             if (item.thumbnail) {
-                              /* Mode Banner Poster Full-Visual (Sesuai Gambar Screenshot) */
+                              /* Mode Banner Poster Full-Visual */
                               return (
                                 <div
                                   key={item.id}
-                                  onClick={() => (onNavigateToRegister ? onNavigateToRegister('alumni') : onNavigateToLogin())}
+                                  onClick={() => handleCardItemClick(item)}
                                   className="w-full h-64 sm:h-72 rounded-3xl relative overflow-hidden shadow-md hover:shadow-xl border border-slate-200/80 group cursor-pointer flex flex-col justify-between p-6 sm:p-7 transition-all"
                                 >
                                   {/* Background Poster Image */}
@@ -731,11 +782,11 @@ export default function PublicLayout({
                                   {/* Dark Gradient Overlay */}
                                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-900/60 to-slate-950/20" />
 
-                                  {/* Header Badge (Amber / Yellow) */}
+                                  {/* Header Badge */}
                                   <div className="relative z-10 flex items-center justify-between gap-2">
                                     <span className="px-3 py-1 bg-amber-500 text-slate-950 rounded-lg text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md">
                                       <Megaphone className="w-3.5 h-3.5 text-slate-950" />
-                                      {item.kategori || ''}
+                                      {badgeLabel}
                                     </span>
                                     <span className="text-[11px] font-extrabold text-amber-300 tracking-wider uppercase drop-shadow-xs">
                                       {item.namaInstansi || 'CDC UM KENDARI'}
@@ -779,11 +830,11 @@ export default function PublicLayout({
                               );
                             }
 
-                            /* Fallback Mode Badge Teks Hijau jika foto poster tidak diunggah */
+                            /* Fallback Mode Badge Teks Hijau */
                             return (
                               <div
                                 key={item.id}
-                                onClick={() => (onNavigateToRegister ? onNavigateToRegister('alumni') : onNavigateToLogin())}
+                                onClick={() => handleCardItemClick(item)}
                                 className="bg-gradient-to-br from-emerald-50/90 via-white to-emerald-50/40 rounded-3xl border border-emerald-200/80 p-6 sm:p-7 shadow-md hover:shadow-lg transition-all cursor-pointer group flex flex-col sm:flex-row items-start gap-5 relative overflow-hidden"
                               >
                                 <div className="bg-emerald-500 text-slate-950 p-3.5 rounded-2xl shadow-sm shrink-0 flex items-center justify-center">
@@ -792,7 +843,7 @@ export default function PublicLayout({
                                 <div className="flex-1 space-y-2 w-full">
                                   <div className="flex items-center justify-between gap-2 flex-wrap">
                                     <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-wider">
-                                      {item.kategori || 'PROGRAM PENTING'}
+                                      {badgeLabel}
                                     </span>
                                     <span className="text-[11px] font-extrabold text-orange-600 tracking-wider uppercase">
                                       {item.namaInstansi || 'CDC UM KENDARI'}
@@ -816,11 +867,11 @@ export default function PublicLayout({
                             );
                           }
 
-                          /* Mode Card Gambar / Poster (Sesuai Screenshot User) */
+                          /* Mode Card Gambar / Poster */
                           return (
                             <div
                               key={item.id}
-                              onClick={() => (onNavigateToRegister ? onNavigateToRegister('alumni') : onNavigateToLogin())}
+                              onClick={() => handleCardItemClick(item)}
                               className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group"
                             >
                               <div>
@@ -838,7 +889,7 @@ export default function PublicLayout({
                                   )}
                                   <div className="absolute top-3 left-3 flex items-center gap-2">
                                     <span className="px-2.5 py-1 text-[11px] font-black rounded-md shadow-xs bg-emerald-700 text-white uppercase tracking-wider">
-                                      {item.kategori || 'Program Unggulan'}
+                                      {badgeLabel}
                                     </span>
                                   </div>
                                 </div>
@@ -1146,6 +1197,7 @@ export default function PublicLayout({
                   <h4 className="font-extrabold text-sm text-[#1E3A8A] uppercase tracking-wider">Layanan Cepat</h4>
                   {[
                     { label: 'Konseling Karir', tab: 'konseling' },
+                    { label: 'Campus Hiring - Recruitment', tab: 'campus-hiring' },
                     { label: 'Tes Potensi Minat Kerja', href: 'https://www.klob.id/klob-journey/klob-meter' },
                   ].map(s => (
                     s.href ? (
@@ -1932,9 +1984,9 @@ export default function PublicLayout({
           <LayananContainer currentTab={currentTab} setTab={setTab}>
             {currentTab === 'konseling' && <BimbinganKarir />}
             {currentTab === 'tes-minat' && <TesMinat />}
-            {currentTab === 'workshop' && <Workshop konten={konten} />}
-            {currentTab === 'softskill' && <Softskill konten={konten} />}
-            {currentTab === 'seminar' && <Seminar konten={konten} />}
+            {currentTab === 'workshop' && <Workshop konten={konten} initialEventId={selectedEventId} />}
+            {currentTab === 'softskill' && <Softskill konten={konten} initialEventId={selectedEventId} />}
+            {currentTab === 'seminar' && <Seminar konten={konten} initialEventId={selectedEventId} />}
             {currentTab === 'career-fair' && <CareerFair />}
             {currentTab === 'campus-hiring' && <CampusHiring />}
             {currentTab === 'magang' && <Magang lowongan={lowongan} onSelectLowongan={onSelectLowongan} />}
