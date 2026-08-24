@@ -31,7 +31,11 @@ import {
   HelpdeskConfig,
   KomentarBerita,
   StatusKomentar,
-  CdcClubConfig
+  CdcClubConfig,
+  HeroSlideItem,
+  CampusHiringItem,
+  JobFairItem,
+  JobFairCompany
 } from './types';
 
 // Daftar Fakultas Resmi Universitas Muhammadiyah Kendari (UM Kendari)
@@ -2378,6 +2382,193 @@ export function getAnggotaTim(): AnggotaTim[] {
 
 export function saveAnggotaTim(items: AnggotaTim[]): void {
   localStorage.setItem('cdc_umk_keanggotaan_tim', JSON.stringify(items));
+}
+
+// Default Seed Hero Slides Beranda Utama
+export const SEED_HERO_SLIDES: HeroSlideItem[] = [
+  {
+    id: 'slide-1',
+    title: 'Poster CDC WEB UMK - Slide 1',
+    imageUrl: '/poster-cdc-web-umk-1.svg',
+    targetUrl: 'lowongan',
+    alt: 'Poster CDC WEB UMK - Slide 1',
+    isActive: true,
+    order: 1,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'slide-2',
+    title: 'Poster CDC WEB UMK - Slide 2',
+    imageUrl: '/poster-cdc-web-umk-2.svg',
+    targetUrl: 'lowongan',
+    alt: 'Poster CDC WEB UMK - Slide 2',
+    isActive: true,
+    order: 2,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'slide-3',
+    title: 'Pengembangan Karir CDC',
+    imageUrl: '/PENGEMBANGAN%20KARIR.svg',
+    targetUrl: 'layanan-bimbingan-karir',
+    alt: 'Pengembangan Karir - Slide 3',
+    isActive: true,
+    order: 3,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'slide-4',
+    title: 'Tracer Study UM Kendari',
+    imageUrl: '/TENTANG%20TRACER%20baru.svg',
+    targetUrl: 'tracer-study',
+    alt: 'Tentang Tracer - Slide 4',
+    isActive: true,
+    order: 4,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'slide-5',
+    title: 'Bimbingan & Konseling Karir',
+    imageUrl: '/KONSELING%20KARIR%20slide%20ke%205.svg',
+    targetUrl: 'konseling',
+    alt: 'Konseling Karir - Slide 5',
+    isActive: true,
+    order: 5,
+    createdAt: new Date().toISOString()
+  }
+];
+
+export function getHeroSlides(): HeroSlideItem[] {
+  const saved = localStorage.getItem('cdc_umk_hero_slides');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      }
+    } catch (e) {
+      console.error('Error parsing hero slides:', e);
+    }
+  }
+  return SEED_HERO_SLIDES;
+}
+
+export function saveHeroSlides(slides: HeroSlideItem[]): void {
+  localStorage.setItem('cdc_umk_hero_slides', JSON.stringify(slides));
+}
+
+// Default Seeds for Campus Hiring
+export const SEED_CAMPUS_HIRING: CampusHiringItem[] = [
+  {
+    id: 'ch_1',
+    judul: 'On-Campus Recruitment & Direct Interview PT Bank Central Asia Tbk 2026',
+    namaPerusahaan: 'PT Bank Central Asia Tbk (BCA)',
+    logoPerusahaan: 'https://images.unsplash.com/photo-1541354329998-f4d9a9f9297f?q=80&w=400&auto=format&fit=crop',
+    bannerUrl: '/poster-cdc-web-umk-1.svg',
+    tanggal: '2026-09-10',
+    waktu: '08:30 - 15:00 WITA',
+    lokasi: 'Aula Gedung Rektorat Lt. 2 Universitas Muhammadiyah Kendari',
+    tipe: 'on-campus',
+    persyaratan: [
+      'Lulusan S1/D3 Semua Jurusan (IPK Min 3.00)',
+      'Usia maksimal 25 tahun (S1) / 23 tahun (D3)',
+      'Bersedia mengikuti proses seleksi offline di Kampus UM Kendari',
+      'Membawa CV Terbaru, Pasfoto 4x6, Transkrip Nilai, FC Ijazah/SKL'
+    ],
+    posisiBuka: ['Management Development Program (MDP)', 'Frontliner & Customer Service Specialist', 'Account Officer Trainee'],
+    kuota: 100,
+    terdaftarCount: 42,
+    deskripsi: 'Program rekrutmen terbuka langsung oleh Tim HRD BCA di Kampus UM Kendari. Peserta lolos tes tahap awal langsung diwawancarai di hari yang sama.',
+    status: 'buka',
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'ch_2',
+    judul: 'Virtual Campus Hiring & Talkshow Karir PT Indofood Sukses Makmur Tbk',
+    namaPerusahaan: 'PT Indofood Sukses Makmur Tbk',
+    logoPerusahaan: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=400&auto=format&fit=crop',
+    bannerUrl: '/PENGEMBANGAN%20KARIR.svg',
+    tanggal: '2026-09-18',
+    waktu: '09:00 - 12:00 WITA',
+    lokasi: 'Daring via Zoom Meeting (Tautan dikirim via Email H-1)',
+    tipe: 'virtual',
+    linkVirtual: 'https://zoom.us/j/example-indofood-umk',
+    persyaratan: [
+      'Mahasiswa Akhir / Alumni S1 Teknik, Pertanian, Ekonomi, & Sosial',
+      'Memiliki kemampuan komunikasi & analisis yang baik',
+      'Mengisi formulir pendaftaran daring CDC UMK'
+    ],
+    posisiBuka: ['Field Officer Supervisor', 'Quality Control Staff', 'Sales Executive Specialist'],
+    kuota: 250,
+    terdaftarCount: 115,
+    deskripsi: 'Sesi presentasi korporat Indofood dilanjutkan dengan registrasi seleksi cepat calon karyawan baru khusus lulusan Sulawesi Tenggara.',
+    status: 'buka',
+    createdAt: new Date().toISOString()
+  }
+];
+
+export function getCampusHiring(): CampusHiringItem[] {
+  const saved = localStorage.getItem('cdc_umk_campus_hiring');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    } catch (e) {
+      console.error('Error parsing campus hiring:', e);
+    }
+  }
+  return SEED_CAMPUS_HIRING;
+}
+
+export function saveCampusHiring(items: CampusHiringItem[]): void {
+  localStorage.setItem('cdc_umk_campus_hiring', JSON.stringify(items));
+}
+
+// Default Seeds for Job Fair & Career Expo
+export const SEED_JOB_FAIR: JobFairItem[] = [
+  {
+    id: 'jf_1',
+    judul: 'UMK Mega Career Expo & Job Fair Nasional 2026',
+    tagline: 'Langkah Awal Karir Impianmu Dimulai dari Sini!',
+    bannerUrl: '/poster-cdc-web-umk-2.svg',
+    tanggalMulai: '2026-10-05',
+    tanggalSelesai: '2026-10-07',
+    waktu: '08:00 - 16:00 WITA Setiap Hari',
+    lokasi: 'Auditorium Utama & Lapangan Indoor UM Kendari',
+    htm: 'Gratis Khusus Mahasiswa & Alumni UM Kendari (Umum: Rp 10.000)',
+    perusahaanPeserta: [
+      { id: 'p1', nama: 'PT Bank Central Asia Tbk', bidang: 'Perbankan & Keuangan' },
+      { id: 'p2', nama: 'PT Indofood Sukses Makmur Tbk', bidang: 'Manufaktur & FMCG' },
+      { id: 'p3', nama: 'PT Telekomunikasi Indonesia (Telkom)', bidang: 'Teknologi & Komunikasi' },
+      { id: 'p4', nama: 'PT Vale Indonesia Tbk', bidang: 'Pertambangan & Energi' },
+      { id: 'p5', nama: 'PT Adaro Energy Indonesia Tbk', bidang: 'Energi & Konstruksi' },
+      { id: 'p6', nama: 'PT Astra International Tbk', bidang: 'Otomotif & Distribusi' }
+    ],
+    deskripsi: 'Pameran Bursa Kerja terbesar Universitas Muhammadiyah Kendari yang menghadirkan 30+ Perusahaan BUMN, Swasta Nasional, dan Multinasional. Dilengkapi dengan Talkshow Karir, Klinik Review CV Gratis, dan Test Interview On-the-Spot.',
+    status: 'buka',
+    createdAt: new Date().toISOString()
+  }
+];
+
+export function getJobFair(): JobFairItem[] {
+  const saved = localStorage.getItem('cdc_umk_job_fair');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    } catch (e) {
+      console.error('Error parsing job fair:', e);
+    }
+  }
+  return SEED_JOB_FAIR;
+}
+
+export function saveJobFair(items: JobFairItem[]): void {
+  localStorage.setItem('cdc_umk_job_fair', JSON.stringify(items));
 }
 
 
