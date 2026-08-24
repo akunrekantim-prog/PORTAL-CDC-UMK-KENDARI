@@ -72,6 +72,8 @@ export interface Mahasiswa {
     level: string;
   }>;
   gender?: string;
+  sendOpportunities?: string;
+  cvName?: string;
   industries?: string;
   locations?: string;
   university?: string;
@@ -642,6 +644,9 @@ export interface HelpdeskConfig {
   email: string;
   whatsappNumber: string;
   whatsappNote: string;
+  jamLayanan?: string;
+  defaultMessage?: string;
+  isFloatingActive?: boolean;
 }
 
 export type StatusKomentar = 'pending' | 'approved' | 'rejected';

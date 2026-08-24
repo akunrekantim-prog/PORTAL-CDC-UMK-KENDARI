@@ -2096,7 +2096,10 @@ export function saveAdminWaPrestasi(phone: string) {
 export const DEFAULT_HELPDESK_CONFIG: HelpdeskConfig = {
   email: 'helpdesk@umkendari.ac.id',
   whatsappNumber: '0852-4100-9988',
-  whatsappNote: '(Jam Kerja 08.00 - 16.00 WITA)'
+  whatsappNote: '(Jam Kerja 08.00 - 16.00 WITA)',
+  jamLayanan: 'Senin - Jumat: 08.00 - 16.00 WITA',
+  defaultMessage: 'Halo Admin CDC UM Kendari, saya ingin berkonsultasi mengenai...',
+  isFloatingActive: true
 };
 
 export function getHelpdeskConfig(): HelpdeskConfig {
@@ -2107,7 +2110,10 @@ export function getHelpdeskConfig(): HelpdeskConfig {
       return {
         email: parsed.email || DEFAULT_HELPDESK_CONFIG.email,
         whatsappNumber: parsed.whatsappNumber || DEFAULT_HELPDESK_CONFIG.whatsappNumber,
-        whatsappNote: parsed.whatsappNote ?? DEFAULT_HELPDESK_CONFIG.whatsappNote
+        whatsappNote: parsed.whatsappNote ?? DEFAULT_HELPDESK_CONFIG.whatsappNote,
+        jamLayanan: parsed.jamLayanan || DEFAULT_HELPDESK_CONFIG.jamLayanan,
+        defaultMessage: parsed.defaultMessage || DEFAULT_HELPDESK_CONFIG.defaultMessage,
+        isFloatingActive: parsed.isFloatingActive !== false
       };
     } catch (e) {
       // ignore
