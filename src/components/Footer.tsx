@@ -13,18 +13,8 @@ import {
   Linkedin
 } from 'lucide-react';
 import { getFromDB, getCdcClubConfig } from '../data';
-import { Lowongan, SocialMediaItem, CdcClubConfig } from '../types';
+import { Lowongan, Berita, Pengumuman, KontenKarir, SocialMediaItem, CdcClubConfig } from '../types';
 import { useLanguage } from '../i18n';
-
-const POPULAR_LINKS = [
-  'Loker BPJS Kesehatan 2026',
-  'Loker Bank Mandiri 2026',
-  'JOB PREPARATION 2026',
-  'UM Kendari Career Fair',
-  'Selamat & Sukses Pimpinan UM Kendari 2026',
-  'Loker Pertamina 2026',
-  'Magang BUMN Terbuka 2026',
-];
 
 const PLATFORM_ICONS: Record<string, { icon: React.ElementType; defaultColor: string }> = {
   facebook: { icon: Facebook, defaultColor: 'hover:bg-blue-600' },
@@ -38,15 +28,104 @@ const PLATFORM_ICONS: Record<string, { icon: React.ElementType; defaultColor: st
 
 interface FooterProps {
   onSelectLowongan?: (id: string) => void;
+  onSelectBerita?: (slug: string) => void;
+  onSelectProgram?: (id: string) => void;
+  onSelectPrestasi?: (k: KontenKarir) => void;
+  onSelectEvent?: (id: string) => void;
   setTab?: (tab: string) => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onSelectLowongan, setTab }) => {
+export const Footer: React.FC<FooterProps> = ({
+  onSelectLowongan,
+  onSelectBerita,
+  onSelectProgram,
+  onSelectPrestasi,
+  onSelectEvent,
+  setTab
+}) => {
   const { t, translateContent } = useLanguage();
-  const publishedLowongan = getFromDB<Lowongan>('lowongan').filter(l => l.status === 'published');
+  const publishedLowongan = getFromDB<Lowongan>('lowongan')
+    .filter(l => l.status === 'published')
+    .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+
   const socialMediaList = getFromDB<SocialMediaItem>('social_media').filter(
     (item) => item.isActive && item.url && item.url.trim() !== ''
   );
+
+  // 1. Data kandidat Popular Info dinamis (5 rilis/pinned terbaru)
+  const publishedBerita = getFromDB<Berita>('berita').filter(b => b.status === 'published');
+  const publishedPengumuman = getFromDB<Pengumuman>('pengumuman').filter(p => p.status === 'published');
+  const publishedNonLowonganKonten = getFromDB<KontenKarir>('konten_karir').filter(
+    k => k.status === 'published' && (k.jenis as string) !== 'lowongan' && (k.jenis as string) !== 'magang'
+  );
+
+  const handleKontenDetailClick = (k: KontenKarir) => {
+    if (k.jenis === 'berita') {
+      if (onSelectBerita) onSelectBerita(`kk-${k.id}`);
+      else if (setTab) setTab('berita');
+    } else if (k.jenis === 'workshop' || k.jenis === 'softskill' || k.jenis === 'seminar') {
+      if (onSelectEvent) onSelectEvent(k.id);
+      if (setTab) setTab(k.jenis);
+    } else if (k.jenis === 'presentasi') {
+      if (onSelectPrestasi) onSelectPrestasi(k);
+      if (setTab) setTab(`presentasi-${k.kategori || 'internasional'}-${k.subKategori || 'akademik'}`);
+    } else if (k.jenis === 'program') {
+      if (onSelectProgram) onSelectProgram(k.id);
+      else if (setTab) setTab('beranda');
+    } else if (onSelectProgram) {
+      onSelectProgram(k.id);
+    } else if (setTab) {
+      setTab('beranda');
+    }
+  };
+
+  const pinnedItems = publishedNonLowonganKonten
+    .filter(k => k.isPinned)
+    .sort((a, b) => new Date(b.createdAt || b.updatedAt || 0).getTime() - new Date(a.createdAt || a.updatedAt || 0).getTime());
+
+  const unpinnedCandidates = [
+    ...publishedBerita.map(b => ({
+      label: b.title,
+      createdAt: b.createdAt,
+      action: () => {
+        if (onSelectBerita) onSelectBerita(b.slug);
+        else if (setTab) setTab('berita');
+      }
+    })),
+    ...publishedPengumuman.map(p => ({
+      label: p.title,
+      createdAt: p.createdAt,
+      action: () => {
+        if (onSelectProgram) onSelectProgram(p.id);
+        else if (setTab) setTab('beranda');
+      }
+    })),
+    ...publishedNonLowonganKonten.filter(k => !k.isPinned).map(k => ({
+      label: k.judul,
+      createdAt: k.createdAt || k.updatedAt,
+      action: () => handleKontenDetailClick(k)
+    }))
+  ].sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+
+  const allPopularCandidates = [
+    ...pinnedItems.map(k => ({
+      label: k.judul,
+      createdAt: k.createdAt || k.updatedAt,
+      action: () => handleKontenDetailClick(k)
+    })),
+    ...unpinnedCandidates
+  ];
+
+  const uniquePopularCandidates: { label: string; action: () => void }[] = [];
+  const seenLabels = new Set<string>();
+  for (const item of allPopularCandidates) {
+    if (!seenLabels.has(item.label)) {
+      seenLabels.add(item.label);
+      uniquePopularCandidates.push(item);
+    }
+  }
+
+  const footerPopularItems = uniquePopularCandidates.slice(0, 5);
 
   const handleLinkClick = (id?: string) => {
     if (id && onSelectLowongan) {
@@ -128,14 +207,14 @@ export const Footer: React.FC<FooterProps> = ({ onSelectLowongan, setTab }) => {
               Popular Info
             </h4>
             <ul className="space-y-2.5 text-sm">
-              {POPULAR_LINKS.slice(0, 5).map(link => (
-                <li key={link}>
+              {footerPopularItems.map((item, idx) => (
+                <li key={idx}>
                   <button
-                    onClick={() => handleLinkClick()}
-                    className="hover:text-[#10B981] transition-colors flex items-start gap-2 text-left"
+                    onClick={item.action}
+                    className="hover:text-[#10B981] transition-colors flex items-start gap-2 text-left cursor-pointer"
                   >
                     <ChevronRight className="w-3.5 h-3.5 shrink-0 mt-0.5 text-[#10B981]" />
-                    {link}
+                    <span className="line-clamp-2">{item.label}</span>
                   </button>
                 </li>
               ))}
@@ -162,17 +241,19 @@ export const Footer: React.FC<FooterProps> = ({ onSelectLowongan, setTab }) => {
               </li>
             </ul>
 
-            {/* Info Terkini mini */}
-            <div className="mt-4 space-y-2">
-              <div className="text-xs font-extrabold text-white uppercase tracking-wider">Info Terkini</div>
-              {publishedLowongan.slice(0, 3).map(l => (
+            {/* Info Loker Terkini (5 Data Terbaru) */}
+            <div className="mt-6 space-y-2.5">
+              <div className="text-xs font-extrabold text-white uppercase tracking-wider border-b border-slate-800 pb-1">
+                INFO LOKER TERKINI
+              </div>
+              {publishedLowongan.slice(0, 5).map(l => (
                 <button 
                   key={l.id} 
                   onClick={() => handleLinkClick(l.id)}
-                  className="w-full text-left text-xs hover:text-[#10B981] transition-colors flex items-start gap-1.5"
+                  className="w-full text-left text-xs hover:text-[#10B981] transition-colors flex items-start gap-1.5 cursor-pointer"
                 >
                   <ChevronRight className="w-3 h-3 shrink-0 mt-0.5 text-[#10B981]" />
-                  <span className="line-clamp-1">{l.judul}</span>
+                  <span className="line-clamp-1 font-medium">{l.judul}</span>
                 </button>
               ))}
             </div>

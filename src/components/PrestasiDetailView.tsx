@@ -1,0 +1,418 @@
+import React, { useMemo } from 'react';
+import {
+  ChevronLeft,
+  Tag,
+  Clock,
+  User,
+  Facebook,
+  MessageCircle,
+  Linkedin,
+  Award,
+  Calendar,
+  GraduationCap,
+  Trophy,
+  ShieldCheck,
+  CheckCircle2,
+  Share2,
+  Sparkles
+} from 'lucide-react';
+import { KontenKarir } from '../types';
+import Header from './Header';
+import { Footer } from './Footer';
+import { renderContentMarkdown } from '../markdown';
+
+interface PrestasiDetailViewProps {
+  prestasi: KontenKarir;
+  allPrestasiList?: KontenKarir[];
+  onSelectPrestasi?: (item: KontenKarir) => void;
+  onBack: () => void;
+  setTab?: (tab: string) => void;
+  onNavigateToLogin?: () => void;
+  onNavigateToRegister?: (type?: 'alumni' | 'perusahaan') => void;
+}
+
+export default function PrestasiDetailView({
+  prestasi,
+  allPrestasiList,
+  onSelectPrestasi,
+  onBack,
+  setTab,
+  onNavigateToLogin,
+  onNavigateToRegister,
+}: PrestasiDetailViewProps) {
+  // Komputasi Prestasi Terkait (Maksimal 3 Card berdasarkan relevansi Scope & Kategori)
+  const relatedPrestasiList = useMemo(() => {
+    if (!allPrestasiList || allPrestasiList.length === 0) return [];
+
+    const candidatePrestasi = allPrestasiList.filter((p) => p.id !== prestasi.id);
+    if (candidatePrestasi.length === 0) return [];
+
+    const currentScope = (prestasi.kategori || 'internasional').toLowerCase();
+    const currentSub = (prestasi.subKategori || 'akademik').toLowerCase();
+
+    const scored = candidatePrestasi.map((candidate) => {
+      let score = 0;
+      if ((candidate.kategori || '').toLowerCase() === currentScope) score += 10;
+      if ((candidate.subKategori || '').toLowerCase() === currentSub) score += 5;
+      return { candidate, score };
+    });
+
+    scored.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return new Date(b.candidate.createdAt).getTime() - new Date(a.candidate.createdAt).getTime();
+    });
+
+    return scored.slice(0, 3).map((s) => s.candidate);
+  }, [allPrestasiList, prestasi]);
+
+  const formatDateDisplayFull = (dateStr?: string) => {
+    if (!dateStr) return '12 Agustus 2026, 13.15';
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return '12 Agustus 2026, 13.15';
+      const formattedDate = new Intl.DateTimeFormat('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      }).format(d);
+      const hours = String(d.getHours()).padStart(2, '0');
+      const mins = String(d.getMinutes()).padStart(2, '0');
+      return `${formattedDate}, ${hours}.${mins}`;
+    } catch {
+      return '12 Agustus 2026, 13.15';
+    }
+  };
+
+  const handleShareFacebook = () => {
+    const url = encodeURIComponent(window.location.href);
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+  };
+
+  const handleShareX = () => {
+    const url = encodeURIComponent(window.location.href);
+    const text = encodeURIComponent(prestasi.judul);
+    window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
+  };
+
+  const handleShareWhatsApp = () => {
+    const text = encodeURIComponent(`${prestasi.judul}\n\nLihat capaian prestasi selengkapnya: ${window.location.href}`);
+    window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+  };
+
+  const handleShareTelegram = () => {
+    const url = encodeURIComponent(window.location.href);
+    const text = encodeURIComponent(prestasi.judul);
+    window.open(`https://t.me/share/url?url=${url}&text=${text}`, '_blank');
+  };
+
+  const handleShareLinkedIn = () => {
+    const url = encodeURIComponent(window.location.href);
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank');
+  };
+
+  const authorName = (!prestasi.createdByName || prestasi.createdByName.toLowerCase().includes('admin'))
+    ? 'Admin Website'
+    : prestasi.createdByName;
+
+  const scopeDisplay = (prestasi.kategori || 'internasional').toUpperCase();
+  const subCategoryDisplay = (prestasi.subKategori || 'akademik') === 'non-akademik' ? 'Non-Akademik' : 'Akademik';
+
+  return (
+    <div className="bg-white min-h-screen flex flex-col font-sans text-slate-800" id="prestasi-detail-page">
+      {/* 1. Global Header */}
+      <Header
+        currentTab={`presentasi-${(prestasi.kategori || 'internasional').toLowerCase()}-${(prestasi.subKategori || 'akademik').toLowerCase()}`}
+        setTab={setTab || (() => {})}
+        onNavigateToLogin={onNavigateToLogin || (() => {})}
+        onNavigateToRegister={onNavigateToRegister}
+      />
+
+      {/* Main Body */}
+      <main className="flex-grow py-8 sm:py-12">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+
+          {/* Top Navigation Back Button */}
+          <div>
+            <button
+              onClick={onBack}
+              className="inline-flex items-center gap-1.5 text-[#0077C6] hover:text-[#1E3A8A] font-bold text-xs sm:text-sm transition group cursor-pointer"
+            >
+              <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+              <span>Kembali ke Daftar Prestasi</span>
+            </button>
+          </div>
+
+          {/* Main Grid: Left Floating Share Bar + Content */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative">
+
+            {/* STICKY FLOATING SHARE SIDEBAR (DESKTOP - SISI KIRI) */}
+            <aside className="hidden lg:flex lg:col-span-1 flex-col items-center gap-3 sticky top-28 self-start pt-2">
+              <button
+                onClick={handleShareFacebook}
+                className="w-10 h-10 rounded-xl bg-[#3b5998] hover:bg-[#2d4373] text-white flex items-center justify-center shadow-md transition-transform hover:scale-110 cursor-pointer"
+                title="Bagikan ke Facebook"
+              >
+                <Facebook className="w-5 h-5 fill-white" />
+              </button>
+              <button
+                onClick={handleShareX}
+                className="w-10 h-10 rounded-xl bg-slate-900 hover:bg-black text-white flex items-center justify-center shadow-md transition-transform hover:scale-110 cursor-pointer"
+                title="Bagikan ke X"
+              >
+                <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+              </button>
+              <button
+                onClick={handleShareWhatsApp}
+                className="w-10 h-10 rounded-xl bg-[#25d366] hover:bg-[#1ebd56] text-white flex items-center justify-center shadow-md transition-transform hover:scale-110 cursor-pointer"
+                title="Bagikan ke WhatsApp"
+              >
+                <MessageCircle className="w-5 h-5 fill-white" />
+              </button>
+              <button
+                onClick={handleShareTelegram}
+                className="w-10 h-10 rounded-xl bg-[#229ED9] hover:bg-[#1d87ba] text-white flex items-center justify-center shadow-md transition-transform hover:scale-110 cursor-pointer"
+                title="Bagikan ke Telegram"
+              >
+                <svg className="w-4.5 h-4.5 fill-white" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+                </svg>
+              </button>
+              <button
+                onClick={handleShareLinkedIn}
+                className="w-10 h-10 rounded-xl bg-[#0A66C2] hover:bg-[#084e96] text-white flex items-center justify-center shadow-md transition-transform hover:scale-110 cursor-pointer"
+                title="Bagikan ke LinkedIn"
+              >
+                <Linkedin className="w-5 h-5 fill-white text-transparent" />
+              </button>
+            </aside>
+
+            {/* MAIN ARTICLE CONTENT (lg:col-span-11) */}
+            <div className="lg:col-span-11 space-y-6">
+
+              {/* BREADCRUMB BAR */}
+              <nav className="flex items-center gap-2 text-xs sm:text-sm text-slate-500 font-medium flex-wrap" aria-label="Breadcrumb">
+                <span className="hover:text-[#0077C6] cursor-pointer" onClick={() => setTab && setTab('beranda')}>Beranda</span>
+                <span>&gt;</span>
+                <span
+                  className="hover:text-[#0077C6] cursor-pointer"
+                  onClick={() => setTab && setTab(`presentasi-${(prestasi.kategori || 'internasional').toLowerCase()}-${(prestasi.subKategori || 'akademik').toLowerCase()}`)}
+                >
+                  Prestasi {scopeDisplay} ({subCategoryDisplay})
+                </span>
+                <span>&gt;</span>
+                <span className="text-[#0077C6] font-semibold line-clamp-1 max-w-md">{prestasi.judul}</span>
+              </nav>
+
+              {/* ARTICLE MAIN TITLE */}
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 leading-tight tracking-tight">
+                {prestasi.judul}
+              </h1>
+
+              {/* METADATA STRIP WITH GOLD ICONS */}
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs sm:text-sm text-slate-600 font-medium pt-1 pb-3 border-b border-slate-100">
+                {/* Achievement Badge */}
+                <div className="flex items-center gap-1.5">
+                  <Trophy className="w-4 h-4 text-amber-500 shrink-0" />
+                  <span className="font-bold text-amber-700">{prestasi.peringkat || 'Prestasi Unggulan'}</span>
+                </div>
+
+                {/* Scope & Kategori */}
+                <div className="flex items-center gap-1.5">
+                  <Tag className="w-4 h-4 text-amber-500 shrink-0" />
+                  <span>Tingkat {scopeDisplay} ({subCategoryDisplay})</span>
+                </div>
+
+                {/* Date & Time */}
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-4 h-4 text-amber-500 shrink-0" />
+                  <span>{formatDateDisplayFull(prestasi.createdAt)}</span>
+                </div>
+
+                {/* Author */}
+                <div className="flex items-center gap-1.5">
+                  <User className="w-4 h-4 text-amber-500 shrink-0" />
+                  <span>Oleh: <strong className="font-bold text-slate-800">{authorName}</strong></span>
+                </div>
+              </div>
+
+              {/* HIGHLIGHT CARD INFORMATION: MAHASISWA & PRODI */}
+              <div className="bg-gradient-to-br from-blue-50/70 via-indigo-50/30 to-slate-50/60 rounded-3xl border border-blue-200/90 p-6 sm:p-8 shadow-xs space-y-4">
+                <div className="flex items-center gap-2.5 text-[#1E3A8A] font-extrabold text-sm uppercase tracking-wider border-b border-blue-200/60 pb-3">
+                  <Award className="w-5 h-5 text-[#1E3A8A]" />
+                  <span>Detail Informasi Capaian Prestasi Mahasiswa</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs sm:text-sm">
+                  <div className="bg-white/90 backdrop-blur-xs p-4 rounded-2xl border border-blue-100/90 shadow-2xs space-y-1">
+                    <div className="text-slate-400 font-semibold text-[11px] uppercase tracking-wider flex items-center gap-1">
+                      <User className="w-3.5 h-3.5 text-[#0077C6]" /> Nama Mahasiswa / Tim
+                    </div>
+                    <div className="font-extrabold text-slate-900 leading-snug">
+                      {prestasi.namaMahasiswa || 'Tim Inovator UMK'}
+                    </div>
+                  </div>
+
+                  <div className="bg-white/90 backdrop-blur-xs p-4 rounded-2xl border border-blue-100/90 shadow-2xs space-y-1">
+                    <div className="text-slate-400 font-semibold text-[11px] uppercase tracking-wider flex items-center gap-1">
+                      <GraduationCap className="w-3.5 h-3.5 text-[#0077C6]" /> Program Studi / Fakultas
+                    </div>
+                    <div className="font-extrabold text-slate-900 leading-snug">
+                      {prestasi.prodi || 'UM Kendari'}
+                    </div>
+                  </div>
+
+                  <div className="bg-white/90 backdrop-blur-xs p-4 rounded-2xl border border-blue-100/90 shadow-2xs space-y-1">
+                    <div className="text-slate-400 font-semibold text-[11px] uppercase tracking-wider flex items-center gap-1">
+                      <Trophy className="w-3.5 h-3.5 text-amber-500" /> Peringkat / Medali
+                    </div>
+                    <div className="font-extrabold text-amber-700 leading-snug">
+                      {prestasi.peringkat || 'Juara 1'}
+                    </div>
+                  </div>
+
+                  <div className="bg-white/90 backdrop-blur-xs p-4 rounded-2xl border border-blue-100/90 shadow-2xs space-y-1">
+                    <div className="text-slate-400 font-semibold text-[11px] uppercase tracking-wider flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5 text-[#0077C6]" /> Tahun Capaian
+                    </div>
+                    <div className="font-extrabold text-slate-900 leading-snug">
+                      {prestasi.tahun || '2026'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* FEATURED MAIN COVER IMAGE (DOKUMENTASI DENGAN RASTER SHADOW SLATE) */}
+              {prestasi.thumbnail ? (
+                <div className="w-full aspect-[16/9] sm:aspect-[21/9] rounded-2xl overflow-hidden border border-slate-200/80 bg-slate-900 shadow-sm relative group">
+                  <img
+                    src={prestasi.thumbnail}
+                    alt={prestasi.judul}
+                    className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
+                  />
+                </div>
+              ) : (
+                <div className="w-full h-64 bg-slate-100 rounded-2xl border border-slate-200 flex flex-col items-center justify-center text-slate-400 space-y-2">
+                  <Award className="w-12 h-12 text-amber-400" />
+                  <span className="text-xs font-bold text-slate-400 uppercase">Dokumentasi Foto Prestasi</span>
+                </div>
+              )}
+
+              {/* ARTICLE BODY & RICH TEXT FORMATTING */}
+              <div className="prose prose-slate max-w-none text-slate-700 text-sm sm:text-base leading-relaxed space-y-6 pt-2">
+                <div className="space-y-4 text-slate-700 leading-relaxed font-normal">
+                  {renderContentMarkdown(prestasi.body || 'Detail rincian capaian prestasi mahasiswa Universitas Muhammadiyah Kendari.')}
+                </div>
+              </div>
+
+              {/* SECTION PRESTASI TERKAIT (3 CARD LAYOUT BERDAMPINGAN) */}
+              {relatedPrestasiList.length > 0 && (
+                <div className="pt-8 border-t border-slate-200/80 space-y-5">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                      <span className="w-2.5 h-5 bg-[#0077C6] rounded-full inline-block" />
+                      Capaian Prestasi Lainnya
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+                    {relatedPrestasiList.map((item) => (
+                      <div
+                        key={item.id}
+                        onClick={() => {
+                          if (onSelectPrestasi) {
+                            onSelectPrestasi(item);
+                            window.scrollTo(0, 0);
+                          }
+                        }}
+                        className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md transition duration-300 flex flex-col cursor-pointer hover:border-amber-400"
+                      >
+                        {/* Thumbnail */}
+                        <div className="relative h-36 w-full overflow-hidden bg-slate-100">
+                          <img
+                            src={item.thumbnail || 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=800&auto=format&fit=crop'}
+                            alt={item.judul}
+                            className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                          />
+                          <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-bold tracking-wide uppercase">
+                            {item.peringkat || 'Prestasi'}
+                          </span>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-4 flex flex-col justify-between flex-1 space-y-3">
+                          <h4 className="text-sm font-bold text-slate-800 group-hover:text-[#0077C6] transition line-clamp-2 leading-snug">
+                            {item.judul}
+                          </h4>
+
+                          <div className="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-slate-100 mt-auto">
+                            <span className="flex items-center gap-1 font-medium">
+                              <Calendar className="w-3.5 h-3.5 text-[#EBA300]" />
+                              {item.tahun || '2026'}
+                            </span>
+                            <span className="font-semibold text-slate-600 truncate max-w-[110px]">
+                              {item.namaMahasiswa || 'UMK'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* BOTTOM HORIZONTAL SOCIAL SHARE BAR */}
+              <div className="pt-6 flex flex-wrap items-center justify-center gap-3 border-t border-slate-100">
+                <button
+                  onClick={handleShareFacebook}
+                  className="w-12 h-10 rounded-xl bg-[#3b5998] hover:bg-[#2d4373] text-white flex items-center justify-center shadow-2xs transition active:scale-95 cursor-pointer"
+                  title="Bagikan ke Facebook"
+                >
+                  <Facebook className="w-5 h-5 fill-white" />
+                </button>
+                <button
+                  onClick={handleShareX}
+                  className="w-12 h-10 rounded-xl bg-slate-900 hover:bg-black text-white flex items-center justify-center shadow-2xs transition active:scale-95 cursor-pointer"
+                  title="Bagikan ke X"
+                >
+                  <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  </svg>
+                </button>
+                <button
+                  onClick={handleShareWhatsApp}
+                  className="w-12 h-10 rounded-xl bg-[#25d366] hover:bg-[#1ebd56] text-white flex items-center justify-center shadow-2xs transition active:scale-95 cursor-pointer"
+                  title="Bagikan ke WhatsApp"
+                >
+                  <MessageCircle className="w-5 h-5 fill-white" />
+                </button>
+                <button
+                  onClick={handleShareTelegram}
+                  className="w-12 h-10 rounded-xl bg-[#229ED9] hover:bg-[#1d87ba] text-white flex items-center justify-center shadow-2xs transition active:scale-95 cursor-pointer"
+                  title="Bagikan ke Telegram"
+                >
+                  <svg className="w-4.5 h-4.5 fill-white" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+                  </svg>
+                </button>
+                <button
+                  onClick={handleShareLinkedIn}
+                  className="w-12 h-10 rounded-xl bg-[#0A66C2] hover:bg-[#084e96] text-white flex items-center justify-center shadow-2xs transition active:scale-95 cursor-pointer"
+                  title="Bagikan ke LinkedIn"
+                >
+                  <Linkedin className="w-5 h-5 fill-white text-transparent" />
+                </button>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      </main>
+
+      {/* 2. Global Footer */}
+      <Footer onSelectLowongan={() => {}} setTab={setTab} />
+    </div>
+  );
+}

@@ -35,6 +35,7 @@ import GaleriView from './layanan/GaleriView';
 import Keanggotaan from './layanan/Keanggotaan';
 import LayananContainer from './layanan/LayananContainer';
 import HeroSlider from './HeroSlider';
+import PrestasiDetailView from './PrestasiDetailView';
 import {
   JobSearchMasterDetail,
   INDONESIAN_PROVINCES,
@@ -152,13 +153,13 @@ function AnimatedCounterStat({ rawValue }: { rawValue: string }) {
 
 /* ─── Popular links ───────────────────────────── */
 const POPULAR_LINKS = [
-  { label: 'Loker BPJS Kesehatan 2026', kategori: 'Lowongan', thumbnail: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=300&auto=format&fit=crop' },
-  { label: 'Loker Bank Mandiri 2026', kategori: 'Lowongan', thumbnail: 'https://images.unsplash.com/photo-1541354329998-f4d9a9f9297f?q=80&w=300&auto=format&fit=crop' },
-  { label: 'JOB PREPARATION 2026', kategori: 'Program', thumbnail: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=300&auto=format&fit=crop' },
-  { label: 'UM Kendari Career Fair', kategori: 'Event', thumbnail: 'https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=300&auto=format&fit=crop' },
-  { label: 'Selamat & Sukses Pimpinan UM Kendari 2026', kategori: 'Pengumuman', thumbnail: 'https://images.unsplash.com/photo-1531545514256-b1400bc00f31?q=80&w=300&auto=format&fit=crop' },
-  { label: 'Loker Pertamina 2026', kategori: 'Lowongan', thumbnail: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=300&auto=format&fit=crop' },
-  { label: 'Magang BUMN Terbuka 2026', kategori: 'Magang', thumbnail: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=300&auto=format&fit=crop' },
+  { label: 'UMK Raih Penghargaan Perguruan Tinggi Berdaya Saing Tinggi', kategori: 'Regional', thumbnail: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=300&auto=format&fit=crop' },
+  { label: 'Career Expo 2026 UMK Tawarkan 1.200 Lowongan Mitra', kategori: 'Lokal', thumbnail: 'https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=300&auto=format&fit=crop' },
+  { label: 'Peluncuran Portal Karir dan CDC Terintegrasi UM Kendari', kategori: 'Berita', thumbnail: 'https://images.unsplash.com/photo-1531545514256-b1400bc00f31?q=80&w=300&auto=format&fit=crop' },
+  { label: 'Pengumuman Penting CDC UMK 2026', kategori: 'Pengumuman', thumbnail: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=300&auto=format&fit=crop' },
+  { label: 'Workshop UI/UX Design & Prototyping Figma 2026', kategori: 'Workshop', thumbnail: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=300&auto=format&fit=crop' },
+  { label: 'Pelatihan Softskill Public Speaking & Persuasi Karir', kategori: 'Softskill', thumbnail: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=300&auto=format&fit=crop' },
+  { label: 'Seminar Nasional Strategi Menembus BUMN & Multinasional', kategori: 'Seminar', thumbnail: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=300&auto=format&fit=crop' },
 ];
 
 
@@ -181,8 +182,9 @@ export default function PublicLayout({
   // Gambar Visi & Misi (bisa diubah admin via Manajemen Web → Visi & Misi)
   const [visiMisiUrl, setVisiMisiUrl] = useState<string>(() => getVisiMisiConfig().imageUrl);
 
-  // Event Detail Direct Access State
+  // Event & Prestasi Detail Direct Access State
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [selectedPrestasi, setSelectedPrestasi] = useState<KontenKarir | null>(null);
 
   // Job Info Search & Filter States
   const [jobKeyword, setJobKeyword] = useState('');
@@ -397,6 +399,35 @@ export default function PublicLayout({
     beritaPage * beritaItemsPerPage
   );
 
+  if (selectedPrestasi) {
+    const allPresentasi = getFromDB<KontenKarir>('konten_karir').filter(
+      (k) => k.jenis === 'presentasi' && k.status !== 'draft'
+    );
+    return (
+      <PrestasiDetailView
+        prestasi={selectedPrestasi}
+        allPrestasiList={allPresentasi}
+        onSelectPrestasi={(p) => {
+          setSelectedPrestasi(p);
+          window.scrollTo(0, 0);
+        }}
+        onBack={() => setSelectedPrestasi(null)}
+        setTab={(t) => {
+          setSelectedPrestasi(null);
+          setTab(t);
+        }}
+        onNavigateToLogin={onNavigateToLogin}
+        onNavigateToRegister={onNavigateToRegister}
+      />
+    );
+  }
+
+  const handleNavSetTab = (tab: string) => {
+    setSelectedEventId(null);
+    setSelectedPrestasi(null);
+    setTab(tab);
+  };
+
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans text-slate-800" id="pub-root">
 
@@ -406,7 +437,7 @@ export default function PublicLayout({
       ══════════════════════════════════════════ */}
       <Header
         currentTab={currentTab}
-        setTab={setTab}
+        setTab={handleNavSetTab}
         onNavigateToLogin={onNavigateToLogin}
         onNavigateToRegister={onNavigateToRegister}
       />
@@ -1032,55 +1063,96 @@ export default function PublicLayout({
                     thumbnail?: string;
                     isPinned?: boolean;
                     kategori?: string;
+                    createdAt?: string;
                     action: () => void;
                   }
 
-                  const pinnedKonten = getFromDB<KontenKarir>('konten_karir').filter(k => k.status === 'published' && k.isPinned && k.jenis !== 'lowongan');
-                  const publishedNonLowonganKonten = getFromDB<KontenKarir>('konten_karir').filter(k => k.status === 'published' && k.jenis !== 'lowongan');
+                  const publishedNonLowonganKonten = getFromDB<KontenKarir>('konten_karir').filter(
+                    k => k.status === 'published' && (k.jenis as string) !== 'lowongan' && (k.jenis as string) !== 'magang'
+                  );
 
-                  const dynamicPopularItems: PopularDisplayItem[] = [
-                    ...pinnedKonten.map(k => ({
+                  const handlePopularKontenClick = (k: KontenKarir) => {
+                    if (k.jenis === 'berita') {
+                      onSelectBerita(`kk-${k.id}`);
+                    } else if (k.jenis === 'workshop' || k.jenis === 'softskill' || k.jenis === 'seminar') {
+                      setSelectedEventId(k.id);
+                      setTab(k.jenis);
+                      window.scrollTo(0, 0);
+                    } else if (k.jenis === 'presentasi') {
+                      setSelectedPrestasi(k);
+                      window.scrollTo(0, 0);
+                    } else {
+                      onSelectProgram(k.id);
+                    }
+                  };
+
+                  // 1. Konten yang di-pin oleh admin (Non-Lowongan & Non-Magang) -> Deretan Paling Atas
+                  const pinnedItems: PopularDisplayItem[] = publishedNonLowonganKonten
+                    .filter(k => k.isPinned)
+                    .sort((a, b) => new Date(b.createdAt || b.updatedAt || 0).getTime() - new Date(a.createdAt || a.updatedAt || 0).getTime())
+                    .map(k => ({
                       label: k.judul,
                       thumbnail: k.thumbnail,
                       isPinned: true,
-                      kategori: k.kategori || k.jenis,
-                      action: () => {
-                        if (k.jenis === 'berita') setTab('berita');
-                        else if (k.jenis === 'presentasi') setTab('presentasi-internasional-akademik');
-                        else setTab('beranda');
-                      }
-                    })),
-                    ...publishedBerita.slice(0, 3).map(b => ({
+                      kategori: k.kategori || (k.jenis ? k.jenis.toUpperCase() : 'PROGRAM'),
+                      createdAt: k.createdAt || k.updatedAt,
+                      action: () => handlePopularKontenClick(k)
+                    }));
+
+                  // 2. Konten kandidat unpinned (Berita, Pengumuman, Konten Karir) diurutkan dari terbaru
+                  const unpinnedCandidates: PopularDisplayItem[] = [
+                    ...publishedBerita.map(b => ({
                       label: b.title,
                       thumbnail: b.coverImageUrl,
                       kategori: b.scope || 'Berita',
+                      createdAt: b.createdAt,
                       action: () => onSelectBerita(b.slug)
                     })),
-                    ...publishedPengumuman.slice(0, 2).map(p => ({
+                    ...publishedPengumuman.map(p => ({
                       label: p.title,
                       thumbnail: p.posterUrl,
                       kategori: 'Pengumuman',
-                      action: () => setTab('beranda')
+                      createdAt: p.createdAt,
+                      action: () => onSelectProgram(p.id)
                     })),
-                    ...publishedNonLowonganKonten.filter(k => !k.isPinned).slice(0, 3).map(k => ({
+                    ...publishedNonLowonganKonten.filter(k => !k.isPinned).map(k => ({
                       label: k.judul,
                       thumbnail: k.thumbnail,
-                      kategori: k.kategori || k.jenis,
-                      action: () => {
-                        if (k.jenis === 'berita') setTab('berita');
-                        else if (k.jenis === 'presentasi') setTab('presentasi-internasional-akademik');
-                        else setTab('beranda');
-                      }
+                      kategori: k.kategori || (k.jenis ? k.jenis.toUpperCase() : 'PROGRAM'),
+                      createdAt: k.createdAt || k.updatedAt,
+                      action: () => handlePopularKontenClick(k)
                     }))
+                  ].sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+
+                  // 3. Gabungkan: Konten Pinned PERTAMA, diikuti kandidat unpinned terbaru
+                  const allPopularCandidates: PopularDisplayItem[] = [
+                    ...pinnedItems,
+                    ...unpinnedCandidates
                   ];
 
-                  const popularDisplayList: PopularDisplayItem[] = dynamicPopularItems.length > 0
-                    ? dynamicPopularItems.slice(0, 7)
+                  // Deduplikasi label agar tidak ada item ganda
+                  const uniquePopularItems: PopularDisplayItem[] = [];
+                  const seenLabels = new Set<string>();
+                  for (const item of allPopularCandidates) {
+                    if (!seenLabels.has(item.label)) {
+                      seenLabels.add(item.label);
+                      uniquePopularItems.push(item);
+                    }
+                  }
+
+                  const popularDisplayList: PopularDisplayItem[] = uniquePopularItems.length > 0
+                    ? uniquePopularItems.slice(0, 7)
                     : POPULAR_LINKS.map(link => ({
                       label: link.label,
                       thumbnail: link.thumbnail,
                       kategori: link.kategori,
-                      action: () => setTab('lowongan')
+                      action: () => {
+                        if (link.kategori === 'Berita') setTab('berita');
+                        else if (link.kategori === 'Workshop') setTab('workshop');
+                        else if (link.kategori === 'Softskill') setTab('softskill');
+                        else if (link.kategori === 'Seminar') setTab('seminar');
+                        else setTab('beranda');
+                      }
                     }));
 
                   return (
@@ -1123,18 +1195,11 @@ export default function PublicLayout({
 
                               {/* Text & Meta info */}
                               <div className="min-w-0 flex-1 space-y-0.5">
-                                {(item.isPinned || item.kategori) && (
+                                {item.kategori && (
                                   <div className="flex items-center gap-1.5 flex-wrap">
-                                    {item.isPinned && (
-                                      <span className="text-[9px] font-black bg-amber-100 text-amber-800 border border-amber-300 px-1.5 py-0.2 rounded-md flex items-center gap-0.5 uppercase tracking-wider">
-                                        📌 Pinned
-                                      </span>
-                                    )}
-                                    {item.kategori && !item.isPinned && (
-                                      <span className="text-[10px] font-extrabold text-[#10B981] uppercase tracking-wider truncate max-w-[120px]">
-                                        {item.kategori}
-                                      </span>
-                                    )}
+                                    <span className="text-[10px] font-extrabold text-[#10B981] uppercase tracking-wider truncate max-w-[140px]">
+                                      {item.kategori}
+                                    </span>
                                   </div>
                                 )}
                                 <h5 className="font-bold text-slate-800 text-xs leading-snug line-clamp-2 group-hover:text-[#1E3A8A] transition-colors">
@@ -2005,9 +2070,11 @@ export default function PublicLayout({
           const allPresentasi = getFromDB<KontenKarir>('konten_karir').filter(
             (k) => k.jenis === 'presentasi' && k.status !== 'draft'
           );
-          const publishedPresentasi = allPresentasi.filter(
-            (p) => p.kategori === currentScope && p.subKategori === currentKategori
-          );
+          const publishedPresentasi = allPresentasi.filter((p) => {
+            const itemKategori = (p.kategori || 'internasional').toLowerCase().trim();
+            const itemSubKategori = (p.subKategori || 'akademik').toLowerCase().trim();
+            return itemKategori === currentScope.toLowerCase() && itemSubKategori === currentKategori.toLowerCase();
+          });
 
           const filteredItems = publishedPresentasi.filter(item => {
             const q = prestasiSearchQuery.toLowerCase();
@@ -2056,7 +2123,7 @@ export default function PublicLayout({
                         Daftar Capaian Prestasi Unggulan
                       </h2>
                       <p className="text-slate-500 text-xs sm:text-sm mt-1">
-                        Menampilkan data prestasi mahasiswa peraih kejuaraan di tingkat {currentScope} ({currentKategori}).
+                        Menampilkan data prestasi mahasiswa peraih kejuaraan di tingkat {currentScope} ({currentKategori}). Klik kartu untuk melihat detail selengkapnya.
                       </p>
                     </div>
 
@@ -2099,7 +2166,11 @@ export default function PublicLayout({
                       {filteredItems.map(item => (
                         <div
                           key={item.id}
-                          className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group"
+                          onClick={() => {
+                            setSelectedPrestasi(item);
+                            window.scrollTo(0, 0);
+                          }}
+                          className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-lg hover:-translate-y-1 hover:border-amber-400 transition-all duration-300 flex flex-col justify-between group cursor-pointer"
                         >
                           <div>
                             {/* Image documentation header */}
@@ -2130,11 +2201,16 @@ export default function PublicLayout({
 
                             {/* Card Body */}
                             <div className="p-5 space-y-3">
-                              <div className="text-xs font-extrabold text-amber-600 uppercase tracking-wide truncate">
-                                {item.prodi || 'UM KENDARI'}
+                              <div className="text-xs font-extrabold text-amber-600 uppercase tracking-wide truncate flex items-center justify-between">
+                                <span>{item.prodi || 'UM KENDARI'}</span>
+                                {item.terverifikasi !== false && (
+                                  <span className="text-emerald-600 font-extrabold text-[10px] flex items-center gap-0.5">
+                                    <ShieldCheck className="w-3 h-3" /> Valid
+                                  </span>
+                                )}
                               </div>
 
-                              <h3 className="font-extrabold text-slate-900 text-base leading-snug group-hover:text-amber-600 transition-colors line-clamp-2">
+                              <h3 className="font-extrabold text-slate-900 text-base leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2">
                                 {item.judul}
                               </h3>
 
@@ -2146,14 +2222,12 @@ export default function PublicLayout({
 
                           {/* Card Footer */}
                           <div className="px-5 py-3.5 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between text-xs">
-                            <div className="font-bold text-slate-800 truncate max-w-[170px]" title={item.namaMahasiswa}>
+                            <div className="font-bold text-slate-800 truncate max-w-[150px]" title={item.namaMahasiswa}>
                               {item.namaMahasiswa}
                             </div>
-                            {item.terverifikasi !== false && (
-                              <span className="text-emerald-600 font-extrabold text-[11px] flex items-center gap-1 shrink-0">
-                                <ShieldCheck className="w-3.5 h-3.5" /> Terverifikasi CDC
-                              </span>
-                            )}
+                            <span className="text-[#0077C6] font-extrabold text-[11px] flex items-center gap-1 group-hover:translate-x-0.5 transition-transform shrink-0">
+                              Detail <ArrowRight className="w-3.5 h-3.5" />
+                            </span>
                           </div>
                         </div>
                       ))}
@@ -2219,7 +2293,14 @@ export default function PublicLayout({
       {/* ══════════════════════════════════════════
           FOOTER
       ══════════════════════════════════════════ */}
-      <Footer onSelectLowongan={onSelectLowongan} setTab={setTab} />
+      <Footer
+        onSelectLowongan={onSelectLowongan}
+        onSelectBerita={onSelectBerita}
+        onSelectProgram={onSelectProgram}
+        onSelectPrestasi={setSelectedPrestasi}
+        onSelectEvent={setSelectedEventId}
+        setTab={setTab}
+      />
     </div>
   );
 }

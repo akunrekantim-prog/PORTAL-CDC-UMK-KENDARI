@@ -24,10 +24,10 @@ Repo: `D:\PORTAL-CDC-UMK-KENDARI`
    - Pop-up menu melayang (*floating dropdown*) memuat pilihan `EN` dan `ID` berlatar putih bersih dengan penanda status aktif dan listener *click-outside* otomatis.
    - Mengintegrasikan fungsi terjemahan dinamis pada seluruh menu navigasi, top links, dan penanggalan header (menyesuaikan format `id-ID` atau `en-US`).
 3. **Integrasi i18n di Seluruh Layout & Komponen Publik:**
-   - **`Footer.tsx`**: Terjemahan deskripsi CDC, tautan cepat, layanan karir, kontak, dan copyright.
+   - **`Footer.tsx` & `PublicLayout.tsx`**: Pembaruan **POPULAR INFO** & **INFO LOKER TERKINI** di widget Beranda dan Footer — memastikan seluruh klik pada judul **langsung mengarahkan ke Halaman Detail Narasi & Deskripsi Lengkap** (Berita, Event/Seminar/Workshop, Prestasi, Program, Lowongan Kerja) secara instan tanpa terhapus state-nya.
    - **`HeroSlider.tsx`**: Terjemahan teks banner slider, badge promosi, dan tombol CTA.
    - **`JobSearchMasterDetail.tsx`**: Terjemahan placeholder pencarian lowongan, filter lokasi, filter spesialisasi, dan tombol aksi.
-   - **`PublicLayout.tsx`**: Terjemahan widget popular info, counter statistik, dan badge CDC Club.
+   - **`EventCardLayout.tsx` & `PublicLayout.tsx`**: Penyempurnaan alur & pencocokan data **Popular Info** (Beranda & Footer) — memastikan setiap kali item program Layanan (Workshop, Softskill, Seminar) diklik dari Popular Info, sistem **100% langsung membuka Halaman Detail Event yang berisi deskripsi acara lengkap**.
    - **`BimbinganKarir.tsx`**: Terjemahan visual header, tabel jadwal konseling karir, status kuota, dan tombol CTA WhatsApp.
    - **`data.ts`**: Penyesuaian seed data dan helper untuk mendukung terjemahan multi-bahasa.
 4. **Optimalisasi & Perapihan Aset SVG Publik (`public/`):**
