@@ -141,7 +141,8 @@ import {
   Globe,
   KeyRound,
   Mail,
-  Phone
+  Phone,
+  PhoneCall
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -500,10 +501,13 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
     }
   };
 
-  // Form states Kontak Helpdesk / Pemulihan Kata Sandi
+  // Form states Kontak Helpdesk / Pemulihan Kata Sandi / WhatsApp CS
   const [helpdeskEmail, setHelpdeskEmail] = useState(() => getHelpdeskConfig().email);
   const [helpdeskWa, setHelpdeskWa] = useState(() => getHelpdeskConfig().whatsappNumber);
   const [helpdeskNote, setHelpdeskNote] = useState(() => getHelpdeskConfig().whatsappNote);
+  const [helpdeskJam, setHelpdeskJam] = useState(() => getHelpdeskConfig().jamLayanan || 'Senin - Jumat: 08.00 - 16.00 WITA');
+  const [helpdeskMsg, setHelpdeskMsg] = useState(() => getHelpdeskConfig().defaultMessage || 'Halo Admin CDC UM Kendari, saya ingin berkonsultasi mengenai...');
+  const [helpdeskFloating, setHelpdeskFloating] = useState(() => getHelpdeskConfig().isFloatingActive !== false);
 
   const reloadAll = () => {
     setStudents(getFromDB<Mahasiswa>('mahasiswa'));
@@ -532,6 +536,9 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
     setHelpdeskEmail(hConfig.email);
     setHelpdeskWa(hConfig.whatsappNumber);
     setHelpdeskNote(hConfig.whatsappNote);
+    setHelpdeskJam(hConfig.jamLayanan || 'Senin - Jumat: 08.00 - 16.00 WITA');
+    setHelpdeskMsg(hConfig.defaultMessage || 'Halo Admin CDC UM Kendari, saya ingin berkonsultasi mengenai...');
+    setHelpdeskFloating(hConfig.isFloatingActive !== false);
 
     const cfg = getKonselingConfig();
     setKonselingCfg(cfg);
@@ -568,6 +575,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
     {
       group: 'INTERAKSI PUBLIK',
       items: [
+        { id: 'media-sosial', label: 'Media Sosial & WA CS', icon: <Globe className="w-4 h-4" /> },
         { id: 'komentar', label: 'Moderasi Komentar Berita', icon: <MessageSquare className="w-4 h-4" /> }
       ]
     },
@@ -586,7 +594,6 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
         { id: 'mou', label: 'MOU Stakeholder', icon: <FileText className="w-4 h-4" /> },
         { id: 'galeri', label: 'Galeri Kegiatan', icon: <Film className="w-4 h-4" /> },
         { id: 'konseling', label: 'Bimbingan & Konseling', icon: <HeartHandshake className="w-4 h-4" /> },
-        { id: 'media-sosial', label: 'Media Sosial', icon: <Globe className="w-4 h-4" /> },
         { id: 'admin', label: 'Kelola Admin', icon: <UserCog className="w-4 h-4" /> }
       ]
     }
@@ -6759,17 +6766,17 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                 </div>
 
                 {/* ─────────────────────────────────────────────────────────────
-                    SECTION: KONTAK BANTUAN & PEMULIHAN KATA SANDI
+                    SECTION: KONTAK HELPDESK & WHATSAPP CS (FLOATING WA)
                 ───────────────────────────────────────────────────────────── */}
                 <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-5">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
                     <div>
                       <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                        <KeyRound className="w-5 h-5 text-[#0077C6]" />
-                        Kontak Bantuan &amp; Pemulihan Kata Sandi
+                        <MessageCircle className="w-5 h-5 text-emerald-600" />
+                        Kontak Helpdesk, WA CS &amp; Pemulihan Kata Sandi
                       </h3>
                       <p className="text-xs text-slate-500 mt-1">
-                        Atur email helpdesk dan nomor WhatsApp yang tampil pada popup <em>"Bantuan Pemulihan Kata Sandi"</em> di halaman Login
+                        Atur nomor WhatsApp CS, email pengaduan, pesan otomatis, dan tombol WhatsApp melayang di halaman publik &amp; login.
                       </p>
                     </div>
                     <button
@@ -6782,14 +6789,19 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                         saveHelpdeskConfig({
                           email: helpdeskEmail.trim(),
                           whatsappNumber: helpdeskWa.trim(),
-                          whatsappNote: helpdeskNote.trim()
+                          whatsappNote: helpdeskNote.trim(),
+                          jamLayanan: helpdeskJam.trim(),
+                          defaultMessage: helpdeskMsg.trim(),
+                          isFloatingActive: helpdeskFloating
                         });
-                        triggerToast('success', 'Kontak bantuan pemulihan kata sandi berhasil disimpan!');
+                        reloadAll();
+                        if (onReloadData) onReloadData();
+                        triggerToast('success', 'Pengaturan Kontak Helpdesk & WA CS berhasil disimpan!');
                       }}
-                      className="inline-flex items-center gap-2 bg-[#0077C6] hover:bg-[#005FA0] text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-xs transition cursor-pointer shrink-0"
+                      className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-xs transition cursor-pointer shrink-0"
                     >
                       <Check className="w-4 h-4" />
-                      <span>Simpan Kontak Pemulihan</span>
+                      <span>Simpan Pengaturan Helpdesk</span>
                     </button>
                   </div>
 
@@ -6797,7 +6809,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
                         <Mail className="w-3.5 h-3.5 text-[#0077C6]" />
-                        <span>Email Helpdesk <span className="text-red-500">*</span></span>
+                        <span>Email Helpdesk CS <span className="text-red-500">*</span></span>
                       </label>
                       <input
                         type="email"
@@ -6810,8 +6822,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
 
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                        <Phone className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>Nomor WhatsApp / Layanan <span className="text-red-500">*</span></span>
+                        <PhoneCall className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Nomor WhatsApp CS Admin <span className="text-red-500">*</span></span>
                       </label>
                       <input
                         type="text"
@@ -6837,11 +6849,38 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                     </div>
                   </div>
 
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-5 pt-2">
+                    <div className="md:col-span-8 space-y-1.5">
+                      <label className="text-xs font-semibold text-slate-700">Pesan Pembuka Otomatis (Default Chat Greeting WA)</label>
+                      <input
+                        type="text"
+                        value={helpdeskMsg}
+                        onChange={(e) => setHelpdeskMsg(e.target.value)}
+                        placeholder="Halo Admin CDC UM Kendari, saya ingin berkonsultasi mengenai..."
+                        className="w-full rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 text-xs text-slate-800 focus:border-[#0077C6] focus:outline-none focus:ring-1 focus:ring-[#0077C6] transition"
+                      />
+                    </div>
+                    <div className="md:col-span-4 flex items-center pt-5">
+                      <label className="flex items-center gap-3 p-3 bg-emerald-50/70 rounded-xl border border-emerald-200 cursor-pointer select-none w-full">
+                        <input
+                          type="checkbox"
+                          checked={helpdeskFloating}
+                          onChange={(e) => setHelpdeskFloating(e.target.checked)}
+                          className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500"
+                        />
+                        <div>
+                          <span className="text-xs font-extrabold text-slate-900 block">Floating WA Button</span>
+                          <span className="text-[11px] text-slate-500">Tampilkan di publik</span>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
                   {/* Live Preview Box */}
                   <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 space-y-2.5">
                     <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
                       <Eye className="w-3.5 h-3.5 text-slate-400" />
-                      Pratinjau Tampilan Popup "Bantuan Pemulihan Kata Sandi" di Halaman Login:
+                      Pratinjau Integrasi WhatsApp Helpdesk:
                     </div>
                     <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3 max-w-md shadow-xs text-xs">
                       <div className="flex items-start gap-2.5">
@@ -6855,10 +6894,17 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                       <div className="flex items-start gap-2.5">
                         <Phone className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                         <div>
-                          <div className="font-semibold text-slate-800">WhatsApp / Layanan Mahasiswa:</div>
+                          <div className="font-semibold text-slate-800">WhatsApp CS Admin CDC:</div>
                           <span className="text-slate-800 font-medium">{helpdeskWa || '0852-4100-9988'}</span>{' '}
                           {helpdeskNote && <span className="text-slate-500 font-normal">{helpdeskNote}</span>}
                         </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                        <span className="text-slate-500">Tombol WA Melayang Publik:</span>
+                        <span className={`font-bold px-2 py-0.5 rounded-full text-[10px] ${helpdeskFloating ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                          {helpdeskFloating ? '● Aktif' : '○ Nonaktif'}
+                        </span>
                       </div>
                     </div>
                   </div>
