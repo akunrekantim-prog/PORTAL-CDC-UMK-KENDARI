@@ -1104,7 +1104,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       setEditId(null);
       setEJenis(jenis || 'berita');
       setEJudul(''); setEBody(''); setEPenulis(''); setEThumbnail('');
-      setELinkLamar(''); setEKategori(''); setEScope('LOKAL');
+      setELinkLamar(''); setEKategori((jenis || 'berita') === 'presentasi' ? 'internasional' : ''); setEScope('LOKAL');
       setEGaji(''); setEKuota(''); setEDeadline(''); setELinkCta(''); setEStatus('published');
       setETanggal(''); setEWaktu(''); setELokasiEvent(''); setEPembicara('');
       setELinkDaftar(''); setEStatusEvent('buka');
@@ -1514,7 +1514,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       namaInstansi: eJenis === 'lowongan' ? eNamaInstansi.trim() : undefined,
       tipe: eJenis === 'lowongan' ? eTipe : undefined,
       linkLamar: eJenis === 'lowongan' ? eLinkLamar.trim() : undefined,
-      kategori: (eJenis === 'lowongan' || eJenis === 'program') ? eKategori.trim() : undefined,
+      kategori: (eJenis === 'lowongan' || eJenis === 'program' || eJenis === 'presentasi') ? eKategori.trim() : undefined,
       gaji: eJenis === 'lowongan' ? eGaji.trim() : undefined,
       kuota: eJenis === 'lowongan' && eKuota ? Number(eKuota) : undefined,
       deadline: eJenis === 'lowongan' ? eDeadline : undefined,

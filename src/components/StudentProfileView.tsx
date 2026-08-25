@@ -504,7 +504,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
   const completedCount = checklistItems.filter(i => i.isCompleted).length;
 
   return (
-    <div className="bg-slate-50/50 min-h-screen font-sans" id="prosple-student-profile-view">
+    <div className="bg-white min-h-screen font-sans" id="prosple-student-profile-view">
 
       {/* Toast Notification */}
       {toastMsg && (
@@ -514,8 +514,8 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
         </div>
       )}
 
-      {/* 1. HEADER HERO SECTION (INSTITUTIONAL GRADE UI) */}
-      <div className="bg-[#0b132b] text-white pt-10 pb-12 px-4 sm:px-6 lg:px-8 relative shadow-lg border-b border-slate-800">
+      {/* 1. HEADER HERO SECTION (INSTITUTIONAL GRADE UI - WHITE THEME) */}
+      <div className="bg-white text-slate-900 pt-8 pb-10 px-4 sm:px-6 lg:px-8 relative border-b border-slate-200 shadow-2xs">
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center md:items-start gap-7 relative z-10">
 
           {/* Hidden File Input for Local Image Upload */}
@@ -531,7 +531,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
           <div className="relative group shrink-0">
             <div
               onClick={() => fileInputRef.current?.click()}
-              className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl border-2 border-white/20 ring-4 ring-emerald-500/20 shadow-2xl overflow-hidden bg-slate-800 flex items-center justify-center cursor-pointer relative transition-transform duration-300 group-hover:scale-[1.02]"
+              className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl border-2 border-slate-200 ring-4 ring-[#0077C6]/10 shadow-sm overflow-hidden bg-slate-100 flex items-center justify-center cursor-pointer relative transition-transform duration-300 group-hover:scale-[1.02]"
               title="Klik untuk ubah foto profil dari berkas lokal"
             >
               {avatarUrl ? (
@@ -539,15 +539,15 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
               ) : (
                 <UserIcon className="w-14 h-14 text-slate-400" />
               )}
-              <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-xs opacity-0 group-hover:opacity-100 transition duration-300 flex flex-col items-center justify-center text-white">
-                <Camera className="w-7 h-7 mb-1 text-emerald-400" />
+              <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs opacity-0 group-hover:opacity-100 transition duration-300 flex flex-col items-center justify-center text-white">
+                <Camera className="w-7 h-7 mb-1 text-white" />
                 <span className="text-xs font-bold uppercase tracking-wider">Ubah Foto</span>
               </div>
             </div>
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="absolute -bottom-1 -right-1 bg-[#10B981] hover:bg-emerald-600 text-white p-2.5 rounded-2xl shadow-lg border-2 border-slate-900 transition transform group-hover:scale-110 cursor-pointer"
+              className="absolute -bottom-1 -right-1 bg-[#0077C6] hover:bg-blue-700 text-white p-2.5 rounded-2xl shadow-md border-2 border-white transition transform group-hover:scale-110 cursor-pointer"
               title="Ubah Foto Profil dari Berkas Lokal"
             >
               <Camera className="w-3.5 h-3.5" />
@@ -560,10 +560,10 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
               <button
                 type="button"
                 onClick={() => setEditingSection('headerInfo')}
-                className="bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 text-xs font-bold px-3.5 py-1 rounded-full border border-emerald-500/30 backdrop-blur-md uppercase tracking-wider flex items-center gap-1.5 transition group cursor-pointer"
+                className="bg-blue-50 hover:bg-blue-100 text-[#0077C6] text-xs font-bold px-3.5 py-1 rounded-full border border-blue-200 uppercase tracking-wider flex items-center gap-1.5 transition group cursor-pointer"
                 title="Klik untuk ubah status (Mahasiswa / Alumni / Job Seeker)"
               >
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                <ShieldCheck className="w-3.5 h-3.5 text-[#0077C6]" />
                 <span>{userStatusType}</span>
                 <Pencil className="w-3 h-3 opacity-60 group-hover:opacity-100" />
               </button>
@@ -571,7 +571,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
               <button
                 type="button"
                 onClick={() => setEditingSection('headerInfo')}
-                className="text-xs text-emerald-400 hover:text-emerald-300 hover:underline flex items-center gap-1 font-semibold md:ml-auto cursor-pointer"
+                className="text-xs text-[#0077C6] hover:text-blue-700 hover:underline flex items-center gap-1 font-semibold md:ml-auto cursor-pointer"
                 title="Edit Info Utama (Status, Nama & Universitas)"
               >
                 <Pencil className="w-3.5 h-3.5" /> Edit Info Profil
@@ -580,7 +580,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
 
             <h1
               onClick={() => setEditingSection('headerInfo')}
-              className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight cursor-pointer hover:text-emerald-300 transition group flex items-center justify-center md:justify-start gap-2"
+              className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight cursor-pointer hover:text-[#0077C6] transition group flex items-center justify-center md:justify-start gap-2"
               title="Klik untuk edit nama"
             >
               <span>{`${firstName} ${lastName}`.trim() || user.name}</span>
@@ -588,28 +588,28 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
 
             <div
               onClick={() => setEditingSection('headerInfo')}
-              className="flex items-center justify-center md:justify-start gap-2 text-slate-300 text-xs sm:text-sm font-medium cursor-pointer hover:text-white transition group w-fit mx-auto md:mx-0"
+              className="flex items-center justify-center md:justify-start gap-2 text-slate-600 text-xs sm:text-sm font-medium cursor-pointer hover:text-slate-900 transition group w-fit mx-auto md:mx-0"
               title="Klik untuk ubah nama Universitas"
             >
-              <GraduationCap className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span className="underline underline-offset-4 decoration-slate-600 group-hover:decoration-emerald-400">{university}</span>
-              <Pencil className="w-3 h-3 opacity-0 group-hover:opacity-100 transition text-emerald-400" />
+              <GraduationCap className="w-4 h-4 text-[#0077C6] shrink-0" />
+              <span className="underline underline-offset-4 decoration-slate-300 group-hover:decoration-[#0077C6]">{university}</span>
+              <Pencil className="w-3 h-3 opacity-0 group-hover:opacity-100 transition text-[#0077C6]" />
             </div>
 
             {/* Tentang Saya (Bio Card) */}
-            <div className="pt-3 border-t border-slate-800/80 mt-3 space-y-1.5 bg-slate-900/50 p-4 rounded-2xl border border-slate-800/60">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-300">
-                <span className="uppercase tracking-wider text-xs text-emerald-400 font-bold flex items-center gap-1.5">
-                  <UserIcon className="w-3.5 h-3.5 text-emerald-400" /> TENTANG SAYA
+            <div className="pt-3 border-t border-slate-100 mt-3 space-y-1.5 bg-slate-50/80 p-4 rounded-2xl border border-slate-200/80">
+              <div className="flex items-center justify-between text-xs font-bold text-slate-700">
+                <span className="uppercase tracking-wider text-xs text-[#0077C6] font-bold flex items-center gap-1.5">
+                  <UserIcon className="w-3.5 h-3.5 text-[#0077C6]" /> TENTANG SAYA
                 </span>
                 <button
                   onClick={() => setEditingSection('aboutMe')}
-                  className="text-emerald-400 hover:text-emerald-300 hover:underline flex items-center gap-1 font-semibold text-xs cursor-pointer"
+                  className="text-[#0077C6] hover:text-blue-700 hover:underline flex items-center gap-1 font-semibold text-xs cursor-pointer"
                 >
                   {aboutMe ? 'Edit Bio' : '+ Tulis Bio'} <Pencil className="w-3 h-3" />
                 </button>
               </div>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal max-w-2xl whitespace-pre-line">
+              <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-normal max-w-2xl whitespace-pre-line">
                 {aboutMe || <span className="italic text-slate-400">Belum ada deskripsi profil atau bio yang ditulis. Klik &quot;+ Tulis Bio&quot; untuk memperkenalkan diri Anda.</span>}
               </p>
             </div>

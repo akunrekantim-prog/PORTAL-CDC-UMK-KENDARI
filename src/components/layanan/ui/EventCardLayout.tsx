@@ -77,17 +77,32 @@ export default function EventCardLayout({
     return [...fromKonten, ...events];
   }, [events, kontenEvents, category]);
 
-  // Auto-select event jika initialEventId diberikan dari beranda
+  // Auto-select event HANYA jika initialEventId spesifik diberikan (misal dari Popular Info)
   useEffect(() => {
     if (initialEventId) {
-      const cleanId = initialEventId.replace(/^kk_/, '');
-      const matched = allEvents.find(
-        e => e.id === initialEventId || e.id === `kk_${cleanId}` || e.id === cleanId
-      ) || allEvents.find(e => e.category === category);
+      const rawId = initialEventId.toLowerCase().trim();
+      const cleanId = rawId.replace(/^kk_/, '').replace(/^kk-/, '');
+      const matched = allEvents.find(e => {
+        const eid = e.id.toLowerCase().trim();
+        const eClean = eid.replace(/^kk_/, '').replace(/^kk-/, '');
+        return (
+          eid === rawId ||
+          eClean === cleanId ||
+          eid === cleanId ||
+          rawId === eClean ||
+          (e.title && e.title.toLowerCase().trim() === cleanId) ||
+          (e.title && cleanId.length > 3 && e.title.toLowerCase().includes(cleanId))
+        );
+      });
+
       if (matched) {
         setSelectedEvent(matched);
         window.scrollTo(0, 0);
+      } else {
+        setSelectedEvent(null);
       }
+    } else {
+      setSelectedEvent(null);
     }
   }, [initialEventId, allEvents, category]);
 

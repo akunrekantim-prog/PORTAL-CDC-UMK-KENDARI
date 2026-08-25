@@ -77,7 +77,7 @@
 
 @layer base {
   body {
-    @apply antialiased select-none bg-slate-50 text-slate-800;
+    @apply antialiased select-none bg-white text-slate-800;
   }
 }
 
@@ -333,3 +333,29 @@ ol.list-paren>li::before {
   object-position: center center;
   animation: none !important;
 }
+
+@keyframes slideDrawerRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInOverlay {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-drawer-slide {
+  animation: slideDrawerRight 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in {
+  animation: fadeInOverlay 0.2s ease-out forwards;
+}
