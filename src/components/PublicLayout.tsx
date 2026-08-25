@@ -2077,9 +2077,17 @@ export default function PublicLayout({
           });
 
           const filteredItems = publishedPresentasi.filter(item => {
-            const q = prestasiSearchQuery.toLowerCase();
-            const matchQ = !q || item.judul.toLowerCase().includes(q) || (item.namaMahasiswa || '').toLowerCase().includes(q);
-            return matchQ;
+            const q = prestasiSearchQuery.toLowerCase().trim();
+            if (!q) return true;
+
+            const matchJudul = (item.judul || '').toLowerCase().includes(q);
+            const matchNama = (item.namaMahasiswa || '').toLowerCase().includes(q);
+            const matchProdi = (item.prodi || '').toLowerCase().includes(q);
+            const matchPeringkat = (item.peringkat || '').toLowerCase().includes(q);
+            const matchBody = (item.body || '').toLowerCase().includes(q);
+            const matchTahun = (item.tahun || '').toString().toLowerCase().includes(q);
+
+            return matchJudul || matchNama || matchProdi || matchPeringkat || matchBody || matchTahun;
           });
 
           const pageTitle = `Prestasi ${currentScope.charAt(0).toUpperCase() + currentScope.slice(1)} (${currentKategori === 'non-akademik' ? 'Non-Akademik' : 'Akademik'})`;
@@ -2118,8 +2126,7 @@ export default function PublicLayout({
                   {/* Section Header & CTA */}
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-6">
                     <div>
-                      <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 flex items-center gap-2">
-                        <Star className="w-5 h-5 text-amber-500 fill-amber-400" />
+                      <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900">
                         Daftar Capaian Prestasi Unggulan
                       </h2>
                       <p className="text-slate-500 text-xs sm:text-sm mt-1">
@@ -2147,7 +2154,7 @@ export default function PublicLayout({
                       type="text"
                       value={prestasiSearchQuery}
                       onChange={(e) => setPrestasiSearchQuery(e.target.value)}
-                      placeholder="Cari kata kunci prestasi, capaian, atau nama mahasiswa..."
+                      placeholder="Cari kata kunci prestasi, prodi, capaian (juara), nama mahasiswa, atau tahun..."
                       className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                     />
                   </div>
@@ -2201,13 +2208,8 @@ export default function PublicLayout({
 
                             {/* Card Body */}
                             <div className="p-5 space-y-3">
-                              <div className="text-xs font-extrabold text-amber-600 uppercase tracking-wide truncate flex items-center justify-between">
+                              <div className="text-xs font-extrabold text-amber-600 uppercase tracking-wide truncate">
                                 <span>{item.prodi || 'UM KENDARI'}</span>
-                                {item.terverifikasi !== false && (
-                                  <span className="text-emerald-600 font-extrabold text-[10px] flex items-center gap-0.5">
-                                    <ShieldCheck className="w-3 h-3" /> Valid
-                                  </span>
-                                )}
                               </div>
 
                               <h3 className="font-extrabold text-slate-900 text-base leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2">
