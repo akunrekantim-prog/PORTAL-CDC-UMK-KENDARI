@@ -18,7 +18,12 @@ import {
   Clock,
   Building2,
   ChevronDown,
-  LogOut
+  LogOut,
+  Menu,
+  X,
+  FileText,
+  ChevronRight,
+  ShieldCheck
 } from 'lucide-react';
 import { JobApplicationModal } from './JobApplicationModal';
 import { JobSearchMasterDetail } from './JobSearchMasterDetail';
@@ -35,6 +40,7 @@ interface MahasiswaDashboardProps {
 
 export default function MahasiswaDashboard({ user, onLogout, allLowongan }: MahasiswaDashboardProps) {
   const [activeTab, setActiveTab] = useState<'search' | 'applications' | 'profile'>('search');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Data States
   const [mahasiswaData, setMahasiswaData] = useState<Mahasiswa | null>(null);
@@ -182,7 +188,7 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
         </div>
       )}
 
-      {/* Header / Top Navigation (Matching Screenshot 1:1) */}
+      {/* Header / Top Navigation */}
       <header className="bg-white text-slate-900 sticky top-0 z-40 border-b border-slate-200/80 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-16 lg:gap-40">
@@ -248,7 +254,7 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
             </nav>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <div
               onClick={() => {
                 setSelectedJobForDetail(null);
@@ -262,47 +268,124 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
             </div>
             <button
               onClick={onLogout}
-              className="flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3.5 py-1.5 rounded-lg text-xs font-bold transition shadow-2xs cursor-pointer"
+              className="hidden sm:flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3.5 py-1.5 rounded-lg text-xs font-bold transition shadow-2xs cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" /> Keluar
             </button>
+
+            {/* Mobile Hamburger (Matching Beranda 1:1) */}
+            <button
+              className="md:hidden flex flex-col items-center justify-center w-10 h-10 rounded-lg gap-[5px] group focus-visible:outline-none cursor-pointer"
+              onClick={() => setMobileMenuOpen(o => !o)}
+              aria-label={mobileMenuOpen ? 'Tutup menu' : 'Buka menu'}
+              aria-expanded={mobileMenuOpen}
+            >
+              <span className={[
+                'block w-5 h-0.5 bg-gray-700 transition-all duration-200',
+                mobileMenuOpen ? 'translate-y-[6.5px] rotate-45' : '',
+              ].join(' ')} />
+              <span className={[
+                'block w-5 h-0.5 bg-gray-700 transition-all duration-200',
+                mobileMenuOpen ? 'opacity-0' : '',
+              ].join(' ')} />
+              <span className={[
+                'block w-5 h-0.5 bg-gray-700 transition-all duration-200',
+                mobileMenuOpen ? '-translate-y-[6.5px] -rotate-45' : '',
+              ].join(' ')} />
+            </button>
           </div>
         </div>
-      </header>
 
-      {/* Mobile Nav */}
-      <div className="md:hidden bg-white border-t border-slate-200 px-2 py-2 flex gap-2">
-        <button
-          onClick={() => {
-            setSelectedJobForDetail(null);
-            setActiveTab('search');
-          }}
-          className={`flex-1 py-2 rounded-lg font-bold text-xs transition ${activeTab === 'search' && !selectedJobForDetail ? 'bg-[#0055D4] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-        >
-          Lowongan
-        </button>
-        <button
-          onClick={() => {
-            setSelectedJobForDetail(null);
-            setActiveTab('applications');
-          }}
-          className={`flex-1 py-2 rounded-lg font-bold text-xs transition flex items-center justify-center gap-1 ${activeTab === 'applications' && !selectedJobForDetail ? 'bg-[#0055D4] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-        >
-          <span>Lamaran Saya</span>
-        </button>
-        <button
-          onClick={() => {
-            setSelectedJobForDetail(null);
-            setActiveTab('profile');
-          }}
-          className={`flex-1 py-2 rounded-lg font-bold text-xs transition ${activeTab === 'profile' && !selectedJobForDetail ? 'bg-[#0055D4] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-        >
-          Profil Saya
-        </button>
-      </div>
+        {/* ── MOBILE DROPDOWN DRAWER (Matching Beranda Structure & No Icons) ── */}
+        {mobileMenuOpen && (
+          <div
+            className="md:hidden bg-white border-t border-gray-100 shadow-xl absolute w-full left-0 top-full z-[90] max-h-[80vh] overflow-y-auto"
+            id="mobile-nav-drawer"
+          >
+            <div className="border-b border-gray-100">
+              <button
+                onClick={() => {
+                  setSelectedJobForDetail(null);
+                  setActiveTab('search');
+                  setMobileMenuOpen(false);
+                }}
+                className={[
+                  'w-full flex items-center justify-between px-5 py-4 text-sm font-semibold transition-colors duration-100 text-left cursor-pointer',
+                  activeTab === 'search' && !selectedJobForDetail ? 'text-[#0055D4]' : 'text-gray-800 hover:bg-gray-50',
+                ].join(' ')}
+              >
+                <span className={[
+                  'border-l-2 pl-3 transition-colors',
+                  activeTab === 'search' && !selectedJobForDetail ? 'border-[#0055D4]' : 'border-transparent',
+                ].join(' ')}>
+                  Lowongan
+                </span>
+              </button>
+            </div>
+
+            <div className="border-b border-gray-100">
+              <button
+                onClick={() => {
+                  setSelectedJobForDetail(null);
+                  setActiveTab('applications');
+                  setMobileMenuOpen(false);
+                }}
+                className={[
+                  'w-full flex items-center justify-between px-5 py-4 text-sm font-semibold transition-colors duration-100 text-left cursor-pointer',
+                  activeTab === 'applications' && !selectedJobForDetail ? 'text-[#0055D4]' : 'text-gray-800 hover:bg-gray-50',
+                ].join(' ')}
+              >
+                <span className={[
+                  'border-l-2 pl-3 transition-colors',
+                  activeTab === 'applications' && !selectedJobForDetail ? 'border-[#0055D4]' : 'border-transparent',
+                ].join(' ')}>
+                  Lamaran Saya
+                </span>
+                {interviewAlertCount > 0 && (
+                  <span className="bg-amber-500 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full mr-2">
+                    {interviewAlertCount}
+                  </span>
+                )}
+              </button>
+            </div>
+
+            <div className="border-b border-gray-100">
+              <button
+                onClick={() => {
+                  setSelectedJobForDetail(null);
+                  setActiveTab('profile');
+                  setMobileMenuOpen(false);
+                }}
+                className={[
+                  'w-full flex items-center justify-between px-5 py-4 text-sm font-semibold transition-colors duration-100 text-left cursor-pointer',
+                  activeTab === 'profile' && !selectedJobForDetail ? 'text-[#0055D4]' : 'text-gray-800 hover:bg-gray-50',
+                ].join(' ')}
+              >
+                <span className={[
+                  'border-l-2 pl-3 transition-colors',
+                  activeTab === 'profile' && !selectedJobForDetail ? 'border-[#0055D4]' : 'border-transparent',
+                ].join(' ')}>
+                  Profil Saya
+                </span>
+              </button>
+            </div>
+
+            <div className="border-b border-gray-100 bg-slate-50/50">
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onLogout();
+                }}
+                className="w-full flex items-center justify-between px-5 py-4 text-sm font-semibold text-rose-600 hover:bg-rose-50/60 transition-colors duration-100 text-left cursor-pointer"
+              >
+                <span className="border-l-2 border-transparent pl-3">
+                  Keluar
+                </span>
+              </button>
+            </div>
+          </div>
+        )}
+      </header>
 
       <main className="w-full flex-grow py-8">
         {selectedJobForDetail ? (

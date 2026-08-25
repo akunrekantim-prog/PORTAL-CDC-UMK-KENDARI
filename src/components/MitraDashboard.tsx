@@ -52,7 +52,10 @@ import {
   Code,
   User,
   XCircle,
-  LogOut
+  LogOut,
+  Menu,
+  ChevronRight,
+  ShieldCheck
 } from 'lucide-react';
 import { JOB_SPECIALIZATIONS, getCompanyBadgeColor, getCompanyInitials } from './JobSearchMasterDetail';
 import Dropdown from './Dropdown';
@@ -400,6 +403,7 @@ function PdfViewerPreview({
 
 export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDashboardProps) {
   const [activeTab, setActiveTab] = useState<'ringkasan' | 'profil' | 'lowongan' | 'pelamar' | 'survei'>('ringkasan');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Data States
   const [mitraData, setMitraData] = useState<Mitra | null>(null);
@@ -1124,7 +1128,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
             </nav>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <div
               onClick={() => {
                 setActiveTab('profil');
@@ -1138,57 +1142,148 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
             </div>
             <button
               onClick={onLogout}
-              className="flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3.5 py-1.5 rounded-lg text-xs font-bold transition shadow-2xs cursor-pointer"
+              className="hidden sm:flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3.5 py-1.5 rounded-lg text-xs font-bold transition shadow-2xs cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" /> Keluar
             </button>
+
+            {/* Mobile Hamburger (Matching Beranda 1:1) */}
+            <button
+              className="md:hidden flex flex-col items-center justify-center w-10 h-10 rounded-lg gap-[5px] group focus-visible:outline-none cursor-pointer"
+              onClick={() => setMobileMenuOpen(o => !o)}
+              aria-label={mobileMenuOpen ? 'Tutup menu' : 'Buka menu'}
+              aria-expanded={mobileMenuOpen}
+            >
+              <span className={[
+                'block w-5 h-0.5 bg-gray-700 transition-all duration-200',
+                mobileMenuOpen ? 'translate-y-[6.5px] rotate-45' : '',
+              ].join(' ')} />
+              <span className={[
+                'block w-5 h-0.5 bg-gray-700 transition-all duration-200',
+                mobileMenuOpen ? 'opacity-0' : '',
+              ].join(' ')} />
+              <span className={[
+                'block w-5 h-0.5 bg-gray-700 transition-all duration-200',
+                mobileMenuOpen ? '-translate-y-[6.5px] -rotate-45' : '',
+              ].join(' ')} />
+            </button>
           </div>
         </div>
-      </header>
 
-      {/* Mobile Nav Bar */}
-      <div className="md:hidden bg-white border-t border-slate-200 px-2 py-2 flex gap-1.5">
-        <button
-          onClick={() => {
-            setActiveTab('ringkasan');
-            setShowAddJob(false);
-          }}
-          className={`flex-1 py-2 rounded-lg font-bold text-xs transition ${activeTab === 'ringkasan' ? 'bg-[#0055D4] text-white shadow-xs' : 'bg-slate-100 text-slate-700'
-            }`}
-        >
-          Ringkasan
-        </button>
-        <button
-          onClick={() => {
-            setActiveTab('lowongan');
-            setShowAddJob(false);
-          }}
-          className={`flex-1 py-2 rounded-lg font-bold text-xs transition ${activeTab === 'lowongan' ? 'bg-[#0055D4] text-white shadow-xs' : 'bg-slate-100 text-slate-700'
-            }`}
-        >
-          Lowongan
-        </button>
-        <button
-          onClick={() => {
-            setActiveTab('pelamar');
-            setShowAddJob(false);
-          }}
-          className={`flex-1 py-2 rounded-lg font-bold text-xs transition ${activeTab === 'pelamar' ? 'bg-[#0055D4] text-white shadow-xs' : 'bg-slate-100 text-slate-700'
-            }`}
-        >
-          Pelamar
-        </button>
-        <button
-          onClick={() => {
-            setActiveTab('profil');
-            setShowAddJob(false);
-          }}
-          className={`flex-1 py-2 rounded-lg font-bold text-xs transition ${activeTab === 'profil' ? 'bg-[#0055D4] text-white shadow-xs' : 'bg-slate-100 text-slate-700'
-            }`}
-        >
-          Profil
-        </button>
-      </div>
+        {/* ── MOBILE DROPDOWN DRAWER (Matching Beranda Structure & No Icons) ── */}
+        {mobileMenuOpen && (
+          <div
+            className="md:hidden bg-white border-t border-gray-100 shadow-xl absolute w-full left-0 top-full z-[90] max-h-[80vh] overflow-y-auto"
+            id="mobile-nav-drawer"
+          >
+            <div className="border-b border-gray-100">
+              <button
+                onClick={() => {
+                  setActiveTab('ringkasan');
+                  setShowAddJob(false);
+                  setMobileMenuOpen(false);
+                }}
+                className={[
+                  'w-full flex items-center justify-between px-5 py-4 text-sm font-semibold transition-colors duration-100 text-left cursor-pointer',
+                  activeTab === 'ringkasan' ? 'text-[#0055D4]' : 'text-gray-800 hover:bg-gray-50',
+                ].join(' ')}
+              >
+                <span className={[
+                  'border-l-2 pl-3 transition-colors',
+                  activeTab === 'ringkasan' ? 'border-[#0055D4]' : 'border-transparent',
+                ].join(' ')}>
+                  Ringkasan
+                </span>
+              </button>
+            </div>
+
+            <div className="border-b border-gray-100">
+              <button
+                onClick={() => {
+                  setActiveTab('lowongan');
+                  setShowAddJob(false);
+                  setMobileMenuOpen(false);
+                }}
+                className={[
+                  'w-full flex items-center justify-between px-5 py-4 text-sm font-semibold transition-colors duration-100 text-left cursor-pointer',
+                  activeTab === 'lowongan' ? 'text-[#0055D4]' : 'text-gray-800 hover:bg-gray-50',
+                ].join(' ')}
+              >
+                <span className={[
+                  'border-l-2 pl-3 transition-colors',
+                  activeTab === 'lowongan' ? 'border-[#0055D4]' : 'border-transparent',
+                ].join(' ')}>
+                  Kelola Lowongan
+                </span>
+                <span className="bg-slate-100 text-slate-700 text-xs font-bold px-2 py-0.5 rounded-full font-mono mr-2">
+                  {myJobs.length}
+                </span>
+              </button>
+            </div>
+
+            <div className="border-b border-gray-100">
+              <button
+                onClick={() => {
+                  setActiveTab('pelamar');
+                  setShowAddJob(false);
+                  setMobileMenuOpen(false);
+                }}
+                className={[
+                  'w-full flex items-center justify-between px-5 py-4 text-sm font-semibold transition-colors duration-100 text-left cursor-pointer',
+                  activeTab === 'pelamar' ? 'text-[#0055D4]' : 'text-gray-800 hover:bg-gray-50',
+                ].join(' ')}
+              >
+                <span className={[
+                  'border-l-2 pl-3 transition-colors',
+                  activeTab === 'pelamar' ? 'border-[#0055D4]' : 'border-transparent',
+                ].join(' ')}>
+                  Pelamar &amp; Seleksi
+                </span>
+                {myApplicants.length > 0 && (
+                  <span className="bg-blue-100 text-[#0055D4] text-xs font-bold px-2 py-0.5 rounded-full font-mono mr-2">
+                    {myApplicants.length}
+                  </span>
+                )}
+              </button>
+            </div>
+
+            <div className="border-b border-gray-100">
+              <button
+                onClick={() => {
+                  setActiveTab('profil');
+                  setShowAddJob(false);
+                  setMobileMenuOpen(false);
+                }}
+                className={[
+                  'w-full flex items-center justify-between px-5 py-4 text-sm font-semibold transition-colors duration-100 text-left cursor-pointer',
+                  activeTab === 'profil' ? 'text-[#0055D4]' : 'text-gray-800 hover:bg-gray-50',
+                ].join(' ')}
+              >
+                <span className={[
+                  'border-l-2 pl-3 transition-colors',
+                  activeTab === 'profil' ? 'border-[#0055D4]' : 'border-transparent',
+                ].join(' ')}>
+                  Profil Instansi
+                </span>
+              </button>
+            </div>
+
+            <div className="border-b border-gray-100 bg-slate-50/50">
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onLogout();
+                }}
+                className="w-full flex items-center justify-between px-5 py-4 text-sm font-semibold text-rose-600 hover:bg-rose-50/60 transition-colors duration-100 text-left cursor-pointer"
+              >
+                <span className="border-l-2 border-transparent pl-3">
+                  Keluar
+                </span>
+              </button>
+            </div>
+          </div>
+        )}
+      </header>
 
       {/* MAIN CONTAINER */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-grow space-y-6" id="mtr-dashboard-main">
