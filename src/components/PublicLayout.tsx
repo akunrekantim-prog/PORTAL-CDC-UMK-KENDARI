@@ -6,7 +6,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Building2, MapPin, Briefcase, Search, BookOpen,
-  FileText, Mail, Phone, Clock, ArrowRight, Globe, Megaphone,
+  FileText, Mail, Phone, Clock, ArrowRight, ArrowLeft, Globe, Megaphone,
   Info, GraduationCap, ChevronRight, ChevronDown, X, Facebook, Instagram, Youtube,
   Users, Building, Shield, Award, Star, TrendingUp, Zap, Target,
   ExternalLink, Calendar, ShieldCheck, Trophy, Eye,
@@ -235,8 +235,15 @@ export default function PublicLayout({
   const beritaItemsPerPage = 6;
   const [selectedPosterModal, setSelectedPosterModal] = useState<string | null>(null);
 
-  // Prestasi Search State
+  // Prestasi Search & Pagination State
   const [prestasiSearchQuery, setPrestasiSearchQuery] = useState('');
+  const [prestasiPage, setPrestasiPage] = useState(1);
+  const prestasiItemsPerPage = 6;
+
+  // Reset Prestasi Page on filter or tab changes
+  useEffect(() => {
+    setPrestasiPage(1);
+  }, [prestasiSearchQuery, currentTab]);
 
   /* Data helpers: Lowongan kerja & magang terbaru (newest created) selalu di atas */
   const publishedLowongan = sortJobsByNewest(lowongan.filter(l => l.status === 'published'));
@@ -2090,6 +2097,12 @@ export default function PublicLayout({
             return matchJudul || matchNama || matchProdi || matchPeringkat || matchBody || matchTahun;
           });
 
+          const totalPrestasiPages = Math.ceil(filteredItems.length / prestasiItemsPerPage);
+          const paginatedPrestasiItems = filteredItems.slice(
+            (prestasiPage - 1) * prestasiItemsPerPage,
+            prestasiPage * prestasiItemsPerPage
+          );
+
           const pageTitle = `Prestasi ${currentScope.charAt(0).toUpperCase() + currentScope.slice(1)} (${currentKategori === 'non-akademik' ? 'Non-Akademik' : 'Akademik'})`;
 
           return (
@@ -2169,71 +2182,157 @@ export default function PublicLayout({
                       </p>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {filteredItems.map(item => (
-                        <div
-                          key={item.id}
-                          onClick={() => {
-                            setSelectedPrestasi(item);
-                            window.scrollTo(0, 0);
-                          }}
-                          className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-lg hover:-translate-y-1 hover:border-amber-400 transition-all duration-300 flex flex-col justify-between group cursor-pointer"
-                        >
-                          <div>
-                            {/* Image documentation header */}
-                            <div className="w-full h-48 relative overflow-hidden bg-slate-100 border-b border-slate-100">
-                              {item.thumbnail ? (
-                                <img
-                                  src={item.thumbnail}
-                                  alt={item.judul}
-                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex flex-col items-center justify-center bg-slate-100 text-slate-400 space-y-1">
-                                  <Award className="w-10 h-10 text-amber-400" />
-                                  <span className="text-xs font-bold text-slate-400 uppercase">Dokumentasi</span>
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {paginatedPrestasiItems.map(item => (
+                          <div
+                            key={item.id}
+                            onClick={() => {
+                              setSelectedPrestasi(item);
+                              window.scrollTo(0, 0);
+                            }}
+                            className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-lg hover:-translate-y-1 hover:border-amber-400 transition-all duration-300 flex flex-col justify-between group cursor-pointer"
+                          >
+                            <div>
+                              {/* Image documentation header */}
+                              <div className="w-full h-48 relative overflow-hidden bg-slate-100 border-b border-slate-100">
+                                {item.thumbnail ? (
+                                  <img
+                                    src={item.thumbnail}
+                                    alt={item.judul}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex flex-col items-center justify-center bg-slate-100 text-slate-400 space-y-1">
+                                    <Award className="w-10 h-10 text-amber-400" />
+                                    <span className="text-xs font-bold text-slate-400 uppercase">Dokumentasi</span>
+                                  </div>
+                                )}
+                                <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                                  <span className="px-2.5 py-1 bg-amber-400 text-slate-950 rounded-lg text-xs font-black shadow-md flex items-center gap-1">
+                                    <Award className="w-3.5 h-3.5 text-slate-950" /> {item.peringkat}
+                                  </span>
                                 </div>
-                              )}
-                              <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                                <span className="px-2.5 py-1 bg-amber-400 text-slate-950 rounded-lg text-xs font-black shadow-md flex items-center gap-1">
-                                  <Award className="w-3.5 h-3.5 text-slate-950" /> {item.peringkat}
-                                </span>
+                                <div className="absolute top-3 right-3">
+                                  <span className="px-2.5 py-1 bg-black/60 backdrop-blur-md text-white rounded-lg text-xs font-bold">
+                                    {item.tahun}
+                                  </span>
+                                </div>
                               </div>
-                              <div className="absolute top-3 right-3">
-                                <span className="px-2.5 py-1 bg-black/60 backdrop-blur-md text-white rounded-lg text-xs font-bold">
-                                  {item.tahun}
-                                </span>
+
+                              {/* Card Body */}
+                              <div className="p-5 space-y-3">
+                                <div className="text-xs font-extrabold text-amber-600 uppercase tracking-wide truncate">
+                                  <span>{item.prodi || 'UM KENDARI'}</span>
+                                </div>
+
+                                <h3 className="font-extrabold text-slate-900 text-base leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2">
+                                  {item.judul}
+                                </h3>
+
+                                <p className="text-slate-600 text-xs leading-relaxed line-clamp-3">
+                                  {item.body}
+                                </p>
                               </div>
                             </div>
 
-                            {/* Card Body */}
-                            <div className="p-5 space-y-3">
-                              <div className="text-xs font-extrabold text-amber-600 uppercase tracking-wide truncate">
-                                <span>{item.prodi || 'UM KENDARI'}</span>
+                            {/* Card Footer */}
+                            <div className="px-5 py-3.5 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between text-xs">
+                              <div className="font-bold text-slate-800 truncate max-w-[150px]" title={item.namaMahasiswa}>
+                                {item.namaMahasiswa}
                               </div>
-
-                              <h3 className="font-extrabold text-slate-900 text-base leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2">
-                                {item.judul}
-                              </h3>
-
-                              <p className="text-slate-600 text-xs leading-relaxed line-clamp-3">
-                                {item.body}
-                              </p>
+                              <span className="text-[#0077C6] font-extrabold text-[11px] flex items-center gap-1 group-hover:translate-x-0.5 transition-transform shrink-0">
+                                Detail <ArrowRight className="w-3.5 h-3.5" />
+                              </span>
                             </div>
                           </div>
+                        ))}
+                      </div>
 
-                          {/* Card Footer */}
-                          <div className="px-5 py-3.5 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between text-xs">
-                            <div className="font-bold text-slate-800 truncate max-w-[150px]" title={item.namaMahasiswa}>
-                              {item.namaMahasiswa}
-                            </div>
-                            <span className="text-[#0077C6] font-extrabold text-[11px] flex items-center gap-1 group-hover:translate-x-0.5 transition-transform shrink-0">
-                              Detail <ArrowRight className="w-3.5 h-3.5" />
-                            </span>
-                          </div>
+                      {/* ── PAGINATION CONTROLS (TEMA BIRU HEADER #1E3A8A) ── */}
+                      {totalPrestasiPages > 1 && (
+                        <div className="flex items-center justify-center gap-2 pt-6">
+                          {/* Prev Button */}
+                          <button
+                            onClick={() => {
+                              setPrestasiPage(prev => Math.max(1, prev - 1));
+                              window.scrollTo({ top: 350, behavior: 'smooth' });
+                            }}
+                            disabled={prestasiPage === 1}
+                            className={`w-10 h-10 rounded-lg border flex items-center justify-center text-sm font-semibold transition cursor-pointer ${
+                              prestasiPage === 1
+                                ? 'border-slate-200 text-slate-300 cursor-not-allowed bg-slate-50'
+                                : 'border-slate-200 text-slate-700 hover:border-[#1E3A8A] hover:text-[#1E3A8A] bg-white'
+                            }`}
+                            aria-label="Previous Page"
+                          >
+                            <ArrowLeft className="w-4 h-4" />
+                          </button>
+
+                          {/* Page Numbers */}
+                          {Array.from({ length: totalPrestasiPages }, (_, i) => i + 1).map((page) => {
+                            if (
+                              totalPrestasiPages > 7 &&
+                              page !== 1 &&
+                              page !== totalPrestasiPages &&
+                              Math.abs(page - prestasiPage) > 1
+                            ) {
+                              if (page === 2 && prestasiPage > 4) {
+                                return (
+                                  <span key={page} className="w-10 h-10 flex items-center justify-center text-slate-400 text-xs">
+                                    ...
+                                  </span>
+                                );
+                              }
+                              if (page === totalPrestasiPages - 1 && prestasiPage < totalPrestasiPages - 3) {
+                                return (
+                                  <span key={page} className="w-10 h-10 flex items-center justify-center text-slate-400 text-xs">
+                                    ...
+                                  </span>
+                                );
+                              }
+                              return null;
+                            }
+
+                            const isActive = prestasiPage === page;
+
+                            return (
+                              <button
+                                key={page}
+                                onClick={() => {
+                                  setPrestasiPage(page);
+                                  window.scrollTo({ top: 350, behavior: 'smooth' });
+                                }}
+                                className={`w-10 h-10 rounded-lg border text-sm font-bold transition-all cursor-pointer ${
+                                  isActive
+                                    ? 'bg-[#1E3A8A] text-white border-[#1E3A8A] shadow-xs'
+                                    : 'bg-white text-slate-700 border-slate-200 hover:border-[#1E3A8A] hover:text-[#1E3A8A]'
+                                }`}
+                              >
+                                {page}
+                              </button>
+                            );
+                          })}
+
+                          {/* Next Button */}
+                          <button
+                            onClick={() => {
+                              setPrestasiPage(prev => Math.min(totalPrestasiPages, prev + 1));
+                              window.scrollTo({ top: 350, behavior: 'smooth' });
+                            }}
+                            disabled={prestasiPage === totalPrestasiPages}
+                            className={`w-10 h-10 rounded-lg border flex items-center justify-center text-sm font-semibold transition cursor-pointer ${
+                              prestasiPage === totalPrestasiPages
+                                ? 'border-slate-200 text-slate-300 cursor-not-allowed bg-slate-50'
+                                : 'border-slate-200 text-slate-700 hover:border-[#1E3A8A] hover:text-[#1E3A8A] bg-white'
+                            }`}
+                            aria-label="Next Page"
+                          >
+                            <ArrowRight className="w-4 h-4" />
+                          </button>
                         </div>
-                      ))}
-                    </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
