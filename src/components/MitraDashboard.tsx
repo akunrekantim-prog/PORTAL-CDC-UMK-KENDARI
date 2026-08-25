@@ -51,7 +51,8 @@ import {
   Award,
   Code,
   User,
-  XCircle
+  XCircle,
+  LogOut
 } from 'lucide-react';
 import { JOB_SPECIALIZATIONS, getCompanyBadgeColor, getCompanyInitials } from './JobSearchMasterDetail';
 import Dropdown from './Dropdown';
@@ -1018,7 +1019,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans" id="mtr-dashboard">
+    <div className="bg-white min-h-screen text-slate-800 flex flex-col font-sans" id="mtr-root-view">
       {/* LOCAL TOAST NOTIFIER */}
       {message && (
         <div
@@ -1041,209 +1042,251 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
         </div>
       )}
 
-      {/* HEADER BANNER (Senior Programmer Vercel Grade) */}
-      <header className="bg-slate-950/95 backdrop-blur-md border-b border-slate-800/80 text-white sticky top-0 z-40 shadow-md" id="mtr-header">
+      {/* HEADER / TOP NAVIGATION (Matching User Dashboard 1:1) */}
+      <header className="bg-white text-slate-900 sticky top-0 z-40 border-b border-slate-200/80 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-xl flex items-center justify-center font-bold shadow-xs border border-blue-400/30">
-              <Building2 className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <div className="font-extrabold text-sm tracking-tight text-white flex items-center gap-2">
-                <span>PORTAL MITRA INDUSTRI &amp; CDC</span>
-                <span className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] px-2.5 py-0.5 rounded-full font-extrabold uppercase tracking-wider">
-                  VERIFIED MITRA
+          <div className="flex items-center gap-8 lg:gap-16">
+            <button
+              onClick={() => {
+                setActiveTab('ringkasan');
+                setShowAddJob(false);
+              }}
+              className="flex items-center cursor-pointer group focus:outline-none shrink-0"
+              aria-label="Kembali ke Ringkasan"
+            >
+              <img
+                src="/logo besar cdc.png"
+                alt="Logo CDC UMK"
+                className="h-10 sm:h-11 w-auto object-contain group-hover:scale-105 transition-transform"
+              />
+            </button>
+
+            <nav className="hidden md:flex items-center gap-1">
+              <button
+                onClick={() => {
+                  setActiveTab('ringkasan');
+                  setShowAddJob(false);
+                }}
+                className={`px-3.5 py-5 border-b-2 font-extrabold text-sm transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'ringkasan'
+                    ? 'border-[#0055D4] text-[#0055D4]'
+                    : 'border-transparent text-slate-600 hover:text-slate-900'
+                  }`}
+              >
+                Ringkasan
+              </button>
+
+              <button
+                onClick={() => {
+                  setActiveTab('lowongan');
+                  setShowAddJob(false);
+                }}
+                className={`px-3.5 py-5 border-b-2 font-extrabold text-sm transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'lowongan'
+                    ? 'border-[#0055D4] text-[#0055D4]'
+                    : 'border-transparent text-slate-600 hover:text-slate-900'
+                  }`}
+              >
+                <span>Kelola Lowongan</span>
+                <span className="bg-slate-100 text-slate-700 text-xs font-bold px-2 py-0.5 rounded-full ml-1 font-mono">
+                  {myJobs.length}
                 </span>
-              </div>
-              <div className="text-slate-400 text-[11px] font-medium">Universitas Muhammadiyah Kendari</div>
-            </div>
+              </button>
+
+              <button
+                onClick={() => {
+                  setActiveTab('pelamar');
+                  setShowAddJob(false);
+                }}
+                className={`px-3.5 py-5 border-b-2 font-extrabold text-sm transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'pelamar'
+                    ? 'border-[#0055D4] text-[#0055D4]'
+                    : 'border-transparent text-slate-600 hover:text-slate-900'
+                  }`}
+              >
+                <span>Pelamar &amp; Seleksi</span>
+                {myApplicants.length > 0 && (
+                  <span className="bg-blue-100 text-[#0055D4] text-xs font-bold px-2 py-0.5 rounded-full ml-1 font-mono">
+                    {myApplicants.length}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => {
+                  setActiveTab('profil');
+                  setShowAddJob(false);
+                }}
+                className={`px-3.5 py-5 border-b-2 font-extrabold text-sm transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'profil'
+                    ? 'border-[#0055D4] text-[#0055D4]'
+                    : 'border-transparent text-slate-600 hover:text-slate-900'
+                  }`}
+              >
+                Profil Instansi
+              </button>
+            </nav>
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="text-right hidden sm:block bg-slate-900/80 px-3.5 py-1 rounded-xl border border-slate-800">
-              <div className="font-bold text-xs text-slate-100 leading-none">{namaInstansi || user.name}</div>
-              <div className="text-emerald-400 text-[11px] font-semibold leading-tight mt-0.5">PIC: {kontakPerson || user.name}</div>
+            <div
+              onClick={() => {
+                setActiveTab('profil');
+                setShowAddJob(false);
+              }}
+              className="text-right hidden sm:flex items-center cursor-pointer group"
+            >
+              <span className="font-extrabold text-sm text-slate-800 group-hover:text-blue-600 transition">
+                {namaInstansi || user.name}
+              </span>
             </div>
             <button
               onClick={onLogout}
-              className="bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-4 py-2 rounded-xl text-xs font-bold border border-slate-700/80 transition active:scale-95 cursor-pointer"
-              id="mtr-btn-logout"
+              className="flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3.5 py-1.5 rounded-lg text-xs font-bold transition shadow-2xs cursor-pointer"
             >
-              Sign Out
+              <LogOut className="w-3.5 h-3.5" /> Keluar
             </button>
           </div>
         </div>
       </header>
 
-      {/* DASHBOARD WEB CORE GRID */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-8" id="mtr-grid-layout">
+      {/* Mobile Nav Bar */}
+      <div className="md:hidden bg-white border-t border-slate-200 px-2 py-2 flex gap-1.5">
+        <button
+          onClick={() => {
+            setActiveTab('ringkasan');
+            setShowAddJob(false);
+          }}
+          className={`flex-1 py-2 rounded-lg font-bold text-xs transition ${activeTab === 'ringkasan' ? 'bg-[#0055D4] text-white shadow-xs' : 'bg-slate-100 text-slate-700'
+            }`}
+        >
+          Ringkasan
+        </button>
+        <button
+          onClick={() => {
+            setActiveTab('lowongan');
+            setShowAddJob(false);
+          }}
+          className={`flex-1 py-2 rounded-lg font-bold text-xs transition ${activeTab === 'lowongan' ? 'bg-[#0055D4] text-white shadow-xs' : 'bg-slate-100 text-slate-700'
+            }`}
+        >
+          Lowongan
+        </button>
+        <button
+          onClick={() => {
+            setActiveTab('pelamar');
+            setShowAddJob(false);
+          }}
+          className={`flex-1 py-2 rounded-lg font-bold text-xs transition ${activeTab === 'pelamar' ? 'bg-[#0055D4] text-white shadow-xs' : 'bg-slate-100 text-slate-700'
+            }`}
+        >
+          Pelamar
+        </button>
+        <button
+          onClick={() => {
+            setActiveTab('profil');
+            setShowAddJob(false);
+          }}
+          className={`flex-1 py-2 rounded-lg font-bold text-xs transition ${activeTab === 'profil' ? 'bg-[#0055D4] text-white shadow-xs' : 'bg-slate-100 text-slate-700'
+            }`}
+        >
+          Profil
+        </button>
+      </div>
 
-        {/* SIDEBAR NAVIGATION CONTROLS */}
-        <aside className="lg:col-span-3 space-y-6" id="mtr-sidebar">
-          <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-xs space-y-6">
-            <div className="flex items-center gap-3.5 pb-5 border-b border-slate-100">
-              <div className="w-12 h-12 bg-[#1B365D] text-white rounded-2xl flex items-center justify-center font-black text-lg shrink-0 shadow-xs border border-slate-700/30 overflow-hidden">
-                {companyLogoUrl ? (
-                  <img src={companyLogoUrl} alt={namaInstansi} className="w-full h-full object-contain p-1.5 bg-white" />
-                ) : (
-                  <span>{namaInstansi ? namaInstansi.charAt(0).toUpperCase() : 'M'}</span>
-                )}
-              </div>
-              <div className="truncate min-w-0">
-                <div className="font-extrabold text-slate-900 text-sm truncate">{namaInstansi || 'Instansi Mitra'}</div>
-                <div className="text-slate-400 text-xs truncate font-medium">{user.email}</div>
-                <div className="inline-flex items-center gap-1 text-emerald-600 text-[10px] font-extrabold uppercase tracking-wider mt-1 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
-                  <CheckCircle className="w-3 h-3 text-emerald-600 shrink-0" />
-                  <span>Mitra Terverifikasi</span>
+      {/* MAIN CONTAINER */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-grow space-y-6" id="mtr-dashboard-main">
+
+        {/* WELCOME SUMMARY & QUICK STATS CARD (TAB RINGKASAN ONLY) */}
+        {activeTab === 'ringkasan' && (
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-7 shadow-2xs space-y-6" id="mtr-welcome-banner">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-100">
+              <div className="flex items-start gap-4 sm:gap-5">
+                <div className="w-16 h-16 sm:w-18 sm:h-18 bg-white text-[#0077C6] rounded-2xl flex items-center justify-center font-black text-2xl sm:text-3xl shrink-0 shadow-2xs border border-slate-200 overflow-hidden">
+                  {companyLogoUrl ? (
+                    <img src={companyLogoUrl} alt={namaInstansi} className="w-full h-full object-contain p-2 bg-white" />
+                  ) : (
+                    <span>{namaInstansi ? namaInstansi.charAt(0).toUpperCase() : 'M'}</span>
+                  )}
                 </div>
+                <div className="space-y-1.5 min-w-0">
+                  <div className="inline-flex items-center gap-1.5 bg-blue-50 text-[#0077C6] border border-blue-200/80 px-3 py-0.5 rounded-full font-bold text-xs">
+                    <Building2 className="w-3.5 h-3.5 text-[#0077C6] shrink-0" />
+                    <span>Mitra CDC UM Kendari</span>
+                  </div>
+                  <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight truncate">{namaInstansi || 'Instansi Mitra'}</h2>
+                  <div className="flex flex-wrap items-center gap-y-1.5 gap-x-5 text-xs font-medium text-slate-500 pt-0.5">
+                    <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5 text-slate-400 shrink-0" /> PIC: <strong className="text-slate-700">{kontakPerson || user.name}</strong></span>
+                    <span className="flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5 text-slate-400 shrink-0" /> Sektor: <strong className="text-slate-700">{bidangIndustri || '-'}</strong></span>
+                    <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" /> Kontak: <strong className="text-slate-700">{phone || user.phone || '-'}</strong></span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0 self-start md:self-center">
+                <button
+                  onClick={() => setActiveTab('profil')}
+                  className="bg-white hover:bg-slate-50 text-slate-700 font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2 cursor-pointer border border-slate-200 shadow-2xs"
+                >
+                  <FileText className="w-4 h-4 text-slate-500" /> Edit Profil
+                </button>
+                <button
+                  onClick={() => { setActiveTab('lowongan'); setShowAddJob(true); }}
+                  className="bg-[#0055D4] hover:bg-blue-700 text-white font-extrabold px-5 py-2 rounded-xl text-xs transition shadow-xs flex items-center gap-2 cursor-pointer active:scale-95"
+                >
+                  <Plus className="w-4 h-4" /> Posting Lowongan
+                </button>
               </div>
             </div>
 
-            <nav className="flex flex-col gap-1.5" id="mtr-nav-menu">
-              {[
-                { id: 'ringkasan', label: 'Ringkasan Kerja', icon: Building2 },
-                { id: 'profil', label: 'Profil Instansi', icon: FileText },
-                { id: 'lowongan', label: 'Kelola Lowongan', icon: Briefcase },
-                { id: 'pelamar', label: 'Pelamar & Seleksi', icon: Users }
-              ].map((menu) => {
-                const Icon = menu.icon;
-                const isActive = activeTab === menu.id;
-                return (
-                  <button
-                    key={menu.id}
-                    id={`mtr-tab-${menu.id}`}
-                    onClick={() => {
-                      setActiveTab(menu.id as any);
-                      setShowAddJob(false);
-                    }}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all cursor-pointer ${isActive
-                        ? 'bg-[#0077C6] text-white shadow-md shadow-blue-500/20'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
-                      }`}
-                  >
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                    {menu.label}
-                  </button>
-                );
-              })}
-            </nav>
+            {/* QUICK STAT COUNTERS */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-200/80 flex items-center justify-between transition group hover:bg-white hover:shadow-2xs">
+                <div className="space-y-1">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">TOTAL LOWONGAN</span>
+                  <div className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                    {myJobs.length} <span className="text-xs font-semibold text-slate-500">Posisi</span>
+                  </div>
+                  <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md inline-block">
+                    Aktif di CDC
+                  </span>
+                </div>
+                <div className="w-11 h-11 bg-blue-50 text-[#0077C6] border border-blue-100 rounded-xl flex items-center justify-center shrink-0">
+                  <Briefcase className="w-5 h-5" />
+                </div>
+              </div>
+
+              <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-200/80 flex items-center justify-between transition group hover:bg-white hover:shadow-2xs">
+                <div className="space-y-1">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">PELAMAR MASUK</span>
+                  <div className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                    {myApplicants.length} <span className="text-xs font-semibold text-slate-500">Pelamar</span>
+                  </div>
+                  <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md inline-block">
+                    Perlu Evaluasi
+                  </span>
+                </div>
+                <div className="w-11 h-11 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-xl flex items-center justify-center shrink-0">
+                  <Users className="w-5 h-5" />
+                </div>
+              </div>
+
+              <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-200/80 flex items-center justify-between transition group hover:bg-white hover:shadow-2xs">
+                <div className="space-y-1">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">LOLOS &amp; REKRUT</span>
+                  <div className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                    {myApplicants.filter(a => {
+                      const s = (a.status || '').toLowerCase();
+                      return s === 'accepted' || s === 'diterima' || s === 'completed';
+                    }).length} <span className="text-xs font-semibold text-slate-500">Orang</span>
+                  </div>
+                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md inline-block">
+                    Diterima Kerja
+                  </span>
+                </div>
+                <div className="w-11 h-11 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-xl flex items-center justify-center shrink-0">
+                  <CheckCircle className="w-5 h-5" />
+                </div>
+              </div>
+            </div>
           </div>
-
-          <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-xs space-y-3" id="mtr-side-status">
-            <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              Status Kemitraan
-            </h4>
-            <div className="space-y-2 text-xs pt-2 border-t border-slate-100">
-              <div className="flex justify-between items-center py-1">
-                <span className="text-slate-500 font-medium">Kerja Sama:</span>
-                <span className="font-extrabold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 text-[10px]">VERIFIED / AKTIF</span>
-              </div>
-              <div className="flex justify-between items-center py-1">
-                <span className="text-slate-500 font-medium">Lowongan Aktif:</span>
-                <span className="font-extrabold text-slate-900 bg-slate-100 px-2.5 py-0.5 rounded-full text-[11px] font-mono">{myJobs.filter(j => j.status === 'published').length} Posisi</span>
-              </div>
-            </div>
-          </div>
-        </aside>
-
-        {/* CORE CONTENT DISPLAY BOARD */}
-        <main className="lg:col-span-9 space-y-8" id="mtr-dashboard-main">
-
-          {/* POLISHED VERIFIED PARTNER HEADER BANNER CARD */}
-          {(activeTab === 'ringkasan' || activeTab === 'lowongan') && (
-            <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6" id="mtr-welcome-banner">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-100">
-                <div className="flex items-start gap-4 sm:gap-5">
-                  <div className="w-16 h-16 sm:w-18 sm:h-18 bg-[#1B365D] text-white rounded-2xl flex items-center justify-center font-black text-2xl sm:text-3xl shrink-0 shadow-md border border-slate-700/40 overflow-hidden">
-                    {companyLogoUrl ? (
-                      <img src={companyLogoUrl} alt={namaInstansi} className="w-full h-full object-contain p-2 bg-white" />
-                    ) : (
-                      <span>{namaInstansi ? namaInstansi.charAt(0).toUpperCase() : 'M'}</span>
-                    )}
-                  </div>
-                  <div className="space-y-1.5 min-w-0">
-                    <div className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-3 py-1 rounded-full font-extrabold text-[11px] uppercase tracking-wider shadow-2xs">
-                      <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                      <span>MITRA RESMI CDC UM KENDARI</span>
-                    </div>
-                    <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight truncate">{namaInstansi || 'Instansi Mitra Kampus'}</h2>
-                    <div className="flex flex-wrap items-center gap-y-1.5 gap-x-5 text-xs font-medium text-slate-500 pt-0.5">
-                      <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5 text-slate-400 shrink-0" /> PIC: <strong className="text-slate-800">{kontakPerson || user.name}</strong></span>
-                      <span className="flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5 text-slate-400 shrink-0" /> Sektor: <strong className="text-slate-800">{bidangIndustri}</strong></span>
-                      <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" /> Kontak: <strong className="text-slate-800">{phone || user.phone || '-'}</strong></span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 shrink-0 self-start md:self-center">
-                  <button
-                    onClick={() => setActiveTab('profil')}
-                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-2 cursor-pointer shadow-2xs"
-                  >
-                    <FileText className="w-4 h-4 text-slate-500" /> Edit Profil
-                  </button>
-                  <button
-                    onClick={() => { setActiveTab('lowongan'); setShowAddJob(true); }}
-                    className="bg-gradient-to-r from-[#0077C6] to-[#005FA3] hover:from-blue-700 hover:to-blue-800 text-white font-extrabold px-5 py-2.5 rounded-xl text-xs transition shadow-sm flex items-center gap-2 cursor-pointer active:scale-95"
-                  >
-                    <Plus className="w-4 h-4" /> Posting Lowongan
-                  </button>
-                </div>
-              </div>
-
-              {/* QUICK STAT COUNTERS WITH WOW EXPERT KPI CARDS */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                <div className="bg-slate-50/90 p-5 rounded-2xl border border-slate-200/80 flex items-center justify-between transition group hover:bg-white hover:shadow-md">
-                  <div className="space-y-1">
-                    <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider block">TOTAL LOWONGAN</span>
-                    <div className="text-2xl font-extrabold text-slate-900 tracking-tight">
-                      {myJobs.length} <span className="text-sm font-semibold text-slate-500">Posisi</span>
-                    </div>
-                    <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md inline-block">
-                      Aktif di CDC
-                    </span>
-                  </div>
-                  <div className="w-12 h-12 bg-blue-50 text-[#0077C6] border border-blue-100 rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 transition shadow-2xs">
-                    <Briefcase className="w-6 h-6" />
-                  </div>
-                </div>
-
-                <div className="bg-slate-50/90 p-5 rounded-2xl border border-slate-200/80 flex items-center justify-between transition group hover:bg-white hover:shadow-md">
-                  <div className="space-y-1">
-                    <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider block">PELAMAR MASUK</span>
-                    <div className="text-2xl font-extrabold text-slate-900 tracking-tight">
-                      {myApplicants.length} <span className="text-sm font-semibold text-slate-500">Pelamar</span>
-                    </div>
-                    <span className="text-[11px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md inline-block">
-                      Perlu Evaluasi
-                    </span>
-                  </div>
-                  <div className="w-12 h-12 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 transition shadow-2xs">
-                    <Users className="w-6 h-6" />
-                  </div>
-                </div>
-
-                <div className="bg-slate-50/90 p-5 rounded-2xl border border-slate-200/80 flex items-center justify-between transition group hover:bg-white hover:shadow-md">
-                  <div className="space-y-1">
-                    <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider block">LOLOS &amp; REKRUT</span>
-                    <div className="text-2xl font-extrabold text-slate-900 tracking-tight">
-                      {myApplicants.filter(a => {
-                        const s = (a.status || '').toLowerCase();
-                        return s === 'accepted' || s === 'diterima' || s === 'completed';
-                      }).length} <span className="text-sm font-semibold text-slate-500">Orang</span>
-                    </div>
-                    <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md inline-block">
-                      Diterima Kerja
-                    </span>
-                  </div>
-                  <div className="w-12 h-12 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 transition shadow-2xs">
-                    <CheckCircle className="w-6 h-6" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+        )}
 
           {/* TAB 1: RINGKASAN */}
           {activeTab === 'ringkasan' && (
@@ -1282,7 +1325,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                               {studentRecord?.photoUrl ? (
                                 <img src={studentRecord.photoUrl} alt={appl.namaMahasiswa} className="w-11 h-11 object-cover rounded-2xl border border-slate-200 shadow-2xs" />
                               ) : (
-                                <div className="w-11 h-11 bg-[#1B365D] text-white rounded-2xl flex items-center justify-center font-black text-sm shadow-2xs border border-slate-700/50">
+                                <div className="w-11 h-11 bg-white text-[#0077C6] rounded-2xl flex items-center justify-center font-black text-sm shadow-2xs border border-slate-200">
                                   {appl.namaMahasiswa ? appl.namaMahasiswa.charAt(0).toUpperCase() : 'M'}
                                 </div>
                               )}
@@ -2437,7 +2480,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                                         {photoUrl ? (
                                           <img src={photoUrl} alt={appl.namaMahasiswa} className="w-9 h-9 object-cover rounded-2xl border border-slate-200 shadow-2xs" />
                                         ) : (
-                                          <div className="w-9 h-9 bg-[#1B365D] text-white rounded-2xl flex items-center justify-center font-black text-xs shadow-2xs border border-slate-700/50">
+                                          <div className="w-9 h-9 bg-white text-[#0077C6] rounded-2xl flex items-center justify-center font-black text-xs shadow-2xs border border-slate-200">
                                             {appl.namaMahasiswa ? appl.namaMahasiswa.charAt(0).toUpperCase() : 'M'}
                                           </div>
                                         )}
@@ -2663,28 +2706,27 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
           )}
 
         </main>
-      </div>
 
       {/* MODAL FORM JADWAL INTERVIEW */}
       {schedulingApplicant && (
         <div className="fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
           <div className="bg-white max-w-lg w-full rounded-3xl border border-slate-200 shadow-2xl overflow-hidden my-8">
-            <div className="bg-[#1B365D] text-white p-6 relative flex items-center justify-between">
+            <div className="bg-white border-b border-slate-200 p-6 flex items-center justify-between">
               <div>
-                <span className="text-emerald-400 font-extrabold text-[10px] uppercase tracking-wider block mb-1">
+                <span className="text-[#0055D4] font-bold text-xs uppercase tracking-wider block mb-1">
                   Penjadwalan Wawancara Pelamar
                 </span>
-                <h3 className="text-xl font-extrabold text-white">
+                <h3 className="text-xl font-extrabold text-slate-900">
                   Jadwalkan Interview
                 </h3>
-                <p className="text-slate-300 text-xs mt-0.5 font-medium">
-                  Pelamar: {schedulingApplicant.namaMahasiswa} ({schedulingApplicant.nim || 'Job Seeker'})
+                <p className="text-slate-500 text-xs mt-0.5 font-medium">
+                  Pelamar: <strong className="text-slate-800">{schedulingApplicant.namaMahasiswa}</strong> ({schedulingApplicant.nim || 'Job Seeker'})
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setSchedulingApplicant(null)}
-                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition shrink-0 cursor-pointer"
+                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition shrink-0 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2813,25 +2855,25 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
               const jobTitleText = getJobTitle(selectedApplicantDoc.tujuanMagang, namaInstansi);
 
               return (
-                <div className="bg-[#1B365D] text-white p-5 sm:p-6 relative flex items-center justify-between shrink-0">
+                <div className="bg-white border-b border-slate-200 p-5 sm:p-6 flex items-center justify-between shrink-0">
                   <div className="flex items-center gap-4">
-                    <div className="w-13 h-13 rounded-2xl shrink-0 overflow-hidden">
+                    <div className="w-12 h-12 rounded-2xl shrink-0 overflow-hidden bg-slate-100 border border-slate-200 flex items-center justify-center">
                       {photoUrl ? (
-                        <img src={photoUrl} alt={selectedApplicantDoc.namaMahasiswa} className="w-13 h-13 object-cover rounded-2xl border-2 border-white/30 shadow-xs" />
+                        <img src={photoUrl} alt={selectedApplicantDoc.namaMahasiswa} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-13 h-13 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white font-black text-xl shadow-xs">
+                        <div className="w-full h-full bg-white flex items-center justify-center text-[#0055D4] font-bold text-lg">
                           {selectedApplicantDoc.namaMahasiswa.charAt(0).toUpperCase()}
                         </div>
                       )}
                     </div>
                     <div>
-                      <span className="text-emerald-400 font-extrabold text-[10px] uppercase tracking-wider block mb-0.5">
+                      <span className="text-[#0055D4] font-bold text-[11px] uppercase tracking-wider block mb-0.5">
                         DETAIL PELAMAR • {jobTitleText}
                       </span>
-                      <h3 className="text-lg sm:text-xl font-extrabold text-white leading-tight">
+                      <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 leading-tight">
                         {selectedApplicantDoc.namaMahasiswa}
                       </h3>
-                      <p className="text-slate-300 text-xs mt-0.5 font-medium">
+                      <p className="text-slate-500 text-xs mt-0.5 font-medium">
                         {(() => {
                           const studentRecord = getFromDB<Mahasiswa>('mahasiswa').find(s => s.nim === selectedApplicantDoc.nim || s.userId === selectedApplicantDoc.userId || s.id === selectedApplicantDoc.mahasiswaId);
                           const roleLabel = studentRecord?.userStatusType || (selectedApplicantDoc.nim ? 'Mahasiswa' : 'Job Seeker');
@@ -2842,7 +2884,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                   </div>
                   <button
                     onClick={() => setSelectedApplicantDoc(null)}
-                    className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition shrink-0 cursor-pointer"
+                    className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition shrink-0 cursor-pointer"
                   >
                     <X className="w-5 h-5" />
                   </button>

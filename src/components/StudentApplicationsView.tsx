@@ -76,9 +76,6 @@ export const StudentApplicationsView: React.FC<StudentApplicationsViewProps> = (
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
         <div className="border-b border-slate-100 pb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <span className="text-[#0077C6] font-extrabold text-xs uppercase tracking-wider block mb-1">
-              Portal Karir CDC UM Kendari
-            </span>
             <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
               Status Lamaran &amp; Wawancara Saya
             </h2>

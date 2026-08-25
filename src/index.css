@@ -77,7 +77,7 @@
 
 @layer base {
   body {
-    @apply antialiased select-none bg-slate-50 text-slate-800;
+    @apply antialiased select-none bg-white text-slate-800;
   }
 }
 
