@@ -16,8 +16,11 @@ Repo: `D:\PORTAL-CDC-UMK-KENDARI`
    - Menyediakan kamus terjemahan lengkap (Bahasa Indonesia 🇮🇩 & English 🇬🇧) untuk seluruh navigasi header, sub-menu profil/layanan/tracer study, tombol interaktif, dan footer.
    - Menyediakan kamus terjemahan narasi dinamis (`NARRATIVE_TRANSLATIONS`) untuk frasa admin, status jadwal konseling karir, nama hari, dan dokumen resmi (SK, MoU, Laporan Kinerja).
    - Menyimpan preferensi bahasa user di `localStorage` (`cdc_language`) dan melakukan sync real-time via event listener.
-2. **Switcher Bahasa Bendera & Navigasi Header (`src/components/Header.tsx`):**
-   - Menambahkan tombol toggle bendera interaktif **🇮🇩 ID** & **🇬🇧 EN** pada Top Bar Header.
+2. **Redesign Switcher Bahasa Dropdown Header (`src/components/Header.tsx`):**
+   - Mengubah 2 tombol *pill* lama menjadi **Dropdown Select Box Dark Navy** (`#091322`) dengan aksen teks **Kuning Gold (`EN`/`ID`)** dan panah segitiga kebawah (`▼`), persis sesuai acuan desain gambar referensi.
+   - Menggunakan aset gambar PNG bendera asli (`/logo bendera indo.png` + `"ID"` & `/logo bendera inggris.png` + `"EN"`) baik pada trigger button maupun pop-up menu dropdown.
+   - **Circular Alpha Masking**: Memproses kedua aset bendera (`logo bendera indo.png` & `logo bendera inggris.png`) berbentuk lingkaran presisi — warna asli di dalam bundaran bendera (termasuk separuh putih bendera Indonesia dan detail putih Inggris) dikembalikan 100% utuh, hanya area di luar lingkaran bundar yang dijadikan 100% transparan (Alpha RGBA).
+   - Pop-up menu melayang (*floating dropdown*) memuat pilihan `EN` dan `ID` dengan penanda status aktif dan listener *click-outside* otomatis.
    - Mengintegrasikan fungsi terjemahan dinamis pada seluruh menu navigasi, top links, dan penanggalan header (menyesuaikan format `id-ID` atau `en-US`).
 3. **Integrasi i18n di Seluruh Layout & Komponen Publik:**
    - **`Footer.tsx`**: Terjemahan deskripsi CDC, tautan cepat, layanan karir, kontak, dan copyright.

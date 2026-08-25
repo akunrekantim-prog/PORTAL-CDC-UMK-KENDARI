@@ -173,8 +173,10 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
   const [subMobileExpanded, setSubMobileExpanded] = useState<string | null>(null);
   const [activeSubMenu, setActiveSubMenu] = useState<string | null>('Profil');
 
+  const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const navRef = useRef<HTMLDivElement>(null);
+  const langDropdownRef = useRef<HTMLDivElement>(null);
 
   /* Current date */
   const formattedDate = new Date().toLocaleDateString(lang === 'en' ? 'en-US' : 'id-ID', {
@@ -229,6 +231,9 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
     const handler = (e: MouseEvent) => {
       if (navRef.current && !navRef.current.contains(e.target as Node)) {
         setOpenDropdown(null);
+      }
+      if (langDropdownRef.current && !langDropdownRef.current.contains(e.target as Node)) {
+        setIsLangDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handler);
@@ -330,34 +335,76 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
           <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4 shrink-0">
             <span className="text-blue-200 font-semibold truncate text-[11px] sm:text-xs">{formattedDate}</span>
 
-            {/* 🇮🇩 ID / 🇬🇧 EN FLAG BUTTONS */}
-            <div className="flex items-center gap-1 bg-white/10 p-0.5 rounded-full border border-white/20 shrink-0">
+            {/* 🇮🇩 / 🇬🇧 DROPDOWN LANGUAGE SWITCHER */}
+            <div className="relative shrink-0" ref={langDropdownRef}>
               <button
                 type="button"
-                onClick={() => setLang('id')}
-                className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-extrabold transition cursor-pointer ${
-                  lang === 'id'
-                    ? 'bg-red-600 text-white shadow-xs ring-1 ring-white/50'
-                    : 'text-blue-200 hover:text-white hover:bg-white/10'
-                }`}
-                title="Bahasa Indonesia"
+                onClick={() => setIsLangDropdownOpen(prev => !prev)}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#091322] hover:bg-[#0f1d33] border border-white/20 text-xs font-semibold cursor-pointer transition-colors shadow-xs group"
+                aria-expanded={isLangDropdownOpen}
+                aria-haspopup="true"
+                title="Pilih Bahasa / Change Language"
               >
-                <span className="text-xs">🇮🇩</span>
-                <span>ID</span>
+                <img
+                  src={lang === 'en' ? '/logo bendera inggris.png' : '/logo bendera indo.png'}
+                  alt={lang === 'en' ? 'EN' : 'ID'}
+                  className="w-4.5 h-4.5 object-cover rounded-full shadow-2xs shrink-0"
+                />
+                <span className="text-amber-400 font-extrabold tracking-wider">{lang === 'en' ? 'EN' : 'ID'}</span>
+                <svg
+                  className={`w-3 h-3 text-amber-400 fill-current transition-transform duration-200 ${
+                    isLangDropdownOpen ? 'rotate-180' : ''
+                  }`}
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                </svg>
               </button>
-              <button
-                type="button"
-                onClick={() => setLang('en')}
-                className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-extrabold transition cursor-pointer ${
-                  lang === 'en'
-                    ? 'bg-blue-600 text-white shadow-xs ring-1 ring-white/50'
-                    : 'text-blue-200 hover:text-white hover:bg-white/10'
-                }`}
-                title="English"
-              >
-                <span className="text-xs">🇬🇧</span>
-                <span>EN</span>
-              </button>
+
+              {/* Dropdown Popup Menu */}
+              {isLangDropdownOpen && (
+                <div className="absolute right-0 top-full mt-1 w-28 bg-[#091322] border border-slate-700/80 rounded shadow-2xl py-1 z-[110] overflow-hidden text-xs divide-y divide-slate-800/60">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLang('en');
+                      setIsLangDropdownOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-left font-bold transition-colors ${
+                      lang === 'en'
+                        ? 'bg-[#12233c] text-white'
+                        : 'text-gray-300 hover:bg-[#0e1c31] hover:text-white'
+                    }`}
+                  >
+                    <img
+                      src="/logo bendera inggris.png"
+                      alt="EN"
+                      className="w-4.5 h-4.5 object-cover rounded-full shrink-0 shadow-2xs"
+                    />
+                    <span className={lang === 'en' ? 'text-amber-400' : 'text-gray-200'}>EN</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLang('id');
+                      setIsLangDropdownOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-left font-bold transition-colors ${
+                      lang === 'id'
+                        ? 'bg-[#12233c] text-white'
+                        : 'text-gray-300 hover:bg-[#0e1c31] hover:text-white'
+                    }`}
+                  >
+                    <img
+                      src="/logo bendera indo.png"
+                      alt="ID"
+                      className="w-4.5 h-4.5 object-cover rounded-full shrink-0 shadow-2xs"
+                    />
+                    <span className={lang === 'id' ? 'text-amber-400' : 'text-gray-200'}>ID</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
