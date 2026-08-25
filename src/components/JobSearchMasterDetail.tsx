@@ -21,6 +21,7 @@ import { JobDetail } from './JobDetail';
 import { Footer } from './Footer';
 import { motion, AnimatePresence } from 'motion/react';
 import Dropdown from './Dropdown';
+import { useLanguage } from '../i18n';
 
 // Full list of Indonesian Provinces & Cities
 export interface ProvinceLocation {
@@ -148,6 +149,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
   onSelectLowongan,
   setTab
 }) => {
+  const { t } = useLanguage();
   // 1 Textbox Searching Kata Kunci, Jabatan, Perusahaan
   const [keyword, setKeyword] = useState('');
 
@@ -357,10 +359,10 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
         {/* PAGE TITLE & SUBTITLE */}
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Cari lowongan pekerjaan
+            {t('sec.lowongankerja', 'Cari lowongan pekerjaan')}
           </h1>
           <p className="text-slate-500 font-medium text-sm sm:text-base">
-            Temukan peluang karier yang sesuai dengan minat dan keahlianmu.
+            {t('sec.semuabagus', 'Temukan peluang karier yang sesuai dengan minat dan keahlianmu.')}
           </p>
         </div>
 
@@ -373,7 +375,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
               <Search className="w-4 h-4 text-slate-400 shrink-0 mr-2.5" />
               <input
                 type="text"
-                placeholder="Kata kunci, jabatan, atau perusahaan"
+                placeholder={t('job.searchplaceholder', 'Kata kunci, jabatan, atau perusahaan')}
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
                 className="w-full bg-transparent border-none focus:outline-none text-xs md:text-sm font-medium text-slate-800 placeholder:text-slate-400"
@@ -402,7 +404,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
                   }`} />
                   <span className={`truncate ${selectedLocations.length > 0 ? 'font-bold text-slate-800' : 'text-slate-600'}`}>
                     {selectedLocations.length === 0
-                      ? 'Semua Lokasi'
+                      ? t('job.provinsi', 'Semua Lokasi')
                       : `${selectedLocations.length} Lokasi Terpilih (${selectedLocations.slice(0, 2).join(', ')}${selectedLocations.length > 2 ? '...' : ''})`}
                   </span>
                 </div>
@@ -535,7 +537,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
                   }`} />
                   <span className={`truncate ${selectedSpecializations.length > 0 ? 'font-bold text-slate-800' : 'text-slate-600'}`}>
                     {selectedSpecializations.length === 0
-                      ? 'Semua Spesialisasi'
+                      ? t('job.tipe', 'Semua Spesialisasi')
                       : `${selectedSpecializations.length} Spesialisasi Terpilih`}
                   </span>
                 </div>
@@ -613,7 +615,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
               onClick={() => setOpenPopup(null)}
               className="bg-[#0B1E48] hover:bg-[#071533] active:scale-95 text-white px-7 py-2.5 rounded-xl font-bold text-xs md:text-sm transition shrink-0 shadow-sm cursor-pointer"
             >
-              Cari
+              {t('btn.search', 'Cari')}
             </button>
 
           </div>

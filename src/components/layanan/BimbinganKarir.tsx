@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { getKonselingConfig } from '../../data';
 import { KonselingConfig } from '../../types';
 import { ZoomIn, ArrowUpRight, X } from 'lucide-react';
+import { useLanguage } from '../../i18n';
 
 const WA_MSG_DEFAULT =
   'Halo Admin CDC UM Kendari, saya ingin berkonsultasi dan mendaftar Layanan Konseling Karir.';
 
 export default function KonselingKarir() {
+  const { t, translateContent } = useLanguage();
   const [config, setConfig] = useState<KonselingConfig>(getKonselingConfig());
   const [zoomPoster, setZoomPoster] = useState<string | null>(null);
 
@@ -21,8 +23,8 @@ export default function KonselingKarir() {
         <div className="w-14 h-14 mx-auto rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center">
           <ArrowUpRight className="w-6 h-6" />
         </div>
-        <h2 className="text-2xl font-bold text-slate-700">Layanan Konseling Karir Sedang Dalam Penyusunan</h2>
-        <p className="text-sm text-slate-500">Halaman ini masih berstatus Draft dan belum dipublikasikan oleh admin CDC UM Kendari.</p>
+        <h2 className="text-2xl font-bold text-slate-700">{translateContent('Layanan Konseling Karir Sedang Dalam Penyusunan')}</h2>
+        <p className="text-sm text-slate-500">{translateContent('Halaman ini masih berstatus Draft dan belum dipublikasikan oleh admin CDC UM Kendari.')}</p>
       </div>
     );
   }
@@ -43,11 +45,10 @@ export default function KonselingKarir() {
           Layanan CDC UM Kendari
         </p>
         <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
-          {config.title || 'Layanan Konseling Karir'}
+          {translateContent(config.title || t('layanan.konselingtitle', 'Layanan Bimbingan & Konseling Karir'))}
         </h2>
         <p className="text-base text-slate-500 leading-relaxed">
-          {config.subtitle ||
-            'Sesi konsultasi karir personal & pendampingan profesional untuk mahasiswa dan alumni Universitas Muhammadiyah Kendari.'}
+          {translateContent(config.subtitle || t('layanan.konselingdesc', 'Sesi konsultasi karir personal & pendampingan profesional untuk mahasiswa dan alumni Universitas Muhammadiyah Kendari.'))}
         </p>
       </div>
 
@@ -57,10 +58,10 @@ export default function KonselingKarir() {
           <div className="flex items-end justify-between gap-4 border-b border-slate-200 pb-4">
             <div className="space-y-1">
               <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500">
-                Poster &amp; Pamflet
+                {translateContent('Poster & Pamflet')}
               </h3>
               <p className="text-sm text-slate-400">
-                Informasi visual resmi layanan bimbingan &amp; konseling karir CDC UM Kendari
+                {translateContent('Informasi visual resmi layanan bimbingan & konseling karir CDC UM Kendari')}
               </p>
             </div>
             <button
@@ -68,7 +69,7 @@ export default function KonselingKarir() {
               className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors shrink-0"
             >
               <ZoomIn className="w-3.5 h-3.5" />
-              Perbesar
+              {translateContent('Perbesar')}
             </button>
           </div>
           <button
@@ -88,7 +89,7 @@ export default function KonselingKarir() {
       {hasInfoItems && (
         <section className="max-w-4xl">
           <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-200 pb-3">
-            Penjelasan &amp; Topik Konseling
+            {translateContent('Penjelasan & Topik Konseling')}
           </h3>
           <div className="divide-y divide-slate-100">
             {config.infoItems.map((item, idx) => (
@@ -101,9 +102,9 @@ export default function KonselingKarir() {
                 </span>
                 <div className="space-y-2">
                   <h4 className="text-base font-semibold text-slate-900 leading-snug">
-                    {item.judul}
+                    {translateContent(item.judul)}
                   </h4>
-                  <p className="text-sm text-slate-600 leading-relaxed">{item.deskripsi}</p>
+                  <p className="text-sm text-slate-600 leading-relaxed">{translateContent(item.deskripsi)}</p>
                   {item.linkUrl && (
                     <a
                       href={item.linkUrl}
@@ -111,7 +112,7 @@ export default function KonselingKarir() {
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-sm font-semibold text-[#F26522] hover:text-orange-700 transition-colors"
                     >
-                      {item.linkLabel || 'Buka Tautan Terkait'}
+                      {translateContent(item.linkLabel || 'Buka Tautan Terkait')}
                       <ArrowUpRight className="w-3.5 h-3.5" />
                     </a>
                   )}
@@ -127,31 +128,31 @@ export default function KonselingKarir() {
         <section className="space-y-4">
           <div className="border-b border-slate-200 pb-3">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500">
-              Jadwal &amp; Pelaksanaan
+              {translateContent('Jadwal & Pelaksanaan')}
             </h3>
             <p className="text-sm text-slate-400 mt-1">
-              Jadwal operasional tatap muka &amp; daring untuk sesi konseling karir CDC UM Kendari
+              {translateContent('Jadwal operasional tatap muka & daring untuk sesi konseling karir CDC UM Kendari')}
             </p>
           </div>
           <div className="overflow-x-auto rounded-xl border border-slate-200">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-50 text-left text-xs uppercase tracking-wider text-slate-500">
-                  <th className="px-5 py-3 font-semibold">Hari</th>
-                  <th className="px-5 py-3 font-semibold">Waktu</th>
-                  <th className="px-5 py-3 font-semibold">Lokasi</th>
-                  <th className="px-5 py-3 font-semibold">Kuota</th>
-                  <th className="px-5 py-3 font-semibold text-right">Status</th>
+                  <th className="px-5 py-3 font-semibold">{translateContent('Hari')}</th>
+                  <th className="px-5 py-3 font-semibold">{translateContent('Waktu')}</th>
+                  <th className="px-5 py-3 font-semibold">{translateContent('Lokasi')}</th>
+                  <th className="px-5 py-3 font-semibold">{translateContent('Kuota')}</th>
+                  <th className="px-5 py-3 font-semibold text-right">{translateContent('Status')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {config.jadwalItems.map((jdw, idx) => (
                   <tr key={jdw.id || idx} className="bg-white hover:bg-slate-50/60 transition-colors">
                     <td className="px-5 py-4 font-semibold text-slate-900 whitespace-nowrap">
-                      {jdw.hari}
+                      {translateContent(jdw.hari)}
                     </td>
                     <td className="px-5 py-4 text-slate-600 whitespace-nowrap">{jdw.jam}</td>
-                    <td className="px-5 py-4 text-slate-600">{jdw.lokasi}</td>
+                    <td className="px-5 py-4 text-slate-600">{translateContent(jdw.lokasi)}</td>
                     <td className="px-5 py-4 text-slate-600 whitespace-nowrap">
                       {jdw.kuotaPerHari || '-'}
                     </td>
@@ -167,10 +168,10 @@ export default function KonselingKarir() {
                       />
                       <span className="text-slate-600 font-medium">
                         {jdw.status === 'buka'
-                          ? 'Sesi Buka'
+                          ? translateContent('Sesi Buka')
                           : jdw.status === 'penuh'
-                            ? 'Sesi Penuh'
-                            : 'Sesi Tutup'}
+                            ? translateContent('Sesi Penuh')
+                            : translateContent('Sesi Tutup')}
                       </span>
                     </td>
                   </tr>
@@ -186,14 +187,16 @@ export default function KonselingKarir() {
         <section className="bg-slate-900 rounded-xl px-6 py-10 sm:px-12 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-8">
           <div className="space-y-2 max-w-xl">
             <h3 className="text-xl sm:text-2xl font-semibold tracking-tight">
-              Konsultasi &amp; Pendaftaran Konseling
+              {translateContent('Konsultasi & Pendaftaran Konseling')}
             </h3>
             <p className="text-sm text-slate-300 leading-relaxed">
-              {config.narasiWa ||
-                'Ingin menjadwalkan sesi konseling karir atau mengajukan pertanyaan lebih lanjut? Silakan hubungi Admin Konseling Karir CDC UM Kendari melalui WhatsApp.'}
+              {translateContent(
+                config.narasiWa ||
+                'Ingin menjadwalkan sesi konseling karir atau mengajukan pertanyaan lebih lanjut? Silakan hubungi Admin Konseling Karir CDC UM Kendari melalui WhatsApp.'
+              )}
             </p>
             <p className="text-xs text-slate-400">
-              Gratis — pesan otomatis siap terisi saat WhatsApp terbuka
+              {translateContent('Gratis — pesan otomatis siap terisi saat WhatsApp terbuka')}
             </p>
           </div>
           <a
@@ -202,7 +205,7 @@ export default function KonselingKarir() {
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-6 py-3.5 text-sm font-semibold text-slate-900 hover:bg-slate-100 transition-colors shrink-0"
           >
-            Hubungi Admin via WhatsApp
+            {translateContent('Hubungi Admin via WhatsApp')}
             <ArrowUpRight className="w-4 h-4" />
           </a>
         </section>

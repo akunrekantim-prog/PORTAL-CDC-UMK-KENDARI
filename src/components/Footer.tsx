@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { getFromDB, getCdcClubConfig } from '../data';
 import { Lowongan, SocialMediaItem, CdcClubConfig } from '../types';
+import { useLanguage } from '../i18n';
 
 const POPULAR_LINKS = [
   'Loker BPJS Kesehatan 2026',
@@ -41,6 +42,7 @@ interface FooterProps {
 }
 
 export const Footer: React.FC<FooterProps> = ({ onSelectLowongan, setTab }) => {
+  const { t, translateContent } = useLanguage();
   const publishedLowongan = getFromDB<Lowongan>('lowongan').filter(l => l.status === 'published');
   const socialMediaList = getFromDB<SocialMediaItem>('social_media').filter(
     (item) => item.isActive && item.url && item.url.trim() !== ''
@@ -71,8 +73,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectLowongan, setTab }) => {
               />
             </div>
             <p className="text-slate-400 text-sm leading-relaxed max-w-sm">
-              Pusat Pengembangan Karir dan Alumni, Universitas Muhammadiyah Kendari.
-              Berkomitmen menjembatani lulusan dengan dunia kerja profesional.
+              {t('footer.tentang', 'Pusat Pengembangan Karir dan Alumni, Universitas Muhammadiyah Kendari. Berkomitmen menjembatani lulusan dengan dunia kerja profesional.')}
             </p>
 
             {/* CDC Club mini-badge (1 toggle dgn card beranda) */}
@@ -89,8 +90,8 @@ export const Footer: React.FC<FooterProps> = ({ onSelectLowongan, setTab }) => {
                     <Users className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <div className="text-white font-extrabold text-xs whitespace-pre-line">{club.title}</div>
-                    <div className="text-rose-400 text-[10px]">{club.subtitle}</div>
+                    <div className="text-white font-extrabold text-xs whitespace-pre-line">{translateContent(club.title)}</div>
+                    <div className="text-rose-400 text-[10px]">{translateContent(club.subtitle)}</div>
                   </div>
                 </button>
               );

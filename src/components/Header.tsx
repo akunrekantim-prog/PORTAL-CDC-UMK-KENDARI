@@ -15,6 +15,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useLanguage } from '../i18n';
 
 /* ─────────────────────────────────────────────────────────────────
    TYPES
@@ -165,6 +166,7 @@ const TOP_LINKS = [
    COMPONENT
 ───────────────────────────────────────────────────────────────── */
 export default function Header({ currentTab, setTab, onNavigateToLogin, onNavigateToRegister }: HeaderProps) {
+  const { lang, setLang, t } = useLanguage();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
@@ -175,9 +177,52 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
   const navRef = useRef<HTMLDivElement>(null);
 
   /* Current date */
-  const formattedDate = new Date().toLocaleDateString('en-GB', {
+  const formattedDate = new Date().toLocaleDateString(lang === 'en' ? 'en-US' : 'id-ID', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   });
+
+  /* Translation helper for menu labels */
+  const getNavText = (label: string): string => {
+    const keyMap: Record<string, string> = {
+      'Beranda': 'nav.beranda',
+      'Tentang Kami': 'nav.tentang',
+      'Profil': 'nav.profil',
+      'Visi – Misi': 'nav.visimisi',
+      'Keanggotaan': 'nav.keanggotaan',
+      'Surat Keputusan CDC': 'nav.skcdc',
+      'Kalender Kegiatan': 'nav.kalender',
+      'Laporan Kinerja & Tracer Study': 'nav.laporan',
+      'MOU Dengan Stakeholder': 'nav.mou',
+      'Galeri': 'nav.galeri',
+      'Layanan': 'nav.layanan',
+      'Berita & Artikel': 'nav.berita',
+      'Konseling Karir': 'nav.konseling',
+      'Tes Potensi Minat Kerja': 'nav.tesminat',
+      'Workshop Pengembangan Karir': 'nav.workshop',
+      'Pelatihan Softskill & Kewirausahaan': 'nav.softskill',
+      'Seminar Sukses Berkarir': 'nav.seminar',
+      'Job Fair': 'nav.jobfair',
+      'Campus Hiring': 'nav.campushiring',
+      'Internship': 'nav.magang',
+      'Tracer Study': 'nav.tracer',
+      'Form Kuesioner Tracer Study': 'nav.tracerform',
+      'Simbelmawa': 'nav.simbelmawa',
+      'Prestasi': 'nav.prestasi',
+      'Internasional': 'nav.internasional',
+      'Nasional': 'nav.nasional',
+      'Wilayah': 'nav.wilayah',
+      'Akademik': 'nav.akademik',
+      'Non-Akademik': 'nav.nonakademik',
+      'Register': 'nav.register',
+      'Register User': 'nav.registeralumni',
+      'Register Mitra': 'nav.registermitra',
+      'Job Info': 'nav.jobinfo',
+      'Lowongan Terbaru': 'nav.lowonganterbaru',
+      'Website UM Kendari': 'top.website'
+    };
+    const k = keyMap[label];
+    return k ? t(k, label) : label;
+  };
 
   /* Close dropdown on outside click */
   useEffect(() => {
@@ -258,12 +303,12 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
           1. TOP BAR
       ══════════════════════════════════════════ */}
       <div
-        className="hidden sm:block text-white text-xs font-medium"
+        className="block text-white text-xs font-medium"
         style={{ backgroundColor: '#10006bff' }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between">
           {/* Left: utility links */}
-          <div className="flex items-center gap-0">
+          <div className="hidden sm:flex items-center gap-0">
             {TOP_LINKS.map((link, i) => (
               <React.Fragment key={link.label}>
                 <a
@@ -272,7 +317,7 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                   rel="noopener noreferrer"
                   className="hover:text-orange-300 transition-colors duration-150 whitespace-nowrap"
                 >
-                  {link.label}
+                  {getNavText(link.label)}
                 </a>
                 {i < TOP_LINKS.length - 1 && (
                   <span className="mx-2.5 text-blue-400 select-none">•</span>
@@ -280,8 +325,41 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
               </React.Fragment>
             ))}
           </div>
-          {/* Right: date */}
-          <span className="text-blue-200 font-semibold shrink-0 pl-6">{formattedDate}</span>
+
+          {/* Right: Date & Flag Language Switcher */}
+          <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4 shrink-0">
+            <span className="text-blue-200 font-semibold truncate text-[11px] sm:text-xs">{formattedDate}</span>
+
+            {/* 🇮🇩 ID / 🇬🇧 EN FLAG BUTTONS */}
+            <div className="flex items-center gap-1 bg-white/10 p-0.5 rounded-full border border-white/20 shrink-0">
+              <button
+                type="button"
+                onClick={() => setLang('id')}
+                className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-extrabold transition cursor-pointer ${
+                  lang === 'id'
+                    ? 'bg-red-600 text-white shadow-xs ring-1 ring-white/50'
+                    : 'text-blue-200 hover:text-white hover:bg-white/10'
+                }`}
+                title="Bahasa Indonesia"
+              >
+                <span className="text-xs">🇮🇩</span>
+                <span>ID</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setLang('en')}
+                className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-extrabold transition cursor-pointer ${
+                  lang === 'en'
+                    ? 'bg-blue-600 text-white shadow-xs ring-1 ring-white/50'
+                    : 'text-blue-200 hover:text-white hover:bg-white/10'
+                }`}
+                title="English"
+              >
+                <span className="text-xs">🇬🇧</span>
+                <span>EN</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -333,7 +411,7 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                     aria-expanded={item.children ? openDropdown === item.id : undefined}
                     aria-haspopup={item.children ? 'true' : undefined}
                   >
-                    {item.label}
+                    {getNavText(item.label)}
                     {item.children && (
                       <svg
                         className={[
@@ -388,7 +466,7 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                                     : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900',
                               ].join(' ')}
                             >
-                              <span>{child.label}</span>
+                              <span>{getNavText(child.label)}</span>
                               {hasSub && (
                                 <svg
                                   className={[
@@ -434,7 +512,7 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                                     : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900',
                                 ].join(' ')}
                               >
-                                {subChild.label}
+                                {getNavText(subChild.label)}
                               </button>
                             ))}
                         </div>
@@ -505,7 +583,7 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                       'border-l-2 pl-3 transition-colors',
                       active ? 'border-[#F26522]' : 'border-transparent',
                     ].join(' ')}>
-                      {item.label}
+                      {getNavText(item.label)}
                     </span>
                     {item.children && (
                       <svg

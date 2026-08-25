@@ -1,8 +1,49 @@
 # Progres Pengerjaan — Portal CDC UM Kendari
 
-Periode: 23–24 Agustus 2026  
+Periode: 23–25 Agustus 2026  
 Branch: `main`  
 Repo: `D:\PORTAL-CDC-UMK-KENDARI`
+
+---
+
+## Tanggal: 25 Agustus 2026
+**Oleh: Developer Fachrul Alam Sanuddin**
+**Fokus Pekerjaan:** Fitur Multi-Bahasa / Dual Language (Bahasa Indonesia 🇮🇩 & English 🇬🇧), Switcher Bendera di Top Bar Header, Terjemahan Kamus Navigasi & Konten Layanan, serta Optimalisasi Aset SVG Publik.
+
+### Ringkasan Perubahan
+1. **Sistem Multi-Bahasa / i18n (`src/i18n.ts` - BARU):**
+   - Membuat sistem manajemen bahasa `i18n` (custom hook `useLanguage`, helper `t()`, `setLanguage()`, dan `translateContent()`).
+   - Menyediakan kamus terjemahan lengkap (Bahasa Indonesia 🇮🇩 & English 🇬🇧) untuk seluruh navigasi header, sub-menu profil/layanan/tracer study, tombol interaktif, dan footer.
+   - Menyediakan kamus terjemahan narasi dinamis (`NARRATIVE_TRANSLATIONS`) untuk frasa admin, status jadwal konseling karir, nama hari, dan dokumen resmi (SK, MoU, Laporan Kinerja).
+   - Menyimpan preferensi bahasa user di `localStorage` (`cdc_language`) dan melakukan sync real-time via event listener.
+2. **Switcher Bahasa Bendera & Navigasi Header (`src/components/Header.tsx`):**
+   - Menambahkan tombol toggle bendera interaktif **🇮🇩 ID** & **🇬🇧 EN** pada Top Bar Header.
+   - Mengintegrasikan fungsi terjemahan dinamis pada seluruh menu navigasi, top links, dan penanggalan header (menyesuaikan format `id-ID` atau `en-US`).
+3. **Integrasi i18n di Seluruh Layout & Komponen Publik:**
+   - **`Footer.tsx`**: Terjemahan deskripsi CDC, tautan cepat, layanan karir, kontak, dan copyright.
+   - **`HeroSlider.tsx`**: Terjemahan teks banner slider, badge promosi, dan tombol CTA.
+   - **`JobSearchMasterDetail.tsx`**: Terjemahan placeholder pencarian lowongan, filter lokasi, filter spesialisasi, dan tombol aksi.
+   - **`PublicLayout.tsx`**: Terjemahan widget popular info, counter statistik, dan badge CDC Club.
+   - **`BimbinganKarir.tsx`**: Terjemahan visual header, tabel jadwal konseling karir, status kuota, dan tombol CTA WhatsApp.
+   - **`data.ts`**: Penyesuaian seed data dan helper untuk mendukung terjemahan multi-bahasa.
+4. **Optimalisasi & Perapihan Aset SVG Publik (`public/`):**
+   - Mengoptimalkan penamaan dan ukuran aset SVG (`sambutan_rektor_2MB_final.svg`, `KREATIVITAS_DAN_INOVASI_900KB.svg`, `PENGEMBANGAN_KARIR_900KB.svg`).
+
+### File Diubah & Ditambah
+- **[BARU]** `src/i18n.ts`
+- **[MODIFY]** `src/components/Header.tsx`
+- **[MODIFY]** `src/components/Footer.tsx`
+- **[MODIFY]** `src/components/HeroSlider.tsx`
+- **[MODIFY]** `src/components/JobSearchMasterDetail.tsx`
+- **[MODIFY]** `src/components/PublicLayout.tsx`
+- **[MODIFY]** `src/components/layanan/BimbinganKarir.tsx`
+- **[MODIFY]** `src/data.ts`
+- **[MODIFY]** `progres.md`
+- **[ASET]** `public/sambutan_rektor_2MB_final.svg`, `public/KREATIVITAS_DAN_INOVASI_900KB.svg`, `public/PENGEMBANGAN_KARIR_900KB.svg`
+
+### Verifikasi
+- ✅ `npx tsc --noEmit` — 0 error
+- ✅ Visual & Switcher Check: Pengantian bahasa 🇮🇩 ID ↔ 🇬🇧 EN berjalan instan dan mulus pada seluruh menu header, slider, lowongan, layanan bimbingan karir, dan footer.
 
 ---
 

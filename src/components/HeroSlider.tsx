@@ -49,15 +49,16 @@ export default function HeroSlider({ setTab }: HeroSliderProps) {
     setCurrentSlide(index);
   };
 
-  // Preload slide images to avoid flash
+  // Progressive Preload: Preload HANYA 1 slide berikutnya secara bertahap
   useEffect(() => {
-    slides.forEach((slide) => {
-      if (slide.imageUrl) {
-        const img = new Image();
-        img.src = slide.imageUrl;
-      }
-    });
-  }, [slides]);
+    if (totalSlides <= 1) return;
+    const nextIndex = (currentSlide + 1) % totalSlides;
+    const nextSlideObj = slides[nextIndex];
+    if (nextSlideObj?.imageUrl) {
+      const img = new Image();
+      img.src = nextSlideObj.imageUrl;
+    }
+  }, [currentSlide, slides, totalSlides]);
 
   // Auto-play timer
   useEffect(() => {
@@ -71,8 +72,7 @@ export default function HeroSlider({ setTab }: HeroSliderProps) {
   }, [currentSlide, isPaused, totalSlides]);
 
   const handleSlideClick = (slide: HeroSlideItem) => {
-    if (!slide.targetUrl) {
-      setTab('lowongan');
+    if (!slide.targetUrl || !slide.targetUrl.trim()) {
       return;
     }
     if (slide.targetUrl.startsWith('http://') || slide.targetUrl.startsWith('https://')) {
@@ -125,6 +125,8 @@ export default function HeroSlider({ setTab }: HeroSliderProps) {
           className="w-full h-auto block opacity-0 pointer-events-none select-none aria-hidden"
           alt=""
           aria-hidden="true"
+          loading="eager"
+          decoding="async"
         />
 
         {/* ABSOLUTE SLIDE STACKING LAYER FOR ZERO-BLINK TRANSITIONS */}
@@ -137,13 +139,17 @@ export default function HeroSlider({ setTab }: HeroSliderProps) {
               initial="enter"
               animate="center"
               exit="exit"
-              className="carousel-item active absolute inset-0 w-full h-full cursor-pointer transform-gpu"
+              className={`carousel-item active absolute inset-0 w-full h-full transform-gpu ${
+                current.targetUrl && current.targetUrl.trim() ? 'cursor-pointer hover:opacity-95' : 'cursor-default'
+              }`}
               onClick={() => handleSlideClick(current)}
             >
               <img
                 src={current.imageUrl}
                 className="w-full h-full object-cover block m-0 p-0"
                 alt={current.alt || current.title}
+                loading={currentSlide === 0 ? "eager" : "lazy"}
+                decoding="async"
               />
             </motion.div>
           </AnimatePresence>

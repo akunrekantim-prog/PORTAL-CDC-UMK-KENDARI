@@ -2371,62 +2371,72 @@ export function saveAnggotaTim(items: AnggotaTim[]): void {
   localStorage.setItem('cdc_umk_keanggotaan_tim', JSON.stringify(items));
 }
 
-// Default Seed Hero Slides Beranda Utama
+// Default Seed Hero Slides Beranda Utama (6 Slide Banner Resmi UMK)
 export const SEED_HERO_SLIDES: HeroSlideItem[] = [
   {
     id: 'slide-1',
-    title: 'Poster CDC WEB UMK - Slide 1',
-    imageUrl: '/poster-cdc-web-umk-1.svg',
-    targetUrl: 'lowongan',
-    alt: 'Poster CDC WEB UMK - Slide 1',
+    title: 'Sambutan Rektor UM Kendari',
+    imageUrl: '/sambutan_rektor_2MB_final.svg',
+    targetUrl: '',
+    alt: 'Sambutan Rektor UM Kendari - Slide 1',
     isActive: true,
     order: 1,
     createdAt: new Date().toISOString()
   },
   {
     id: 'slide-2',
-    title: 'Poster CDC WEB UMK - Slide 2',
-    imageUrl: '/poster-cdc-web-umk-2.svg',
-    targetUrl: 'lowongan',
-    alt: 'Poster CDC WEB UMK - Slide 2',
+    title: 'Perkenalan CDC UM Kendari',
+    imageUrl: '/PERKENALAN.svg',
+    targetUrl: '',
+    alt: 'Perkenalan CDC UM Kendari - Slide 2',
     isActive: true,
     order: 2,
     createdAt: new Date().toISOString()
   },
   {
     id: 'slide-3',
-    title: 'Pengembangan Karir CDC',
-    imageUrl: '/PENGEMBANGAN%20KARIR.svg',
-    targetUrl: 'layanan-bimbingan-karir',
-    alt: 'Pengembangan Karir - Slide 3',
+    title: 'Kreativitas & Inovasi Mahasiswa',
+    imageUrl: '/KREATIVITAS_DAN_INOVASI_900KB.svg',
+    targetUrl: '',
+    alt: 'Kreativitas & Inovasi - Slide 3',
     isActive: true,
     order: 3,
     createdAt: new Date().toISOString()
   },
   {
     id: 'slide-4',
-    title: 'Tracer Study UM Kendari',
-    imageUrl: '/TENTANG%20TRACER%20baru.svg',
-    targetUrl: 'tracer-study',
-    alt: 'Tentang Tracer - Slide 4',
+    title: 'Pengembangan Karir CDC',
+    imageUrl: '/PENGEMBANGAN_KARIR_900KB.svg',
+    targetUrl: '',
+    alt: 'Pengembangan Karir CDC - Slide 4',
     isActive: true,
     order: 4,
     createdAt: new Date().toISOString()
   },
   {
     id: 'slide-5',
-    title: 'Bimbingan & Konseling Karir',
-    imageUrl: '/KONSELING%20KARIR%20slide%20ke%205.svg',
-    targetUrl: 'konseling',
-    alt: 'Konseling Karir - Slide 5',
+    title: 'Tracer Study UM Kendari',
+    imageUrl: '/TENTANG%20TRACER.svg',
+    targetUrl: '',
+    alt: 'Tracer Study UM Kendari - Slide 5',
     isActive: true,
     order: 5,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'slide-6',
+    title: 'Bimbingan & Konseling Karir',
+    imageUrl: '/KONSELING%20KARIR.svg',
+    targetUrl: 'konseling',
+    alt: 'Bimbingan & Konseling Karir - Slide 6',
+    isActive: true,
+    order: 6,
     createdAt: new Date().toISOString()
   }
 ];
 
 export function getHeroSlides(): HeroSlideItem[] {
-  const saved = localStorage.getItem('cdc_umk_hero_slides');
+  const saved = localStorage.getItem('cdc_umk_hero_slides_v5');
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
@@ -2437,11 +2447,15 @@ export function getHeroSlides(): HeroSlideItem[] {
       console.error('Error parsing hero slides:', e);
     }
   }
+  // Migrate or initialize from latest SEED_HERO_SLIDES
+  try {
+    localStorage.setItem('cdc_umk_hero_slides_v5', JSON.stringify(SEED_HERO_SLIDES));
+  } catch {}
   return SEED_HERO_SLIDES;
 }
 
 export function saveHeroSlides(slides: HeroSlideItem[]): void {
-  localStorage.setItem('cdc_umk_hero_slides', JSON.stringify(slides));
+  localStorage.setItem('cdc_umk_hero_slides_v5', JSON.stringify(slides));
 }
 
 // Default Seeds for Campus Hiring

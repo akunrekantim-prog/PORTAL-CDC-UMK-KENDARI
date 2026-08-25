@@ -18,6 +18,7 @@ import { sortJobsByNewest, formatDateDisplay, isJobDeadlinePassed, getFromDB, tr
 import { motion, AnimatePresence } from 'motion/react';
 import Header from './Header';
 import { Footer } from './Footer';
+import { useLanguage } from '../i18n';
 import BimbinganKarir from './layanan/BimbinganKarir';
 import TesMinat from './layanan/TesMinat';
 import Workshop from './layanan/Workshop';
@@ -176,6 +177,7 @@ export default function PublicLayout({
   onNavigateToLogin,
   onNavigateToRegister,
 }: PublicLayoutProps) {
+  const { t, translateContent } = useLanguage();
   // Gambar Visi & Misi (bisa diubah admin via Manajemen Web → Visi & Misi)
   const [visiMisiUrl, setVisiMisiUrl] = useState<string>(() => getVisiMisiConfig().imageUrl);
 
@@ -1006,17 +1008,17 @@ export default function PublicLayout({
                           <Users className="w-7 h-7 text-white" />
                         </div>
                         <h4 className="font-extrabold text-lg leading-tight whitespace-pre-line">
-                          {club.title}
+                          {translateContent(club.title)}
                         </h4>
                         <p className="text-rose-100 text-xs leading-relaxed">
-                          {club.subtitle}
+                          {translateContent(club.subtitle)}
                         </p>
                         <button
                           onClick={openClub}
                           className="bg-white text-rose-700 font-extrabold text-xs
                                    px-5 py-2 rounded-full hover:bg-rose-50 transition-colors"
                         >
-                          {club.buttonText}
+                          {translateContent(club.buttonText)}
                         </button>
                       </div>
                     </div>
