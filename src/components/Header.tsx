@@ -340,7 +340,7 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
               <button
                 type="button"
                 onClick={() => setIsLangDropdownOpen(prev => !prev)}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#091322] hover:bg-[#0f1d33] border border-white/20 text-xs font-semibold cursor-pointer transition-colors shadow-xs group"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#10006b] hover:bg-white border border-white/30 text-xs font-semibold cursor-pointer transition-all duration-200 shadow-xs group"
                 aria-expanded={isLangDropdownOpen}
                 aria-haspopup="true"
                 title="Pilih Bahasa / Change Language"
@@ -350,9 +350,11 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                   alt={lang === 'en' ? 'EN' : 'ID'}
                   className="w-4.5 h-4.5 object-cover rounded-full shadow-2xs shrink-0"
                 />
-                <span className="text-amber-400 font-extrabold tracking-wider">{lang === 'en' ? 'EN' : 'ID'}</span>
+                <span className="text-amber-400 group-hover:text-[#10006b] font-extrabold tracking-wider transition-colors duration-200">
+                  {lang === 'en' ? 'EN' : 'ID'}
+                </span>
                 <svg
-                  className={`w-3 h-3 text-amber-400 fill-current transition-transform duration-200 ${
+                  className={`w-3 h-3 text-amber-400 group-hover:text-[#10006b] fill-current transition-all duration-200 ${
                     isLangDropdownOpen ? 'rotate-180' : ''
                   }`}
                   viewBox="0 0 20 20"
@@ -363,7 +365,7 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
 
               {/* Dropdown Popup Menu */}
               {isLangDropdownOpen && (
-                <div className="absolute right-0 top-full mt-1 w-28 bg-[#091322] border border-slate-700/80 rounded shadow-2xl py-1 z-[110] overflow-hidden text-xs divide-y divide-slate-800/60">
+                <div className="absolute right-0 top-full mt-1.5 w-28 bg-white border border-gray-200 rounded-md shadow-xl py-1 z-[110] overflow-hidden text-xs divide-y divide-gray-100">
                   <button
                     type="button"
                     onClick={() => {
@@ -372,8 +374,8 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                     }}
                     className={`w-full flex items-center gap-2.5 px-3 py-2 text-left font-bold transition-colors ${
                       lang === 'en'
-                        ? 'bg-[#12233c] text-white'
-                        : 'text-gray-300 hover:bg-[#0e1c31] hover:text-white'
+                        ? 'bg-orange-50 text-[#10006b] font-extrabold'
+                        : 'text-gray-700 hover:bg-gray-50 hover:text-[#10006b]'
                     }`}
                   >
                     <img
@@ -381,7 +383,7 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                       alt="EN"
                       className="w-4.5 h-4.5 object-cover rounded-full shrink-0 shadow-2xs"
                     />
-                    <span className={lang === 'en' ? 'text-amber-400' : 'text-gray-200'}>EN</span>
+                    <span className={lang === 'en' ? 'text-[#10006b]' : 'text-gray-700'}>EN</span>
                   </button>
 
                   <button
@@ -392,8 +394,8 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                     }}
                     className={`w-full flex items-center gap-2.5 px-3 py-2 text-left font-bold transition-colors ${
                       lang === 'id'
-                        ? 'bg-[#12233c] text-white'
-                        : 'text-gray-300 hover:bg-[#0e1c31] hover:text-white'
+                        ? 'bg-orange-50 text-[#10006b] font-extrabold'
+                        : 'text-gray-700 hover:bg-gray-50 hover:text-[#10006b]'
                     }`}
                   >
                     <img
@@ -401,7 +403,7 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                       alt="ID"
                       className="w-4.5 h-4.5 object-cover rounded-full shrink-0 shadow-2xs"
                     />
-                    <span className={lang === 'id' ? 'text-amber-400' : 'text-gray-200'}>ID</span>
+                    <span className={lang === 'id' ? 'text-[#10006b]' : 'text-gray-700'}>ID</span>
                   </button>
                 </div>
               )}
