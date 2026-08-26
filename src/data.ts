@@ -1286,6 +1286,17 @@ Seminar ini menghadirkan para *awardee* beasiswa dan konsultan pendidikan intern
     status: 'buka',
   },
   {
+    id: 'evt_se_negosiasi-gaji-dan-benefit-kerja',
+    description: 'Sesi seminar CDC UM Kendari: Seminar Negosiasi Gaji & Benefit Kerja. Kegiatan pembinaan karir bersama praktisi industri untuk mahasiswa dan alumni UM Kendari.',
+    category: 'seminar',
+    title: 'Seminar Negosiasi Gaji & Benefit Kerja untuk Fresh Graduate',
+    organizer: 'CDC UM Kendari', date: '2026-12-02', time: '13:00 - 16:00 WITA',
+    location: 'Aula Utama UM Kendari',
+    image: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=800&auto=format&fit=crop',
+    speaker: 'Bayu Setiawan, CHRP. (Compensation & Benefit Specialist)',
+    quota: 180, registeredCount: 76, registrationLink: 'https://bit.ly/semnegosiasi-umk', status: 'buka'
+  },
+  {
     id: 'evt_se_seminar-motivasi-bangun-mental',
     description: 'Sesi seminar CDC UM Kendari: "Seminar Motivasi: Bangun Mental Entrepreneur Muda". Kegiatan pembinaan karir bersama praktisi industri untuk mahasiswa dan alumni UM Kendari.',
     category: 'seminar',
@@ -1348,8 +1359,19 @@ Seminar ini menghadirkan para *awardee* beasiswa dan konsultan pendidikan intern
     registeredCount: 33,
     registrationLink: 'https://bit.ly/ss-time-umk',
     status: 'buka',
+  },
+  {
+    id: 'evt_so_adaptabilitas-dan-etika-digital',
+    description: 'Sesi softskill CDC UM Kendari: Adaptabilitas & Etika Digital. Kegiatan pembinaan karir bersama praktisi industri untuk mahasiswa dan alumni UM Kendari.',
+    category: 'softskill',
+    title: 'Soft Skill Class: Adaptabilitas & Etika Digital di Dunia Kerja',
+    organizer: 'CDC UM Kendari', date: '2026-12-09', time: '10:00 - 12:30 WITA',
+    location: 'Ruang Pelatihan CDC UM Kendari',
+    image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=800&auto=format&fit=crop',
+    speaker: 'Dewi Anggraini, S.Psi., M.A. (Industrial-Organizational Psychologist)',
+    quota: 40, registeredCount: 22, registrationLink: 'https://bit.ly/ss-adaptasi-umk', status: 'buka'
   }
-];
+]
 
 export const SEED_SURVEI_LULUSAN: SurveiLulusan[] = [
   {

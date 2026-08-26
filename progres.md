@@ -2267,3 +2267,4 @@ Semua commit sudah dipush ke origin/main
   Campus Hiring (7), Job Fair (7), Workshop (7), Seminar (7), Soft Skill Class (7).
 - Data realistis (perusahaan BUMN/swasta nasional, jadwal, kuota) di SEED_* di src/data.ts.
 - perusahaanPeserta JobFairItem dibuat opsional. tsc & build lolos.
+- Seminar & Soft Skill dilengkapi jadi 7 item. tsc & build lolos.
