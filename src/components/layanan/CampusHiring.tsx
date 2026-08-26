@@ -100,6 +100,7 @@ export default function CampusHiring() {
           categoryLabel="Campus Hiring - Recruitment"
           imageUrl={selectedEvent.bannerUrl || selectedEvent.logoPerusahaan || '/poster-cdc-web-umk-1.svg'}
           onBack={handleBackToList}
+          metaItems={[]}
         >
           <div className="space-y-8">
 

@@ -2215,3 +2215,7 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 - Halaman detail juga diringkas: pamflet + judul besar + tombol daftar saja.
 - Keterangan (metadata Perusahaan/Tanggal/Waktu/Lokasi/Tipe, Deskripsi, Posisi Dibuka, Kualifikasi & Berkas) dihapus sesuai arahan PM.
 - Form pendaftaran & e-pass tetap berfungsi. Build lolos.
+
+## Hotfix blank page (26 Agustus 2026) — ARYA APRIAWAN
+- ShareableDetailPage butuh prop metaItems; setelah dihapus halaman crash blank. Dikosongkan jadi metaItems={[]} di CampusHiring & CareerFair.
+- tsc --noEmit lolos, build lolos.

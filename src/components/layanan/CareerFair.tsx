@@ -83,6 +83,7 @@ export default function CareerFair() {
           categoryLabel="Job Fair"
           imageUrl={selectedFair.bannerUrl || '/poster-cdc-web-umk-2.svg'}
           onBack={handleBackToList}
+          metaItems={[]}
         >
           <div className="space-y-8">
 
