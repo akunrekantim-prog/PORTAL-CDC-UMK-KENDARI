@@ -5,6 +5,7 @@ import { EventLayananItem, KontenKarir } from '../../../types';
 import EventDetailView from '../EventDetailView';
 import { useLayanan } from '../LayananContainer';
 import Dropdown from '../../Dropdown';
+import Pagination from './Pagination';
 import { stripHtmlTags } from '../../../markdown';
 
 interface EventCardLayoutProps {
@@ -57,6 +58,7 @@ export default function EventCardLayout({
   const [selectedYear, setSelectedYear] = useState<string>('semua');
   const [sortBy] = useState<'terbaru' | 'terlama' | 'az' | 'za'>('terbaru');
   const [selectedEvent, setSelectedEvent] = useState<EventLayananItem | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Sync detail state to LayananContainer & optional prop callback
   useEffect(() => {
@@ -175,6 +177,22 @@ export default function EventCardLayout({
     return list;
   }, [allEvents, category, searchQuery, selectedYear, sortBy]);
 
+  // Reset ke halaman 1 saat hasil filter berubah
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedYear]);
+
+  // ===== PAGINATION: maksimal 6 card per halaman =====
+  const CARDS_PER_PAGE = 6;
+  const totalPages = Math.ceil(filteredEvents.length / CARDS_PER_PAGE);
+  const safePage = Math.min(currentPage, Math.max(1, totalPages));
+  const pagedEvents = filteredEvents.slice((safePage - 1) * CARDS_PER_PAGE, safePage * CARDS_PER_PAGE);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    document.getElementById('event-card-layout-root')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   const handleBackFromDetail = () => {
     setSelectedEvent(null);
     window.scrollTo(0, 0);
@@ -287,7 +305,7 @@ export default function EventCardLayout({
       {/* Grid List Event Cards */}
       {filteredEvents.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredEvents.map((item, idx) => (
+          {pagedEvents.map((item, idx) => (
             <motion.div
               key={item.id}
               role="button"
@@ -335,6 +353,11 @@ export default function EventCardLayout({
               </div>
               </motion.div>
           ))}
+
+          {/* Navigasi Halaman */}
+          <div className="col-span-full">
+            <Pagination currentPage={safePage} totalPages={totalPages} onPageChange={handlePageChange} />
+          </div>
         </div>
       ) : (
         /* Empty State */

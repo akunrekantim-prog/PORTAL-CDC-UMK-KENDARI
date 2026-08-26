@@ -2268,3 +2268,12 @@ Semua commit sudah dipush ke origin/main
 - Data realistis (perusahaan BUMN/swasta nasional, jadwal, kuota) di SEED_* di src/data.ts.
 - perusahaanPeserta JobFairItem dibuat opsional. tsc & build lolos.
 - Seminar & Soft Skill dilengkapi jadi 7 item. tsc & build lolos.
+
+## Fitur Pagination Menu Layanan (26 Agustus 2026) — ARYA APRIAWAN
+- Maksimal 6 card per halaman di semua menu layanan ber-card:
+  Workshop, Seminar, Soft Skill, Campus Hiring, Job Fair.
+- Komponen reusable ui/Pagination.tsx (kotak persegi: halaman aktif gelap,
+  ellipsis jika banyak halaman, tombol panah next).
+- Pindah halaman auto-scroll ke atas daftar; filter/search reset ke halaman 1.
+- Dengan 7 data: halaman 1 = 6 card, halaman 2 = sisa 1 card.
+- tsc & build lolos.
