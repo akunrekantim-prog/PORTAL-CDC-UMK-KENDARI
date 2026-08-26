@@ -2210,3 +2210,8 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 - Card di menu Campus Hiring & Job Fair disederhanakan: cukup thumbnail pamflet + judul besar saja.
 - Keterangan (perusahaan/tagline, tanggal, waktu, lokasi, footer "by Admin Website") dihilangkan sesuai arahan PM.
 - Detail page tetap lengkap. Build lolos.
+
+## Revisi Detail Page Campus Hiring & Job Fair (26 Agustus 2026) — ARYA APRIAWAN
+- Halaman detail juga diringkas: pamflet + judul besar + tombol daftar saja.
+- Keterangan (metadata Perusahaan/Tanggal/Waktu/Lokasi/Tipe, Deskripsi, Posisi Dibuka, Kualifikasi & Berkas) dihapus sesuai arahan PM.
+- Form pendaftaran & e-pass tetap berfungsi. Build lolos.

@@ -91,16 +91,8 @@ export default function CampusHiring() {
     setRegSuccess(true);
   };
 
-  // ===== HALAMAN DETAIL PENUH (gaya editorial Berita & Artikel) =====
+  // ===== HALAMAN DETAIL (ringkas: pamflet + judul + tombol daftar) =====
   if (selectedEvent) {
-    const metaRows: { label: string; value: string }[] = [
-      { label: 'Perusahaan', value: selectedEvent.namaPerusahaan },
-      { label: 'Tanggal', value: formatDateDisplay(selectedEvent.tanggal) },
-      ...(selectedEvent.waktu ? [{ label: 'Waktu', value: selectedEvent.waktu }] : []),
-      { label: 'Lokasi', value: selectedEvent.lokasi },
-      { label: 'Tipe', value: selectedEvent.tipe === 'virtual' ? 'Virtual — Zoom Meeting' : 'On-Campus — Wawancara Langsung' }
-    ];
-
     return (
       <div id="layanan-campus-hiring-detail">
         <ShareableDetailPage
@@ -108,10 +100,6 @@ export default function CampusHiring() {
           categoryLabel="Campus Hiring - Recruitment"
           imageUrl={selectedEvent.bannerUrl || selectedEvent.logoPerusahaan || '/poster-cdc-web-umk-1.svg'}
           onBack={handleBackToList}
-          metaItems={[
-            <span key="tgl">{formatDateDisplay(selectedEvent.tanggal)}</span>,
-            <span key="perusahaan">{selectedEvent.namaPerusahaan}</span>
-          ]}
         >
           <div className="space-y-8">
 
@@ -141,58 +129,7 @@ export default function CampusHiring() {
 
             {activeDetailStep === 'detail' ? (
               <div className="space-y-10">
-                {/* Metadata sebagai tabel definisi */}
-                <dl className="divide-y divide-slate-100 border-y border-slate-100">
-                  {metaRows.map((row) => (
-                    <div key={row.label} className="grid grid-cols-[120px_1fr] sm:grid-cols-[160px_1fr] py-3 text-sm">
-                      <dt className="font-bold text-slate-900">{row.label}</dt>
-                      <dd className="text-slate-600 leading-relaxed">{row.value}</dd>
-                    </div>
-                  ))}
-                </dl>
-
-                {selectedEvent.deskripsi && (
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Deskripsi</h4>
-                    <p className="text-sm sm:text-base text-slate-700 leading-relaxed whitespace-pre-line">
-                      {selectedEvent.deskripsi}
-                    </p>
-                  </div>
-                )}
-
-                {selectedEvent.posisiBuka && selectedEvent.posisiBuka.length > 0 && (
-                  <div className="space-y-4">
-                    <h4 className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Posisi Dibuka</h4>
-                    <ul className="divide-y divide-slate-100 border-t border-slate-100">
-                      {selectedEvent.posisiBuka.map((pos, idx) => (
-                        <li key={idx} className="flex items-baseline gap-4 py-3">
-                          <span className="text-xs text-slate-300 font-bold tabular-nums w-7 shrink-0">
-                            {String(idx + 1).padStart(2, '0')}
-                          </span>
-                          <span className="text-sm font-semibold text-slate-800">{pos}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {selectedEvent.persyaratan && selectedEvent.persyaratan.length > 0 && (
-                  <div className="space-y-4">
-                    <h4 className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Kualifikasi &amp; Berkas</h4>
-                    <ul className="divide-y divide-slate-100 border-t border-slate-100">
-                      {selectedEvent.persyaratan.map((req, idx) => (
-                        <li key={idx} className="flex items-start gap-4 py-3">
-                          <span className="text-xs text-slate-300 font-bold tabular-nums w-7 shrink-0 pt-0.5">
-                            {String(idx + 1).padStart(2, '0')}
-                          </span>
-                          <span className="text-sm text-slate-700 leading-relaxed">{req}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                <div className="pt-2 flex items-center justify-between gap-4 flex-wrap">
+                <div className="pt-2 flex items-center justify-end gap-4 flex-wrap">
                   {selectedEvent.tipe === 'virtual' && selectedEvent.linkVirtual && (
                     <a
                       href={selectedEvent.linkVirtual}

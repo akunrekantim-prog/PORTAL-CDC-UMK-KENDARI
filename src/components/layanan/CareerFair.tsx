@@ -74,15 +74,8 @@ export default function CareerFair() {
     setTicketSuccess(true);
   };
 
-  // ===== HALAMAN DETAIL PENUH (gaya editorial Berita & Artikel) =====
+  // ===== HALAMAN DETAIL (ringkas: pamflet + judul + tombol daftar) =====
   if (selectedFair) {
-    const metaRows: { label: string; value: string }[] = [
-      { label: 'Tanggal', value: formatDateDisplay(selectedFair.tanggalMulai, selectedFair.tanggalSelesai) },
-      ...(selectedFair.waktu ? [{ label: 'Waktu', value: selectedFair.waktu }] : []),
-      { label: 'Lokasi', value: selectedFair.lokasi },
-      { label: 'HTM', value: selectedFair.htm }
-    ];
-
     return (
       <div id="layanan-career-fair-detail">
         <ShareableDetailPage
@@ -90,9 +83,6 @@ export default function CareerFair() {
           categoryLabel="Job Fair"
           imageUrl={selectedFair.bannerUrl || '/poster-cdc-web-umk-2.svg'}
           onBack={handleBackToList}
-          metaItems={[
-            <span key="tgl">{formatDateDisplay(selectedFair.tanggalMulai, selectedFair.tanggalSelesai)}</span>
-          ]}
         >
           <div className="space-y-8">
 
@@ -122,43 +112,6 @@ export default function CareerFair() {
 
             {activeDetailStep === 'detail' ? (
               <div className="space-y-10">
-                {/* Metadata sebagai tabel definisi, bukan kartu-kartu */}
-                <dl className="divide-y divide-slate-100 border-y border-slate-100">
-                  {metaRows.map((row) => (
-                    <div key={row.label} className="grid grid-cols-[120px_1fr] sm:grid-cols-[160px_1fr] py-3 text-sm">
-                      <dt className="font-bold text-slate-900">{row.label}</dt>
-                      <dd className="text-slate-600 leading-relaxed">{row.value}</dd>
-                    </div>
-                  ))}
-                </dl>
-
-                {selectedFair.deskripsi && (
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Deskripsi</h4>
-                    <p className="text-sm sm:text-base text-slate-700 leading-relaxed whitespace-pre-line">
-                      {selectedFair.deskripsi}
-                    </p>
-                  </div>
-                )}
-
-                {selectedFair.perusahaanPeserta && selectedFair.perusahaanPeserta.length > 0 && (
-                  <div className="space-y-4">
-                    <h4 className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">
-                      Perusahaan Peserta — {selectedFair.perusahaanPeserta.length}
-                    </h4>
-                    <ul className="divide-y divide-slate-100 border-t border-slate-100">
-                      {selectedFair.perusahaanPeserta.map((comp, idx) => (
-                        <li key={comp.id} className="flex items-baseline gap-4 py-3">
-                          <span className="text-xs text-slate-300 font-bold tabular-nums w-7 shrink-0">
-                            {String(idx + 1).padStart(2, '0')}
-                          </span>
-                          <span className="text-sm font-semibold text-slate-800">{comp.nama}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
                 <div className="pt-2 flex justify-end">
                   <button
                     onClick={() => { setActiveDetailStep('ticket'); setTicketSuccess(false); }}
