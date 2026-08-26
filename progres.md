@@ -2261,3 +2261,9 @@ Verifikasi tiap langkah:
 Semua commit sudah dipush ke origin/main
 (github.com/akunrekantim-prog/PORTAL-CDC-UMK-KENDARI).
 ============================================================
+
+## Penambahan Data Dummy Menu Layanan (26 Agustus 2026) — ARYA APRIAWAN
+- Semua menu layanan ber-card kini minimal 7 data dummy:
+  Campus Hiring (7), Job Fair (7), Workshop (7), Seminar (7), Soft Skill Class (7).
+- Data realistis (perusahaan BUMN/swasta nasional, jadwal, kuota) di SEED_* di src/data.ts.
+- perusahaanPeserta JobFairItem dibuat opsional. tsc & build lolos.
