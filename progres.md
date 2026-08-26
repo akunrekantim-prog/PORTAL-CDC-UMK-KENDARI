@@ -2219,3 +2219,6 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 ## Hotfix blank page (26 Agustus 2026) — ARYA APRIAWAN
 - ShareableDetailPage butuh prop metaItems; setelah dihapus halaman crash blank. Dikosongkan jadi metaItems={[]} di CampusHiring & CareerFair.
 - tsc --noEmit lolos, build lolos.
+
+## Revisi final detail page (26 Agustus 2026) — ARYA APRIAWAN
+- Semua isi detail (tab, tombol daftar/e-pass) dihapus; halaman detail hanya pamflet + judul besar.
