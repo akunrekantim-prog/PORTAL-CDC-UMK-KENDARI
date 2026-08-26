@@ -7,6 +7,7 @@ import {
   Video
 } from 'lucide-react';
 import { Section } from './ui';
+import Pagination from './ui/Pagination';
 import ShareableDetailPage from './ui/ShareableDetailPage';
 import { useLayanan } from './LayananContainer';
 import { getCampusHiring, saveCampusHiring } from '../../data';
@@ -39,6 +40,7 @@ export default function CampusHiring() {
   const [regHp, setRegHp] = useState('');
   const [regProdi, setRegProdi] = useState('');
   const [regSuccess, setRegSuccess] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const { setIsDetailActive } = useLayanan();
 
   useEffect(() => {
@@ -109,6 +111,17 @@ export default function CampusHiring() {
   }
 
   // ===== DAFTAR CARD =====
+  // ===== PAGINATION: maksimal 6 card per halaman =====
+  const CARDS_PER_PAGE = 6;
+  const totalPages = Math.ceil(items.length / CARDS_PER_PAGE);
+  const safePage = Math.min(currentPage, Math.max(1, totalPages));
+  const pagedItems = items.slice((safePage - 1) * CARDS_PER_PAGE, safePage * CARDS_PER_PAGE);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    document.getElementById('layanan-list-top')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 sm:py-12 space-y-10" id="layanan-campus-hiring">
       {/* Deskripsi flat — judul sudah ditampilkan LayananContainer di atas */}
@@ -128,7 +141,7 @@ export default function CampusHiring() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {items.map((event, idx) => (
+            {pagedItems.map((event, idx) => (
               <motion.div
                 key={event.id}
                 role="button"
@@ -169,6 +182,11 @@ export default function CampusHiring() {
                 </div>
               </motion.div>
             ))}
+
+            {/* Navigasi Halaman */}
+            <div className="col-span-full">
+              <Pagination currentPage={safePage} totalPages={totalPages} onPageChange={handlePageChange} />
+            </div>
           </div>
         )}
       </Section>

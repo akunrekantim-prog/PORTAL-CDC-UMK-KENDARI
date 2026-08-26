@@ -720,7 +720,7 @@ export interface JobFairItem {
   waktu?: string;
   lokasi: string;
   htm: string; // e.g. "Gratis Khusus Mahasiswa & Alumni UMK"
-  perusahaanPeserta: JobFairCompany[];
+  perusahaanPeserta?: JobFairCompany[];
   deskripsi?: string;
   linkPendaftaranTiket?: string;
   status: 'buka' | 'berlangsung' | 'selesai';

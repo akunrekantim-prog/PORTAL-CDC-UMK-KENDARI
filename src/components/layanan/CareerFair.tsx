@@ -6,6 +6,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { Section } from './ui';
+import Pagination from './ui/Pagination';
 import ShareableDetailPage from './ui/ShareableDetailPage';
 import { useLayanan } from './LayananContainer';
 import { getJobFair } from '../../data';
@@ -36,6 +37,7 @@ export default function CareerFair() {
   const [ticketInstansi, setTicketInstansi] = useState('Universitas Muhammadiyah Kendari');
   const [ticketSuccess, setTicketSuccess] = useState(false);
   const [ticketCode, setTicketCode] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const { setIsDetailActive } = useLayanan();
 
   useEffect(() => {
@@ -92,6 +94,17 @@ export default function CareerFair() {
   }
 
   // ===== DAFTAR CARD =====
+  // ===== PAGINATION: maksimal 6 card per halaman =====
+  const CARDS_PER_PAGE = 6;
+  const totalPages = Math.ceil(items.length / CARDS_PER_PAGE);
+  const safePage = Math.min(currentPage, Math.max(1, totalPages));
+  const pagedItems = items.slice((safePage - 1) * CARDS_PER_PAGE, safePage * CARDS_PER_PAGE);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    document.getElementById('layanan-list-top')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 sm:py-12 space-y-10" id="layanan-career-fair">
       {/* Deskripsi flat — judul sudah ditampilkan LayananContainer di atas */}
@@ -111,7 +124,7 @@ export default function CareerFair() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {items.map((fair, idx) => (
+            {pagedItems.map((fair, idx) => (
               <motion.div
                 key={fair.id}
                 role="button"
@@ -146,6 +159,11 @@ export default function CareerFair() {
                 </div>
               </motion.div>
             ))}
+
+            {/* Navigasi Halaman */}
+            <div className="col-span-full">
+              <Pagination currentPage={safePage} totalPages={totalPages} onPageChange={handlePageChange} />
+            </div>
           </div>
         )}
       </Section>

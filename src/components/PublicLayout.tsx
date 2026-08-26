@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import Pagination from './layanan/ui/Pagination';
 import {
   Building2, MapPin, Briefcase, Search, BookOpen,
   FileText, Mail, Phone, Clock, ArrowRight, ArrowLeft, Globe, Megaphone,
@@ -1955,39 +1956,15 @@ export default function PublicLayout({
                     ))}
                   </div>
 
-                  {/* Pagination */}
-                  {totalBeritaPages > 1 && (
-                    <div className="flex items-center justify-center gap-1.5 pt-4">
-                      <button
-                        onClick={() => setBeritaPage((p) => Math.max(1, p - 1))}
-                        disabled={beritaPage === 1}
-                        className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
-                      >
-                        &lt;
-                      </button>
-
-                      {Array.from({ length: totalBeritaPages }, (_, i) => i + 1).map((pageNum) => (
-                        <button
-                          key={pageNum}
-                          onClick={() => setBeritaPage(pageNum)}
-                          className={`px-3.5 py-1.5 rounded-lg font-bold text-xs transition cursor-pointer ${pageNum === beritaPage
-                            ? 'bg-[#1E3A8A] text-white shadow-xs'
-                            : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                            }`}
-                        >
-                          {pageNum}
-                        </button>
-                      ))}
-
-                      <button
-                        onClick={() => setBeritaPage((p) => Math.min(totalBeritaPages, p + 1))}
-                        disabled={beritaPage === totalBeritaPages}
-                        className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
-                      >
-                        &gt;
-                      </button>
-                    </div>
-                  )}
+                  {/* Pagination — gaya kotak persegi navy */}
+                  <Pagination
+                    currentPage={beritaPage}
+                    totalPages={totalBeritaPages}
+                    onPageChange={(p) => {
+                      setBeritaPage(p);
+                      document.getElementById('tab-berita')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                  />
                 </div>
               )}
             </div>
