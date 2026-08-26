@@ -2222,3 +2222,42 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 
 ## Revisi final detail page (26 Agustus 2026) — ARYA APRIAWAN
 - Semua isi detail (tab, tombol daftar/e-pass) dihapus; halaman detail hanya pamflet + judul besar.
+
+
+============================================================
+REKAP PROGRES LENGKAP — 26 Agustus 2026
+Nama: ARYA APRIAWAN
+Tugas: Revisi menu Layanan (Campus Hiring & Job Fair)
+============================================================
+
+Apa yang dikerjakan ARYA APRIAWAN hari ini:
+
+1. Revisi CARD layout menu Campus Hiring & Job Fair (commit 9d79777)
+   - Card disederhanakan: hanya thumbnail pamflet 16:9 + judul besar.
+   - Keterangan dihapus: nama perusahaan/tagline, tanggal, waktu, lokasi,
+     dan footer "by Admin Website".
+   - Sesuai arahan PM: cukup upload pamflet + judul besar saja.
+
+2. Revisi halaman DETAIL Campus Hiring & Job Fair tahap 1 (commit 9c41b2a)
+   - Baris metadata dihapus (Perusahaan, Tanggal, Waktu, Lokasi, Tipe/HTM).
+   - Section Deskripsi, Posisi Dibuka, Perusahaan Peserta,
+     Kualifikasi & Berkas dihapus.
+
+3. Hotfix halaman blank (commit 4eba685)
+   - ShareableDetailPage mewajibkan prop metaItems; setelah prop dihapus
+     halaman detail crash blank. Diperbaiki dengan metaItems={[]}.
+
+4. Revisi final halaman DETAIL (commit 678746d)
+   - Semua isi detail dihapus termasuk tab navigasi
+     (DETAIL & PERSYARATAN / FORM PENDAFTARAN, E-PASS TIKET MASUK),
+     tombol "Daftar Wawancara", link Zoom, tombol "Dapatkan E-Pass Masuk",
+     beserta form pendaftaran yang tidak terpakai.
+   - Halaman detail kini hanya pamflet + judul besar.
+
+Verifikasi tiap langkah:
+- npm run lint (tsc --noEmit): lolos tanpa error.
+- npm run build (vite build): sukses (terakhir built in 36.96s).
+
+Semua commit sudah dipush ke origin/main
+(github.com/akunrekantim-prog/PORTAL-CDC-UMK-KENDARI).
+============================================================
