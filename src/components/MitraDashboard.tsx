@@ -59,6 +59,7 @@ import {
 } from 'lucide-react';
 import { JOB_SPECIALIZATIONS, getCompanyBadgeColor, getCompanyInitials } from './JobSearchMasterDetail';
 import Dropdown from './Dropdown';
+import LocationPicker from './ui/LocationPicker';
 
 interface MitraDashboardProps {
   user: UserType;
@@ -1774,16 +1775,8 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                             </div>
                           </div>
 
-                          <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-slate-700">Lokasi Penempatan Kerja *</label>
-                            <input
-                              type="text"
-                              required
-                              value={lokasi}
-                              onChange={(e) => setLokasi(e.target.value)}
-                              placeholder="Contoh: Kendari (Hybrid)"
-                              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
-                            />
+                          <div className="space-y-1.5 sm:col-span-2">
+                            <LocationPicker value={lokasi} onChange={setLokasi} label="Lokasi Penempatan Kerja / Wilayah *" accentColor="emerald" />
                           </div>
 
                           <div className="space-y-1.5">

@@ -363,7 +363,8 @@ export default function PublicLayout({
     return true;
   });
 
-  const sortedLowongan = [...filteredLowongan].sort((a, b) => {
+  // Job Info (Lowongan Terbaru) khusus lowongan tipe Kerja; tipe Magang tampil di Layanan > Internship
+  const sortedLowongan = [...filteredLowongan.filter(j => j.tipe === 'kerja')].sort((a, b) => {
     if (jobSortOrder === 'oldest') {
       const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
       const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;

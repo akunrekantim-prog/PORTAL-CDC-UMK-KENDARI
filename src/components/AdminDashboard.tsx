@@ -14,6 +14,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import ChartArea from './ChartArea';
 import Dropdown from './Dropdown';
+import LocationPicker from './ui/LocationPicker';
 import {
   User as UserType,
   Mahasiswa,
@@ -166,7 +167,7 @@ type MitraSubTab = 'approval' | 'list';
 
 const JENIS_LABEL: Record<JenisKonten, string> = {
   berita: 'Berita & Artikel',
-  lowongan: 'Lowongan (Magang/Kerja)',
+  lowongan: 'Lowongan',
   program: 'Program & Pengumuman',
   pengumuman: 'Pengumuman Penting',
   workshop: 'Workshop & Pelatihan Karir',
@@ -1066,6 +1067,10 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
 
 
   const openEditor = (item?: KontenKarir, jenis?: JenisKonten) => {
+    if (jenis === 'lowongan' || (item && item.jenis === 'lowongan')) {
+      openLowonganForm();
+      return;
+    }
     if (item) {
       setEditId(item.id);
       setEJenis(item.jenis);
@@ -2265,10 +2270,14 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                   {/* FLOATING ACTION BUTTON (FAB) + UNTUK PEMBUATAN KONTEN KATEGORI */}
                   <button
                     onClick={() => {
-                      setEJenis(selectedCategory);
-                      setKontenSub('pembuatan');
-                      setEditId(null);
-                      setEditorOpen(true);
+                      if (selectedCategory === 'lowongan') {
+                        openLowonganForm();
+                      } else {
+                        setEJenis(selectedCategory);
+                        setKontenSub('pembuatan');
+                        setEditId(null);
+                        setEditorOpen(true);
+                      }
                     }}
                     title={`Buat ${JENIS_LABEL[selectedCategory]} Baru`}
                     className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-[#0077C6] hover:bg-blue-600 active:scale-95 text-white rounded-full shadow-2xl hover:shadow-blue-500/30 transition-all duration-200 flex items-center justify-center cursor-pointer group border-2 border-white/20"
@@ -2319,9 +2328,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                           <label className="text-xs font-medium text-slate-500">Kategori / Spesialisasi</label>
                           <input value={lKategori} onChange={(e) => setLKategori(e.target.value)} placeholder="TI / Perangkat Lunak" className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
                         </div>
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-medium text-slate-500">Lokasi Penempatan *</label>
-                          <input value={lLokasi} onChange={(e) => setLLokasi(e.target.value)} placeholder="Kendari (Hybrid)" className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+                        <div className="space-y-1.5 sm:col-span-2">
+                          <LocationPicker value={lLokasi} onChange={setLLokasi} label="Lokasi Penempatan Kerja / Wilayah *" accentColor="blue" />
                         </div>
                         <div className="space-y-1.5">
                           <label className="text-xs font-medium text-slate-500">Kisaran Gaji / Insentif</label>
