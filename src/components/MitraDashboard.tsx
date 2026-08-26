@@ -317,23 +317,25 @@ function PdfViewerPreview({
         <div className="flex items-center gap-2">
           {numPages > 1 && (
             <div className="flex items-center gap-1.5 bg-slate-800 px-2.5 py-1 rounded-lg text-slate-300 font-mono text-[11px]">
-              <button
-                type="button"
-                disabled={currentPage <= 1}
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                className="hover:text-white disabled:opacity-30 cursor-pointer font-bold"
-              >
-                &larr;
-              </button>
+              {currentPage > 1 && (
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  className="hover:text-white cursor-pointer font-bold pr-1"
+                >
+                  &larr;
+                </button>
+              )}
               <span>{currentPage} / {numPages}</span>
-              <button
-                type="button"
-                disabled={currentPage >= numPages}
-                onClick={() => setCurrentPage(p => Math.min(numPages, p + 1))}
-                className="hover:text-white disabled:opacity-30 cursor-pointer font-bold"
-              >
-                &rarr;
-              </button>
+              {currentPage < numPages && (
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(p => Math.min(numPages, p + 1))}
+                  className="hover:text-white cursor-pointer font-bold pl-1"
+                >
+                  &rarr;
+                </button>
+              )}
             </div>
           )}
 

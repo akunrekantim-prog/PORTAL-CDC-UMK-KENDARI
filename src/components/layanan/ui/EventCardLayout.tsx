@@ -351,7 +351,7 @@ export default function EventCardLayout({
                   </span>
                 </div>
               </div>
-              </motion.div>
+            </motion.div>
           ))}
 
           {/* Navigasi Halaman */}

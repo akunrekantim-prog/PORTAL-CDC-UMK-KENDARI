@@ -69,7 +69,7 @@ export default function MouStakeholderView({ setTab }: MouStakeholderViewProps) 
 
   return (
     <div className="bg-white min-h-screen font-sans text-slate-800 pb-20" id="mou-stakeholder-page">
-      
+
       {/* ── BREADCRUMB ── */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-3">
         <nav className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">

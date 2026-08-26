@@ -71,7 +71,7 @@ export default function GaleriView({ setTab }: GaleriViewProps) {
 
   return (
     <div className="bg-white min-h-screen font-sans text-slate-800 pb-20" id="galeri-kegiatan-page">
-      
+
       {/* ── BREADCRUMB ── */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-3">
         <nav className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
@@ -179,10 +179,9 @@ export default function GaleriView({ setTab }: GaleriViewProps) {
                         <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
                           <div className="space-y-1.5">
                             <div className="flex items-center gap-2">
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${
-                                item.tipeMedia === 'youtube' ? 'bg-red-100 text-red-700' :
-                                item.tipeMedia === 'poster' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'
-                              }`}>
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${item.tipeMedia === 'youtube' ? 'bg-red-100 text-red-700' :
+                                  item.tipeMedia === 'poster' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'
+                                }`}>
                                 {item.tipeMedia === 'youtube' ? 'Video Youtube' : item.tipeMedia === 'poster' ? 'Poster Gambar' : 'Dokumen PDF'}
                               </span>
                             </div>

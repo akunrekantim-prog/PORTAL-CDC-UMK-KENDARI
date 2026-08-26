@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ChevronLeft,
   Tag,
@@ -6,10 +6,21 @@ import {
   User,
   Facebook,
   MessageCircle,
-  Linkedin
+  Linkedin,
+  Instagram,
+  CheckCircle
 } from 'lucide-react';
 import { EventLayananItem } from '../../types';
 import { renderContentMarkdown } from '../../markdown';
+import { WhatsAppWaIcon } from '../ui/SocialShareBar';
+import {
+  shareToFacebook,
+  shareToTwitter,
+  shareToWhatsApp,
+  shareToTelegram,
+  shareToLinkedIn,
+  shareToInstagram
+} from '../../utils/shareUtils';
 
 interface EventDetailViewProps {
   event: EventLayananItem;
@@ -24,7 +35,14 @@ export default function EventDetailView({
   onBack,
   setTab
 }: EventDetailViewProps) {
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
   if (!event) return null;
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3500);
+  };
 
   const formatDateDisplayFull = (dateStr?: string, timeStr?: string) => {
     if (!dateStr) return '';
@@ -42,35 +60,47 @@ export default function EventDetailView({
     }
   };
 
+  const getShareOpts = () => ({
+    type: 'event' as const,
+    title: event.title,
+    summary: event.description,
+    url: typeof window !== 'undefined' ? window.location.href : ''
+  });
+
   const handleShareFacebook = () => {
-    const url = encodeURIComponent(window.location.href);
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+    shareToFacebook(getShareOpts());
   };
 
   const handleShareX = () => {
-    const url = encodeURIComponent(window.location.href);
-    const text = encodeURIComponent(event.title);
-    window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
+    shareToTwitter(getShareOpts());
   };
 
   const handleShareWhatsApp = () => {
-    const text = encodeURIComponent(`${event.title}\n\nBaca selengkapnya: ${window.location.href}`);
-    window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+    shareToWhatsApp(getShareOpts());
   };
 
   const handleShareTelegram = () => {
-    const url = encodeURIComponent(window.location.href);
-    const text = encodeURIComponent(event.title);
-    window.open(`https://t.me/share/url?url=${url}&text=${text}`, '_blank');
+    shareToTelegram(getShareOpts());
   };
 
   const handleShareLinkedIn = () => {
-    const url = encodeURIComponent(window.location.href);
-    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank');
+    shareToLinkedIn(getShareOpts(), (msg) => showToast(msg));
+  };
+
+  const handleShareInstagram = () => {
+    shareToInstagram(getShareOpts(), (msg) => showToast(msg));
   };
 
   return (
-    <div className="bg-white min-h-screen py-8 sm:py-12 font-sans text-slate-800" id="event-layanan-detail">
+    <div className="bg-white min-h-screen py-8 sm:py-12 font-sans text-slate-800 relative" id="event-layanan-detail">
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed top-24 right-5 z-50 bg-[#1E3A8A] text-white px-5 py-3 rounded-2xl shadow-xl border border-blue-800 flex items-center gap-3 animate-fadeIn text-xs sm:text-sm font-semibold max-w-md">
+          <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
+          <span>{toastMsg}</span>
+        </div>
+      )}
+
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
         {/* Top Navigation Back Button */}
@@ -110,7 +140,7 @@ export default function EventDetailView({
               className="w-10 h-10 rounded-xl bg-[#25d366] hover:bg-[#1ebd56] text-white flex items-center justify-center shadow-md transition-transform hover:scale-110 cursor-pointer"
               title="Bagikan ke WhatsApp"
             >
-              <MessageCircle className="w-5 h-5 fill-white" />
+              <WhatsAppWaIcon className="w-5 h-5" />
             </button>
             <button
               onClick={handleShareTelegram}
@@ -127,6 +157,13 @@ export default function EventDetailView({
               title="Bagikan ke LinkedIn"
             >
               <Linkedin className="w-5 h-5 fill-white text-transparent" />
+            </button>
+            <button
+              onClick={handleShareInstagram}
+              className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 hover:brightness-110 text-white flex items-center justify-center shadow-md transition-transform hover:scale-110 cursor-pointer"
+              title="Bagikan ke Instagram"
+            >
+              <Instagram className="w-5 h-5 text-white" />
             </button>
           </aside>
 
@@ -209,7 +246,7 @@ export default function EventDetailView({
                 className="w-12 h-10 rounded-xl bg-[#25d366] hover:bg-[#1ebd56] text-white flex items-center justify-center shadow-xs transition active:scale-95 cursor-pointer"
                 title="Bagikan ke WhatsApp"
               >
-                <MessageCircle className="w-5 h-5 fill-white" />
+                <WhatsAppWaIcon className="w-5 h-5" />
               </button>
               <button
                 onClick={handleShareTelegram}
@@ -226,6 +263,13 @@ export default function EventDetailView({
                 title="Bagikan ke LinkedIn"
               >
                 <Linkedin className="w-5 h-5 fill-white text-transparent" />
+              </button>
+              <button
+                onClick={handleShareInstagram}
+                className="w-12 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 hover:brightness-110 text-white flex items-center justify-center shadow-xs transition active:scale-95 cursor-pointer"
+                title="Bagikan ke Instagram"
+              >
+                <Instagram className="w-5 h-5 text-white" />
               </button>
             </div>
 

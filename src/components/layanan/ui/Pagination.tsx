@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface PaginationProps {
   currentPage: number;
@@ -11,7 +11,7 @@ interface PaginationProps {
  * Kontrol navigasi halaman gaya editorial:
  * kotak persegi bersambung — halaman aktif gelap, lainnya putih,
  * ellipsis jika banyak halaman, tombol panah untuk lanjut.
- * Maksimal 6 card per halaman ditangani oleh pemakai (slice array).
+ * Sembunyikan tombol Kiri (Prev) saat di halaman 1, dan Kanan (Next) saat di halaman terakhir.
  */
 export default function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
   if (totalPages <= 1) return null;
@@ -37,6 +37,17 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
   return (
     <nav className="flex items-center justify-center pt-4" aria-label="Navigasi halaman">
       <div className="flex items-stretch">
+        {/* Tombol prev (Kiri) - Disembunyikan saat di Halaman 1 */}
+        {currentPage > 1 && (
+          <button
+            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+            aria-label="Halaman sebelumnya"
+            className={`${base} ${boxStyle} bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300`}
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </button>
+        )}
+
         {pages.map((p, idx) =>
           p === '...' ? (
             <span
@@ -61,19 +72,16 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
           )
         )}
 
-        {/* Tombol next */}
-        <button
-          onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-          disabled={currentPage >= totalPages}
-          aria-label="Halaman berikutnya"
-          className={`${base} ${boxStyle} ${
-            currentPage >= totalPages
-              ? 'border-slate-200 bg-white text-slate-300 cursor-not-allowed'
-              : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300'
-          }`}
-        >
-          <ArrowRight className="w-4 h-4" />
-        </button>
+        {/* Tombol next (Kanan) - Disembunyikan saat di Halaman Terakhir */}
+        {currentPage < totalPages && (
+          <button
+            onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+            aria-label="Halaman berikutnya"
+            className={`${base} ${boxStyle} bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300`}
+          >
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        )}
       </div>
     </nav>
   );

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   ChevronLeft,
   Tag,
@@ -7,6 +7,7 @@ import {
   Facebook,
   MessageCircle,
   Linkedin,
+  Instagram,
   Award,
   Calendar,
   GraduationCap,
@@ -14,12 +15,22 @@ import {
   ShieldCheck,
   CheckCircle2,
   Share2,
-  Sparkles
+  Sparkles,
+  CheckCircle
 } from 'lucide-react';
 import { KontenKarir } from '../types';
 import Header from './Header';
 import { Footer } from './Footer';
 import { renderContentMarkdown } from '../markdown';
+import { WhatsAppWaIcon } from './ui/SocialShareBar';
+import {
+  shareToFacebook,
+  shareToTwitter,
+  shareToWhatsApp,
+  shareToTelegram,
+  shareToLinkedIn,
+  shareToInstagram
+} from '../utils/shareUtils';
 
 interface PrestasiDetailViewProps {
   prestasi: KontenKarir;
@@ -40,7 +51,14 @@ export default function PrestasiDetailView({
   onNavigateToLogin,
   onNavigateToRegister,
 }: PrestasiDetailViewProps) {
-  // Komputasi Prestasi Terkait (Maksimal 3 Card berdasarkan relevansi Scope & Kategori)
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3500);
+  };
+
+  // Komputasi Prestasi Terkait (Maksimal 3 Card berdasarkan relevansi ketat Sub-Menu yang sedang dibuka)
   const relatedPrestasiList = useMemo(() => {
     if (!allPrestasiList || allPrestasiList.length === 0) return [];
 
@@ -50,19 +68,37 @@ export default function PrestasiDetailView({
     const currentScope = (prestasi.kategori || 'internasional').toLowerCase();
     const currentSub = (prestasi.subKategori || 'akademik').toLowerCase();
 
-    const scored = candidatePrestasi.map((candidate) => {
-      let score = 0;
-      if ((candidate.kategori || '').toLowerCase() === currentScope) score += 10;
-      if ((candidate.subKategori || '').toLowerCase() === currentSub) score += 5;
-      return { candidate, score };
+    // Prioritas 1: Pencocokan persis sub-menu (kategori DAN subKategori)
+    const exactMatches = candidatePrestasi.filter((p) => {
+      const pScope = (p.kategori || 'internasional').toLowerCase();
+      const pSub = (p.subKategori || 'akademik').toLowerCase();
+      return pScope === currentScope && pSub === currentSub;
     });
 
-    scored.sort((a, b) => {
-      if (b.score !== a.score) return b.score - a.score;
-      return new Date(b.candidate.createdAt).getTime() - new Date(a.candidate.createdAt).getTime();
+    exactMatches.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    if (exactMatches.length >= 3) {
+      return exactMatches.slice(0, 3);
+    }
+
+    // Prioritas 2: Pencocokan scope kategori jika kurang dari 3
+    const scopeMatches = candidatePrestasi.filter((p) => {
+      const pScope = (p.kategori || 'internasional').toLowerCase();
+      return pScope === currentScope && !exactMatches.some(e => e.id === p.id);
     });
 
-    return scored.slice(0, 3).map((s) => s.candidate);
+    scopeMatches.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    const combined = [...exactMatches, ...scopeMatches];
+    if (combined.length >= 3) {
+      return combined.slice(0, 3);
+    }
+
+    // Prioritas 3: Pelengkap tambahan dari kandidat lainnya
+    const remaining = candidatePrestasi.filter((p) => !combined.some(c => c.id === p.id));
+    remaining.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    return [...combined, ...remaining].slice(0, 3);
   }, [allPrestasiList, prestasi]);
 
   const formatDateDisplayFull = (dateStr?: string) => {
@@ -83,31 +119,38 @@ export default function PrestasiDetailView({
     }
   };
 
+  const getShareOpts = () => ({
+    type: 'prestasi' as const,
+    title: prestasi.judul,
+    namaMahasiswa: prestasi.namaMahasiswa,
+    prodi: prestasi.prodi,
+    peringkat: prestasi.peringkat,
+    tahun: prestasi.tahun,
+    url: typeof window !== 'undefined' ? window.location.href : ''
+  });
+
   const handleShareFacebook = () => {
-    const url = encodeURIComponent(window.location.href);
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+    shareToFacebook(getShareOpts());
   };
 
   const handleShareX = () => {
-    const url = encodeURIComponent(window.location.href);
-    const text = encodeURIComponent(prestasi.judul);
-    window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
+    shareToTwitter(getShareOpts());
   };
 
   const handleShareWhatsApp = () => {
-    const text = encodeURIComponent(`${prestasi.judul}\n\nLihat capaian prestasi selengkapnya: ${window.location.href}`);
-    window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+    shareToWhatsApp(getShareOpts());
   };
 
   const handleShareTelegram = () => {
-    const url = encodeURIComponent(window.location.href);
-    const text = encodeURIComponent(prestasi.judul);
-    window.open(`https://t.me/share/url?url=${url}&text=${text}`, '_blank');
+    shareToTelegram(getShareOpts());
   };
 
   const handleShareLinkedIn = () => {
-    const url = encodeURIComponent(window.location.href);
-    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank');
+    shareToLinkedIn(getShareOpts(), (msg) => showToast(msg));
+  };
+
+  const handleShareInstagram = () => {
+    shareToInstagram(getShareOpts(), (msg) => showToast(msg));
   };
 
   const authorName = (!prestasi.createdByName || prestasi.createdByName.toLowerCase().includes('admin'))
@@ -119,6 +162,14 @@ export default function PrestasiDetailView({
 
   return (
     <div className="bg-white min-h-screen flex flex-col font-sans text-slate-800" id="prestasi-detail-page">
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed top-24 right-5 z-50 bg-[#1E3A8A] text-white px-5 py-3 rounded-2xl shadow-xl border border-blue-800 flex items-center gap-3 animate-fadeIn text-xs sm:text-sm font-semibold max-w-md">
+          <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
+          <span>{toastMsg}</span>
+        </div>
+      )}
+
       {/* 1. Global Header */}
       <Header
         currentTab={`presentasi-${(prestasi.kategori || 'internasional').toLowerCase()}-${(prestasi.subKategori || 'akademik').toLowerCase()}`}
@@ -168,7 +219,7 @@ export default function PrestasiDetailView({
                 className="w-10 h-10 rounded-xl bg-[#25d366] hover:bg-[#1ebd56] text-white flex items-center justify-center shadow-md transition-transform hover:scale-110 cursor-pointer"
                 title="Bagikan ke WhatsApp"
               >
-                <MessageCircle className="w-5 h-5 fill-white" />
+                <WhatsAppWaIcon className="w-5 h-5" />
               </button>
               <button
                 onClick={handleShareTelegram}
@@ -185,6 +236,13 @@ export default function PrestasiDetailView({
                 title="Bagikan ke LinkedIn"
               >
                 <Linkedin className="w-5 h-5 fill-white text-transparent" />
+              </button>
+              <button
+                onClick={handleShareInstagram}
+                className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 hover:brightness-110 text-white flex items-center justify-center shadow-md transition-transform hover:scale-110 cursor-pointer"
+                title="Bagikan ke Instagram"
+              >
+                <Instagram className="w-5 h-5 text-white" />
               </button>
             </aside>
 
@@ -237,45 +295,48 @@ export default function PrestasiDetailView({
                 </div>
               </div>
 
-              {/* HIGHLIGHT CARD INFORMATION: MAHASISWA & PRODI */}
-              <div className="bg-gradient-to-br from-blue-50/70 via-indigo-50/30 to-slate-50/60 rounded-3xl border border-blue-200/90 p-6 sm:p-8 shadow-xs space-y-4">
-                <div className="flex items-center gap-2.5 text-[#1E3A8A] font-extrabold text-sm uppercase tracking-wider border-b border-blue-200/60 pb-3">
-                  <Award className="w-5 h-5 text-[#1E3A8A]" />
-                  <span>Detail Informasi Capaian Prestasi Mahasiswa</span>
+              {/* HIGHLIGHT CARD INFORMATION: MAHASISWA & PRODI (PRESISI SESUAI GAMBAR ACUAN) */}
+              <div className="bg-slate-50/70 rounded-3xl border border-slate-200/90 p-6 sm:p-7 shadow-2xs space-y-4">
+                <div className="text-[#1B365D] font-extrabold text-sm sm:text-base uppercase tracking-wider border-b border-slate-200/80 pb-3">
+                  DETAIL INFORMASI CAPAIAN PRESTASI MAHASISWA
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs sm:text-sm">
-                  <div className="bg-white/90 backdrop-blur-xs p-4 rounded-2xl border border-blue-100/90 shadow-2xs space-y-1">
-                    <div className="text-slate-400 font-semibold text-[11px] uppercase tracking-wider flex items-center gap-1">
-                      <User className="w-3.5 h-3.5 text-[#0077C6]" /> Nama Mahasiswa / Tim
+                  {/* 1. Nama Mahasiswa / Tim */}
+                  <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs space-y-1.5">
+                    <div className="text-slate-500 font-bold text-[11px] uppercase tracking-wider flex items-center gap-1.5">
+                      <User className="w-3.5 h-3.5 text-[#0077C6]" /> NAMA MAHASISWA / TIM
                     </div>
-                    <div className="font-extrabold text-slate-900 leading-snug">
+                    <div className="font-extrabold text-slate-900 leading-snug text-sm sm:text-base">
                       {prestasi.namaMahasiswa || 'Tim Inovator UMK'}
                     </div>
                   </div>
 
-                  <div className="bg-white/90 backdrop-blur-xs p-4 rounded-2xl border border-blue-100/90 shadow-2xs space-y-1">
-                    <div className="text-slate-400 font-semibold text-[11px] uppercase tracking-wider flex items-center gap-1">
-                      <GraduationCap className="w-3.5 h-3.5 text-[#0077C6]" /> Program Studi / Fakultas
+                  {/* 2. Program Studi / Fakultas */}
+                  <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs space-y-1.5">
+                    <div className="text-slate-500 font-bold text-[11px] uppercase tracking-wider flex items-center gap-1.5">
+                      <GraduationCap className="w-3.5 h-3.5 text-[#0077C6]" /> PROGRAM STUDI / FAKULTAS
                     </div>
-                    <div className="font-extrabold text-slate-900 leading-snug">
+                    <div className="font-extrabold text-slate-900 leading-snug text-sm sm:text-base">
                       {prestasi.prodi || 'UM Kendari'}
                     </div>
                   </div>
 
-                  <div className="bg-white/90 backdrop-blur-xs p-4 rounded-2xl border border-blue-100/90 shadow-2xs space-y-1">
-                    <div className="text-slate-400 font-semibold text-[11px] uppercase tracking-wider flex items-center gap-1">
-                      <Trophy className="w-3.5 h-3.5 text-amber-500" /> Peringkat / Medali
+                  {/* 3. Peringkat / Medali */}
+                  <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs space-y-1.5">
+                    <div className="text-slate-500 font-bold text-[11px] uppercase tracking-wider flex items-center gap-1.5">
+                      <Trophy className="w-3.5 h-3.5 text-amber-600" /> PERINGKAT / MEDALI
                     </div>
-                    <div className="font-extrabold text-amber-700 leading-snug">
+                    <div className="font-extrabold text-[#C2410C] leading-snug text-sm sm:text-base">
                       {prestasi.peringkat || 'Juara 1'}
                     </div>
                   </div>
 
-                  <div className="bg-white/90 backdrop-blur-xs p-4 rounded-2xl border border-blue-100/90 shadow-2xs space-y-1">
-                    <div className="text-slate-400 font-semibold text-[11px] uppercase tracking-wider flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5 text-[#0077C6]" /> Tahun Capaian
+                  {/* 4. Tahun Capaian */}
+                  <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs space-y-1.5">
+                    <div className="text-slate-500 font-bold text-[11px] uppercase tracking-wider flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-[#0077C6]" /> TAHUN CAPAIAN
                     </div>
-                    <div className="font-extrabold text-slate-900 leading-snug">
+                    <div className="font-extrabold text-slate-900 leading-snug text-sm sm:text-base">
                       {prestasi.tahun || '2026'}
                     </div>
                   </div>
@@ -384,7 +445,7 @@ export default function PrestasiDetailView({
                   className="w-12 h-10 rounded-xl bg-[#25d366] hover:bg-[#1ebd56] text-white flex items-center justify-center shadow-2xs transition active:scale-95 cursor-pointer"
                   title="Bagikan ke WhatsApp"
                 >
-                  <MessageCircle className="w-5 h-5 fill-white" />
+                  <WhatsAppWaIcon className="w-5 h-5" />
                 </button>
                 <button
                   onClick={handleShareTelegram}
@@ -401,6 +462,13 @@ export default function PrestasiDetailView({
                   title="Bagikan ke LinkedIn"
                 >
                   <Linkedin className="w-5 h-5 fill-white text-transparent" />
+                </button>
+                <button
+                  onClick={handleShareInstagram}
+                  className="w-12 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 hover:brightness-110 text-white flex items-center justify-center shadow-2xs transition active:scale-95 cursor-pointer"
+                  title="Bagikan ke Instagram"
+                >
+                  <Instagram className="w-5 h-5 text-white" />
                 </button>
               </div>
 

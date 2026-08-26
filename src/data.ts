@@ -2682,7 +2682,7 @@ export function getHeroSlides(): HeroSlideItem[] {
   // Migrate or initialize from latest SEED_HERO_SLIDES
   try {
     localStorage.setItem('cdc_umk_hero_slides_v5', JSON.stringify(SEED_HERO_SLIDES));
-  } catch {}
+  } catch { }
   return SEED_HERO_SLIDES;
 }
 
@@ -2957,6 +2957,20 @@ export const SEED_JOB_FAIR: JobFairItem[] = [
     deskripsi: 'Kolaborasi job fair dan expo ekonomi kreatif: 40+ booth perusahaan, 30 stand UMKM, lomba pitching bisnis, dan showcase mahasiswa.',
     status: 'buka',
     createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'jf_8',
+    judul: 'UMK Hybrid Virtual Job Fair & Recruitment Day 2027',
+    tagline: 'Melamar Kerja Mudah Langsung dari Rumah atau Kampus',
+    bannerUrl: '/poster-cdc-web-umk-1.svg',
+    tanggalMulai: '2027-04-15',
+    tanggalSelesai: '2027-04-17',
+    waktu: '08:00 - 17:00 WITA',
+    lokasi: 'Platform Daring Portal CDC & Gedung Rektorat UMK',
+    htm: 'Gratis Seluruh Peserta',
+    deskripsi: 'Bursa kerja virtual hybrid terintegrasi dengan portal CDC UMK, memudahkan pelamar mengikuti seleksi online dari mana saja.',
+    status: 'buka',
+    createdAt: new Date().toISOString(),
   }
 ];
 
@@ -2977,6 +2991,82 @@ export function getJobFair(): JobFairItem[] {
 
 export function saveJobFair(items: JobFairItem[]): void {
   localStorage.setItem('cdc_umk_job_fair', JSON.stringify(items));
+}
+
+// Document Section Database Helpers
+export function getSuratKeputusan(): SuratKeputusan[] {
+  const saved = localStorage.getItem('cdc_umk_surat_keputusan');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch { }
+  }
+  return SEED_SURAT_KEPUTUSAN;
+}
+
+export function saveSuratKeputusan(items: SuratKeputusan[]): void {
+  localStorage.setItem('cdc_umk_surat_keputusan', JSON.stringify(items));
+}
+
+export function getKalenderKegiatan(): KalenderKegiatan[] {
+  const saved = localStorage.getItem('cdc_umk_kalender_kegiatan');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch { }
+  }
+  return SEED_KALENDER_KEGIATAN;
+}
+
+export function saveKalenderKegiatan(items: KalenderKegiatan[]): void {
+  localStorage.setItem('cdc_umk_kalender_kegiatan', JSON.stringify(items));
+}
+
+export function getLaporanKinerja(): LaporanKinerja[] {
+  const saved = localStorage.getItem('cdc_umk_laporan_kinerja');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch { }
+  }
+  return SEED_LAPORAN_KINERJA;
+}
+
+export function saveLaporanKinerja(items: LaporanKinerja[]): void {
+  localStorage.setItem('cdc_umk_laporan_kinerja', JSON.stringify(items));
+}
+
+export function getMouStakeholder(): MouStakeholder[] {
+  const saved = localStorage.getItem('cdc_umk_mou_stakeholder');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch { }
+  }
+  return SEED_MOU_STAKEHOLDER;
+}
+
+export function saveMouStakeholder(items: MouStakeholder[]): void {
+  localStorage.setItem('cdc_umk_mou_stakeholder', JSON.stringify(items));
+}
+
+export function getGaleriItems(): GaleriItem[] {
+  const saved = localStorage.getItem('cdc_umk_galeri_items');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch { }
+  }
+  return SEED_GALERI_ITEMS;
+}
+
+export function saveGaleriItems(items: GaleriItem[]): void {
+  localStorage.setItem('cdc_umk_galeri_items', JSON.stringify(items));
 }
 
 

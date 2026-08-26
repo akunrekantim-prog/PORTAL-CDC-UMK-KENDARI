@@ -750,13 +750,14 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
         {/* PAGINATION */}
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-1.5 pt-6">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition shadow-2xs"
-            >
-              &lt;
-            </button>
+            {currentPage > 1 && (
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition shadow-2xs"
+              >
+                &lt;
+              </button>
+            )}
 
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
               const isActive = pageNum === currentPage;
@@ -775,13 +776,14 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
               );
             })}
 
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition shadow-2xs"
-            >
-              &gt;
-            </button>
+            {currentPage < totalPages && (
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition shadow-2xs"
+              >
+                &gt;
+              </button>
+            )}
           </div>
         )}
 

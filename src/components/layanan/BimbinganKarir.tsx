@@ -158,13 +158,12 @@ export default function KonselingKarir() {
                     </td>
                     <td className="px-5 py-4 flex items-center justify-end gap-2 whitespace-nowrap">
                       <span
-                        className={`inline-block w-1.5 h-1.5 rounded-full ${
-                          jdw.status === 'buka'
+                        className={`inline-block w-1.5 h-1.5 rounded-full ${jdw.status === 'buka'
                             ? 'bg-emerald-500'
                             : jdw.status === 'penuh'
                               ? 'bg-amber-500'
                               : 'bg-slate-300'
-                        }`}
+                          }`}
                       />
                       <span className="text-slate-600 font-medium">
                         {jdw.status === 'buka'

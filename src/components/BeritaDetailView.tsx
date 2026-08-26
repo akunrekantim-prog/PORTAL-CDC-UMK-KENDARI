@@ -8,6 +8,7 @@ import {
   Facebook,
   MessageCircle,
   Linkedin,
+  Instagram,
   Share2,
   CheckCircle2,
   Send,
@@ -19,10 +20,19 @@ import { Berita } from '../types';
 import Header from './Header';
 import { Footer } from './Footer';
 import { renderContentMarkdown } from '../markdown';
+import { WhatsAppWaIcon } from './ui/SocialShareBar';
 import {
   getApprovedKomentarBerita,
   insertKomentarBerita
 } from '../data';
+import {
+  shareToFacebook,
+  shareToTwitter,
+  shareToWhatsApp,
+  shareToTelegram,
+  shareToLinkedIn,
+  shareToInstagram
+} from '../utils/shareUtils';
 
 interface BeritaDetailViewProps {
   berita: Berita;
@@ -73,6 +83,10 @@ export default function BeritaDetailView({
   const [rememberMe, setRememberMe] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3500);
+  };
 
   // Komputasi Berita Terkait (Maksimal 3 Card berdasarkan relevansi Scope & Judul)
   const relatedBeritaList = useMemo(() => {
@@ -123,38 +137,42 @@ export default function BeritaDetailView({
     }
   };
 
+  const getShareOpts = () => ({
+    type: 'berita' as const,
+    title: berita.title,
+    scope: berita.scope,
+    summary: berita.excerpt,
+    url: typeof window !== 'undefined' ? window.location.href : ''
+  });
+
   const handleShareFacebook = () => {
-    const url = encodeURIComponent(window.location.href);
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+    shareToFacebook(getShareOpts());
   };
 
   const handleShareX = () => {
-    const url = encodeURIComponent(window.location.href);
-    const text = encodeURIComponent(berita.title);
-    window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
+    shareToTwitter(getShareOpts());
   };
 
   const handleShareWhatsApp = () => {
-    const text = encodeURIComponent(`${berita.title}\n\nBaca selengkapnya: ${window.location.href}`);
-    window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+    shareToWhatsApp(getShareOpts());
   };
 
   const handleShareTelegram = () => {
-    const url = encodeURIComponent(window.location.href);
-    const text = encodeURIComponent(berita.title);
-    window.open(`https://t.me/share/url?url=${url}&text=${text}`, '_blank');
+    shareToTelegram(getShareOpts());
   };
 
   const handleShareLinkedIn = () => {
-    const url = encodeURIComponent(window.location.href);
-    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank');
+    shareToLinkedIn(getShareOpts(), (msg) => showToast(msg));
+  };
+
+  const handleShareInstagram = () => {
+    shareToInstagram(getShareOpts(), (msg) => showToast(msg));
   };
 
   const handleSubmitComment = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputKomentar.trim() || !inputNama.trim() || !inputEmail.trim()) {
-      setToastMsg('Mohon lengkapi Ruas yang Wajib Ditandai (*) terlebih dahulu.');
-      setTimeout(() => setToastMsg(null), 3500);
+      showToast('Mohon lengkapi Ruas yang Wajib Ditandai (*) terlebih dahulu.');
       return;
     }
 
@@ -179,8 +197,7 @@ export default function BeritaDetailView({
       setInputNama('');
       setInputEmail('');
     }
-    setToastMsg('Komentar Anda berhasil dikirim dan menunggu persetujuan admin sebelum tayang.');
-    setTimeout(() => setToastMsg(null), 3500);
+    showToast('Komentar Anda berhasil dikirim dan menunggu persetujuan admin sebelum tayang.');
   };
 
   const authorName = (!berita.penulis || berita.penulis.toLowerCase().includes('admin'))
@@ -199,7 +216,7 @@ export default function BeritaDetailView({
 
       {/* Toast Notification */}
       {toastMsg && (
-        <div className="fixed top-24 right-5 z-50 bg-[#1E3A8A] text-white px-5 py-3 rounded-2xl shadow-xl border border-blue-800 flex items-center gap-3 animate-fadeIn text-xs sm:text-sm font-semibold">
+        <div className="fixed top-24 right-5 z-50 bg-[#1E3A8A] text-white px-5 py-3 rounded-2xl shadow-xl border border-blue-800 flex items-center gap-3 animate-fadeIn text-xs sm:text-sm font-semibold max-w-md">
           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
           <span>{toastMsg}</span>
         </div>
@@ -246,7 +263,7 @@ export default function BeritaDetailView({
                 className="w-10 h-10 rounded-xl bg-[#25d366] hover:bg-[#1ebd56] text-white flex items-center justify-center shadow-md transition-transform hover:scale-110 cursor-pointer"
                 title="Bagikan ke WhatsApp"
               >
-                <MessageCircle className="w-5 h-5 fill-white" />
+                <WhatsAppWaIcon className="w-5 h-5" />
               </button>
               <button
                 onClick={handleShareTelegram}
@@ -263,6 +280,13 @@ export default function BeritaDetailView({
                 title="Bagikan ke LinkedIn"
               >
                 <Linkedin className="w-5 h-5 fill-white text-transparent" />
+              </button>
+              <button
+                onClick={handleShareInstagram}
+                className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 hover:brightness-110 text-white flex items-center justify-center shadow-md transition-transform hover:scale-110 cursor-pointer"
+                title="Bagikan ke Instagram"
+              >
+                <Instagram className="w-5 h-5 text-white" />
               </button>
             </aside>
 
@@ -414,7 +438,7 @@ export default function BeritaDetailView({
                   className="w-12 h-10 rounded-xl bg-[#25d366] hover:bg-[#1ebd56] text-white flex items-center justify-center shadow-xs transition active:scale-95 cursor-pointer"
                   title="Bagikan ke WhatsApp"
                 >
-                  <MessageCircle className="w-5 h-5 fill-white" />
+                  <WhatsAppWaIcon className="w-5 h-5" />
                 </button>
                 <button
                   onClick={handleShareTelegram}
@@ -431,6 +455,13 @@ export default function BeritaDetailView({
                   title="Bagikan ke LinkedIn"
                 >
                   <Linkedin className="w-5 h-5 fill-white text-transparent" />
+                </button>
+                <button
+                  onClick={handleShareInstagram}
+                  className="w-12 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 hover:brightness-110 text-white flex items-center justify-center shadow-xs transition active:scale-95 cursor-pointer"
+                  title="Bagikan ke Instagram"
+                >
+                  <Instagram className="w-5 h-5 text-white" />
                 </button>
               </div>
 

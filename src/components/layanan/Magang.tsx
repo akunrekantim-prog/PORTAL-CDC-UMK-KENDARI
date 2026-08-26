@@ -135,35 +135,36 @@ export default function Magang({ lowongan = [], onSelectLowongan }: MagangProps)
           {/* PAGINATION (9 items per page) */}
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-1.5 pt-4">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition"
-              >
-                &lt;
-              </button>
+              {currentPage > 1 && (
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition"
+                >
+                  &lt;
+                </button>
+              )}
 
               {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
                 <button
                   key={pageNum}
                   onClick={() => handlePageChange(pageNum)}
-                  className={`px-3.5 py-1.5 rounded-lg font-bold text-xs transition ${
-                    pageNum === currentPage
+                  className={`px-3.5 py-1.5 rounded-lg font-bold text-xs transition ${pageNum === currentPage
                       ? 'bg-[#1B365D] text-white shadow-xs'
                       : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                  }`}
+                    }`}
                 >
                   {pageNum}
                 </button>
               ))}
 
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition"
-              >
-                &gt;
-              </button>
+              {currentPage < totalPages && (
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition"
+                >
+                  &gt;
+                </button>
+              )}
             </div>
           )}
         </div>

@@ -2237,11 +2237,10 @@ export default function PublicLayout({
                               window.scrollTo({ top: 350, behavior: 'smooth' });
                             }}
                             disabled={prestasiPage === 1}
-                            className={`w-10 h-10 rounded-lg border flex items-center justify-center text-sm font-semibold transition cursor-pointer ${
-                              prestasiPage === 1
+                            className={`w-10 h-10 rounded-lg border flex items-center justify-center text-sm font-semibold transition cursor-pointer ${prestasiPage === 1
                                 ? 'border-slate-200 text-slate-300 cursor-not-allowed bg-slate-50'
                                 : 'border-slate-200 text-slate-700 hover:border-[#1E3A8A] hover:text-[#1E3A8A] bg-white'
-                            }`}
+                              }`}
                             aria-label="Previous Page"
                           >
                             <ArrowLeft className="w-4 h-4" />
@@ -2281,11 +2280,10 @@ export default function PublicLayout({
                                   setPrestasiPage(page);
                                   window.scrollTo({ top: 350, behavior: 'smooth' });
                                 }}
-                                className={`w-10 h-10 rounded-lg border text-sm font-bold transition-all cursor-pointer ${
-                                  isActive
+                                className={`w-10 h-10 rounded-lg border text-sm font-bold transition-all cursor-pointer ${isActive
                                     ? 'bg-[#1E3A8A] text-white border-[#1E3A8A] shadow-xs'
                                     : 'bg-white text-slate-700 border-slate-200 hover:border-[#1E3A8A] hover:text-[#1E3A8A]'
-                                }`}
+                                  }`}
                               >
                                 {page}
                               </button>
@@ -2299,11 +2297,10 @@ export default function PublicLayout({
                               window.scrollTo({ top: 350, behavior: 'smooth' });
                             }}
                             disabled={prestasiPage === totalPrestasiPages}
-                            className={`w-10 h-10 rounded-lg border flex items-center justify-center text-sm font-semibold transition cursor-pointer ${
-                              prestasiPage === totalPrestasiPages
+                            className={`w-10 h-10 rounded-lg border flex items-center justify-center text-sm font-semibold transition cursor-pointer ${prestasiPage === totalPrestasiPages
                                 ? 'border-slate-200 text-slate-300 cursor-not-allowed bg-slate-50'
                                 : 'border-slate-200 text-slate-700 hover:border-[#1E3A8A] hover:text-[#1E3A8A] bg-white'
-                            }`}
+                              }`}
                             aria-label="Next Page"
                           >
                             <ArrowRight className="w-4 h-4" />
