@@ -2285,3 +2285,55 @@ Semua commit sudah dipush ke origin/main
   MoU 15 Perusahaan Teknologi, Alumni Lolos CPNS/BUMN, Fitur Job Matching AI.
 - tsc & build lolos.
 - Bump CURRENT_SEED_VERSION ke v13 agar browser me-reload semua dummy data baru (layanan + berita).
+
+
+============================================================
+REKAP PROGRES LENGKAP — 26 Agustus 2026 (Lanjutan Sesi 2)
+Nama: ARYA APRIAWAN
+Tugas: Data Dummy Menu Layanan & Berita, Pagination
+============================================================
+
+Apa yang dikerjakan ARYA APRIAWAN:
+
+1. Analisis backend (tanpa commit)
+   - Memetakan arsitektur: app murni frontend, data di localStorage
+     (src/data.ts), auth fake via SEED_USERS.
+   - Menyusun rencana kebutuhan backend: skema DB (19 DBKey -> tabel),
+     API endpoints, file upload, keamanan, deployment.
+
+2. Penambahan data dummy minimal 7 per menu card (f944a94, 18d1c29)
+   - Campus Hiring: 7 (BCA, Indofood, Telkom, BRI, Astra, Pertamina, BSI)
+   - Job Fair: 7 (Mega Expo, Syariah, Digital Talent, BUMN Career Day,
+     Green Jobs, Alumni Homecoming, Creative Economy Expo)
+   - Workshop: 7, Seminar: 7, Soft Skill Class: 7 — semua realistis
+     (perusahaan nyata, jadwal, kuota, pendaftar).
+   - perusahaanPeserta JobFairItem dibuat opsional.
+
+3. Fitur pagination maksimal 6 card per halaman (d118a32)
+   - Komponen reusable ui/Pagination.tsx: kotak persegi bersambung,
+     ellipsis jika banyak halaman, tombol panah next.
+   - Dipasang di Workshop, Seminar, Soft Skill (EventCardLayout),
+     Campus Hiring, dan Job Fair.
+   - Pindah halaman smooth-scroll ke atas; filter/search reset ke halaman 1.
+
+4. Warna halaman aktif pagination disesuaikan header (450e66d)
+   - Dari hitam menjadi navy #000066 sesuai warna top bar header.
+
+5. Menu Berita & Artikel (c449ff7)
+   - Pagination lama (pill rounded) diganti komponen kotak persegi navy yang sama.
+   - Dummy berita ditambah 5 jadi total 7: Career Expo 2026,
+     Penghargaan PT Berdaya Saing, MoU 15 Perusahaan Teknologi,
+     Alumni Lolos CPNS/BUMN Sultra, Fitur Job Matching AI.
+
+6. Hotfix seed tidak termuat (207576b)
+   - Browser menampilkan data lama karena localStorage cache;
+     CURRENT_SEED_VERSION di-bump v12 -> v13 agar semua dummy baru
+     otomatis ditimpa saat halaman dibuka.
+
+Verifikasi tiap langkah:
+- npm run lint (tsc --noEmit): lolos tanpa error.
+- npm run build (vite build): sukses (terakhir built in ~9.7s).
+
+Semua commit sudah dipush ke origin/main
+(github.com/akunrekantim-prog/PORTAL-CDC-UMK-KENDARI).
+============================================================
