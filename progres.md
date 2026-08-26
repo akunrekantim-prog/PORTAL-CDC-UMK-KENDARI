@@ -2278,3 +2278,9 @@ Semua commit sudah dipush ke origin/main
 - Dengan 7 data: halaman 1 = 6 card, halaman 2 = sisa 1 card.
 - tsc & build lolos.
 - Warna halaman aktif pagination diganti dari hitam ke navy header (#000066).
+
+## Menu Berita & Artikel (26 Agustus 2026) — ARYA APRIAWAN
+- Pagination diganti ke komponen kotak persegi navy #000066 (sama dengan menu layanan).
+- Data dummy berita ditambah 5 item (total 7): Career Expo 2026, Penghargaan PT Daya Saing,
+  MoU 15 Perusahaan Teknologi, Alumni Lolos CPNS/BUMN, Fitur Job Matching AI.
+- tsc & build lolos.

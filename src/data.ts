@@ -835,6 +835,66 @@ export const SEED_BERITA: Berita[] = [
     authorId: 'usr_admin',
     publishedAt: '2026-05-22T09:00:00Z',
     createdAt: '2026-05-22T09:00:00Z'
+  },
+  {
+    id: 'news3',
+    title: 'Career Expo 2026 UMK Tawarkan 1.200 Lowongan dari 60 Perusahaan Mitra',
+    slug: 'career-expo-2026-umk-1200-lowongan',
+    excerpt: 'CDC UMK Kendari siap menggelar Career Expo 2026 yang mempertemukan mahasiswa dan alumni dengan 60 perusahaan mitra nasional.',
+    content: 'KENDARI — CDC Universitas Muhammadiyah Kendari resmi menggelar Career Expo 2026 yang menghadirkan lebih dari 1.200 lowongan kerja dan magang dari 60 perusahaan mitra, mulai dari BUMN, perbankan, teknologi, hingga manufaktur.\n\nExpo bertema "Siap Kerja, Siap Berkarya" dilengkapi klinik review CV gratis, simulasi wawancara on-the-spot, serta talkshow inspirasi karir bersama praktisi industri. Terbuka gratis bagi mahasiswa aktif maupun alumni UM Kendari dengan registrasi melalui portal CDC.',
+    coverImageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=800&auto=format&fit=crop',
+    status: 'published',
+    authorId: 'usr_admin',
+    publishedAt: '2026-06-10T08:00:00Z',
+    createdAt: '2026-06-10T08:00:00Z'
+  },
+  {
+    id: 'news4',
+    title: 'UMK Raih Penghargaan Perguruan Tinggi Berdaya Saing Tinggi Tingkat Regional Sulawesi',
+    slug: 'umk-penghargaan-pt-daya-saing-regional',
+    excerpt: 'Universitas Muhammadiyah Kendari meraih penghargaan perguruan tinggi berdaya saing tinggi kategori regional Sulawesi pada forum perguruan tinggi muhammadiyat.',
+    content: 'KENDARI — Atas konsistensinya meningkatkan mutu lulusan dan penyerapan alumni di dunia industri, Universitas Muhammadiyah Kendari dinobatkan sebagai perguruan tinggi berdaya saing tinggi tingkat regional Sulawesi. Penghargaan diserahkan dalam forum koordinasi perguruan tinggi muhammadiyat se-Sulawesi.\n\nRektor UM Kendari menyampaikan bahwa capaian ini merupakan buah kolaborasi seluruh unit, termasuk CDC yang berhasil mencatatkan rata-rata waktu tunggu kerja lulusan di bawah enam bulan. Ke depan, kampus menargetkan penetrasi lulusan ke pasar kerja nasional dan global melalui program job matching lintas daerah.',
+    coverImageUrl: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=800&auto=format&fit=crop',
+    status: 'published',
+    authorId: 'usr_admin',
+    publishedAt: '2026-06-02T09:30:00Z',
+    createdAt: '2026-06-02T09:30:00Z'
+  },
+  {
+    id: 'news5',
+    title: 'MoU UM Kendari dengan 15 Perusahaan Teknologi Nasional untuk Magang Bersertifikat',
+    slug: 'mou-umk-15-perusahaan-teknologi-magang',
+    excerpt: 'UM Kendari menandatangani nota kesepahaman dengan 15 perusahaan teknologi nasional untuk membuka 300 kursi magang bersertifikat.',
+    content: 'KENDARI — Universitas Muhammadiyah Kendari menandatangani MoU dengan 15 perusahaan teknologi nasional di bidang software house, fintech, dan telekomunikasi. Kerja sama ini membuka 300 kursi magang bersertifikat bagi mahasiswa semester lima ke atas dari seluruh program studi.\n\nMelalui portal CDC, mahasiswa dapat mendaftar magang secara daring lengkap dengan surat pengantar otomatis. Proses seleksi dilakukan langsung oleh perusahaan mitra, dan nilai akhir magang dikonversi menjadi SKS sesuai ketentuan akademik kampus.',
+    coverImageUrl: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?q=80&w=800&auto=format&fit=crop',
+    status: 'published',
+    authorId: 'usr_admin',
+    publishedAt: '2026-07-08T07:00:00Z',
+    createdAt: '2026-07-08T07:00:00Z'
+  },
+  {
+    id: 'news6',
+    title: 'Alumni UM Kendari Dominasi Seleksi CPNS & BUMN Regional Sultra 2026',
+    slug: 'alumni-umk-dominasi-seleksi-cpns-bumn-sultra',
+    excerpt: 'Data sementara menunjukkan lebih dari 120 alumni UM Kendari lolos tahap administrasi seleksi CPNS dan BUMN wilayah Sulawesi Tenggara.',
+    content: 'KENDARI — Hasil monitoring CDC UM Kendari terhadap angkatan lulusan 2024-2026 mencatatkan lebih dari 120 alumni dinyatakan lolos seleksi administrasi CPNS dan rekrutmen BUMN kawasan Sulawesi Tenggara. Angka ini meningkat dua kali lipat dibandingkan periode sebelumnya.\n\nKeberhasilan tersebut didukung program intensif persiapan seleksi yang diselenggarakan CDC bekerja sama dengan forum alumni, mencakup bimbingan SKD, psikotes, hingga simulasi wawancara. Kampus berkomitmen melanjutkan program serupa secara rutin setiap tahun.',
+    coverImageUrl: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=800&auto=format&fit=crop',
+    status: 'published',
+    authorId: 'usr_admin',
+    publishedAt: '2026-07-20T08:00:00Z',
+    createdAt: '2026-07-20T08:00:00Z'
+  },
+  {
+    id: 'news7',
+    title: 'CDC UMK Luncurkan Fitur Job Matching Berbasis AI untuk Lulusan',
+    slug: 'cdc-umk-fitur-job-matching-ai',
+    excerpt: 'Portal CDC UM Kendari kini dilengkapi fitur pencocokan lowongan berbasis AI yang merekomendasikan pekerjaan sesuai profil lulusan.',
+    content: 'KENDARI — CDC Universitas Muhammadiyah Kendari memperkenalkan fitur terbaru pada portal resminya: Job Matching berbasis Artificial Intelligence. Sistem menganalisis profil mahasiswa dan alumni — jurusan, IPK, keahlian, dan minat karir — lalu merekomendasikan lowongan kerja, magang, maupun event rekrutmen yang paling relevan.\n\nFitur ini hadir sebagai jawaban atas kesulitan lulusan menemukan lowongan yang cocok di tengah banjir informasi rekrutmen. Tahap awal, sistem telah mengindeks ribuan lowongan dari mitra kampus serta kanal karir nasional, dan terus diperbarui setiap hari.',
+    coverImageUrl: 'https://images.unsplash.com/photo-1518186285589-2f7649de83e0?q=80&w=800&auto=format&fit=crop',
+    status: 'published',
+    authorId: 'usr_admin',
+    publishedAt: '2026-08-05T08:00:00Z',
+    createdAt: '2026-08-05T08:00:00Z'
   }
 ];
 
