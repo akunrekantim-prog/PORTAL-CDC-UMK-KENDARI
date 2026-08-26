@@ -55,7 +55,8 @@ import {
   LogOut,
   Menu,
   ChevronRight,
-  ShieldCheck
+  ShieldCheck,
+  MousePointerClick
 } from 'lucide-react';
 import { JOB_SPECIALIZATIONS, getCompanyBadgeColor, getCompanyInitials } from './JobSearchMasterDetail';
 import Dropdown from './Dropdown';
@@ -451,6 +452,9 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
   const [gaji, setGaji] = useState('Kompetitif');
   const [kuota, setKuota] = useState<string>('3');
   const [deadline, setDeadline] = useState('');
+  const [ctaEnabled, setCtaEnabled] = useState(false);
+  const [ctaLabel, setCtaLabel] = useState('Lamar Pekerjaan');
+  const [linkEksternal, setLinkEksternal] = useState('');
 
   // Media Visual Upload States (Company Logo for Job Info card & Poster for Job Detail)
   const [companyLogoUrl, setCompanyLogoUrl] = useState('');
@@ -702,6 +706,9 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
     setDeadline('');
     setCompanyLogoUrl('');
     setPosterUrl('');
+    setCtaEnabled(false);
+    setCtaLabel('Lamar Pekerjaan');
+    setLinkEksternal('');
     setDeskripsi('');
     setTanggungJawab('');
     setKualifikasi('');
@@ -726,6 +733,9 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
     setDeadline(job.deadline);
     setCompanyLogoUrl(job.companyLogo || '');
     setPosterUrl(job.flyer || job.imageUrl || job.bannerImage || (job.flyers && job.flyers[0]) || '');
+    setCtaEnabled(job.ctaEnabled === true);
+    setCtaLabel(job.ctaLabel && job.ctaLabel.trim() ? job.ctaLabel : 'Lamar Pekerjaan');
+    setLinkEksternal(job.linkEksternal || '');
     setDeskripsi(job.deskripsi || '');
     setTanggungJawab(Array.isArray(job.tanggungJawab) ? job.tanggungJawab.join('\n') : job.tanggungJawab || '');
     setKualifikasi(Array.isArray(job.kualifikasi) ? job.kualifikasi.join('\n') : job.kualifikasi || '');
@@ -767,6 +777,10 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
       flyer: posterUrl || undefined,
       bannerImage: posterUrl || undefined,
       flyers: posterUrl ? [posterUrl] : undefined,
+      sumber: 'mitra',
+      linkEksternal: ctaEnabled && linkEksternal.trim() ? linkEksternal.trim() : undefined,
+      ctaEnabled,
+      ctaLabel: ctaEnabled ? (ctaLabel.trim() || 'Lamar Pekerjaan') : undefined,
       lokasi,
       kategori: selectedKategori.join(', '),
       gaji: gaji || 'Kompetitif',
@@ -1074,7 +1088,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 }}
                 className={`px-3.5 py-5 border-b-2 font-extrabold text-sm transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'ringkasan'
                     ? 'border-[#0055D4] text-[#0055D4]'
-                    : 'border-transparent text-slate-600 hover:text-slate-900'
+                    : 'border-transparent text-slate-600 hover:text-[#0055D4] hover:border-[#0055D4]'
                   }`}
               >
                 Ringkasan
@@ -1087,7 +1101,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 }}
                 className={`px-3.5 py-5 border-b-2 font-extrabold text-sm transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'lowongan'
                     ? 'border-[#0055D4] text-[#0055D4]'
-                    : 'border-transparent text-slate-600 hover:text-slate-900'
+                    : 'border-transparent text-slate-600 hover:text-[#0055D4] hover:border-[#0055D4]'
                   }`}
               >
                 <span>Kelola Lowongan</span>
@@ -1103,12 +1117,12 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 }}
                 className={`px-3.5 py-5 border-b-2 font-extrabold text-sm transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'pelamar'
                     ? 'border-[#0055D4] text-[#0055D4]'
-                    : 'border-transparent text-slate-600 hover:text-slate-900'
+                    : 'border-transparent text-slate-600 hover:text-[#0055D4] hover:border-[#0055D4]'
                   }`}
               >
                 <span>Pelamar &amp; Seleksi</span>
                 {myApplicants.length > 0 && (
-                  <span className="bg-blue-100 text-[#0055D4] text-xs font-bold px-2 py-0.5 rounded-full ml-1 font-mono">
+                  <span className="bg-blue-50 text-[#0055D4] text-xs font-bold px-2 py-0.5 rounded-full ml-1 font-mono">
                     {myApplicants.length}
                   </span>
                 )}
@@ -1121,7 +1135,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 }}
                 className={`px-3.5 py-5 border-b-2 font-extrabold text-sm transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'profil'
                     ? 'border-[#0055D4] text-[#0055D4]'
-                    : 'border-transparent text-slate-600 hover:text-slate-900'
+                    : 'border-transparent text-slate-600 hover:text-[#0055D4] hover:border-[#0055D4]'
                   }`}
               >
                 Profil Instansi
@@ -1137,13 +1151,13 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
               }}
               className="text-right hidden sm:flex items-center cursor-pointer group"
             >
-              <span className="font-extrabold text-sm text-slate-800 group-hover:text-blue-600 transition">
+              <span className="font-extrabold text-sm text-slate-800 group-hover:text-[#0055D4] transition">
                 {namaInstansi || user.name}
               </span>
             </div>
             <button
               onClick={onLogout}
-              className="hidden sm:flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3.5 py-1.5 rounded-lg text-xs font-bold transition shadow-2xs cursor-pointer"
+              className="hidden sm:flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 hover:border-[#0055D4]/40 hover:text-[#0055D4] text-slate-700 px-3.5 py-1.5 rounded-lg text-xs font-bold transition shadow-2xs cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" /> Keluar
             </button>
@@ -1186,7 +1200,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 }}
                 className={[
                   'w-full flex items-center justify-between px-5 py-4 text-sm font-semibold transition-colors duration-100 text-left cursor-pointer',
-                  activeTab === 'ringkasan' ? 'text-[#0055D4]' : 'text-gray-800 hover:bg-gray-50',
+                  activeTab === 'ringkasan' ? 'text-[#0055D4] bg-blue-50/40' : 'text-gray-800 hover:bg-blue-50/60 hover:text-[#0055D4]',
                 ].join(' ')}
               >
                 <span className={[
@@ -1207,7 +1221,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 }}
                 className={[
                   'w-full flex items-center justify-between px-5 py-4 text-sm font-semibold transition-colors duration-100 text-left cursor-pointer',
-                  activeTab === 'lowongan' ? 'text-[#0055D4]' : 'text-gray-800 hover:bg-gray-50',
+                  activeTab === 'lowongan' ? 'text-[#0055D4] bg-blue-50/40' : 'text-gray-800 hover:bg-blue-50/60 hover:text-[#0055D4]',
                 ].join(' ')}
               >
                 <span className={[
@@ -1231,7 +1245,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 }}
                 className={[
                   'w-full flex items-center justify-between px-5 py-4 text-sm font-semibold transition-colors duration-100 text-left cursor-pointer',
-                  activeTab === 'pelamar' ? 'text-[#0055D4]' : 'text-gray-800 hover:bg-gray-50',
+                  activeTab === 'pelamar' ? 'text-[#0055D4] bg-blue-50/40' : 'text-gray-800 hover:bg-blue-50/60 hover:text-[#0055D4]',
                 ].join(' ')}
               >
                 <span className={[
@@ -1241,7 +1255,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                   Pelamar &amp; Seleksi
                 </span>
                 {myApplicants.length > 0 && (
-                  <span className="bg-blue-100 text-[#0055D4] text-xs font-bold px-2 py-0.5 rounded-full font-mono mr-2">
+                  <span className="bg-blue-50 text-[#0055D4] text-xs font-bold px-2 py-0.5 rounded-full font-mono mr-2">
                     {myApplicants.length}
                   </span>
                 )}
@@ -1257,7 +1271,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 }}
                 className={[
                   'w-full flex items-center justify-between px-5 py-4 text-sm font-semibold transition-colors duration-100 text-left cursor-pointer',
-                  activeTab === 'profil' ? 'text-[#0055D4]' : 'text-gray-800 hover:bg-gray-50',
+                  activeTab === 'profil' ? 'text-[#0055D4] bg-blue-50/40' : 'text-gray-800 hover:bg-blue-50/60 hover:text-[#0055D4]',
                 ].join(' ')}
               >
                 <span className={[
@@ -1819,6 +1833,49 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                               onChange={(e) => setDeadline(e.target.value)}
                               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
                             />
+                          </div>
+
+                          {/* OPSI TOMBOL DAFTAR / CTA */}
+                          <div className="space-y-2 sm:col-span-2 bg-emerald-50/50 border border-emerald-200 rounded-xl p-4">
+                            <div className="flex items-center justify-between gap-3">
+                              <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                <MousePointerClick className="w-4 h-4 text-emerald-600" /> Tombol Daftar (CTA) — Opsional
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => setCtaEnabled((v) => !v)}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${ctaEnabled ? 'bg-emerald-600' : 'bg-slate-300'}`}
+                                aria-pressed={ctaEnabled}
+                              >
+                                <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${ctaEnabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                              </button>
+                            </div>
+                            <p className="text-[11px] text-slate-500">
+                              Aktifkan untuk menampilkan tombol daftar/ajukan lamaran di halaman detail lowongan ini. Jika link tujuan diisi, pelamar akan diarahkan ke tautan tersebut. Jika dikosongkan, pelamar akan diarahkan ke form pengajuan lamaran portal (ke Mitra).
+                            </p>
+
+                            <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 ${ctaEnabled ? '' : 'opacity-50 pointer-events-none'}`}>
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-medium text-slate-500">Teks Tombol</label>
+                                <input
+                                  value={ctaLabel}
+                                  onChange={(e) => setCtaLabel(e.target.value)}
+                                  placeholder="Lamar Pekerjaan"
+                                  disabled={!ctaEnabled}
+                                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm disabled:bg-slate-100"
+                                />
+                              </div>
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-medium text-slate-500">Link Tujuan (Opsional)</label>
+                                <input
+                                  value={linkEksternal}
+                                  onChange={(e) => setLinkEksternal(e.target.value)}
+                                  placeholder="https://forms.gle/... (opsional - kosongkan jika form mitra)"
+                                  disabled={!ctaEnabled}
+                                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm disabled:bg-slate-100"
+                                />
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>

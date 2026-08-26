@@ -292,18 +292,17 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                       <Clock className="w-4 h-4 text-rose-500 shrink-0" />
                       <span>Pendaftaran Ditutup</span>
                     </div>
-                  ) : job.sumber === 'admin' && job.ctaEnabled && job.linkEksternal ? (
+                  ) : (job.ctaEnabled === false || (job.sumber === 'admin' && !job.ctaEnabled)) ? null : (job.linkEksternal && job.linkEksternal.trim()) ? (
                     <a
                       href={job.linkEksternal}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs uppercase tracking-wider px-6 py-3 rounded-2xl shadow-xs hover:shadow-md transition-all shrink-0 self-start active:scale-95 inline-flex items-center gap-2 cursor-pointer"
+                      className="bg-[#0077C6] hover:bg-blue-700 text-white font-extrabold text-xs uppercase tracking-wider px-6 py-3 rounded-2xl shadow-xs hover:shadow-md transition-all shrink-0 self-start active:scale-95 inline-flex items-center justify-center cursor-pointer"
                       id="btn-cta-admin"
                     >
-                      <ExternalLink className="w-4 h-4" />
-                      {job.ctaLabel && job.ctaLabel.trim() ? job.ctaLabel : 'Daftar Sekarang'}
+                      {job.ctaLabel && job.ctaLabel.trim() ? job.ctaLabel : 'Lamar Pekerjaan'}
                     </a>
-                  ) : job.sumber === 'admin' && !job.ctaEnabled ? null : (
+                  ) : (
                     <button
                       onClick={() => {
                         if (!isLoggedIn && onNavigateToRegister) {
@@ -312,10 +311,10 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                           setIsApplyModalOpen(true);
                         }
                       }}
-                      className="bg-[#0077C6] hover:bg-blue-700 text-white font-extrabold text-xs uppercase tracking-wider px-6 py-3 rounded-2xl shadow-xs hover:shadow-md transition-all shrink-0 self-start active:scale-95 flex items-center gap-2 cursor-pointer"
+                      className="bg-[#0077C6] hover:bg-blue-700 text-white font-extrabold text-xs uppercase tracking-wider px-6 py-3 rounded-2xl shadow-xs hover:shadow-md transition-all shrink-0 self-start active:scale-95 flex items-center justify-center cursor-pointer"
                       id="btn-lamar-sekarang-top"
                     >
-                      <CheckCircle2 className="w-4 h-4" /> Lamar Sekarang
+                      {job.ctaLabel && job.ctaLabel.trim() ? job.ctaLabel : 'Lamar Pekerjaan'}
                     </button>
                   )}
                 </div>
@@ -489,8 +488,8 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                                   <span
                                     key={idx}
                                     className={`px-2.5 py-1 rounded-xl text-xs font-semibold leading-tight ${idx === 0
-                                        ? 'bg-blue-600 text-white font-bold shadow-2xs'
-                                        : 'bg-slate-800 text-slate-200 border border-slate-700/90'
+                                      ? 'bg-blue-600 text-white font-bold shadow-2xs'
+                                      : 'bg-slate-800 text-slate-200 border border-slate-700/90'
                                       }`}
                                   >
                                     {cat}
@@ -560,18 +559,17 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                       </div>
                       <p className="text-[11px] text-rose-700 font-medium">Batas waktu lamaran telah berakhir.</p>
                     </div>
-                  ) : job.sumber === 'admin' && job.ctaEnabled && job.linkEksternal ? (
+                  ) : (job.ctaEnabled === false || (job.sumber === 'admin' && !job.ctaEnabled)) ? null : (job.linkEksternal && job.linkEksternal.trim()) ? (
                     <a
                       href={job.linkEksternal}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 rounded-2xl shadow-xs hover:shadow-md transition-all text-xs uppercase tracking-wider text-center active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                      className="w-full bg-[#0077C6] hover:bg-blue-700 text-white font-extrabold py-3.5 rounded-2xl shadow-xs hover:shadow-md transition-all text-xs uppercase tracking-wider text-center active:scale-95 flex items-center justify-center cursor-pointer"
                       id="btn-cta-admin-side"
                     >
-                      <ExternalLink className="w-4 h-4" />
-                      {job.ctaLabel && job.ctaLabel.trim() ? job.ctaLabel : 'Daftar Sekarang'}
+                      {job.ctaLabel && job.ctaLabel.trim() ? job.ctaLabel : 'Lamar Pekerjaan'}
                     </a>
-                  ) : job.sumber === 'admin' && !job.ctaEnabled ? null : (
+                  ) : (
                     <button
                       onClick={() => {
                         if (!isLoggedIn && onNavigateToRegister) {
@@ -580,32 +578,22 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                           setIsApplyModalOpen(true);
                         }
                       }}
-                      className="w-full bg-[#0077C6] hover:bg-blue-700 text-white font-extrabold py-3.5 rounded-2xl shadow-xs hover:shadow-md transition-all text-xs uppercase tracking-wider text-center active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                      className="w-full bg-[#0077C6] hover:bg-blue-700 text-white font-extrabold py-3.5 rounded-2xl shadow-xs hover:shadow-md transition-all text-xs uppercase tracking-wider text-center active:scale-95 flex items-center justify-center cursor-pointer"
                       id="btn-lamar-pekerjaan-ini"
                     >
-                      <CheckCircle2 className="w-4 h-4" /> Lamar Pekerjaan Ini
+                      {job.ctaLabel && job.ctaLabel.trim() ? job.ctaLabel : 'Lamar Pekerjaan'}
                     </button>
                   )}
 
                   <button
                     onClick={handleToggleSave}
-                    className={`w-full py-3 rounded-2xl border font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${isSaved
-                        ? 'bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-emerald-100'
-                        : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300'
+                    className={`w-full py-3 rounded-2xl border font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center cursor-pointer ${isSaved
+                      ? 'bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-emerald-100'
+                      : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300'
                       }`}
                     id="btn-simpan-lowongan"
                   >
-                    {isSaved ? (
-                      <>
-                        <Check className="w-4 h-4 text-emerald-600" />
-                        <span>Lowongan Tersimpan</span>
-                      </>
-                    ) : (
-                      <>
-                        <Bookmark className="w-4 h-4 text-slate-400" />
-                        <span>Simpan Lowongan</span>
-                      </>
-                    )}
+                    {isSaved ? 'Lowongan Tersimpan' : 'Simpan Lowongan'}
                   </button>
                 </div>
 

@@ -215,7 +215,7 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
                 }}
                 className={`px-3.5 py-5 border-b-2 font-extrabold text-sm transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'search' && !selectedJobForDetail
                   ? 'border-[#0055D4] text-[#0055D4]'
-                  : 'border-transparent text-slate-600 hover:text-slate-900'
+                  : 'border-transparent text-slate-600 hover:text-[#0055D4] hover:border-[#0055D4]'
                   }`}
               >
                 Lowongan
@@ -228,7 +228,7 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
                 }}
                 className={`px-3.5 py-5 border-b-2 font-extrabold text-sm transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'applications' && !selectedJobForDetail
                   ? 'border-[#0055D4] text-[#0055D4]'
-                  : 'border-transparent text-slate-600 hover:text-slate-900'
+                  : 'border-transparent text-slate-600 hover:text-[#0055D4] hover:border-[#0055D4]'
                   }`}
               >
                 <span>Lamaran Saya</span>
@@ -246,7 +246,7 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
                 }}
                 className={`px-3.5 py-5 border-b-2 font-extrabold text-sm transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'profile' && !selectedJobForDetail
                   ? 'border-[#0055D4] text-[#0055D4]'
-                  : 'border-transparent text-slate-600 hover:text-slate-900'
+                  : 'border-transparent text-slate-600 hover:text-[#0055D4] hover:border-[#0055D4]'
                   }`}
               >
                 Profil Saya
@@ -262,13 +262,13 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
               }}
               className="text-right hidden sm:flex items-center cursor-pointer group"
             >
-              <span className="font-extrabold text-sm text-slate-800 group-hover:text-blue-600 transition">
+              <span className="font-extrabold text-sm text-slate-800 group-hover:text-[#0055D4] transition">
                 {mahasiswaData?.nama || user.name}
               </span>
             </div>
             <button
               onClick={onLogout}
-              className="hidden sm:flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3.5 py-1.5 rounded-lg text-xs font-bold transition shadow-2xs cursor-pointer"
+              className="hidden sm:flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 hover:border-[#0055D4]/40 hover:text-[#0055D4] text-slate-700 px-3.5 py-1.5 rounded-lg text-xs font-bold transition shadow-2xs cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" /> Keluar
             </button>
@@ -311,7 +311,7 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
                 }}
                 className={[
                   'w-full flex items-center justify-between px-5 py-4 text-sm font-semibold transition-colors duration-100 text-left cursor-pointer',
-                  activeTab === 'search' && !selectedJobForDetail ? 'text-[#0055D4]' : 'text-gray-800 hover:bg-gray-50',
+                  activeTab === 'search' && !selectedJobForDetail ? 'text-[#0055D4] bg-blue-50/40' : 'text-gray-800 hover:bg-blue-50/60 hover:text-[#0055D4]',
                 ].join(' ')}
               >
                 <span className={[
@@ -332,7 +332,7 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
                 }}
                 className={[
                   'w-full flex items-center justify-between px-5 py-4 text-sm font-semibold transition-colors duration-100 text-left cursor-pointer',
-                  activeTab === 'applications' && !selectedJobForDetail ? 'text-[#0055D4]' : 'text-gray-800 hover:bg-gray-50',
+                  activeTab === 'applications' && !selectedJobForDetail ? 'text-[#0055D4] bg-blue-50/40' : 'text-gray-800 hover:bg-blue-50/60 hover:text-[#0055D4]',
                 ].join(' ')}
               >
                 <span className={[
@@ -358,7 +358,7 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
                 }}
                 className={[
                   'w-full flex items-center justify-between px-5 py-4 text-sm font-semibold transition-colors duration-100 text-left cursor-pointer',
-                  activeTab === 'profile' && !selectedJobForDetail ? 'text-[#0055D4]' : 'text-gray-800 hover:bg-gray-50',
+                  activeTab === 'profile' && !selectedJobForDetail ? 'text-[#0055D4] bg-blue-50/40' : 'text-gray-800 hover:bg-blue-50/60 hover:text-[#0055D4]',
                 ].join(' ')}
               >
                 <span className={[
