@@ -52,7 +52,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
               aria-current={p === currentPage ? 'page' : undefined}
               className={`${base} ${boxStyle} ${
                 p === currentPage
-                  ? 'bg-slate-900 border-slate-900 text-white'
+                  ? 'bg-[#000066] border-[#000066] text-white hover:bg-[#000066]'
                   : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300'
               }`}
             >

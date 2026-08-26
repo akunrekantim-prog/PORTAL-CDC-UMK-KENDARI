@@ -2277,3 +2277,4 @@ Semua commit sudah dipush ke origin/main
 - Pindah halaman auto-scroll ke atas daftar; filter/search reset ke halaman 1.
 - Dengan 7 data: halaman 1 = 6 card, halaman 2 = sisa 1 card.
 - tsc & build lolos.
+- Warna halaman aktif pagination diganti dari hitam ke navy header (#000066).
