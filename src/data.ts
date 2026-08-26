@@ -1843,7 +1843,7 @@ let _dbInitialized = false;
 
 // Initializer to make sure local storage has everything
 export function initializeDB() {
-  const CURRENT_SEED_VERSION = 'v12_social_media';
+  const CURRENT_SEED_VERSION = 'v13_dummy_data_layanan_berita';
   if (localStorage.getItem('cdc_seed_version') !== CURRENT_SEED_VERSION) {
     Object.entries(DEFAULT_SEEDS).forEach(([key, val]) => {
       const storageKey = `cdc_umk_${key}`;

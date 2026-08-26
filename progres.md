@@ -2284,3 +2284,4 @@ Semua commit sudah dipush ke origin/main
 - Data dummy berita ditambah 5 item (total 7): Career Expo 2026, Penghargaan PT Daya Saing,
   MoU 15 Perusahaan Teknologi, Alumni Lolos CPNS/BUMN, Fitur Job Matching AI.
 - tsc & build lolos.
+- Bump CURRENT_SEED_VERSION ke v13 agar browser me-reload semua dummy data baru (layanan + berita).
