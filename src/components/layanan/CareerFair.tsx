@@ -329,31 +329,11 @@ export default function CareerFair() {
                   />
                 </div>
 
-                {/* Card Body */}
-                <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                  <div className="space-y-2">
-                    {fair.tagline && (
-                      <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 line-clamp-1">
-                        {fair.tagline}
-                      </p>
-                    )}
-                    <h3 className="font-bold text-slate-900 text-base line-clamp-2 leading-snug group-hover:text-[#0077C6] transition-colors">
-                      {fair.judul}
-                    </h3>
-                    <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">
-                      {formatDateDisplay(fair.tanggalMulai, fair.tanggalSelesai)}{fair.waktu ? ` · ${fair.waktu}` : ''}
-                    </p>
-                    <p className="text-xs text-slate-500 leading-snug line-clamp-2">
-                      {fair.lokasi}
-                    </p>
-                  </div>
-
-                  {/* Metadata Footer */}
-                  <div className="pt-3 border-t border-slate-100 text-xs text-slate-500 flex items-center justify-end gap-2">
-                    <span className="text-slate-400 font-medium whitespace-nowrap">
-                      by Admin Website
-                    </span>
-                  </div>
+                {/* Card Body — cukup judul besar saja sesuai arahan PM */}
+                <div className="p-5 flex-1">
+                  <h3 className="font-bold text-slate-900 text-lg line-clamp-3 leading-snug group-hover:text-[#0077C6] transition-colors">
+                    {fair.judul}
+                  </h3>
                 </div>
               </motion.div>
             ))}

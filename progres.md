@@ -2205,3 +2205,8 @@ Dilakukan investigasi menyeluruh terhadap alur data dari sisi mahasiswa ke sisi 
 - [x] Pencatatan laporan progres di `progres.md` atas nama ARYA APRIAWAN
 - [x] Git commit dan push ke GitHub repository
 
+
+## Revisi Card Layout Campus Hiring & Job Fair (26 Agustus 2026) — ARYA APRIAWAN
+- Card di menu Campus Hiring & Job Fair disederhanakan: cukup thumbnail pamflet + judul besar saja.
+- Keterangan (perusahaan/tagline, tanggal, waktu, lokasi, footer "by Admin Website") dihilangkan sesuai arahan PM.
+- Detail page tetap lengkap. Build lolos.
