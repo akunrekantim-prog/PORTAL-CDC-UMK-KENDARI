@@ -76,9 +76,10 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+      const isImage = file.type.startsWith('image/') || /\.(png|jpe?g)$/i.test(file.name);
 
-      if (!isPdf) {
-        setFileError('Format berkas tidak valid. Berkas CV wajib berformat PDF (.pdf).');
+      if (!isPdf && !isImage) {
+        setFileError('Format berkas tidak didukung. Harap unggah berkas CV berformat PDF atau Gambar (PNG/JPG).');
         setUploadedFileName(null);
         setUploadedFileUrl(null);
         e.target.value = '';
@@ -87,7 +88,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
       
       if (file.size > MAX_FILE_SIZE_BYTES) {
         const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
-        setFileError(`Ukuran berkas (${sizeMb} MB) melebihi batas maksimal 1 MB. Silakan unggah berkas CV PDF yang lebih kecil.`);
+        setFileError(`Ukuran berkas (${sizeMb} MB) melebihi batas maksimal 1 MB. Silakan unggah berkas CV yang lebih kecil.`);
         setUploadedFileName(null);
         setUploadedFileUrl(null);
         e.target.value = '';
@@ -99,10 +100,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
       const reader = new FileReader();
       reader.onload = (event) => {
         if (event.target?.result) {
-          let res = event.target.result as string;
-          if (!res.startsWith('data:application/pdf')) {
-            res = res.replace(/^data:[^;]*;/, 'data:application/pdf;');
-          }
+          const res = event.target.result as string;
           setUploadedFileUrl(res);
         }
       };
@@ -285,22 +283,22 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
 
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-700">
-                Upload Berkas CV / Portofolio (PDF) <span className="text-rose-500 font-extrabold">* Wajib</span>
+                Upload Berkas CV / Portofolio (PDF/Gambar) <span className="text-rose-500 font-extrabold">* Wajib</span>
               </label>
               <div className={`border-2 border-dashed rounded-xl sm:rounded-2xl p-3.5 sm:p-4 text-center cursor-pointer bg-slate-50 transition relative ${
                 fileError ? 'border-rose-400 bg-rose-50/50' : 'border-slate-200 hover:border-[#0077C6]'
               }`}>
                 <input
                   type="file"
-                  accept=".pdf,application/pdf"
+                  accept=".pdf,application/pdf,image/png,image/jpeg,image/jpg"
                   onChange={handleFileChange}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 />
                 <UploadCloud className={`w-7 h-7 sm:w-8 sm:h-8 mx-auto mb-1 ${fileError ? 'text-rose-400' : 'text-slate-400'}`} />
                 <span className={`text-xs font-bold block truncate px-2 ${fileError ? 'text-rose-600' : 'text-[#0077C6]'}`}>
-                  {uploadedFileName ? uploadedFileName : 'Klik untuk unggah berkas CV (PDF)'}
+                  {uploadedFileName ? uploadedFileName : 'Klik untuk unggah berkas CV (PDF / Gambar)'}
                 </span>
-                <span className="text-[10px] text-slate-400 mt-0.5 block">Format PDF (.pdf) • Maksimal 1 MB</span>
+                <span className="text-[10px] text-slate-400 mt-0.5 block">Format PDF / PNG / JPG • Maksimal 1 MB</span>
               </div>
               {fileError && (
                 <p className="text-[11px] font-bold text-rose-600 mt-1 flex items-center gap-1">

@@ -209,6 +209,20 @@ export const StudentApplicationsView: React.FC<StudentApplicationsViewProps> = (
     }
   }, [viewingDocModal]);
 
+  const [syncTick, setSyncTick] = useState(0);
+
+  useEffect(() => {
+    const handleSync = () => {
+      setSyncTick(t => t + 1);
+    };
+    window.addEventListener('storage', handleSync);
+    window.addEventListener('focus', handleSync);
+    return () => {
+      window.removeEventListener('storage', handleSync);
+      window.removeEventListener('focus', handleSync);
+    };
+  }, []);
+
   // Fetch applications for this logged-in student
   const allApplications = getFromDB<PengajuanMagang>('pengajuan_magang');
   const myApplications = useMemo(() => {
@@ -224,7 +238,7 @@ export const StudentApplicationsView: React.FC<StudentApplicationsViewProps> = (
       const timeB = new Date(b.createdAt || b.tanggalMulai || 0).getTime();
       return timeB - timeA;
     });
-  }, [allApplications, user.id, user.name, mahasiswaData]);
+  }, [allApplications, user.id, user.name, mahasiswaData, syncTick]);
 
   // Calculate statistics
   const statTotal = myApplications.length;
