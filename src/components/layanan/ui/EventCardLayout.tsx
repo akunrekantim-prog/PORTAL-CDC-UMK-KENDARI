@@ -4,23 +4,27 @@ import { Search, Calendar, Filter, X, Layers } from 'lucide-react';
 import { EventLayananItem, KontenKarir } from '../../../types';
 import EventDetailView from '../EventDetailView';
 import { useLayanan } from '../LayananContainer';
-import Dropdown from '../../Dropdown';
 import Pagination from './Pagination';
 import { stripHtmlTags } from '../../../markdown';
 
-interface EventCardLayoutProps {
-  category: 'workshop' | 'softskill' | 'seminar';
-  pageTitle: string;
-  subtitle: string;
-  events: EventLayananItem[];
-  kontenEvents?: KontenKarir[]; // hasil input admin (jenis workshop/softskill/seminar)
-  initialEventId?: string | null;
-  onDetailStateChange?: (isDetail: boolean) => void;
-  setTab?: (tab: string) => void;
+// --- Type ---
+type DateFilterType = 'year' | 'month' | 'day' | 'day_month' | 'full';
+
+interface DateFilter {
+  type: DateFilterType;
+  year?: number;
+  month?: number;
+  day?: number;
+  pattern: string;
 }
 
-// Bersihkan teks HTML dan markdown sederhana dari body konten admin agar tampil
-// rapi di kartu preview
+// --- Constants ---
+const MONTH_LABELS: string[] = [
+  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+  'Juli', 'Agustus', 'September', 'Oktober', 'Nopember', 'Desember'
+];
+
+// --- Helpers ---
 const cleanText = (s: string = ''): string => stripHtmlTags(s);
 
 const mapKontenToEvent = (k: KontenKarir): EventLayananItem => ({
@@ -61,6 +65,93 @@ const findMatchedEvent = (targetId: string | null | undefined, list: EventLayana
   }) || null;
 };
 
+// --- Parse search query → deteksi intent tanggal vs teks ---
+// Supported format tanggal:
+//   - angka 1-2 digit → harfiah hari dalam bulan (misal "25" = tanggal 25)
+//   - DD/MM, DD/MM/YY, DD-MM-YYYY, YYYY-MM-DD, DD Mon (YYYY)
+//   - Nama bulan saja → filter bulan tersebut
+const parseSearchQuery = (raw: string): {
+  dateFilter: DateFilter | null;
+  textQuery: string;
+} => {
+  const q = raw.trim();
+  if (!q) return { dateFilter: null, textQuery: '' };
+
+  const dateFilter = extractDateFilter(q);
+  if (dateFilter) {
+    // Sisakan teks query untuk pencarian tambahan (misal "25 workshop" → tanggal 25 + kata kunci workshop)
+    const remaining = q.replace(dateFilter.pattern, '').trim();
+    return { dateFilter, textQuery: remaining };
+  }
+
+  return { dateFilter: null, textQuery: q };
+};
+
+const extractDateFilter = (q: string): DateFilter | null => {
+  const lower = q.toLowerCase();
+
+  // 1) Pola DD/MM atau DD-MM (hari & bulan)
+  const slashDash = q.match(/^(\d{1,2})[\/\-](\d{1,2})$/);
+  if (slashDash) {
+    const day = Number(slashDash[1]);
+    const month = Number(slashDash[2]);
+    if (day >= 1 && day <= 31 && month >= 1 && month <= 12) {
+      return { type: 'day_month', day, month, pattern: slashDash[0] };
+    }
+  }
+
+  // 2) Pola DD/MM/YY / DD-MM-YY / DD/MM/YYYY / DD-MM-YYYY
+  const fullDate = q.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if (fullDate) {
+    let year = Number(fullDate[3]);
+    if (year < 100) year += 2000;
+    const day = Number(fullDate[1]);
+    const month = Number(fullDate[2]);
+    if (day >= 1 && day <= 31 && month >= 1 && month <= 12 && year >= 2000 && year <= 2100) {
+      return { type: 'full', year, month, day, pattern: fullDate[0] };
+    }
+  }
+
+  // 3) Pola YYYY-MM-DD (ISO)
+  const iso = q.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (iso) {
+    const year = Number(iso[1]);
+    const month = Number(iso[2]);
+    const day = Number(iso[3]);
+    if (year >= 2000 && year <= 2100 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+      return { type: 'full', year, month, day, pattern: iso[0] };
+    }
+  }
+
+  // 4) Nama bulan → filter bulan tersebut
+  for (const m of MONTH_LABELS) {
+    if (lower.includes(m.toLowerCase())) {
+      const monthNum = MONTH_LABELS.indexOf(m) + 1;
+      return { type: 'month', month: monthNum, pattern: m };
+    }
+  }
+
+  // 5) Hanya angka 1-2 digit → filter hari
+  const digitsOnly = q.match(/^(\d{1,2})$/);
+  if (digitsOnly) {
+    const day = Number(digitsOnly[1]);
+    if (day >= 1 && day <= 31) {
+      return { type: 'day', day, pattern: digitsOnly[0] };
+    }
+  }
+
+  // 6) Tahun 4 digit
+  const yearOnly = q.match(/^(\d{4})$/);
+  if (yearOnly) {
+    const year = Number(yearOnly[1]);
+    if (year >= 2000 && year <= 2100) {
+      return { type: 'year', year, pattern: yearOnly[0] };
+    }
+  }
+
+  return null;
+};
+
 export default function EventCardLayout({
   category,
   pageTitle,
@@ -73,7 +164,6 @@ export default function EventCardLayout({
 }: EventCardLayoutProps) {
   const { setIsDetailActive } = useLayanan();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedYear, setSelectedYear] = useState<string>('semua');
   const [sortBy] = useState<'terbaru' | 'terlama' | 'az' | 'za'>('terbaru');
 
   // Gabungkan seed dummy + hasil input admin yang sudah published
@@ -115,39 +205,58 @@ export default function EventCardLayout({
     window.scrollTo(0, 0);
   };
 
-  // Ekstrak daftar tahun kegiatan yang tersedia secara dinamis
-  const availableYears = useMemo(() => {
-    const years = new Set<string>();
-    allEvents.forEach((item) => {
-      if (item.category === category && item.date) {
-        const y = item.date.slice(0, 4);
-        if (y && !isNaN(Number(y))) years.add(y);
-      }
-    });
-    return Array.from(years).sort((a, b) => Number(b) - Number(a));
-  }, [allEvents, category]);
-
-  // Filter logic: Pencarian teks, filter tahun, & pengurutan (HARUS SEBELUM CONDITIONAL RETURN)
+  // Filter logic: Pencarian teks, filter tanggal (day/month/year), & pengurutan
   const filteredEvents = useMemo(() => {
+    const parsed = parseSearchQuery(searchQuery);
+    const textQuery = parsed.textQuery.toLowerCase();
+
+    // Filter utama: category, text, dan tanggal (jika ada dateFilter)
     let list = allEvents.filter(item => {
       // Category match
       if (item.category !== category) return false;
 
       // Text search match
-      const query = searchQuery.toLowerCase().trim();
       const matchesSearch =
-        !query ||
-        item.title.toLowerCase().includes(query) ||
-        item.organizer.toLowerCase().includes(query) ||
-        cleanText(item.description).toLowerCase().includes(query);
+        !textQuery ||
+        item.title.toLowerCase().includes(textQuery) ||
+        item.organizer.toLowerCase().includes(textQuery) ||
+        cleanText(item.description).toLowerCase().includes(textQuery);
 
-      // Year match
-      let matchesYear = true;
-      if (selectedYear !== 'semua') {
-        matchesYear = item.date?.startsWith(selectedYear) || false;
+      if (!matchesSearch) return false;
+
+      // Date filter (jika user memasukkan tanggal)
+      if (parsed.dateFilter) {
+        const df = parsed.dateFilter;
+        const itemDate = item.date;
+        if (!itemDate) return false;
+
+        const itemYear = itemDate.slice(0, 4);
+        const itemMonth = itemDate.slice(5, 7);
+        const itemDay = itemDate.slice(8, 10);
+
+        switch (df.type) {
+          case 'year':
+            if (itemYear !== String(df.year)) return false;
+            break;
+          case 'month':
+            if (itemMonth !== String(df.month).padStart(2, '0')) return false;
+            break;
+          case 'day':
+            if (itemDay !== String(df.day).padStart(2, '0')) return false;
+            break;
+          case 'day_month':
+            if (itemMonth !== String(df.month).padStart(2, '0')) return false;
+            if (itemDay !== String(df.day).padStart(2, '0')) return false;
+            break;
+          case 'full':
+            if (itemYear !== String(df.year)) return false;
+            if (itemMonth !== String(df.month).padStart(2, '0')) return false;
+            if (itemDay !== String(df.day).padStart(2, '0')) return false;
+            break;
+        }
       }
 
-      return matchesSearch && matchesYear;
+      return true;
     });
 
     // Sorting logic: tanggal kegiatan utama; tie-breaker = waktu upload
@@ -177,12 +286,12 @@ export default function EventCardLayout({
     });
 
     return list;
-  }, [allEvents, category, searchQuery, selectedYear, sortBy]);
+  }, [allEvents, category, searchQuery, sortBy]);
 
   // Reset ke halaman 1 saat hasil filter berubah
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, selectedYear]);
+  }, [searchQuery]);
 
   // ===== PAGINATION: maksimal 6 card per halaman =====
   const CARDS_PER_PAGE = 6;
@@ -213,10 +322,9 @@ export default function EventCardLayout({
 
   const resetFilters = () => {
     setSearchQuery('');
-    setSelectedYear('semua');
   };
 
-  const hasActiveFilters = searchQuery !== '' || selectedYear !== 'semua';
+  const hasActiveFilters = searchQuery !== '';
 
   const formatDateIndo = (dateStr: string) => {
     if (!dateStr) return '';
@@ -241,45 +349,29 @@ export default function EventCardLayout({
         </p>
       )}
 
-      {/* Control Panel: Search Bar + Filter Periode (flat tanpa wadah) */}
+      {/* Search Bar (full-width, tanpa Dropdown Periode) */}
       <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-4 items-center">
-          {/* 1. Main Search Input (Lebih Luas & Modern) */}
-          <div className="md:col-span-8 lg:col-span-8 relative">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari judul kegiatan atau materi..."
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 hover:bg-slate-100/80 focus:bg-white text-slate-800 text-sm rounded-xl border border-slate-200 focus:border-[#0077C6] focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
-                title="Hapus pencarian"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
-
-          {/* 2. Filter Periode / Tahun */}
-          <div className="md:col-span-4 lg:col-span-4 min-w-0">
-            <Dropdown
-              value={selectedYear}
-              onChange={(v) => setSelectedYear(v)}
-              className="w-full"
-              options={[
-                { value: 'semua', label: 'Semua Periode' },
-                ...availableYears.map(y => ({ value: y, label: `Tahun ${y}` }))
-              ]}
-            />
-          </div>
+        <div className="relative max-w-2xl">
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Cari judul kegiatan, materi, atau tanggal..."
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 hover:bg-slate-100/80 focus:bg-white text-slate-800 text-sm rounded-xl border border-slate-200 focus:border-[#0077C6] focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+              title="Hapus pencarian"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
 
-        {/* 4. Total Kegiatan Badge & Reset Filter */}
+        {/* Total Kegiatan Badge & Reset Filter */}
         <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs text-slate-500 flex-wrap gap-2">
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-blue-50 text-[#0077C6] font-bold border border-blue-100">
@@ -369,7 +461,7 @@ export default function EventCardLayout({
           </div>
           <h4 className="font-semibold text-slate-800 text-base">Tidak ada kegiatan ditemukan</h4>
           <p className="text-slate-500 text-xs max-w-sm mx-auto">
-            Coba ganti kata kunci pencarian, ubah periode tahun, atau atur ulang filter.
+            Coba ganti kata kunci pencarian atau tanggal kegiatan, lalu atur ulang filter.
           </p>
           <button
             onClick={resetFilters}
