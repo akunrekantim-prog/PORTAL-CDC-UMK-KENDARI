@@ -184,6 +184,7 @@ export default function Register({
         name: alumniForm.name.trim(),
         nim: alumniForm.nim.trim().toUpperCase(),
         email: alumniForm.email.trim(),
+        password: alumniForm.password,
         phone: alumniForm.phone.trim(),
         fakultas: alumniForm.fakultas,
         programStudi: alumniForm.programStudi,
@@ -216,6 +217,7 @@ export default function Register({
           ? `${mitraForm.kontakPerson.trim()} (${mitraForm.jabatanKontak.trim()})`
           : mitraForm.kontakPerson.trim(),
         email: mitraForm.email.trim(),
+        password: mitraForm.password,
         phone: mitraForm.phone.trim(),
         bidangIndustri: mitraForm.bidangIndustri,
         alamat: mitraForm.alamat.trim(),

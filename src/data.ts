@@ -117,6 +117,7 @@ export const SEED_USERS: User[] = [
     id: 'usr_admin',
     name: 'Operator CDC UM Kendari',
     email: 'admin@umkendari.ac.id',
+    password: 'password',
     phone: '081234567890',
     role: 'admin',
     status: 'active',
@@ -127,6 +128,7 @@ export const SEED_USERS: User[] = [
     id: 'usr_mhs1',
     name: 'Muhammad Fadly Alamsyah',
     email: 'mhs@umkendari.ac.id',
+    password: 'password',
     phone: '085241009988',
     role: 'user',
     status: 'active',
@@ -137,6 +139,7 @@ export const SEED_USERS: User[] = [
     id: 'usr_mhs2',
     name: 'Siti Rahmawati',
     email: 'rahma@umkendari.ac.id',
+    password: 'password',
     phone: '082199008811',
     role: 'user',
     status: 'pending',
@@ -147,6 +150,7 @@ export const SEED_USERS: User[] = [
     id: 'usr_alumni1',
     name: 'Fachrul Alam Prasetyo, S.Kom.',
     email: 'alumni@umkendari.ac.id',
+    password: 'password',
     phone: '081122334455',
     role: 'user',
     status: 'active',
@@ -157,6 +161,7 @@ export const SEED_USERS: User[] = [
     id: 'usr_alumni2',
     name: 'Andi Megawati, S.E.',
     email: 'mega@umkendari.ac.id',
+    password: 'password',
     phone: '085311223344',
     role: 'user',
     status: 'active',
@@ -167,6 +172,7 @@ export const SEED_USERS: User[] = [
     id: 'usr_mitra1',
     name: 'Budi Setiawan (HRD PT Go Digital)',
     email: 'mitra@umkendari.ac.id',
+    password: 'password',
     phone: '081299998888',
     role: 'mitra',
     status: 'active',
@@ -177,6 +183,7 @@ export const SEED_USERS: User[] = [
     id: 'usr_mitra2',
     name: 'Suhartono (Bank Syariah Indonesia Kendari)',
     email: 'bsi@umkendari.ac.id',
+    password: 'password',
     phone: '081377776666',
     role: 'mitra',
     status: 'pending',
@@ -187,8 +194,9 @@ export const SEED_USERS: User[] = [
     id: 'usr_viewer',
     name: 'Dr. H. Ruslan, M.Si.',
     email: 'viewer@umkendari.ac.id',
+    password: 'password',
     phone: '081144455566',
-    role: 'viewer',
+    role: 'user',
     status: 'active',
     photoUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop',
     createdAt: '2026-01-15T09:00:00Z'
@@ -1843,7 +1851,7 @@ let _dbInitialized = false;
 
 // Initializer to make sure local storage has everything
 export function initializeDB() {
-  const CURRENT_SEED_VERSION = 'v13_dummy_data_layanan_berita';
+  const CURRENT_SEED_VERSION = 'v16_unified_user_role';
   if (localStorage.getItem('cdc_seed_version') !== CURRENT_SEED_VERSION) {
     Object.entries(DEFAULT_SEEDS).forEach(([key, val]) => {
       const storageKey = `cdc_umk_${key}`;
@@ -1912,6 +1920,7 @@ export interface RegisterAlumniPayload {
   name: string;
   nim: string;
   email: string;
+  password?: string;
   phone?: string;
   programStudi: string;
   fakultas: string;
@@ -1923,6 +1932,7 @@ export interface RegisterMitraPayload {
   namaInstansi: string;
   kontakPerson: string;
   email: string;
+  password?: string;
   phone?: string;
   bidangIndustri?: string;
   alamat?: string;
@@ -1950,8 +1960,9 @@ export function registerUser(
       ? (payload as RegisterAlumniPayload).name
       : `${(payload as RegisterMitraPayload).kontakPerson} (${(payload as RegisterMitraPayload).namaInstansi})`,
     email: payload.email,
+    password: payload.password || 'password',
     phone: payload.phone || '',
-    role: role,
+    role: role === 'alumni' ? 'user' : 'mitra',
     status: 'active', // Active by default so testing is smooth and immediate
     photoUrl: role === 'alumni'
       ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop'
@@ -2094,7 +2105,7 @@ export function applyForJob(userId: string, job: Lowongan, extraData?: any) {
   const applicantName = extraData?.applicantName || (student ? student.nama : (currentUser?.name || 'Mahasiswa Pelamar'));
   const applicantEmail = extraData?.applicantEmail || (student ? student.email : (currentUser?.email || ''));
   const applicantProdi = extraData?.applicantProdi || (student ? student.programStudi : 'Teknologi Informasi');
-  const isMahasiswaRole = student?.userStatusType === 'Mahasiswa' || (!student?.userStatusType && currentUser?.role === 'mahasiswa');
+  const isMahasiswaRole = student?.userStatusType === 'Mahasiswa' || (!student?.userStatusType && Boolean(student?.nim));
   const applicantNim = extraData?.applicantNim ?? (isMahasiswaRole ? (student?.nim || '') : '');
 
   const pengajuanId = `pj_${Date.now()}_${Math.floor(Math.random() * 1000)}`;

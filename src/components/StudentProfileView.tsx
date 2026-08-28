@@ -139,8 +139,8 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
   const [university, setUniversity] = useState(mahasiswaData?.university || 'Universitas Muhammadiyah Kendari');
   const [aboutMe, setAboutMe] = useState(mahasiswaData?.aboutMe || '');
 
-  const [userStatusType, setUserStatusType] = useState<'Mahasiswa' | 'Alumni' | 'Job Seeker'>(
-    mahasiswaData?.userStatusType || (user.role === 'alumni' ? 'Alumni' : user.role === 'job_seeker' ? 'Job Seeker' : 'Mahasiswa')
+  const [userStatusType, setUserStatusType] = useState<'Mahasiswa' | 'Alumni'>(
+    mahasiswaData?.userStatusType || (user.role === 'alumni' ? 'Alumni' : 'Mahasiswa')
   );
 
   // Career preferences
@@ -561,7 +561,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                 type="button"
                 onClick={() => setEditingSection('headerInfo')}
                 className="bg-blue-50 hover:bg-blue-100 text-[#0077C6] text-xs font-bold px-3.5 py-1 rounded-full border border-blue-200 uppercase tracking-wider flex items-center gap-1.5 transition group cursor-pointer"
-                title="Klik untuk ubah status (Mahasiswa / Alumni / Job Seeker)"
+                title="Klik untuk ubah status (Mahasiswa / Alumni)"
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-[#0077C6]" />
                 <span>{userStatusType}</span>
@@ -1237,12 +1237,11 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                 <label className="font-bold text-slate-700 block mb-1.5">Status Keanggotaan</label>
                 <select
                   value={userStatusType}
-                  onChange={e => setUserStatusType(e.target.value as 'Mahasiswa' | 'Alumni' | 'Job Seeker')}
+                  onChange={e => setUserStatusType(e.target.value as 'Mahasiswa' | 'Alumni')}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
                 >
                   <option value="Mahasiswa">Mahasiswa</option>
                   <option value="Alumni">Alumni</option>
-                  <option value="Job Seeker">Job Seeker</option>
                 </select>
               </div>
 

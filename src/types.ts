@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export type UserRole = 'user' | 'mitra' | 'admin' | 'viewer' | 'mahasiswa' | 'alumni' | 'job_seeker';
+export type UserRole = 'user' | 'mitra' | 'admin';
 export type UserStatus = 'pending' | 'active' | 'inactive' | 'rejected';
 export type TipeLowongan = 'magang' | 'kerja';
 export type StatusLowongan = 'draft' | 'published' | 'closed' | 'archived';
@@ -15,6 +15,7 @@ export interface User {
   id: string; // alphanumeric generated ID
   name: string;
   email: string;
+  password?: string;
   phone?: string;
   role: UserRole;
   status: UserStatus;
@@ -28,7 +29,7 @@ export interface Mahasiswa {
   userId: string;
   nim: string;
   nama: string;
-  userStatusType?: 'Mahasiswa' | 'Alumni' | 'Job Seeker';
+  userStatusType?: 'Mahasiswa' | 'Alumni';
   email: string;
   phone?: string;
   programStudi: string;
@@ -269,165 +270,6 @@ export interface PengajuanMagang {
     year: string;
     ipk?: string;
   }>;
-}
-
-export interface UploadedDocument {
-  id: string;
-  ownerUserId: string;
-  pengajuanId?: string;
-  name: string;
-  type: TipeDokumen;
-  fileUrl: string;
-  mimeType: string;
-  sizeBytes: number;
-  uploadedAt: string;
-}
-
-export interface TracerStudy {
-  id: string;
-  alumniId: string;
-  userId: string;
-  nama: string;
-  programStudi: string;
-  tahunLulus: string;
-  statusPekerjaan: 'bekerja' | 'wirausaha' | 'lanjut_studi' | 'belum_bekerja';
-  masaTungguKerja?: 'kurang_3_bulan' | '3_6_bulan' | '6_12_bulan' | 'lebih_12_bulan';
-  namaInstansi?: string;
-  jabatan?: string;
-  bidangPekerjaan?: string;
-  kesesuaianBidang?: 'sangat_sesuai' | 'sesuai' | 'cukup_sesuai' | 'kurang_sesuai' | 'tidak_sesuai' | 'sangat_erat' | 'erat' | 'cukup_erat' | 'kurang_erat' | 'tidak_sama_sekali';
-  rangePenghasilan?: 'kurang_2jt' | '2_5jt' | '5_10jt' | 'lebih_10jt';
-  saranUntukKampus?: string;
-  submittedAt: string;
-}
-
-export interface Berita {
-  id: string;
-  title: string;
-  slug: string;
-  excerpt: string;
-  content: string;
-  coverImageUrl?: string;
-  status: 'draft' | 'published';
-  authorId: string;
-  publishedAt?: string;
-  createdAt: string;
-  scope?: 'LOKAL' | 'REGIONAL' | 'NASIONAL' | 'GLOBAL';
-  penulis?: string;
-}
-
-export interface Pengumuman {
-  id: string;
-  title: string;
-  content: string;
-  category: 'magang' | 'tracer_study' | 'lowongan' | 'umum';
-  status: 'draft' | 'published';
-  publishedAt?: string;
-  createdAt: string;
-  isImportant?: boolean;
-  displayType?: 'badge' | 'poster';
-  posterUrl?: string;
-  linkUrl?: string;
-  linkLabel?: string;
-  showBadge?: boolean;
-  badgeText?: string;
-  showBadgeIcon?: boolean;
-}
-
-export interface SurveiLulusan {
-  id: string;
-  mitraId: string;
-  namaInstansi: string;
-  alumniId?: string;
-  kualitasLulusan: number; // 1-5 or 1-100
-  kemampuanTeknis: number;
-  kemampuanKomunikasi: number;
-  etikaKerja: number;
-  kemampuanKerjaTim: number;
-  saran?: string;
-  submittedAt: string;
-}
-
-export interface Prestasi {
-  id: string;
-  judul: string;
-  tingkat: 'internasional' | 'nasional' | 'wilayah';
-  kategori: 'akademik' | 'non-akademik';
-  peringkat: string; // misal: "Juara 1 / Gold Medal", "Juara 2 / Silver Medal", "Juara 3", "Best Presenter"
-  tahun: string;
-  namaMahasiswa: string;
-  prodi?: string;
-  deskripsi: string;
-  imageUrl?: string;
-  terverifikasi: boolean;
-  status: 'published' | 'draft';
-  createdAt: string;
-  createdBy?: string;
-}
-
-export interface SuratKeputusan {
-  id: string;
-  judul: string;
-  kategori: string;
-  tipe: 'pdf' | 'link';
-  pdfUrl?: string;
-  linkUrl?: string;
-  isFeatured?: boolean;
-  createdAt: string;
-  updatedAt?: string;
-}
-
-export interface KalenderKegiatan {
-  id: string;
-  judul: string;
-  kategori: string;
-  displayType: 'poster' | 'pdf'; // 2 pilihan tampilan admin
-  posterUrl?: string; // Data URL / URL gambar poster
-  pdfUrl?: string;    // Data URL / URL file PDF
-  linkUrl?: string;   // URL eksternal opsional
-  isFeatured?: boolean;
-  createdAt: string;
-  updatedAt?: string;
-}
-
-export interface LaporanKinerja {
-  id: string;
-  judul: string;
-  kategori: string;
-  tipe: 'pdf' | 'link';
-  pdfUrl?: string;
-  linkUrl?: string;
-  isFeatured?: boolean;
-  createdAt: string;
-  updatedAt?: string;
-}
-
-export interface MouStakeholder {
-  id: string;
-  judul: string;
-  kategori: string;
-  displayType: 'poster' | 'pdf' | 'link'; // Tampilan Poster Gambar, PDF, atau Link
-  posterUrl?: string;
-  pdfUrl?: string;
-  linkUrl?: string;
-  isFeatured?: boolean;
-  createdAt: string;
-  updatedAt?: string;
-}
-
-export interface GaleriItem {
-  id: string;
-  judul: string;
-  kategoriSection: string; // e.g. 'Kegiatan Terkini 2026', 'Galeri Kegiatan 2025', 'Majalah & Survei'
-  tipeMedia: 'youtube' | 'poster' | 'pdf'; // 3 pilihan media
-  youtubeUrl?: string;
-  posterUrl?: string;
-  pdfUrl?: string;
-  linkUrl?: string;
-  deskripsi?: string;
-  isFeatured?: boolean;
-  createdAt: string;
-  updatedAt?: string;
 }
 
 export interface UploadedDocument {

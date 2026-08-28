@@ -10,7 +10,6 @@ import {
   Mahasiswa,
   Lowongan,
   PengajuanMagang,
-  SurveiLulusan,
   SelectionHistoryLog
 } from '../types';
 import {
@@ -406,14 +405,13 @@ function PdfViewerPreview({
 }
 
 export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'ringkasan' | 'profil' | 'lowongan' | 'pelamar' | 'survei'>('ringkasan');
+  const [activeTab, setActiveTab] = useState<'ringkasan' | 'profil' | 'lowongan' | 'pelamar'>('ringkasan');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Data States
   const [mitraData, setMitraData] = useState<Mitra | null>(null);
   const [myJobs, setMyJobs] = useState<Lowongan[]>([]);
   const [myApplicants, setMyApplicants] = useState<PengajuanMagang[]>([]);
-  const [mySurveys, setMySurveys] = useState<SurveiLulusan[]>([]);
   const [selectedApplicantDoc, setSelectedApplicantDoc] = useState<PengajuanMagang | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -471,15 +469,6 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
   const [keahlian, setKeahlian] = useState('');
   const [benefit, setBenefit] = useState('');
 
-  // Survey Form States
-  const [selectedAlumniId, setSelectedAlumniId] = useState('');
-  const [kualitasLulusan, setKualitasLulusan] = useState(5);
-  const [kemampuanTeknis, setKemampuanTeknis] = useState(5);
-  const [kemampuanKomunikasi, setKemampuanKomunikasi] = useState(4);
-  const [etikaKerja, setEtikaKerja] = useState(5);
-  const [kemampuanKerjaTim, setKemampuanKerjaTim] = useState(5);
-  const [surveiSaran, setSurveiSaran] = useState('');
-
   // Filter & Search States for Pelamar & Seleksi
   const [selectedJobFilter, setSelectedJobFilter] = useState<string>('all');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('all');
@@ -493,12 +482,12 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
   // Form Jadwal Interview Modal States
   const [schedulingApplicant, setSchedulingApplicant] = useState<PengajuanMagang | null>(null);
-  const [interviewDate, setInterviewDate] = useState<string>('2026-08-15');
-  const [interviewTime, setInterviewTime] = useState<string>('10:00 WITA');
+  const [interviewDate, setInterviewDate] = useState<string>('');
+  const [interviewTime, setInterviewTime] = useState<string>('');
   const [interviewMethod, setInterviewMethod] = useState<'online' | 'offline'>('online');
-  const [interviewLink, setInterviewLink] = useState<string>('https://meet.google.com/cdc-umk-interview');
-  const [interviewLocation, setInterviewLocation] = useState<string>('Kantor HRD Mitra Lt. 2');
-  const [interviewNote, setInterviewNote] = useState<string>('Persiapkan presentasi portofolio singkat (5-10 menit).');
+  const [interviewLink, setInterviewLink] = useState<string>('');
+  const [interviewLocation, setInterviewLocation] = useState<string>('');
+  const [interviewNote, setInterviewNote] = useState<string>('');
 
   // Confirmation Modal State (Terima / Tolak)
   const [confirmModal, setConfirmModal] = useState<{
@@ -584,7 +573,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
         return true;
       }
 
-      return true;
+      return false;
     });
 
     // Sort newest candidates first using parseDateToTimestamp
@@ -596,11 +585,6 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
     setMyApplicants(partnerCandidates);
     setCurrentPage(1);
-
-    // Load surveys
-    const surveys = getFromDB<SurveiLulusan>('survei_lulusan');
-    const partnerSurveys = surveys.filter(s => s.mitraId === mit.id || (mit.namaInstansi && s.namaInstansi === mit.namaInstansi));
-    setMySurveys(partnerSurveys);
   };
 
   useEffect(() => {
@@ -937,12 +921,12 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
   // Open Interview Scheduling Modal
   const handleOpenInterviewModal = (appl: PengajuanMagang) => {
     setSchedulingApplicant(appl);
-    if (appl.interviewDate) setInterviewDate(appl.interviewDate);
-    if (appl.interviewTime) setInterviewTime(appl.interviewTime);
-    if (appl.interviewMethod) setInterviewMethod(appl.interviewMethod);
-    if (appl.interviewLink) setInterviewLink(appl.interviewLink);
-    if (appl.interviewLocation) setInterviewLocation(appl.interviewLocation);
-    if (appl.interviewNote) setInterviewNote(appl.interviewNote);
+    setInterviewDate(appl.interviewDate || '');
+    setInterviewTime(appl.interviewTime || '');
+    setInterviewMethod(appl.interviewMethod || 'online');
+    setInterviewLink(appl.interviewLink || '');
+    setInterviewLocation(appl.interviewLocation || '');
+    setInterviewNote(appl.interviewNote || '');
   };
 
   // Submit & Save Interview Schedule
@@ -975,6 +959,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
       loadMitraData();
       if (onReloadData) onReloadData();
       setSchedulingApplicant(null);
+      setSelectedApplicantDoc(null);
       triggerToast('success', `Jadwal interview untuk ${target.namaMahasiswa} berhasil disimpan dan status diubah menjadi INTERVIEW.`);
       triggerAlert('success', 'Jadwal Interview Tersimpan!', `Jadwal interview untuk ${target.namaMahasiswa} berhasil disimpan dan status diubah menjadi INTERVIEW.`);
     }
@@ -1008,35 +993,6 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
       loadMitraData();
       triggerToast('success', `Data pelamar ${namaMahasiswa} berhasil dihapus dari database.`);
     }
-  };
-
-  // Submit Partner Satisfaction Survey
-  const handleSubmitSurvey = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedAlumniId) {
-      triggerToast('error', 'Silakan pilih alumni/lulusan yang ingin dievaluasi.');
-      return;
-    }
-
-    const newSurvey: SurveiLulusan = {
-      id: `sv_${Date.now()}`,
-      mitraId: mitraData?.id || `mtr_${user.id}`,
-      namaInstansi: mitraData?.namaInstansi || user.name,
-      alumniId: selectedAlumniId || undefined,
-      kualitasLulusan,
-      kemampuanTeknis,
-      kemampuanKomunikasi,
-      etikaKerja,
-      kemampuanKerjaTim,
-      saran: surveiSaran || undefined,
-      submittedAt: new Date().toISOString()
-    };
-
-    insertToDB<SurveiLulusan>('survei_lulusan', newSurvey);
-    setSelectedAlumniId('');
-    setSurveiSaran('');
-    loadMitraData();
-    triggerToast('success', 'Kuesioner survei kepuasan mitra berhasil di-upload dan disimpan di rekap admin.');
   };
 
   return (
@@ -1427,7 +1383,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                         s => s.userId === appl.userId || s.id === appl.mahasiswaId || (appl.nim && s.nim === appl.nim)
                       );
                       const isMahasiswa = studentRecord?.userStatusType === 'Mahasiswa';
-                      const roleBadgeText = studentRecord?.userStatusType || (appl.nim ? 'Mahasiswa' : 'Job Seeker / Alumni');
+                      const roleBadgeText = studentRecord?.userStatusType || (appl.nim ? 'Mahasiswa' : 'Alumni');
                       const jobTitleText = getJobTitle(appl.tujuanMagang, namaInstansi);
 
                       return (
@@ -2775,88 +2731,11 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
             );
           })()}
 
-          {/* TAB 5: SURVEI PENGGUNA LULUSAN (FR-MTR-06) */}
-          {activeTab === 'survei' && (
-            <div className="bg-white rounded-2xl border border-slate-100 p-6 sm:p-8 shadow-sm space-y-6" id="mtr-panel-survei">
-              <div className="border-b border-slate-100 pb-4">
-                <h3 className="font-extrabold text-slate-900 text-lg">Survei Kepuasan Mutu Pengguna Lulusan</h3>
-                <p className="text-xs text-slate-500 mt-0.5">Tanggapan evaluasi Anda sangat penting bagi monitoring akreditasi serta penyempurnaan kurikulum fakultas.</p>
-              </div>
-
-              <form onSubmit={handleSubmitSurvey} className="space-y-6" id="survey-feedback-form">
-                <div className="space-y-1.5 text-xs font-bold">
-                  <label className="text-slate-700 text-xs">Pilih Alumni Terkait (Karyawan/Magang) *</label>
-                  <select
-                    required
-                    value={selectedAlumniId}
-                    onChange={(e) => setSelectedAlumniId(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal bg-white transition"
-                  >
-                    <option value="">-- Silakan Pilih Lulusan / Alumni --</option>
-                    <option value="alm_1_fadly">Muhammad Fadly Alamsyah (Teknik Informatika)</option>
-                    <option value="alm_2_faisal">Fachrul Alam Prasetyo, S.Kom. (Teknik Informatika)</option>
-                    <option value="alm_3_mega">Andi Megawati, S.E. (Manajemen)</option>
-                  </select>
-                </div>
-
-                {/* FIVE CORE DIMENSIONS RATING FOR SURVEI_LULUSAN */}
-                <div className="space-y-3 border-t border-slate-100 pt-5" id="survei-ratings">
-                  <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider mb-2">Skor Evaluasi (Skala 1 - 5)</h4>
-
-                  {[
-                    { label: 'Kualitas Umum Kinerja Lulusan', state: kualitasLulusan, setter: setKualitasLulusan },
-                    { label: 'Kemampuan Teknis Keilmuan', state: kemampuanTeknis, setter: setKemampuanTeknis },
-                    { label: 'Cakupan Kemampuan Komunikasi', state: kemampuanKomunikasi, setter: setKemampuanKomunikasi },
-                    { label: 'Tingkat Etika & Integritas Kerja', state: etikaKerja, setter: setEtikaKerja },
-                    { label: 'Kemampuan Kerjasama Tim', state: kemampuanKerjaTim, setter: setKemampuanKerjaTim },
-                  ].map((dim, idx) => (
-                    <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                      <span className="text-xs font-semibold text-slate-700">{dim.label}</span>
-                      <div className="flex items-center gap-1.5">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <button
-                            key={star}
-                            type="button"
-                            onClick={() => dim.setter(star)}
-                            className={`p-1 rounded transition ${star <= dim.state ? 'text-amber-400' : 'text-slate-200'}`}
-                          >
-                            <Star className="w-4 h-4 fill-current" />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700">Masukan & Saran Konstruktif untuk Pengembangan Kurikulum *</label>
-                  <textarea
-                    required
-                    value={surveiSaran}
-                    onChange={(e) => setSurveiSaran(e.target.value)}
-                    rows={4}
-                    placeholder="Tuliskan saran rekomendasi Anda mengenai skill atau kompetensi yang perlu ditingkatkan oleh perguruan tinggi..."
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] text-sm font-normal transition"
-                  ></textarea>
-                </div>
-
-                <div className="pt-5 border-t border-slate-100 flex justify-end">
-                  <button
-                    type="submit"
-                    className="bg-[#10B981] hover:bg-emerald-600 text-white px-6 py-3 rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-2"
-                  >
-                    <CheckCircle className="w-4 h-4" /> Kirim Hasil Evaluasi Mutu
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
-
         </main>
 
       {/* MODAL FORM JADWAL INTERVIEW */}
       {schedulingApplicant && (
-        <div className="fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
+        <div className="fixed inset-0 z-60 bg-slate-900/75 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
           <div className="bg-white max-w-lg w-full rounded-3xl border border-slate-200 shadow-2xl overflow-hidden my-8">
             <div className="bg-white border-b border-slate-200 p-6 flex items-center justify-between">
               <div>
@@ -2867,7 +2746,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                   Jadwalkan Interview
                 </h3>
                 <p className="text-slate-500 text-xs mt-0.5 font-medium">
-                  Pelamar: <strong className="text-slate-800">{schedulingApplicant.namaMahasiswa}</strong> ({schedulingApplicant.nim || 'Job Seeker'})
+                  Pelamar: <strong className="text-slate-800">{schedulingApplicant.namaMahasiswa}</strong> ({schedulingApplicant.nim || 'Alumni'})
                 </p>
               </div>
               <button
@@ -3023,7 +2902,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                       <p className="text-slate-500 text-xs mt-0.5 font-medium">
                         {(() => {
                           const studentRecord = getFromDB<Mahasiswa>('mahasiswa').find(s => s.nim === selectedApplicantDoc.nim || s.userId === selectedApplicantDoc.userId || s.id === selectedApplicantDoc.mahasiswaId);
-                          const roleLabel = studentRecord?.userStatusType || (selectedApplicantDoc.nim ? 'Mahasiswa' : 'Job Seeker');
+                          const roleLabel = studentRecord?.userStatusType || (selectedApplicantDoc.nim ? 'Mahasiswa' : 'Alumni');
                           return `${roleLabel} · ${selectedApplicantDoc.programStudi || 'Sistem dan Teknologi Informasi'}`;
                         })()}
                       </p>
@@ -3057,7 +2936,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                     </div>
                     {(() => {
                       const studentRecord = getFromDB<Mahasiswa>('mahasiswa').find(s => (selectedApplicantDoc.nim && s.nim === selectedApplicantDoc.nim) || s.userId === selectedApplicantDoc.userId || s.id === selectedApplicantDoc.mahasiswaId);
-                      const roleLabel = studentRecord?.userStatusType || (selectedApplicantDoc.nim ? 'Mahasiswa' : 'Job Seeker');
+                      const roleLabel = studentRecord?.userStatusType || (selectedApplicantDoc.nim ? 'Mahasiswa' : 'Alumni');
                       if (roleLabel === 'Mahasiswa' && selectedApplicantDoc.nim) {
                         return (
                           <div className="flex items-center justify-between">
@@ -3402,7 +3281,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
       {/* MODAL DIALOG KONFIRMASI (TERIMA / TOLAK) */}
       {confirmModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
+        <div className="fixed inset-0 z-70 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
           <div className="bg-white max-w-md w-full rounded-3xl border border-slate-200 shadow-2xl p-6 sm:p-7 space-y-5 text-center my-8">
             <div className={`w-14 h-14 rounded-2xl mx-auto flex items-center justify-center ${confirmModal.type === 'accept'
                 ? 'bg-emerald-100 text-emerald-600'
@@ -3433,7 +3312,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                 const isMahasiswa = student?.userStatusType === 'Mahasiswa';
                 const subtitleLabel = isMahasiswa && confirmModal.applicant.nim
                   ? ` • NIM: ${confirmModal.applicant.nim}`
-                  : ` • ${confirmModal.applicant.programStudi || 'Job Seeker'}`;
+                  : ` • ${confirmModal.applicant.programStudi || 'Alumni'}`;
                 return (
                   <div className="text-[11px] font-medium text-slate-500 pt-1">
                     {confirmModal.applicant.namaMahasiswa}{subtitleLabel}
@@ -3484,7 +3363,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
       {/* POPUP MODAL DI TENGAH DENGAN TOMBOL OK */}
       {alertPopup && (
         <div
-          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn"
+          className="fixed inset-0 z-80 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn"
           onClick={() => setAlertPopup(null)}
         >
           <div

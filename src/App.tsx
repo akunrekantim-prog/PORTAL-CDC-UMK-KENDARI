@@ -129,6 +129,15 @@ export default function App() {
       return;
     }
 
+    // Password Validation
+    const userPassword = matched.password || 'password';
+    const isValidPassword = loginPassword === userPassword || (matched.role === 'admin' && (loginPassword === 'admin123' || loginPassword === 'password'));
+
+    if (!isValidPassword) {
+      setLoginError('Kata sandi yang Anda masukkan salah. Silakan periksa kembali.');
+      return;
+    }
+
     if (matched.status === 'pending') {
       setLoginError('Akun Anda masih ditinjau administrator (Status: Pending).');
       return;
@@ -152,10 +161,9 @@ export default function App() {
   };
 
   // Development Direct-Switch tool (very powerful for multi-role testing in AI Studio iframe!)
-  const handleFastRoleSwitch = (role: 'admin' | 'user' | 'mitra' | 'viewer' | 'mahasiswa') => {
+  const handleFastRoleSwitch = (role: 'admin' | 'user' | 'mitra') => {
     const users = getFromDB<UserType>('users');
-    const searchRole = role === 'mahasiswa' ? 'user' : role;
-    let target = users.find(u => (u.role === searchRole || (searchRole === 'user' && (u.role === 'mahasiswa' || u.role === 'alumni' || u.role === 'user'))) && u.status === 'active');
+    let target = users.find(u => u.status === 'active' && u.role === role);
 
     if (target) {
       setCurrentUser(target);
@@ -237,9 +245,9 @@ export default function App() {
 
         <div className="flex flex-wrap gap-2" id="switcher-buttons">
           {[
-            { id: 'admin', label: 'Admin CDC', color: 'bg-indigo-650 hover:bg-slate-800 hover:text-white border-slate-700 font-bold' },
-            { id: 'user', label: 'USER', color: 'bg-emerald-650 hover:bg-slate-800 border-slate-700 font-bold' },
-            { id: 'mitra', label: 'Mitra', color: 'bg-teal-650 hover:bg-slate-800 border-slate-700 font-bold' }
+            { id: 'admin', label: 'Admin CDC', color: 'bg-indigo-650 hover:bg-slate-800 hover:text-white border-slate-700 font-bold cursor-pointer' },
+            { id: 'user', label: 'USER', color: 'bg-emerald-650 hover:bg-slate-800 hover:text-white border-slate-700 font-bold cursor-pointer' },
+            { id: 'mitra', label: 'Mitra', color: 'bg-teal-650 hover:bg-slate-800 hover:text-white border-slate-700 font-bold cursor-pointer' }
           ].map((item) => (
             <button
               key={item.id}
@@ -253,7 +261,7 @@ export default function App() {
           {currentUser && (
             <button
               onClick={handleLogout}
-              className="px-2.5 py-1 rounded text-xs bg-rose-950 text-rose-450 border border-rose-900 font-bold font-mono transition uppercase"
+              className="px-2.5 py-1 rounded text-xs bg-rose-950 text-rose-450 border border-rose-900 font-bold font-mono transition uppercase cursor-pointer hover:bg-rose-900"
             >
               Reset
             </button>

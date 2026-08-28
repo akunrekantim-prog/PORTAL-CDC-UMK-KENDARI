@@ -124,7 +124,7 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
     (mahasiswaData && a.nim === mahasiswaData.nim) ||
     a.mahasiswaId === `mhs_${user.id}` ||
     a.mahasiswaId === mahasiswaData?.id ||
-    (user.role === 'mahasiswa' && (a.userId === 'usr_mhs_demo' || a.userId === '2'))
+    (user.role === 'user' && (a.userId === 'usr_mhs_demo' || a.userId === '2'))
   );
   const interviewAlertCount = myApplications.filter(a => (a.status || '').toLowerCase() === 'interview').length;
 
@@ -415,6 +415,7 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
                 mahasiswaData={mahasiswaData}
                 allLowongan={allLowongan}
                 onSelectJob={(job) => setSelectedJobForDetail(job)}
+                onNavigateToSearch={() => setActiveTab('search')}
               />
             )}
 
