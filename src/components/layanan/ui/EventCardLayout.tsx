@@ -18,6 +18,17 @@ interface DateFilter {
   pattern: string;
 }
 
+interface EventCardLayoutProps {
+  category: 'workshop' | 'softskill' | 'seminar';
+  pageTitle: string;
+  subtitle: string;
+  events: EventLayananItem[];
+  kontenEvents?: KontenKarir[];
+  initialEventId?: string | null;
+  onDetailStateChange?: (isDetail: boolean) => void;
+  setTab?: (tab: string) => void;
+}
+
 // --- Constants ---
 const MONTH_LABELS: string[] = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
