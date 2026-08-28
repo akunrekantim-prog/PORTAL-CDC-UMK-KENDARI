@@ -7,7 +7,6 @@ import {
   Facebook,
   MessageCircle,
   Linkedin,
-  Instagram,
   CheckCircle
 } from 'lucide-react';
 import { WhatsAppWaIcon } from '../../ui/SocialShareBar';
@@ -16,8 +15,7 @@ import {
   shareToTwitter,
   shareToWhatsApp,
   shareToTelegram,
-  shareToLinkedIn,
-  shareToInstagram
+  shareToLinkedIn
 } from '../../../utils/shareUtils';
 
 interface ShareableDetailPageProps {
@@ -71,10 +69,6 @@ export default function ShareableDetailPage({
 
   const handleShareLinkedIn = () => {
     shareToLinkedIn(getShareOpts(), (msg) => showToast(msg));
-  };
-
-  const handleShareInstagram = () => {
-    shareToInstagram(getShareOpts(), (msg) => showToast(msg));
   };
 
   return (
@@ -143,13 +137,6 @@ export default function ShareableDetailPage({
               title="Bagikan ke LinkedIn"
             >
               <Linkedin className="w-5 h-5 fill-white text-transparent" />
-            </button>
-            <button
-              onClick={handleShareInstagram}
-              className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 hover:brightness-110 text-white flex items-center justify-center shadow-md transition-transform hover:scale-110 cursor-pointer"
-              title="Bagikan ke Instagram"
-            >
-              <Instagram className="w-5 h-5 text-white" />
             </button>
           </aside>
 
@@ -242,13 +229,6 @@ export default function ShareableDetailPage({
                 title="Bagikan ke LinkedIn"
               >
                 <Linkedin className="w-5 h-5 fill-white text-transparent" />
-              </button>
-              <button
-                onClick={handleShareInstagram}
-                className="w-12 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 hover:brightness-110 text-white flex items-center justify-center shadow-xs transition active:scale-95 cursor-pointer"
-                title="Bagikan ke Instagram"
-              >
-                <Instagram className="w-5 h-5 text-white" />
               </button>
             </div>
 

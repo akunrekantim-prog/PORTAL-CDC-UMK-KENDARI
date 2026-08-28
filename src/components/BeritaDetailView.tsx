@@ -8,7 +8,6 @@ import {
   Facebook,
   MessageCircle,
   Linkedin,
-  Instagram,
   Share2,
   CheckCircle2,
   Send,
@@ -16,7 +15,7 @@ import {
   Sparkles,
   Calendar
 } from 'lucide-react';
-import { Berita } from '../types';
+import { Berita, KontenKarir } from '../types';
 import Header from './Header';
 import { Footer } from './Footer';
 import { renderContentMarkdown } from '../markdown';
@@ -30,8 +29,7 @@ import {
   shareToTwitter,
   shareToWhatsApp,
   shareToTelegram,
-  shareToLinkedIn,
-  shareToInstagram
+  shareToLinkedIn
 } from '../utils/shareUtils';
 
 interface BeritaDetailViewProps {
@@ -42,6 +40,10 @@ interface BeritaDetailViewProps {
   setTab?: (tab: string) => void;
   onNavigateToLogin?: () => void;
   onNavigateToRegister?: (type?: 'alumni' | 'perusahaan') => void;
+  onSelectLowongan?: (id: string) => void;
+  onSelectProgram?: (id: string) => void;
+  onSelectPrestasi?: (item: KontenKarir) => void;
+  onSelectEvent?: (id: string) => void;
 }
 
 interface CommentItem {
@@ -60,6 +62,10 @@ export default function BeritaDetailView({
   setTab,
   onNavigateToLogin,
   onNavigateToRegister,
+  onSelectLowongan,
+  onSelectProgram,
+  onSelectPrestasi,
+  onSelectEvent,
 }: BeritaDetailViewProps) {
   // Komentar yang SUDAH DISETUJUI ADMIN (dari DB, persisten per berita)
   const [comments, setComments] = useState<CommentItem[]>(() =>
@@ -163,10 +169,6 @@ export default function BeritaDetailView({
 
   const handleShareLinkedIn = () => {
     shareToLinkedIn(getShareOpts(), (msg) => showToast(msg));
-  };
-
-  const handleShareInstagram = () => {
-    shareToInstagram(getShareOpts(), (msg) => showToast(msg));
   };
 
   const handleSubmitComment = (e: React.FormEvent) => {
@@ -280,13 +282,6 @@ export default function BeritaDetailView({
                 title="Bagikan ke LinkedIn"
               >
                 <Linkedin className="w-5 h-5 fill-white text-transparent" />
-              </button>
-              <button
-                onClick={handleShareInstagram}
-                className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 hover:brightness-110 text-white flex items-center justify-center shadow-md transition-transform hover:scale-110 cursor-pointer"
-                title="Bagikan ke Instagram"
-              >
-                <Instagram className="w-5 h-5 text-white" />
               </button>
             </aside>
 
@@ -456,13 +451,6 @@ export default function BeritaDetailView({
                 >
                   <Linkedin className="w-5 h-5 fill-white text-transparent" />
                 </button>
-                <button
-                  onClick={handleShareInstagram}
-                  className="w-12 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 hover:brightness-110 text-white flex items-center justify-center shadow-xs transition active:scale-95 cursor-pointer"
-                  title="Bagikan ke Instagram"
-                >
-                  <Instagram className="w-5 h-5 text-white" />
-                </button>
               </div>
 
               {/* SECTION: TINGGALKAN KOMENTAR (Sesuai Screenshot 4) */}
@@ -595,7 +583,22 @@ export default function BeritaDetailView({
       </main>
 
       {/* 2. Global Footer */}
-      <Footer onSelectLowongan={() => {}} setTab={setTab} />
+      <Footer
+        onSelectLowongan={onSelectLowongan}
+        onSelectBerita={(slug) => {
+          const matched = allBeritaList?.find(b => b.slug === slug || `kk-${b.id}` === slug || b.id === slug);
+          if (matched && onSelectBerita) {
+            onSelectBerita(matched);
+            window.scrollTo(0, 0);
+          } else if (setTab) {
+            setTab('berita');
+          }
+        }}
+        onSelectProgram={onSelectProgram}
+        onSelectPrestasi={onSelectPrestasi}
+        onSelectEvent={onSelectEvent}
+        setTab={setTab}
+      />
     </div>
   );
 }

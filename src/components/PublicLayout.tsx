@@ -427,6 +427,13 @@ export default function PublicLayout({
         }}
         onNavigateToLogin={onNavigateToLogin}
         onNavigateToRegister={onNavigateToRegister}
+        onSelectLowongan={onSelectLowongan}
+        onSelectBerita={onSelectBerita}
+        onSelectProgram={onSelectProgram}
+        onSelectEvent={(id) => {
+          setSelectedPrestasi(null);
+          setSelectedEventId(id);
+        }}
       />
     );
   }
@@ -508,11 +515,16 @@ export default function PublicLayout({
                           onClick={() => setSelectedPosterModal(importantAnn.posterUrl!)}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent flex flex-col justify-end p-6 text-white">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="bg-amber-400 text-slate-950 text-[10px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider shadow-xs flex items-center gap-1">
-                              <Megaphone className="w-3.5 h-3.5 text-slate-950 animate-pulse" /> PENGUMUMAN SANGAT PENTING
-                            </span>
-                          </div>
+                          {importantAnn.showBadge !== false && (
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="bg-amber-400 text-slate-950 text-[10px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider shadow-xs flex items-center gap-1">
+                                {importantAnn.showBadgeIcon !== false && (
+                                  <Megaphone className="w-3.5 h-3.5 text-slate-950 animate-pulse" />
+                                )}
+                                {importantAnn.badgeText || 'PENGUMUMAN SANGAT PENTING'}
+                              </span>
+                            </div>
+                          )}
                           <h3 className="text-xl sm:text-2xl font-black leading-snug text-white drop-shadow-xs">
                             {importantAnn.title}
                           </h3>
@@ -544,15 +556,19 @@ export default function PublicLayout({
                     ) : (
                       /* Mode Badge / Banner Teks */
                       <div className="p-6 sm:p-7 flex flex-col sm:flex-row items-start gap-5 relative">
-                        <div className="bg-emerald-500 text-slate-950 p-3.5 rounded-2xl shadow-sm shrink-0 flex items-center justify-center">
-                          <Megaphone className="w-7 h-7 animate-pulse text-slate-950" />
-                        </div>
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-wider">
-                              PENGUMUMAN PENTING
-                            </span>
+                        {importantAnn.showBadgeIcon !== false && (
+                          <div className="bg-emerald-500 text-slate-950 p-3.5 rounded-2xl shadow-sm shrink-0 flex items-center justify-center">
+                            <Megaphone className="w-7 h-7 animate-pulse text-slate-950" />
                           </div>
+                        )}
+                        <div className="flex-1 space-y-2">
+                          {importantAnn.showBadge !== false && (
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+                                {importantAnn.badgeText || 'PENGUMUMAN PENTING'}
+                              </span>
+                            </div>
+                          )}
                           <h3 className="text-lg sm:text-xl font-black text-slate-900 leading-snug">
                             {importantAnn.title}
                           </h3>

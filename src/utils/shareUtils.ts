@@ -101,44 +101,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
   }
 }
 
-/**
- * Share ke Instagram (Peramban Web & App)
- * Membuka Instagram, menyalin narasi otomatis ke clipboard, dan memberikan umpan balik (toast)
- */
-export async function shareToInstagram(
-  options: ShareContentOptions,
-  onNotifyCopied?: (msg: string) => void
-): Promise<void> {
-  const targetUrl = options.url || (typeof window !== 'undefined' ? window.location.href : '');
-  const caption = generateShareCaption({ ...options, url: targetUrl });
 
-  // Salin narasi otomatis ke clipboard
-  await copyToClipboard(caption);
-
-  // Jika callback tersedian, berikan toast petunjuk
-  if (onNotifyCopied) {
-    onNotifyCopied(
-      'Narasi postingan disalin! Buka Instagram untuk menempelkan caption & mengunggah foto.'
-    );
-  }
-
-  // Coba Web Share API jika ada di perangkat seluler
-  if (navigator.share && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-    try {
-      await navigator.share({
-        title: options.title,
-        text: caption,
-        url: targetUrl
-      });
-      return;
-    } catch {
-      // Jika dibatalkan user / fallback
-    }
-  }
-
-  // Buka Instagram Web
-  window.open('https://www.instagram.com/', '_blank', 'noopener,noreferrer');
-}
 
 /**
  * Share ke LinkedIn

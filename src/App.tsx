@@ -305,6 +305,14 @@ export default function App() {
               handleNavigateToLogin();
               reloadDatabase();
             }}
+            onSelectBerita={(slug) => {
+              setViewingLowonganId(null);
+              handleSelectBerita(slug);
+            }}
+            onSelectProgram={(id) => {
+              setViewingLowonganId(null);
+              handleSelectProgram(id);
+            }}
           />
         )}
 
@@ -322,6 +330,14 @@ export default function App() {
             }}
             onNavigateToLogin={handleNavigateToLogin}
             onNavigateToRegister={handleNavigateToRegister}
+            onSelectLowongan={(id) => {
+              setViewingBeritaSlug(null);
+              handleSelectLowongan(id);
+            }}
+            onSelectProgram={(id) => {
+              setViewingBeritaSlug(null);
+              handleSelectProgram(id);
+            }}
           />
         )}
 

@@ -60,6 +60,7 @@ export const Footer: React.FC<FooterProps> = ({
   );
 
   const handleKontenDetailClick = (k: KontenKarir) => {
+    window.scrollTo(0, 0);
     if (k.jenis === 'berita') {
       if (onSelectBerita) onSelectBerita(`kk-${k.id}`);
       else if (setTab) setTab('berita');
@@ -88,6 +89,7 @@ export const Footer: React.FC<FooterProps> = ({
       label: b.title,
       createdAt: b.createdAt,
       action: () => {
+        window.scrollTo(0, 0);
         if (onSelectBerita) onSelectBerita(b.slug);
         else if (setTab) setTab('berita');
       }
@@ -96,6 +98,7 @@ export const Footer: React.FC<FooterProps> = ({
       label: p.title,
       createdAt: p.createdAt,
       action: () => {
+        window.scrollTo(0, 0);
         if (onSelectProgram) onSelectProgram(p.id);
         else if (setTab) setTab('beranda');
       }
@@ -128,6 +131,7 @@ export const Footer: React.FC<FooterProps> = ({
   const footerPopularItems = uniquePopularCandidates.slice(0, 5);
 
   const handleLinkClick = (id?: string) => {
+    window.scrollTo(0, 0);
     if (id && onSelectLowongan) {
       onSelectLowongan(id);
     } else if (setTab) {

@@ -329,6 +329,9 @@ export interface Pengumuman {
   posterUrl?: string;
   linkUrl?: string;
   linkLabel?: string;
+  showBadge?: boolean;
+  badgeText?: string;
+  showBadgeIcon?: boolean;
 }
 
 export interface SurveiLulusan {
@@ -485,6 +488,9 @@ export interface Pengumuman {
   posterUrl?: string;
   linkUrl?: string;
   linkLabel?: string;
+  showBadge?: boolean;
+  badgeText?: string;
+  showBadgeIcon?: boolean;
 }
 
 export interface SurveiLulusan {

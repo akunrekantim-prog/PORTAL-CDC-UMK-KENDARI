@@ -19,7 +19,6 @@ import {
   MessageCircle,
   Send,
   Linkedin,
-  Instagram,
   Share2,
   Copy,
   CheckCircle
@@ -29,8 +28,7 @@ import {
   shareToTwitter,
   shareToWhatsApp,
   shareToTelegram,
-  shareToLinkedIn,
-  shareToInstagram
+  shareToLinkedIn
 } from '../../utils/shareUtils';
 
 interface SocialShareBarProps {
@@ -120,10 +118,6 @@ export default function SocialShareBar({
     shareToLinkedIn(getContentOptions(), (msg) => showToast(msg));
   };
 
-  const handleShareInstagramAction = () => {
-    shareToInstagram(getContentOptions(), (msg) => showToast(msg));
-  };
-
   const handleNativeShare = async () => {
     const opts = getContentOptions();
     if (navigator.share) {
@@ -198,16 +192,6 @@ export default function SocialShareBar({
       >
         <Linkedin className="w-3.5 h-3.5 fill-white" />
         <span>LinkedIn</span>
-      </button>
-
-      {/* 6. Instagram (New) */}
-      <button
-        onClick={handleShareInstagramAction}
-        className="flex items-center gap-2 bg-gradient-to-r from-purple-600 via-pink-500 to-rose-500 hover:brightness-110 text-white px-3.5 py-2 rounded-md font-bold text-xs sm:text-sm shadow-2xs transition active:scale-95 cursor-pointer"
-        title="Bagikan via Instagram"
-      >
-        <Instagram className="w-4 h-4 text-white" />
-        <span>Instagram</span>
       </button>
 
       {/* 7. Native Share Icon Button */}

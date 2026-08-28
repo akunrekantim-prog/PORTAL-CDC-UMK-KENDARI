@@ -45,6 +45,10 @@ interface JobDetailProps {
   isLoggedIn?: boolean;
   hideHeader?: boolean;
   hideFooter?: boolean;
+  onSelectBerita?: (slug: string) => void;
+  onSelectProgram?: (id: string) => void;
+  onSelectPrestasi?: (item: any) => void;
+  onSelectEvent?: (id: string) => void;
 }
 
 export const JobDetail: React.FC<JobDetailProps> = ({
@@ -57,7 +61,11 @@ export const JobDetail: React.FC<JobDetailProps> = ({
   onNavigateToRegister,
   isLoggedIn = false,
   hideHeader = false,
-  hideFooter = false
+  hideFooter = false,
+  onSelectBerita,
+  onSelectProgram,
+  onSelectPrestasi,
+  onSelectEvent
 }) => {
   const isExpired = isJobDeadlinePassed(job.deadline);
   const defaultPoster = 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=800&auto=format&fit=crop';
@@ -692,7 +700,35 @@ export const JobDetail: React.FC<JobDetailProps> = ({
       </main>
 
       {/* 2. Global Footer Component */}
-      {!hideFooter && <Footer onSelectLowongan={onSelectJob} setTab={setTab} />}
+      {!hideFooter && (
+        <Footer
+          onSelectLowongan={onSelectJob}
+          onSelectBerita={(slug) => {
+            onBack();
+            if (onSelectBerita) onSelectBerita(slug);
+            else if (setTab) setTab('berita');
+          }}
+          onSelectProgram={(id) => {
+            onBack();
+            if (onSelectProgram) onSelectProgram(id);
+            else if (setTab) setTab('beranda');
+          }}
+          onSelectPrestasi={(item) => {
+            onBack();
+            if (onSelectPrestasi) onSelectPrestasi(item);
+            else if (setTab) setTab(`presentasi-${item.kategori || 'internasional'}-${item.subKategori || 'akademik'}`);
+          }}
+          onSelectEvent={(id) => {
+            onBack();
+            if (onSelectEvent) onSelectEvent(id);
+            else if (setTab) setTab('workshop');
+          }}
+          setTab={(t) => {
+            onBack();
+            if (setTab) setTab(t);
+          }}
+        />
+      )}
 
       {/* INTERACTIVE FORM MODAL: Lamar Pekerjaan Ini */}
       {isApplyModalOpen && (

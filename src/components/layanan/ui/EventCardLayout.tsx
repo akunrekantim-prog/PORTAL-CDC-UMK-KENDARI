@@ -43,6 +43,24 @@ const mapKontenToEvent = (k: KontenKarir): EventLayananItem => ({
   uploadedAt: k.createdAt
 });
 
+const findMatchedEvent = (targetId: string | null | undefined, list: EventLayananItem[]): EventLayananItem | null => {
+  if (!targetId) return null;
+  const rawId = targetId.toLowerCase().trim();
+  const cleanId = rawId.replace(/^kk_/, '').replace(/^kk-/, '');
+  return list.find(e => {
+    const eid = e.id.toLowerCase().trim();
+    const eClean = eid.replace(/^kk_/, '').replace(/^kk-/, '');
+    return (
+      eid === rawId ||
+      eClean === cleanId ||
+      eid === cleanId ||
+      rawId === eClean ||
+      (e.title && e.title.toLowerCase().trim() === cleanId) ||
+      (e.title && cleanId.length > 3 && e.title.toLowerCase().includes(cleanId))
+    );
+  }) || null;
+};
+
 export default function EventCardLayout({
   category,
   pageTitle,
@@ -57,7 +75,19 @@ export default function EventCardLayout({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedYear, setSelectedYear] = useState<string>('semua');
   const [sortBy] = useState<'terbaru' | 'terlama' | 'az' | 'za'>('terbaru');
-  const [selectedEvent, setSelectedEvent] = useState<EventLayananItem | null>(null);
+
+  // Gabungkan seed dummy + hasil input admin yang sudah published
+  const allEvents = useMemo(() => {
+    const fromKonten = (kontenEvents || [])
+      .filter(k => k.status === 'published' && k.jenis === category)
+      .map(mapKontenToEvent);
+    return [...fromKonten, ...events];
+  }, [events, kontenEvents, category]);
+
+  // Inisialisasi awal secara sinkron agar tidak berkedip ke Card Layout grid pada render pertama
+  const [selectedEvent, setSelectedEvent] = useState<EventLayananItem | null>(() =>
+    findMatchedEvent(initialEventId, allEvents)
+  );
   const [currentPage, setCurrentPage] = useState(1);
 
   // Sync detail state to LayananContainer & optional prop callback
@@ -71,42 +101,14 @@ export default function EventCardLayout({
     }
   }, [selectedEvent, setIsDetailActive, onDetailStateChange]);
 
-  // Gabungkan seed dummy + hasil input admin yang sudah published
-  const allEvents = useMemo(() => {
-    const fromKonten = (kontenEvents || [])
-      .filter(k => k.status === 'published' && k.jenis === category)
-      .map(mapKontenToEvent);
-    return [...fromKonten, ...events];
-  }, [events, kontenEvents, category]);
-
-  // Auto-select event HANYA jika initialEventId spesifik diberikan (misal dari Popular Info)
+  // Auto-select event jika initialEventId berubah (misal dari Popular Info)
   useEffect(() => {
-    if (initialEventId) {
-      const rawId = initialEventId.toLowerCase().trim();
-      const cleanId = rawId.replace(/^kk_/, '').replace(/^kk-/, '');
-      const matched = allEvents.find(e => {
-        const eid = e.id.toLowerCase().trim();
-        const eClean = eid.replace(/^kk_/, '').replace(/^kk-/, '');
-        return (
-          eid === rawId ||
-          eClean === cleanId ||
-          eid === cleanId ||
-          rawId === eClean ||
-          (e.title && e.title.toLowerCase().trim() === cleanId) ||
-          (e.title && cleanId.length > 3 && e.title.toLowerCase().includes(cleanId))
-        );
-      });
-
-      if (matched) {
-        setSelectedEvent(matched);
-        window.scrollTo(0, 0);
-      } else {
-        setSelectedEvent(null);
-      }
-    } else {
-      setSelectedEvent(null);
+    const matched = findMatchedEvent(initialEventId, allEvents);
+    setSelectedEvent(matched);
+    if (matched) {
+      window.scrollTo(0, 0);
     }
-  }, [initialEventId, allEvents, category]);
+  }, [initialEventId, allEvents]);
 
   const handleSelectEvent = (item: EventLayananItem) => {
     setSelectedEvent(item);

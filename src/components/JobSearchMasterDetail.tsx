@@ -140,6 +140,10 @@ interface JobSearchMasterDetailProps {
   isLoggedIn?: boolean;
   onSelectLowongan?: (id: string) => void;
   setTab?: (tab: string) => void;
+  onSelectBerita?: (slug: string) => void;
+  onSelectProgram?: (id: string) => void;
+  onSelectPrestasi?: (item: any) => void;
+  onSelectEvent?: (id: string) => void;
 }
 
 export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
@@ -147,7 +151,11 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
   onApply,
   isLoggedIn = true,
   onSelectLowongan,
-  setTab
+  setTab,
+  onSelectBerita,
+  onSelectProgram,
+  onSelectPrestasi,
+  onSelectEvent
 }) => {
   const { t } = useLanguage();
   // 1 Textbox Searching Kata Kunci, Jabatan, Perusahaan
@@ -345,7 +353,14 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
             if (found) setSelectedJobForDetail(found);
           }}
         />
-        <Footer onSelectLowongan={onSelectLowongan} setTab={setTab} />
+        <Footer
+          onSelectLowongan={onSelectLowongan}
+          onSelectBerita={onSelectBerita}
+          onSelectProgram={onSelectProgram}
+          onSelectPrestasi={onSelectPrestasi}
+          onSelectEvent={onSelectEvent}
+          setTab={setTab}
+        />
       </div>
     );
   }
@@ -790,7 +805,14 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
       </div>
 
       {/* FOOTER */}
-      <Footer onSelectLowongan={onSelectLowongan} setTab={setTab} />
+      <Footer
+        onSelectLowongan={onSelectLowongan}
+        onSelectBerita={onSelectBerita}
+        onSelectProgram={onSelectProgram}
+        onSelectPrestasi={onSelectPrestasi}
+        onSelectEvent={onSelectEvent}
+        setTab={setTab}
+      />
     </div>
   );
 };
