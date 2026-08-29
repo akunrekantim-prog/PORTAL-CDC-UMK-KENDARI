@@ -140,7 +140,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
   const [aboutMe, setAboutMe] = useState(mahasiswaData?.aboutMe || '');
 
   const [userStatusType, setUserStatusType] = useState<'Mahasiswa' | 'Alumni'>(
-    mahasiswaData?.userStatusType || (user.role === 'alumni' ? 'Alumni' : 'Mahasiswa')
+    mahasiswaData?.userStatusType || ((user.role as string) === 'alumni' ? 'Alumni' : 'Mahasiswa')
   );
 
   // Career preferences

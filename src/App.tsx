@@ -15,6 +15,8 @@ import {
   initializeDB,
   getFromDB,
   saveToDB,
+  insertToDB,
+  updateInDB,
   sortJobsByNewest
 } from './data';
 import EventDetailView from './components/layanan/EventDetailView';
@@ -163,7 +165,50 @@ export default function App() {
   // Development Direct-Switch tool (very powerful for multi-role testing in AI Studio iframe!)
   const handleFastRoleSwitch = (role: 'admin' | 'user' | 'mitra') => {
     const users = getFromDB<UserType>('users');
-    let target = users.find(u => u.status === 'active' && u.role === role);
+    let target = users.find(u => u.role === role && u.status === 'active');
+
+    if (!target) {
+      target = users.find(u => u.role === role);
+      if (target) {
+        target = { ...target, status: 'active' };
+        updateInDB<UserType>('users', target);
+      } else {
+        const defaultSeeds: Record<'admin' | 'user' | 'mitra', UserType> = {
+          admin: {
+            id: 'usr_admin',
+            name: 'Operator CDC UM Kendari',
+            email: 'admin@umkendari.ac.id',
+            password: 'password',
+            phone: '081234567890',
+            role: 'admin',
+            status: 'active',
+            createdAt: new Date().toISOString()
+          },
+          mitra: {
+            id: 'usr_mitra1',
+            name: 'Budi Setiawan (HRD PT Go Digital)',
+            email: 'mitra@umkendari.ac.id',
+            password: 'password',
+            phone: '081299998888',
+            role: 'mitra',
+            status: 'active',
+            createdAt: new Date().toISOString()
+          },
+          user: {
+            id: 'usr_mhs1',
+            name: 'Muhammad Fadly Alamsyah',
+            email: 'mhs@umkendari.ac.id',
+            password: 'password',
+            phone: '085241009988',
+            role: 'user',
+            status: 'active',
+            createdAt: new Date().toISOString()
+          }
+        };
+        target = defaultSeeds[role];
+        insertToDB<UserType>('users', target);
+      }
+    }
 
     if (target) {
       setCurrentUser(target);
@@ -446,7 +491,7 @@ export default function App() {
         {/* VIEW 5: DISPATCH DASHBOARDS TO ROLE-SPECIFIC PANELS */}
         {currentView === 'dashboard' && currentUser && (
           <div id="dashboard-panel-resolver">
-            {(currentUser.role === 'user' || currentUser.role === 'mahasiswa' || currentUser.role === 'alumni') && (
+            {currentUser.role === 'user' && (
               <MahasiswaDashboard
                 user={currentUser}
                 onLogout={handleLogout}
