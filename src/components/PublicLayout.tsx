@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 
 import { Lowongan, Berita, Pengumuman, KontenKarir, CdcClubConfig, HelpdeskConfig } from '../types';
-import { sortJobsByNewest, formatDateDisplay, isJobDeadlinePassed, getFromDB, trackAndGetVisitorCount, getAdminWaPrestasi, getVisiMisiConfig, getCdcClubConfig, getHelpdeskConfig } from '../data';
+import { sortJobsByNewest, formatDateDisplay, isJobDeadlinePassed, getFromDB, trackAndGetVisitorCount, getAdminWaPrestasi, getVisiMisiConfig, getCdcClubConfig, getHelpdeskConfig, getStatistikConfig } from '../data';
 import { motion, AnimatePresence } from 'motion/react';
 import Header from './Header';
 import { Footer } from './Footer';
@@ -104,12 +104,15 @@ const CRED_BADGES = [
 const START_YEAR_CDC = 2016; // Tahun acuan dasar CDC (2026 -> 10+, 2027 -> 11+, dst)
 const expYears = Math.max(10, new Date().getFullYear() - START_YEAR_CDC);
 
-const STATS = [
-  { value: '20.000+', label: 'Alumni' },
-  { value: '10', label: 'Mitra Perusahaan' },
-  { value: trackAndGetVisitorCount(), label: 'Total Pengunjung' },
-  { value: `${expYears}+`, label: 'Tahun Pengalaman' },
-];
+const getStatsList = () => {
+  const cfg = getStatistikConfig();
+  return [
+    { value: cfg.jumlahAlumni || '20.000+', label: 'Alumni' },
+    { value: cfg.jumlahMitra || '10', label: 'Mitra Perusahaan' },
+    { value: trackAndGetVisitorCount(), label: 'Total Pengunjung' },
+    { value: `${expYears}+`, label: 'Tahun Pengalaman' },
+  ];
+};
 
 /* ─── Helper Animasi Counter Angka Beranda ─────────────────── */
 function parseStatValue(raw: string) {
@@ -480,7 +483,7 @@ export default function PublicLayout({
             <div className="bg-[#1E3A8A] py-7">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8
                               grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
-                {STATS.map(({ value, label }) => (
+                {getStatsList().map(({ value, label }) => (
                   <div key={label} className="space-y-1">
                     <div className="text-3xl sm:text-4xl font-extrabold text-[#10B981]">
                       <AnimatedCounterStat rawValue={value} />

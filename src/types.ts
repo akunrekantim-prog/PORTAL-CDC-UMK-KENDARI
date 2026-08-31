@@ -574,3 +574,11 @@ export interface JobFairItem {
   status: 'buka' | 'berlangsung' | 'selesai';
   createdAt: string;
 }
+
+export interface StatistikConfig {
+  id: string;
+  jumlahAlumni: string; // e.g. "20.000+"
+  jumlahMitra: string;  // e.g. "10"
+  updatedAt?: string;
+}
+

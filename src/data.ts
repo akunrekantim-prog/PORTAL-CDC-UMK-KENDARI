@@ -35,7 +35,8 @@ import {
   HeroSlideItem,
   CampusHiringItem,
   JobFairItem,
-  JobFairCompany
+  JobFairCompany,
+  StatistikConfig
 } from './types';
 
 // Daftar Fakultas Resmi Universitas Muhammadiyah Kendari (UM Kendari)
@@ -1824,7 +1825,8 @@ export type DBKey =
   | 'mou_stakeholder'
   | 'galeri_items'
   | 'social_media'
-  | 'komentar_berita';
+  | 'komentar_berita'
+  | 'statistik_config';
 
 const DEFAULT_SEEDS = {
   users: SEED_USERS,
@@ -3079,6 +3081,41 @@ export function getGaleriItems(): GaleriItem[] {
 export function saveGaleriItems(items: GaleriItem[]): void {
   localStorage.setItem('cdc_umk_galeri_items', JSON.stringify(items));
 }
+
+/* ─────────────────────────────────────────────────────────────────
+   STATISTIK BERANDA CONFIG HELPERS (Alumni & Mitra Perusahaan)
+───────────────────────────────────────────────────────────────── */
+export const DEFAULT_STATISTIK_CONFIG: StatistikConfig = {
+  id: 'cfg_statistik',
+  jumlahAlumni: '20.000+',
+  jumlahMitra: '10',
+  updatedAt: new Date().toISOString()
+};
+
+export function getStatistikConfig(): StatistikConfig {
+  const saved = localStorage.getItem('cdc_umk_statistik_config');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed && typeof parsed === 'object' && parsed.jumlahAlumni && parsed.jumlahMitra) {
+        return parsed;
+      }
+    } catch { }
+  }
+  return DEFAULT_STATISTIK_CONFIG;
+}
+
+export function saveStatistikConfig(config: Partial<StatistikConfig>): StatistikConfig {
+  const current = getStatistikConfig();
+  const updated: StatistikConfig = {
+    ...current,
+    ...config,
+    updatedAt: new Date().toISOString()
+  };
+  localStorage.setItem('cdc_umk_statistik_config', JSON.stringify(updated));
+  return updated;
+}
+
 
 
 

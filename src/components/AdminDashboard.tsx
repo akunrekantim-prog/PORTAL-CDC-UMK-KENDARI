@@ -41,7 +41,8 @@ import {
   CdcClubConfig,
   HeroSlideItem,
   CampusHiringItem,
-  JobFairItem
+  JobFairItem,
+  StatistikConfig
 } from '../types';
 import {
   getFromDB,
@@ -69,7 +70,10 @@ import {
   getCampusHiring,
   saveCampusHiring,
   getJobFair,
-  saveJobFair
+  saveJobFair,
+  getStatistikConfig,
+  saveStatistikConfig,
+  trackAndGetVisitorCount
 } from '../data';
 import {
   LayoutDashboard,
@@ -161,7 +165,7 @@ interface AdminDashboardProps {
   onReloadData?: () => void;
 }
 
-type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin' | 'keanggotaan' | 'visi-misi' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'media-sosial' | 'komentar' | 'konseling' | 'hero-slider' | 'campus-hiring' | 'job-fair';
+type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin' | 'keanggotaan' | 'visi-misi' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'media-sosial' | 'komentar' | 'konseling' | 'hero-slider' | 'campus-hiring' | 'job-fair' | 'statistik-beranda';
 type KontenSubTab = 'riwayat' | 'pembuatan';
 type MitraSubTab = 'approval' | 'list';
 
@@ -518,7 +522,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const [socUrl, setSocUrl] = useState('');
   const [socIsActive, setSocIsActive] = useState(true);
 
-  // State Pengumuman Khusus / Utama Beranda
+  // Form states Pengumuman Khusus / Utama Beranda
   const [annIsImportant, setAnnIsImportant] = useState<boolean>(true);
   const [annDisplayType, setAnnDisplayType] = useState<'badge' | 'poster'>('badge');
   const [annTitle, setAnnTitle] = useState<string>('');
@@ -529,6 +533,25 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const [annShowBadge, setAnnShowBadge] = useState<boolean>(true);
   const [annBadgeText, setAnnBadgeText] = useState<string>('PENGUMUMAN SANGAT PENTING');
   const [annShowBadgeIcon, setAnnShowBadgeIcon] = useState<boolean>(true);
+
+  // Form states Statistik Beranda (Alumni & Mitra Perusahaan)
+  const [statAlumni, setStatAlumni] = useState(() => getStatistikConfig().jumlahAlumni);
+  const [statMitra, setStatMitra] = useState(() => getStatistikConfig().jumlahMitra);
+
+  const handleSaveStatistik = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!statAlumni.trim() || !statMitra.trim()) {
+      triggerToast('error', 'Jumlah Alumni dan Jumlah Mitra Perusahaan wajib diisi!');
+      return;
+    }
+    saveStatistikConfig({
+      jumlahAlumni: statAlumni.trim(),
+      jumlahMitra: statMitra.trim(),
+    });
+    reloadAll();
+    if (onReloadData) onReloadData();
+    triggerToast('success', 'Statistik Beranda (Alumni & Mitra Perusahaan) berhasil disimpan!');
+  };
 
   const syncAnnState = () => {
     const list = getFromDB<Pengumuman>('pengumuman');
@@ -658,6 +681,10 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
     setKNarasiWa(cfg.narasiWa || '');
     setKAdminWaNum(cfg.adminWaNumber || '');
     setKAdminWaMsg(cfg.adminWaDefaultMessage || '');
+
+    const statCfg = getStatistikConfig();
+    setStatAlumni(statCfg.jumlahAlumni);
+    setStatMitra(statCfg.jumlahMitra);
   };
 
   useEffect(() => {
@@ -686,7 +713,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       group: 'INTERAKSI PUBLIK',
       items: [
         { id: 'media-sosial', label: 'Media Sosial & WA CS', icon: <Globe className="w-4 h-4" /> },
-        { id: 'komentar', label: 'Moderasi Komentar Berita', icon: <MessageSquare className="w-4 h-4" /> }
+        { id: 'komentar', label: 'Moderasi Komentar Berita', icon: <MessageSquare className="w-4 h-4" /> },
+        { id: 'statistik-beranda', label: 'Statistik Beranda', icon: <TrendingUp className="w-4 h-4" /> }
       ]
     },
     {
@@ -7775,6 +7803,124 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                     </>
                   );
                 })()}
+              </div>
+            )}
+
+            {/* ============== STATISTIK BERANDA (ALUMNI & MITRA) ============== */}
+            {activeTab === 'statistik-beranda' && (
+              <div className="space-y-6" id="adm-statistik-beranda">
+                <div className="border-b border-slate-200 pb-5">
+                  <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                    <TrendingUp className="w-6 h-6 text-[#0077C6]" /> Kelola Statistik Beranda
+                  </h1>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Atur jumlah Alumni dan Mitra Perusahaan yang ditampilkan pada strip statistik halaman depan publik.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                  {/* FORM EDITABLE FIELDS */}
+                  <div className="lg:col-span-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+                    <h2 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
+                      <Edit3 className="w-4 h-4 text-emerald-600" /> Data Statistik Utama
+                    </h2>
+
+                    {/* Input Alumni */}
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                        Jumlah Alumni <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={statAlumni}
+                        onChange={(e) => setStatAlumni(e.target.value)}
+                        placeholder="Contoh: 20.000+"
+                        className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0077C6] focus:border-[#0077C6] text-sm font-semibold text-slate-900"
+                      />
+                      <p className="text-xs text-slate-400">
+                        * Format teks bebas (misal: <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700 font-mono">20.000+</code> atau <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700 font-mono">25.500+</code>).
+                      </p>
+                    </div>
+
+                    {/* Input Mitra */}
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                        Jumlah Mitra Perusahaan <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={statMitra}
+                        onChange={(e) => setStatMitra(e.target.value)}
+                        placeholder="Contoh: 10"
+                        className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0077C6] focus:border-[#0077C6] text-sm font-semibold text-slate-900"
+                      />
+                      <p className="text-xs text-slate-400">
+                        * Format teks bebas (misal: <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700 font-mono">10</code>, <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700 font-mono">50+</code>, atau <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700 font-mono">100+ Perusahaan</code>).
+                      </p>
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-100">
+                      <button
+                        onClick={handleSaveStatistik}
+                        className="w-full bg-[#0077C6] hover:bg-[#1E3A8A] text-white py-3 rounded-xl font-bold text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        <Save className="w-4 h-4" /> Simpan Perubahan Statistik
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* INFORMASI OTOMATIS & PREVIEW */}
+                  <div className="lg:col-span-6 space-y-6">
+                    {/* Read-only Automated System Info */}
+                    <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
+                      <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
+                        <Info className="w-4 h-4 text-blue-600" /> Data Terhitung Otomatis Oleh Sistem
+                      </h2>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
+                          <div className="text-slate-400 font-medium">Total Pengunjung</div>
+                          <div className="text-lg font-extrabold text-blue-900 mt-1 font-mono">{trackAndGetVisitorCount()}</div>
+                          <div className="text-[11px] text-slate-400 mt-1 italic">Di-track otomatis via peramban</div>
+                        </div>
+                        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
+                          <div className="text-slate-400 font-medium">Tahun Pengalaman</div>
+                          <div className="text-lg font-extrabold text-blue-900 mt-1 font-mono">10+ Tahun</div>
+                          <div className="text-[11px] text-slate-400 mt-1 italic">Dihitung dari tahun dasar 2016</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* LIVE PREVIEW BANNER */}
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                          <Eye className="w-4 h-4 text-emerald-600" /> Pratinjau Tampilan Beranda Publik
+                        </h2>
+                        <span className="text-[11px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">Live Preview</span>
+                      </div>
+
+                      {/* Mockup strip */}
+                      <div className="bg-[#1E3A8A] p-5 rounded-2xl text-center grid grid-cols-2 sm:grid-cols-4 gap-4 shadow-inner">
+                        <div className="space-y-0.5">
+                          <div className="text-xl sm:text-2xl font-black text-[#10B981]">{statAlumni || '20.000+'}</div>
+                          <div className="text-[10px] text-blue-200 font-bold uppercase tracking-wider">Alumni</div>
+                        </div>
+                        <div className="space-y-0.5">
+                          <div className="text-xl sm:text-2xl font-black text-[#10B981]">{statMitra || '10'}</div>
+                          <div className="text-[10px] text-blue-200 font-bold uppercase tracking-wider">Mitra Perusahaan</div>
+                        </div>
+                        <div className="space-y-0.5">
+                          <div className="text-xl sm:text-2xl font-black text-[#10B981]">{trackAndGetVisitorCount()}</div>
+                          <div className="text-[10px] text-blue-200 font-bold uppercase tracking-wider">Total Pengunjung</div>
+                        </div>
+                        <div className="space-y-0.5">
+                          <div className="text-xl sm:text-2xl font-black text-[#10B981]">10+</div>
+                          <div className="text-[10px] text-blue-200 font-bold uppercase tracking-wider">Tahun Pengalaman</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
