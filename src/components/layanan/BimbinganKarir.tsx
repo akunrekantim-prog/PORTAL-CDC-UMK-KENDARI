@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getKonselingConfig } from '../../data';
 import { KonselingConfig } from '../../types';
-import { ZoomIn, ArrowUpRight, X } from 'lucide-react';
+import { ArrowUpRight, X } from 'lucide-react';
 import { useLanguage } from '../../i18n';
 
 const WA_MSG_DEFAULT =
@@ -55,23 +55,6 @@ export default function KonselingKarir() {
       {/* ── 2. POSTER (hanya jika admin mengisi posterUrl) ── */}
       {config.posterUrl && (
         <section className="space-y-4">
-          <div className="flex items-end justify-between gap-4 border-b border-slate-200 pb-4">
-            <div className="space-y-1">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500">
-                {translateContent('Poster & Pamflet')}
-              </h3>
-              <p className="text-sm text-slate-400">
-                {translateContent('Informasi visual resmi layanan bimbingan & konseling karir CDC UM Kendari')}
-              </p>
-            </div>
-            <button
-              onClick={() => setZoomPoster(config.posterUrl)}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors shrink-0"
-            >
-              <ZoomIn className="w-3.5 h-3.5" />
-              {translateContent('Perbesar')}
-            </button>
-          </div>
           <button
             onClick={() => setZoomPoster(config.posterUrl)}
             className="block w-full bg-slate-50 border border-slate-200 rounded-xl p-2 cursor-zoom-in hover:border-slate-300 transition-colors"
@@ -137,13 +120,13 @@ export default function KonselingKarir() {
           <div className="overflow-x-auto rounded-xl border border-slate-200">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-slate-50 text-left text-xs uppercase tracking-wider text-slate-500">
-                  <th className="px-5 py-3 font-semibold">{translateContent('Hari')}</th>
-                  <th className="px-5 py-3 font-semibold">{translateContent('Waktu')}</th>
-                  <th className="px-5 py-3 font-semibold">{translateContent('Lokasi')}</th>
-                  <th className="px-5 py-3 font-semibold">{translateContent('Kuota')}</th>
-                  <th className="px-5 py-3 font-semibold text-right">{translateContent('Status')}</th>
-                </tr>
+                <tr className="bg-[#000066] text-left text-xs uppercase tracking-wider text-white">
+                    <th className="px-5 py-3 font-semibold">{translateContent('Hari')}</th>
+                    <th className="px-5 py-3 font-semibold">{translateContent('Waktu')}</th>
+                    <th className="px-5 py-3 font-semibold">{translateContent('Lokasi')}</th>
+                    <th className="px-5 py-3 font-semibold">{translateContent('Kuota')}</th>
+                    <th className="px-5 py-3 font-semibold text-right">{translateContent('Status')}</th>
+                  </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {config.jadwalItems.map((jdw, idx) => (
@@ -183,18 +166,18 @@ export default function KonselingKarir() {
 
       {/* ── 5. KONTAK WHATSAPP (hanya jika ada nomor WA) ── */}
       {cleanWaNumber && (
-        <section className="bg-slate-900 rounded-xl px-6 py-10 sm:px-12 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-8">
+        <section className="bg-[#000066] rounded-xl px-6 py-10 sm:px-12 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-8">
           <div className="space-y-2 max-w-xl">
             <h3 className="text-xl sm:text-2xl font-semibold tracking-tight">
               {translateContent('Konsultasi & Pendaftaran Konseling')}
             </h3>
-            <p className="text-sm text-slate-300 leading-relaxed">
+            <p className="text-sm text-blue-200 leading-relaxed">
               {translateContent(
                 config.narasiWa ||
                 'Ingin menjadwalkan sesi konseling karir atau mengajukan pertanyaan lebih lanjut? Silakan hubungi Admin Konseling Karir CDC UM Kendari melalui WhatsApp.'
               )}
             </p>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-blue-300/70">
               {translateContent('Gratis — pesan otomatis siap terisi saat WhatsApp terbuka')}
             </p>
           </div>
@@ -202,10 +185,12 @@ export default function KonselingKarir() {
             href={waUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-6 py-3.5 text-sm font-semibold text-slate-900 hover:bg-slate-100 transition-colors shrink-0"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#25D366] px-6 py-3.5 text-sm font-semibold text-white hover:bg-[#1ebe5d] transition-colors shrink-0"
           >
+            <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.019-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+            </svg>
             {translateContent('Hubungi Admin via WhatsApp')}
-            <ArrowUpRight className="w-4 h-4" />
           </a>
         </section>
       )}

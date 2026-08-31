@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Calendar, Filter, X, Layers } from 'lucide-react';
+import { Search, Calendar, Filter, X } from 'lucide-react';
 import { EventLayananItem, KontenKarir } from '../../../types';
 import EventDetailView from '../EventDetailView';
 import { useLayanan } from '../LayananContainer';
@@ -331,11 +331,7 @@ export default function EventCardLayout({
     );
   }
 
-  const resetFilters = () => {
-    setSearchQuery('');
-  };
 
-  const hasActiveFilters = searchQuery !== '';
 
   const formatDateIndo = (dateStr: string) => {
     if (!dateStr) return '';
@@ -382,29 +378,7 @@ export default function EventCardLayout({
           )}
         </div>
 
-        {/* Total Kegiatan Badge & Reset Filter */}
-        <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs text-slate-500 flex-wrap gap-2">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-blue-50 text-[#0077C6] font-bold border border-blue-100">
-              <Layers className="w-3.5 h-3.5 text-[#0077C6]" />
-              Menampilkan {filteredEvents.length} Kegiatan
-            </span>
-            {hasActiveFilters && (
-              <span className="text-slate-400 font-medium">
-                (dari total {allEvents.filter(e => e.category === category).length} kegiatan)
-              </span>
-            )}
-          </div>
 
-          {hasActiveFilters && (
-            <button
-              onClick={resetFilters}
-              className="inline-flex items-center gap-1.5 text-[#0077C6] hover:text-[#1E3A8A] font-bold hover:underline cursor-pointer"
-            >
-              <X className="w-3.5 h-3.5" /> Reset Filter
-            </button>
-          )}
-        </div>
       </div>
 
       {/* Grid List Event Cards */}
@@ -475,7 +449,7 @@ export default function EventCardLayout({
             Coba ganti kata kunci pencarian atau tanggal kegiatan, lalu atur ulang filter.
           </p>
           <button
-            onClick={resetFilters}
+            onClick={() => setSearchQuery('')}
             className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition-colors cursor-pointer"
           >
             Reset Semua Filter
