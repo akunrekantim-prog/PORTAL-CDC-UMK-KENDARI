@@ -38,6 +38,39 @@ Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 
 ---
 
+## Tanggal: 31 Agustus 2026 (Sesi 2)
+**Oleh: ARYA APRIAWAN**
+**Fokus Pekerjaan:** Pagination Menu Internship Maksimal 6 Card Per Halaman, Penambahan 7 Data Dummy Magang Baru, dan Bump Seed Version.
+
+### Ringkasan Perubahan
+1. **Pagination Internship Maksimal 6 Card (`Magang.tsx`):**
+   - Mengubah `itemsPerPage` dari `9` menjadi `6` agar konsisten dengan standar pagination menu layanan lainnya.
+   - Mengganti implementasi pagination inline (styling rounded-lg terpisah) dengan komponen reusable `Pagination` dari `./ui/Pagination.tsx` (kotak persegi bersambung, warna aktif navy `#000066`, ellipsis untuk banyak halaman, tombol panah prev/next).
+   - Menghapus import `ShieldCheck` yang tidak terpakai dari lucide-react.
+2. **Penambahan 7 Data Dummy Lowongan Magang (`data.ts`):**
+   - Menambahkan 7 seed lowongan magang baru ke `SEED_LOWONGAN` (id: `low_magang3` s/d `low_magang9`) agar total magang menjadi 9 item (2 lama + 7 baru):
+     1. **Data Analyst Intern** — PT Sultra Data Analytics
+     2. **Social Media Marketing Intern** — CV Kreatif Sultra
+     3. **Mobile App Developer Intern** — PT Appsolute Kendari
+     4. **Graphic Designer Intern** — Studio Desain Sultra
+     5. **Network & IT Support Intern** — PT Jaringan Nusantara Kendari
+     6. **Accounting & Finance Intern** — KAP Sultra & Rekan
+     7. **Human Resource Intern** — PT Sumber Daya Sultra
+   - Semua dummy bertipe `tipe: 'magang'`, `status: 'published'`, `sumber: 'admin'`, dengan variasi instansi, kategori, keahlian, dan deadline berbeda.
+3. **Bump Seed Version (`data.ts`):**
+   - Mengubah `CURRENT_SEED_VERSION` dari `'v16_unified_user_role'` menjadi `'v17_magang_dummy_7'` agar localStorage ter-reset dan data dummy baru termuat otomatis.
+
+### File Diubah
+- **[MODIFY]** `src/components/layanan/Magang.tsx` (pagination 6 card + komponen Pagination navy, hapus import ShieldCheck)
+- **[MODIFY]** `src/data.ts` (7 dummy magang baru, bump seed v17)
+- **[MODIFY]** `progres.md` (update progres)
+
+### Verifikasi
+- ✅ `npx tsc --noEmit` — 0 error
+- ✅ Total magang: 9 item → Halaman 1: 6 card, Halaman 2: 3 card (pagination otomatis muncul)
+
+---
+
 ## Tanggal: 25 Agustus 2026
 **Oleh: Developer Fachrul Alam Sanuddin**
 **Fokus Pekerjaan:** Fitur Multi-Bahasa / Dual Language (Bahasa Indonesia 🇮🇩 & English 🇬🇧), Switcher Bendera di Top Bar Header, Terjemahan Kamus Navigasi & Konten Layanan, serta Optimalisasi Aset SVG Publik.
