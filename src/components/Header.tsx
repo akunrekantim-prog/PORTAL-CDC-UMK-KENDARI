@@ -133,12 +133,6 @@ const NAV_ITEMS: NavItem[] = [
     ],
   },
   {
-    id: 'login',
-    label: 'Masuk / Login',
-    tab: 'login',
-    isAction: true,
-  },
-  {
     id: 'register',
     label: 'Register',
     isAction: true,
