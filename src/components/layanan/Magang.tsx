@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Search, Info, Building2, ShieldCheck, Clock } from 'lucide-react';
+import { Search, Info, Building2, Clock } from 'lucide-react';
 import { Lowongan } from '../../types';
 import { sortJobsByNewest, formatDateDisplay } from '../../data';
+import Pagination from './ui/Pagination';
 
 interface MagangProps {
   lowongan?: Lowongan[];
@@ -11,7 +12,7 @@ interface MagangProps {
 export default function Magang({ lowongan = [], onSelectLowongan }: MagangProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
+  const itemsPerPage = 6;
 
   // Filter published magang lowongan
   const publishedMagang = sortJobsByNewest(
@@ -132,40 +133,12 @@ export default function Magang({ lowongan = [], onSelectLowongan }: MagangProps)
             ))}
           </div>
 
-          {/* PAGINATION (9 items per page) */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-1.5 pt-4">
-              {currentPage > 1 && (
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition"
-                >
-                  &lt;
-                </button>
-              )}
-
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
-                <button
-                  key={pageNum}
-                  onClick={() => handlePageChange(pageNum)}
-                  className={`px-3.5 py-1.5 rounded-lg font-bold text-xs transition ${pageNum === currentPage
-                      ? 'bg-[#1B365D] text-white shadow-xs'
-                      : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                    }`}
-                >
-                  {pageNum}
-                </button>
-              ))}
-
-              {currentPage < totalPages && (
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition"
-                >
-                  &gt;
-                </button>
-              )}
-            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
           )}
         </div>
       )}
