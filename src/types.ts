@@ -152,7 +152,7 @@ export interface Alumni {
   programStudi: string;
   fakultas: string;
   tahunLulus: string; // e.g. "2024"
-  statusPekerjaan: 'bekerja' | 'wirausaha' | 'lanjut_studi' | 'belum_bekerja';
+  statusPekerjaan: 'bekerja' | 'wirausaha' | 'lanjut_studi' | 'belum_bekerja' | 'mahasiswa_aktif';
   instansiKerja?: string;
   jabatan?: string;
 }

@@ -4,10 +4,12 @@
  *
  * Login Component — Portal CDC UM Kendari
  * ─────────────────────────────────────────────────────────────────
- * Modern 50/50 Split Authentication Layout:
- * - Left Side: Full-height building background + 50% dark overlay with branding
- * - Right Side: Full-height straight white panel (top to bottom) with hero sign-in state
- *   and seamless transition to credential input form on "Masuk dengan Akun CDC".
+ * Clean Split Authentication Layout (Inspired by UMK / SIMASTER):
+ * - Left Side: Full-height building background + 75% dark overlay with official branding
+ * - Right Side: Clean floating white panel with direct options:
+ *   - "Masuk dengan Akun Mahasiswa / Alumni"
+ *   - "Masuk dengan Akun Mitra"
+ *   - "Lupa Kata Sandi"
  */
 
 import React, { useState, useEffect } from 'react';
@@ -32,12 +34,15 @@ interface LoginProps {
   onNavigateHome: () => void;
 }
 
+type LoginRole = 'mahasiswa' | 'mitra';
+
 export default function Login({
   onLoginSuccess,
   onNavigateToRegister,
   onNavigateHome
 }: LoginProps) {
   const [isEnteringCredentials, setIsEnteringCredentials] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<LoginRole>('mahasiswa');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -52,6 +57,12 @@ export default function Login({
       setHelpdeskConfig(getHelpdeskConfig());
     }
   }, [showForgotModal]);
+
+  const handleSelectRole = (role: LoginRole) => {
+    setSelectedRole(role);
+    setIsEnteringCredentials(true);
+    setErrorMessage('');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,6 +97,17 @@ export default function Login({
         return;
       }
 
+      // Role check advisory
+      if (selectedRole === 'mitra' && matched.role === 'user') {
+        setErrorMessage('Akun ini terdaftar sebagai akun Mahasiswa / Alumni. Silakan gunakan pilihan Masuk dengan Akun Mahasiswa / Alumni.');
+        return;
+      }
+
+      if (selectedRole === 'mahasiswa' && matched.role === 'mitra') {
+        setErrorMessage('Akun ini terdaftar sebagai akun Mitra Perusahaan. Silakan gunakan pilihan Masuk dengan Akun Mitra.');
+        return;
+      }
+
       if (matched.status === 'pending') {
         setErrorMessage('Akun Anda masih dalam proses verifikasi oleh administrator (Status: Pending).');
         return;
@@ -116,7 +138,7 @@ export default function Login({
       id="login-page-root"
     >
       {/* ─────────────────────────────────────────────────────────────
-          1. FULL-SCREEN BACKGROUND WITH 50% DARK OVERLAY (BEHIND ALL)
+          1. FULL-SCREEN BACKGROUND WITH 75% DARK OVERLAY
       ───────────────────────────────────────────────────────────── */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <img
@@ -127,14 +149,13 @@ export default function Login({
             (e.target as HTMLImageElement).src = '/bg-gedung-umk.png';
           }}
         />
-        {/* Dark Overlay (75% opacity) */}
         <div className="absolute inset-0 bg-black/75 backdrop-blur-[0.5px]" />
       </div>
 
       {/* ─────────────────────────────────────────────────────────────
-          2. LEFT COLUMN: HERO BRANDING SECTION (OVERLAY BACKGROUND)
+          2. LEFT COLUMN: HERO BRANDING SECTION
       ───────────────────────────────────────────────────────────── */}
-      <div className="relative z-10 flex-1 flex flex-col justify-between p-6 sm:p-10 lg:p-14 text-white min-h-[50vh] lg:min-h-screen">
+      <div className="relative z-10 flex-1 flex flex-col justify-between p-6 sm:p-10 lg:p-14 text-white min-h-[40vh] lg:min-h-screen">
 
         {/* Top Header Row */}
         <div className="flex items-center justify-between gap-4">
@@ -148,7 +169,7 @@ export default function Login({
           </button>
         </div>
 
-        {/* Main Branding Content (Left-aligned, positioned nicely towards the center) */}
+        {/* Main Branding Content */}
         <div className="my-auto py-8 space-y-6 max-w-xl mx-auto w-full px-2 sm:px-6 flex flex-col items-start text-left">
           {/* Official Logos Group */}
           <div className="flex items-center gap-3 sm:gap-4 w-fit">
@@ -176,16 +197,17 @@ export default function Login({
           </div>
         </div>
 
-
-
+        <div className="hidden lg:block text-xs text-slate-400">
+          Career Development Center &bull; Universitas Muhammadiyah Kendari
+        </div>
       </div>
 
       {/* ─────────────────────────────────────────────────────────────
-          3. RIGHT COLUMN: FLOATING WHITE PANEL (MELAYANG DI ATAS BACKGROUND)
+          3. RIGHT COLUMN: FLOATING WHITE AUTHENTICATION PANEL
       ───────────────────────────────────────────────────────────── */}
       <div className="relative z-10 w-full lg:w-[480px] xl:w-[520px] bg-white shadow-2xl flex flex-col justify-between p-6 sm:p-10 lg:p-12 lg:m-6 xl:m-8 lg:my-auto rounded-none lg:rounded-3xl border border-slate-100 my-auto min-h-screen lg:min-h-0">
 
-        {/* Top Spacer or Mode Title */}
+        {/* Top Header / Back Trigger */}
         <div className="w-full">
           {isEnteringCredentials ? (
             <button
@@ -193,7 +215,7 @@ export default function Login({
                 setIsEnteringCredentials(false);
                 setErrorMessage('');
               }}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0077C6] hover:text-[#005FA0] hover:underline cursor-pointer mb-4 transition"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0077C6] hover:text-[#005FA0] hover:underline cursor-pointer mb-2 transition"
             >
               <ArrowLeft className="w-4 h-4" /> Kembali ke Pilihan Masuk
             </button>
@@ -202,17 +224,19 @@ export default function Login({
           )}
         </div>
 
-        {/* Main Panel Content (Hero vs Credential Form) */}
-        <div className="my-auto py-4 space-y-6">
+        {/* Main Content Area */}
+        <div className="my-auto py-2 space-y-6">
 
           {/* Header Title */}
           <div className="text-center space-y-1.5">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
               LOGIN
             </h2>
-            <p className="text-xs sm:text-sm text-slate-500">
+            <p className="text-xs sm:text-sm text-slate-500 font-medium">
               {isEnteringCredentials
-                ? 'Masukkan email dan kata sandi Akun CDC Anda'
+                ? selectedRole === 'mitra'
+                  ? 'Akun Mitra Industri / Perusahaan'
+                  : 'Akun Mahasiswa / Alumni'
                 : 'Akun Portal CDC Anda'}
             </p>
           </div>
@@ -236,29 +260,36 @@ export default function Login({
           )}
 
           {/* ─────────────────────────────────────────────────────────────
-              VIEW A: HERO STATE (Inspired by SIMASTER UGM)
+              VIEW A: PILIHAN MASUK DENGAN TOMBOL BERSIH (STYLE SEBELUMNYA)
           ───────────────────────────────────────────────────────────── */}
           {!isEnteringCredentials ? (
-            <div className="space-y-5 pt-2" id="login-hero-view">
+            <div className="space-y-3.5 pt-1" id="login-hero-view">
 
-              {/* Primary Action Button: Direct to Credential Form */}
+              {/* Button 1: Masuk dengan Akun Mahasiswa / Alumni */}
               <button
                 type="button"
-                onClick={() => {
-                  setIsEnteringCredentials(true);
-                  setErrorMessage('');
-                }}
-                className="w-full bg-[#0077C6] hover:bg-[#005FA0] active:bg-[#004C80] text-white font-bold py-4 px-6 rounded-2xl text-sm sm:text-base transition duration-150 shadow-md hover:shadow-lg flex items-center justify-center cursor-pointer"
-                id="login-hero-action-btn"
+                onClick={() => handleSelectRole('mahasiswa')}
+                className="w-full bg-[#0077C6] hover:bg-[#005FA0] active:bg-[#004C80] text-white font-bold py-3.5 sm:py-4 px-6 rounded-2xl text-sm sm:text-base transition duration-150 shadow-md hover:shadow-lg flex items-center justify-center cursor-pointer"
+                id="login-mahasiswa-btn"
               >
-                <span>Masuk dengan Akun CDC</span>
+                <span>Masuk dengan Akun Mahasiswa / Alumni</span>
               </button>
 
-              {/* Divider: Atau */}
+              {/* Button 2: Masuk dengan Akun Mitra */}
+              <button
+                type="button"
+                onClick={() => handleSelectRole('mitra')}
+                className="w-full bg-[#1B365D] hover:bg-[#142845] active:bg-[#0E1D33] text-white font-bold py-3.5 sm:py-4 px-6 rounded-2xl text-sm sm:text-base transition duration-150 shadow-md hover:shadow-lg flex items-center justify-center cursor-pointer"
+                id="login-mitra-btn"
+              >
+                <span>Masuk dengan Akun Mitra</span>
+              </button>
+
+              {/* Divider: ATAU */}
               <div className="relative flex items-center justify-center py-1">
                 <div className="border-t border-slate-200 w-full"></div>
-                <span className="bg-white px-3 text-xs text-slate-400 font-medium uppercase tracking-wider">
-                  Atau
+                <span className="bg-white px-3 text-xs text-slate-400 font-bold uppercase tracking-wider">
+                  ATAU
                 </span>
                 <div className="border-t border-slate-200 w-full"></div>
               </div>
@@ -268,7 +299,7 @@ export default function Login({
                 <button
                   type="button"
                   onClick={() => setShowForgotModal(true)}
-                  className="w-full py-3.5 px-4 rounded-2xl text-xs sm:text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200/80 transition cursor-pointer flex items-center justify-center"
+                  className="w-full py-3.5 px-4 rounded-2xl text-xs sm:text-sm font-semibold text-slate-700 bg-[#F5F1EB] hover:bg-[#EAE5DE] border border-slate-200/60 transition cursor-pointer flex items-center justify-center"
                   id="login-hero-forgot-btn"
                 >
                   <span>Lupa Kata Sandi</span>
@@ -293,11 +324,11 @@ export default function Login({
             </div>
           ) : (
             /* ─────────────────────────────────────────────────────────────
-                VIEW B: FORM PENGISIAN (KREDENSIAL LOGIN LAMA)
+                VIEW B: FORM PENGISIAN EMAIL & PASSWORD
             ───────────────────────────────────────────────────────────── */
             <form onSubmit={handleSubmit} className="space-y-4 pt-1 animate-fade-in" id="login-form">
 
-              {/* Field: Email with Facebook-style floating animation */}
+              {/* Field: Email */}
               <div className="relative rounded-xl border border-slate-200 bg-white focus-within:border-[#0077C6] focus-within:ring-2 focus-within:ring-[#0077C6]/15 transition-all">
                 <input
                   type="email"
@@ -317,11 +348,11 @@ export default function Login({
                       : 'top-3.5 text-sm text-slate-400 peer-focus:top-1.5 peer-focus:text-[11px] peer-focus:text-[#0077C6] peer-focus:font-medium'
                   }`}
                 >
-                  Email
+                  {selectedRole === 'mitra' ? 'Email Resmi Instansi / Perusahaan' : 'Alamat Email Mahasiswa / Alumni'}
                 </label>
               </div>
 
-              {/* Field: Password with Facebook-style floating animation */}
+              {/* Field: Password */}
               <div className="relative rounded-xl border border-slate-200 bg-white focus-within:border-[#0077C6] focus-within:ring-2 focus-within:ring-[#0077C6]/15 transition-all">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -357,7 +388,11 @@ export default function Login({
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-[#0077C6] hover:bg-[#005FA0] active:bg-[#004C80] disabled:bg-slate-400 text-white font-bold py-3.5 px-6 rounded-xl text-sm transition duration-150 shadow-md hover:shadow-lg flex items-center justify-center cursor-pointer"
+                  className={`w-full text-white font-bold py-3.5 px-6 rounded-xl text-sm transition duration-150 shadow-md hover:shadow-lg flex items-center justify-center cursor-pointer ${
+                    selectedRole === 'mitra'
+                      ? 'bg-[#1B365D] hover:bg-[#142845] active:bg-[#0E1D33]'
+                      : 'bg-[#0077C6] hover:bg-[#005FA0] active:bg-[#004C80]'
+                  }`}
                   id="login-submit-button"
                 >
                   {isLoading ? (
@@ -365,16 +400,18 @@ export default function Login({
                       <Loader2 className="w-4 h-4 animate-spin" /> Memproses Login...
                     </span>
                   ) : (
-                    <span>Masuk ke Akun</span>
+                    <span>
+                      {selectedRole === 'mitra' ? 'Masuk sebagai Mitra' : 'Masuk sebagai Mahasiswa'}
+                    </span>
                   )}
                 </button>
               </div>
 
-              {/* Divider: Atau */}
+              {/* Divider: ATAU */}
               <div className="relative flex items-center justify-center py-1">
                 <div className="border-t border-slate-200 w-full"></div>
-                <span className="bg-white px-3 text-xs text-slate-400 font-medium uppercase tracking-wider">
-                  Atau
+                <span className="bg-white px-3 text-xs text-slate-400 font-bold uppercase tracking-wider">
+                  ATAU
                 </span>
                 <div className="border-t border-slate-200 w-full"></div>
               </div>
@@ -384,7 +421,7 @@ export default function Login({
                 <button
                   type="button"
                   onClick={() => setShowForgotModal(true)}
-                  className="w-full py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition cursor-pointer flex items-center justify-center"
+                  className="w-full py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 bg-[#F5F1EB] hover:bg-[#EAE5DE] border border-slate-200/60 transition cursor-pointer flex items-center justify-center"
                   id="login-forgot-password-btn"
                 >
                   <span>Lupa Kata Sandi</span>
@@ -397,7 +434,7 @@ export default function Login({
                   Belum memiliki akun?{' '}
                   <button
                     type="button"
-                    onClick={() => onNavigateToRegister('alumni')}
+                    onClick={() => onNavigateToRegister(selectedRole === 'mitra' ? 'perusahaan' : 'alumni')}
                     className="font-bold text-[#0077C6] hover:text-[#005FA0] hover:underline cursor-pointer"
                     id="login-goto-register-btn"
                   >

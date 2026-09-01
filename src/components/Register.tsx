@@ -75,14 +75,15 @@ export default function Register({
     setSuccessUser(null);
   }, [initialTab]);
 
-  // Alumni Form State
+  // Alumni / Mahasiswa Form State
   const [alumniForm, setAlumniForm] = useState({
+    userType: 'Mahasiswa' as 'Mahasiswa' | 'Alumni',
     name: '',
     nim: '',
     fakultas: '',
     programStudi: '',
     tahunLulus: '',
-    statusPekerjaan: '',
+    statusPekerjaan: 'mahasiswa_aktif',
     email: '',
     phone: '',
     password: '',
@@ -112,6 +113,15 @@ export default function Register({
     }));
   };
 
+  // Handle User Type (Mahasiswa / Alumni) change
+  const handleUserTypeChange = (userType: 'Mahasiswa' | 'Alumni') => {
+    setAlumniForm(prev => ({
+      ...prev,
+      userType,
+      statusPekerjaan: userType === 'Mahasiswa' ? 'mahasiswa_aktif' : ''
+    }));
+  };
+
   const validateAlumni = (): boolean => {
     if (
       !alumniForm.name.trim() ||
@@ -119,7 +129,7 @@ export default function Register({
       !alumniForm.fakultas ||
       !alumniForm.programStudi ||
       !alumniForm.tahunLulus ||
-      !alumniForm.statusPekerjaan ||
+      (alumniForm.userType === 'Alumni' && !alumniForm.statusPekerjaan) ||
       !alumniForm.email.trim() ||
       !alumniForm.phone.trim() ||
       !alumniForm.password
@@ -189,7 +199,10 @@ export default function Register({
         fakultas: alumniForm.fakultas,
         programStudi: alumniForm.programStudi,
         tahunLulus: alumniForm.tahunLulus,
-        statusPekerjaan: alumniForm.statusPekerjaan as any
+        userStatusType: alumniForm.userType,
+        statusPekerjaan: (alumniForm.userType === 'Mahasiswa'
+          ? 'mahasiswa_aktif'
+          : (alumniForm.statusPekerjaan || 'belum_bekerja')) as any
       };
 
       const user = registerUser('alumni', payload);
@@ -605,14 +618,14 @@ export default function Register({
 
                         <div className="space-y-1.5">
                           <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
-                            Tahun Angkatan <span className="text-red-500">*</span>
+                            {alumniForm.userType === 'Mahasiswa' ? 'Tahun Angkatan Masuk' : 'Tahun Kelulusan / Angkatan'} <span className="text-red-500">*</span>
                           </label>
                           <select
                             value={alumniForm.tahunLulus}
                             onChange={(e) => setAlumniForm({ ...alumniForm, tahunLulus: e.target.value })}
                             className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 text-sm text-slate-800 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition cursor-pointer"
                           >
-                            <option value="" disabled>Pilih Tahun Angkatan</option>
+                            <option value="" disabled>Pilih Tahun</option>
                             {Array.from({ length: new Date().getFullYear() - 1999 }, (_, i) => new Date().getFullYear() - i).map(year => (
                               <option key={year} value={year.toString()}>{year}</option>
                             ))}
@@ -620,22 +633,44 @@ export default function Register({
                         </div>
                       </div>
 
-                      {/* Row 3: Status Karir Saat Ini */}
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                      {/* Row 3: Kategori Pengguna & Status Kegiatan Saat Ini */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div className="space-y-1.5">
                           <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
-                            Status Karir Saat Ini <span className="text-red-500">*</span>
+                            Kategori Pengguna <span className="text-red-500">*</span>
                           </label>
                           <select
-                            value={alumniForm.statusPekerjaan}
+                            value={alumniForm.userType}
+                            onChange={(e) => handleUserTypeChange(e.target.value as 'Mahasiswa' | 'Alumni')}
+                            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 text-sm text-slate-800 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition cursor-pointer"
+                            id="register-user-type-select"
+                          >
+                            <option value="Mahasiswa">Mahasiswa Aktif</option>
+                            <option value="Alumni">Alumni</option>
+                          </select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
+                            {alumniForm.userType === 'Mahasiswa' ? 'Status Kegiatan Saat Ini' : 'Status Karir Saat Ini'} {alumniForm.userType === 'Alumni' && <span className="text-red-500">*</span>}
+                          </label>
+                          <select
+                            value={alumniForm.userType === 'Mahasiswa' ? 'mahasiswa_aktif' : alumniForm.statusPekerjaan}
                             onChange={(e) => setAlumniForm({ ...alumniForm, statusPekerjaan: e.target.value })}
                             className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 text-sm text-slate-800 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition cursor-pointer"
+                            id="register-status-kegiatan-select"
                           >
-                            <option value="" disabled>Pilih Status</option>
-                            <option value="belum_bekerja">Belum Bekerja / Sedang Mencari Kerja</option>
-                            <option value="bekerja">Bekerja (Karyawan Swasta / BUMN / PNS)</option>
-                            <option value="wirausaha">Wirausaha / Membuka Usaha Mandiri</option>
-                            <option value="lanjut_studi">Melanjutkan Studi (S2 / Profesi)</option>
+                            {alumniForm.userType === 'Mahasiswa' ? (
+                              <option value="mahasiswa_aktif">Mahasiswa Aktif</option>
+                            ) : (
+                              <>
+                                <option value="" disabled>Pilih Status Karir</option>
+                                <option value="belum_bekerja">Belum Bekerja / Sedang Mencari Kerja</option>
+                                <option value="bekerja">Bekerja (Karyawan Swasta / BUMN / PNS / Freelance)</option>
+                                <option value="wirausaha">Wirausaha / Membuka Usaha Mandiri</option>
+                                <option value="lanjut_studi">Melanjutkan Studi (S2 / Profesi)</option>
+                              </>
+                            )}
                           </select>
                         </div>
                       </div>

@@ -2067,7 +2067,8 @@ export interface RegisterAlumniPayload {
   programStudi: string;
   fakultas: string;
   tahunLulus: string;
-  statusPekerjaan?: 'bekerja' | 'wirausaha' | 'lanjut_studi' | 'belum_bekerja';
+  userStatusType?: 'Mahasiswa' | 'Alumni';
+  statusPekerjaan?: 'bekerja' | 'wirausaha' | 'lanjut_studi' | 'belum_bekerja' | 'mahasiswa_aktif';
 }
 
 export interface RegisterMitraPayload {
@@ -2126,7 +2127,7 @@ export function registerUser(
       programStudi: almPayload.programStudi,
       fakultas: almPayload.fakultas,
       tahunLulus: almPayload.tahunLulus,
-      statusPekerjaan: almPayload.statusPekerjaan || 'belum_bekerja'
+      statusPekerjaan: almPayload.statusPekerjaan || (almPayload.userStatusType === 'Mahasiswa' ? 'mahasiswa_aktif' : 'belum_bekerja')
     };
     insertToDB<Alumni>('alumni', newAlumni);
 
@@ -2142,8 +2143,8 @@ export function registerUser(
       programStudi: almPayload.programStudi,
       angkatan: almPayload.tahunLulus,
       graduationYear: almPayload.tahunLulus,
-      semester: 8,
-      userStatusType: 'Alumni',
+      semester: almPayload.userStatusType === 'Mahasiswa' ? 6 : 8,
+      userStatusType: almPayload.userStatusType || 'Mahasiswa',
       alamat: '',
       photoUrl: newUser.photoUrl,
       aboutMe: '',
