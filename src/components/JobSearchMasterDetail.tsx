@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Search, 
-  ChevronDown, 
-  MapPin, 
-  Clock, 
-  Building2, 
-  Briefcase, 
-  CheckCircle2, 
-  Users, 
+import {
+  Search,
+  ChevronDown,
+  MapPin,
+  Clock,
+  Building2,
+  Briefcase,
+  CheckCircle2,
+  Users,
   X,
   Info,
   Bookmark,
@@ -368,7 +368,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
   // MAIN SEARCH VIEW: WHITE SEARCH BAR + 1:1 REPLICA OF USER SEARCH JOB SCREENSHOT
   return (
     <div className="space-y-6 animate-fadeIn font-sans bg-white" id="job-info-trisakti-search-view">
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 space-y-5">
 
         {/* PAGE TITLE & SUBTITLE */}
@@ -384,7 +384,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
         {/* WHITE SEARCH BAR CONTAINER */}
         <div className="bg-white relative" ref={popupRef}>
           <div className="flex flex-col md:flex-row items-stretch gap-2.5 md:gap-3">
-            
+
             {/* TEXTBOX 1: Kata kunci, jabatan, atau perusahaan */}
             <div className="flex-1 bg-white text-slate-900 rounded-xl flex items-center px-3.5 py-2.5 border border-slate-300 focus-within:ring-2 focus-within:ring-blue-500/30 focus-within:border-blue-400 hover:border-blue-300 transition shadow-2xs">
               <Search className="w-4 h-4 text-slate-400 shrink-0 mr-2.5" />
@@ -407,16 +407,14 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
               <button
                 type="button"
                 onClick={() => setOpenPopup(openPopup === 'location' ? null : 'location')}
-                className={`w-full bg-white rounded-xl flex items-center justify-between px-3.5 py-2.5 border transition text-xs md:text-sm font-medium text-left shadow-2xs cursor-pointer ${
-                  openPopup === 'location' || selectedLocations.length > 0
-                    ? 'border-blue-400 bg-blue-50/40 text-blue-900 ring-2 ring-blue-500/30'
-                    : 'border-slate-300 text-slate-700 hover:border-blue-300 hover:bg-blue-50/40'
-                }`}
+                className={`w-full bg-white rounded-xl flex items-center justify-between px-3.5 py-2.5 border transition text-xs md:text-sm font-medium text-left shadow-2xs cursor-pointer ${openPopup === 'location' || selectedLocations.length > 0
+                  ? 'border-blue-400 bg-blue-50/40 text-blue-900 ring-2 ring-blue-500/30'
+                  : 'border-slate-300 text-slate-700 hover:border-blue-300 hover:bg-blue-50/40'
+                  }`}
               >
                 <div className="flex items-center min-w-0 pr-2">
-                  <MapPin className={`w-4 h-4 shrink-0 mr-2.5 transition-colors ${
-                    selectedLocations.length > 0 ? 'text-blue-600' : 'text-slate-400'
-                  }`} />
+                  <MapPin className={`w-4 h-4 shrink-0 mr-2.5 transition-colors ${selectedLocations.length > 0 ? 'text-blue-600' : 'text-slate-400'
+                    }`} />
                   <span className={`truncate ${selectedLocations.length > 0 ? 'font-bold text-slate-800' : 'text-slate-600'}`}>
                     {selectedLocations.length === 0
                       ? t('job.provinsi', 'Semua Lokasi')
@@ -441,7 +439,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
                         <MapPin className="w-3.5 h-3.5 text-[#0077C6]" /> Lokasi Pekerjaan
                       </span>
                       {selectedLocations.length > 0 && (
-                        <button 
+                        <button
                           onClick={() => setSelectedLocations([])}
                           className="text-[11px] font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-0.5 rounded-lg transition"
                         >
@@ -469,66 +467,66 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
                     </div>
 
                     <div className="max-h-72 overflow-y-auto nice-scrollbar p-2.5 space-y-2.5">
-                    {(!locationSearch || 'lainnya (luar negeri)'.includes(locationSearch.toLowerCase()) || 'luar negeri'.includes(locationSearch.toLowerCase()) || 'lainnya'.includes(locationSearch.toLowerCase())) && (
-                      <div className="pb-2.5 border-b border-slate-200 mb-2">
-                        <label className="flex items-center gap-2 font-bold text-slate-900 cursor-pointer hover:bg-slate-50 p-1.5 rounded transition">
-                          <input
-                            type="checkbox"
-                            checked={selectedLocations.includes('LAINNYA (LUAR NEGERI)')}
-                            onChange={() => toggleCheckboxOption(setSelectedLocations, 'LAINNYA (LUAR NEGERI)')}
-                            className="rounded text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
-                          />
-                          <span className="flex items-center gap-1.5 text-blue-700 font-extrabold">
-                            <Globe className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                            <span>LAINNYA (LUAR NEGERI)</span>
-                          </span>
-                        </label>
-                        <p className="text-[10px] text-slate-400 pl-7 font-normal">Lokasi pekerjaan luar negeri (Jepang, Jerman, Tokyo, dll.)</p>
-                      </div>
-                    )}
-                    {INDONESIAN_PROVINCES.map((prov) => {
-                      const filteredCities = prov.cities.filter(c => 
-                        c.toLowerCase().includes(locationSearch.toLowerCase()) || 
-                        prov.province.toLowerCase().includes(locationSearch.toLowerCase())
-                      );
-
-                      if (locationSearch && !prov.province.toLowerCase().includes(locationSearch.toLowerCase()) && filteredCities.length === 0) {
-                        return null;
-                      }
-
-                      const isProvChecked = selectedLocations.includes(prov.province);
-
-                      return (
-                        <div key={prov.province} className="space-y-1">
-                          <label className="flex items-center gap-2 font-bold text-slate-900 cursor-pointer hover:bg-slate-50 p-1 rounded">
+                      {(!locationSearch || 'lainnya (luar negeri)'.includes(locationSearch.toLowerCase()) || 'luar negeri'.includes(locationSearch.toLowerCase()) || 'lainnya'.includes(locationSearch.toLowerCase())) && (
+                        <div className="pb-2.5 border-b border-slate-200 mb-2">
+                          <label className="flex items-center gap-2 font-bold text-slate-900 cursor-pointer hover:bg-slate-50 p-1.5 rounded transition">
                             <input
                               type="checkbox"
-                              checked={isProvChecked}
-                              onChange={() => toggleCheckboxOption(setSelectedLocations, prov.province)}
+                              checked={selectedLocations.includes('LAINNYA (LUAR NEGERI)')}
+                              onChange={() => toggleCheckboxOption(setSelectedLocations, 'LAINNYA (LUAR NEGERI)')}
                               className="rounded text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
                             />
-                            <span>{prov.province}</span>
+                            <span className="flex items-center gap-1.5 text-blue-700 font-extrabold">
+                              <Globe className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                              <span>LAINNYA (LUAR NEGERI)</span>
+                            </span>
                           </label>
-
-                          <div className="pl-5 space-y-1 border-l border-slate-100 ml-2">
-                            {filteredCities.map((city) => {
-                              const isCityChecked = selectedLocations.includes(city);
-                              return (
-                                <label key={city} className="flex items-center gap-2 font-normal text-slate-700 cursor-pointer hover:bg-slate-50 p-0.5 rounded">
-                                  <input
-                                    type="checkbox"
-                                    checked={isCityChecked}
-                                    onChange={() => toggleCheckboxOption(setSelectedLocations, city)}
-                                    className="rounded text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
-                                  />
-                                  <span>{city}</span>
-                                </label>
-                              );
-                            })}
-                          </div>
+                          <p className="text-[10px] text-slate-400 pl-7 font-normal">Lokasi pekerjaan luar negeri (Jepang, Jerman, Tokyo, dll.)</p>
                         </div>
-                      );
-                    })}
+                      )}
+                      {INDONESIAN_PROVINCES.map((prov) => {
+                        const filteredCities = prov.cities.filter(c =>
+                          c.toLowerCase().includes(locationSearch.toLowerCase()) ||
+                          prov.province.toLowerCase().includes(locationSearch.toLowerCase())
+                        );
+
+                        if (locationSearch && !prov.province.toLowerCase().includes(locationSearch.toLowerCase()) && filteredCities.length === 0) {
+                          return null;
+                        }
+
+                        const isProvChecked = selectedLocations.includes(prov.province);
+
+                        return (
+                          <div key={prov.province} className="space-y-1">
+                            <label className="flex items-center gap-2 font-bold text-slate-900 cursor-pointer hover:bg-slate-50 p-1 rounded">
+                              <input
+                                type="checkbox"
+                                checked={isProvChecked}
+                                onChange={() => toggleCheckboxOption(setSelectedLocations, prov.province)}
+                                className="rounded text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
+                              />
+                              <span>{prov.province}</span>
+                            </label>
+
+                            <div className="pl-5 space-y-1 border-l border-slate-100 ml-2">
+                              {filteredCities.map((city) => {
+                                const isCityChecked = selectedLocations.includes(city);
+                                return (
+                                  <label key={city} className="flex items-center gap-2 font-normal text-slate-700 cursor-pointer hover:bg-slate-50 p-0.5 rounded">
+                                    <input
+                                      type="checkbox"
+                                      checked={isCityChecked}
+                                      onChange={() => toggleCheckboxOption(setSelectedLocations, city)}
+                                      className="rounded text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
+                                    />
+                                    <span>{city}</span>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </motion.div>
                 )}
@@ -540,16 +538,14 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
               <button
                 type="button"
                 onClick={() => setOpenPopup(openPopup === 'specialization' ? null : 'specialization')}
-                className={`w-full bg-white rounded-xl flex items-center justify-between px-3.5 py-2.5 border transition text-xs md:text-sm font-medium text-left shadow-2xs cursor-pointer ${
-                  openPopup === 'specialization' || selectedSpecializations.length > 0
-                    ? 'border-blue-400 bg-blue-50/40 text-blue-900 ring-2 ring-blue-500/30'
-                    : 'border-slate-300 text-slate-700 hover:border-blue-300 hover:bg-blue-50/40'
-                }`}
+                className={`w-full bg-white rounded-xl flex items-center justify-between px-3.5 py-2.5 border transition text-xs md:text-sm font-medium text-left shadow-2xs cursor-pointer ${openPopup === 'specialization' || selectedSpecializations.length > 0
+                  ? 'border-blue-400 bg-blue-50/40 text-blue-900 ring-2 ring-blue-500/30'
+                  : 'border-slate-300 text-slate-700 hover:border-blue-300 hover:bg-blue-50/40'
+                  }`}
               >
                 <div className="flex items-center min-w-0 pr-2">
-                  <Users className={`w-4 h-4 shrink-0 mr-2.5 transition-colors ${
-                    selectedSpecializations.length > 0 ? 'text-blue-600' : 'text-slate-400'
-                  }`} />
+                  <Users className={`w-4 h-4 shrink-0 mr-2.5 transition-colors ${selectedSpecializations.length > 0 ? 'text-blue-600' : 'text-slate-400'
+                    }`} />
                   <span className={`truncate ${selectedSpecializations.length > 0 ? 'font-bold text-slate-800' : 'text-slate-600'}`}>
                     {selectedSpecializations.length === 0
                       ? t('job.tipe', 'Semua Spesialisasi')
@@ -574,7 +570,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
                         <Briefcase className="w-3.5 h-3.5 text-[#0077C6]" /> Spesialisasi Pekerjaan
                       </span>
                       {selectedSpecializations.length > 0 && (
-                        <button 
+                        <button
                           onClick={() => setSelectedSpecializations([])}
                           className="text-[11px] font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-0.5 rounded-lg transition"
                         >
@@ -602,7 +598,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
                     </div>
 
                     <div className="max-h-72 overflow-y-auto nice-scrollbar p-2.5 space-y-1">
-                      {JOB_SPECIALIZATIONS.filter(spec => 
+                      {JOB_SPECIALIZATIONS.filter(spec =>
                         spec.toLowerCase().includes(specializationSearch.toLowerCase())
                       ).map((spec) => {
                         const isChecked = selectedSpecializations.includes(spec);
@@ -640,7 +636,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-semibold text-slate-600 pt-1">
           <div className="flex items-center gap-2 flex-wrap">
             <span>Menampilkan {totalJobs > 0 ? startIndex + 1 : 0}-{endIndex} dari <strong className="text-[#0055D4] font-extrabold">{totalJobs} lowongan</strong></span>
-            
+
             {hasActiveFilters && (
               <button
                 onClick={clearAllFilters}
@@ -683,7 +679,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
                 >
                   <div>
                     {/* Company Logo Image Container */}
-                    <div className="w-full h-44 relative overflow-hidden bg-slate-50 flex items-center justify-center p-4 border-b border-slate-100">
+                    <div className="w-full h-44 relative overflow-hidden bg-white flex items-center justify-center p-3 border-b border-slate-100">
                       {hasLogo ? (
                         <img
                           src={item.companyLogo}
@@ -707,11 +703,10 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
                           toggleSaveJob(item.id, currentUserId || undefined);
                           setSavedJobIds(getSavedJobIds(currentUserId || undefined));
                         }}
-                        className={`absolute top-3 right-3 w-8 h-8 rounded-full border transition z-10 cursor-pointer flex items-center justify-center ${
-                          savedJobIds.includes(item.id)
-                            ? 'bg-amber-50 text-amber-600 border-amber-300 shadow-2xs'
-                            : 'bg-white hover:bg-slate-50 text-slate-400 hover:text-amber-500 border-slate-200 shadow-2xs'
-                        }`}
+                        className={`absolute top-3 right-3 w-8 h-8 rounded-full border transition z-10 cursor-pointer flex items-center justify-center ${savedJobIds.includes(item.id)
+                          ? 'bg-amber-50 text-amber-600 border-amber-300 shadow-2xs'
+                          : 'bg-white hover:bg-slate-50 text-slate-400 hover:text-amber-500 border-slate-200 shadow-2xs'
+                          }`}
                         title={savedJobIds.includes(item.id) ? 'Lowongan Tersimpan' : 'Simpan Lowongan'}
                       >
                         <Bookmark className={`w-4 h-4 ${savedJobIds.includes(item.id) ? 'fill-amber-500 text-amber-500' : ''}`} />
@@ -780,11 +775,10 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
                 <button
                   key={pageNum}
                   onClick={() => handlePageChange(pageNum)}
-                  className={`px-3.5 py-1.5 rounded-lg font-bold text-xs transition ${
-                    isActive
-                      ? 'bg-[#0055D4] text-white shadow-xs'
-                      : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-2xs'
-                  }`}
+                  className={`px-3.5 py-1.5 rounded-lg font-bold text-xs transition ${isActive
+                    ? 'bg-[#0055D4] text-white shadow-xs'
+                    : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-2xs'
+                    }`}
                 >
                   {pageNum}
                 </button>

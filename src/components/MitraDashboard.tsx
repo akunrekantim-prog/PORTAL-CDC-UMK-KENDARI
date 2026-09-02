@@ -780,7 +780,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
     setDeadline(job.deadline);
     setCompanyLogoUrl(job.companyLogo || '');
     setPosterUrl(job.flyer || job.imageUrl || job.bannerImage || (job.flyers && job.flyers[0]) || '');
-    setCtaEnabled(job.ctaEnabled === true);
+    setCtaEnabled(job.ctaEnabled === true || Boolean(job.linkEksternal) || Boolean(job.ctaLabel));
     setCtaLabel(job.ctaLabel && job.ctaLabel.trim() ? job.ctaLabel : 'Lamar Pekerjaan');
     setLinkEksternal(job.linkEksternal || '');
     setDeskripsi(job.deskripsi || '');
@@ -825,9 +825,9 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
       bannerImage: posterUrl || undefined,
       flyers: posterUrl ? [posterUrl] : undefined,
       sumber: 'mitra',
-      linkEksternal: ctaEnabled && linkEksternal.trim() ? linkEksternal.trim() : undefined,
-      ctaEnabled,
-      ctaLabel: ctaEnabled ? (ctaLabel.trim() || 'Lamar Pekerjaan') : undefined,
+      linkEksternal: (ctaEnabled && linkEksternal.trim()) ? linkEksternal.trim() : undefined,
+      ctaEnabled: true,
+      ctaLabel: (ctaEnabled && ctaLabel.trim()) ? ctaLabel.trim() : 'Lamar Pekerjaan',
       lokasi: lokasi.trim(),
       kategori: selectedKategori.join(', '),
       gaji: gaji.trim() || 'Kompetitif',
@@ -1806,32 +1806,49 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                                   className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500 cursor-pointer"
                                 />
                                 <span className="text-xs font-bold text-slate-800">
-                                  Arahkan tombol lamar langsung ke Google Forms / Portal Karir Eksternal
+                                  Kustomisasi Tombol Lamar / Gunakan Tautan Pendaftaran Eksternal
                                 </span>
                               </label>
 
                               {ctaEnabled && (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                                  <div className="space-y-1">
-                                    <label className="text-xs font-semibold text-slate-600">Label Tombol CTA</label>
-                                    <input
-                                      type="text"
-                                      value={ctaLabel}
-                                      onChange={(e) => setCtaLabel(e.target.value)}
-                                      placeholder="Lamar Sekarang / Isi Formulir Mitra"
-                                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-medium"
-                                    />
+                                <div className="space-y-3 pt-2">
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                      <label className="text-xs font-semibold text-slate-600">Label Tombol CTA</label>
+                                      <input
+                                        type="text"
+                                        value={ctaLabel}
+                                        onChange={(e) => setCtaLabel(e.target.value)}
+                                        placeholder="Lamar Pekerjaan / Lamar Sekarang"
+                                        className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                                      />
+                                      <p className="text-[10px] text-slate-400">Default: "Lamar Pekerjaan"</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                      <label className="text-xs font-semibold text-slate-600">URL Tautan Eksternal (Opsional)</label>
+                                      <input
+                                        type="url"
+                                        value={linkEksternal}
+                                        onChange={(e) => setLinkEksternal(e.target.value)}
+                                        placeholder="https://forms.gle/... atau https://karir.perusahaan.com"
+                                        className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                                      />
+                                      <p className="text-[10px] text-slate-500">
+                                        Kosongkan jika ingin pelamar melamar via sistem portal CDC.
+                                      </p>
+                                    </div>
                                   </div>
-                                  <div className="space-y-1">
-                                    <label className="text-xs font-semibold text-slate-600">URL Tautan Eksternal *</label>
-                                    <input
-                                      type="url"
-                                      required={ctaEnabled}
-                                      value={linkEksternal}
-                                      onChange={(e) => setLinkEksternal(e.target.value)}
-                                      placeholder="https://forms.gle/..."
-                                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-medium"
-                                    />
+
+                                  {/* Informative Guidance Banner */}
+                                  <div className="p-3 rounded-xl bg-blue-50/80 border border-blue-200/80 flex items-start gap-2.5 text-xs text-blue-900">
+                                    <Info className="w-4 h-4 text-[#0077C6] shrink-0 mt-0.5" />
+                                    <div className="space-y-0.5 text-[11px] leading-relaxed">
+                                      <p className="font-bold text-blue-950">Ketentuan Logika Tombol Lamar:</p>
+                                      <ul className="list-disc list-inside space-y-0.5 text-blue-900/90">
+                                        <li><strong>Jika URL tautan eksternal diisi:</strong> Tombol lamar akan mengarahkan (redirect) pelamar langsung ke link eksternal tersebut (Google Forms / Website Karir).</li>
+                                        <li><strong>Jika URL tautan dikosongkan:</strong> Pelamar akan melamar langsung melalui formulir sistem CDC, dan data pelamar otomatis masuk ke <strong>Dashboard Mitra (Database Pelamar)</strong>.</li>
+                                      </ul>
+                                    </div>
                                   </div>
                                 </div>
                               )}

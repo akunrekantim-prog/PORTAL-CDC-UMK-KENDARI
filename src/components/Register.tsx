@@ -487,7 +487,13 @@ export default function Register({
                   <div className="py-2 flex justify-between">
                     <span className="text-slate-500">Tipe Akun:</span>
                     <span className="font-bold text-blue-900 uppercase">
-                      {successUser.role === 'alumni' ? 'Mahasiswa / Alumni' : 'Mitra Perusahaan'}
+                      {successUser.role === 'mitra'
+                        ? 'Mitra Perusahaan'
+                        : (successUser.userStatusType === 'Mahasiswa' || alumniForm.userType === 'Mahasiswa'
+                            ? 'Mahasiswa Aktif'
+                            : (successUser.userStatusType === 'Alumni' || alumniForm.userType === 'Alumni'
+                                ? 'Alumni'
+                                : 'Mahasiswa / Alumni'))}
                     </span>
                   </div>
                   <div className="py-2 flex justify-between">
@@ -726,6 +732,7 @@ export default function Register({
                             <button
                               type="button"
                               onClick={() => setShowPassword(!showPassword)}
+                              aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Lihat kata sandi'}
                               className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-700 transition cursor-pointer"
                             >
                               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -749,6 +756,7 @@ export default function Register({
                             <button
                               type="button"
                               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              aria-label={showConfirmPassword ? 'Sembunyikan konfirmasi kata sandi' : 'Lihat konfirmasi kata sandi'}
                               className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-700 transition cursor-pointer"
                             >
                               {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -945,6 +953,7 @@ export default function Register({
                             <button
                               type="button"
                               onClick={() => setShowPassword(!showPassword)}
+                              aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Lihat kata sandi'}
                               className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-700 transition cursor-pointer"
                             >
                               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -968,6 +977,7 @@ export default function Register({
                             <button
                               type="button"
                               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              aria-label={showConfirmPassword ? 'Sembunyikan konfirmasi kata sandi' : 'Lihat konfirmasi kata sandi'}
                               className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-700 transition cursor-pointer"
                             >
                               {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}

@@ -2106,6 +2106,7 @@ export function registerUser(
     password: payload.password || 'password',
     phone: payload.phone || '',
     role: role === 'alumni' ? 'user' : 'mitra',
+    userStatusType: role === 'alumni' ? ((payload as RegisterAlumniPayload).userStatusType || 'Mahasiswa') : undefined,
     status: 'active', // Active by default so testing is smooth and immediate
     photoUrl: role === 'alumni'
       ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop'

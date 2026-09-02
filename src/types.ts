@@ -22,6 +22,7 @@ export interface User {
   photoUrl?: string;
   lastLoginAt?: string;
   createdAt: string;
+  userStatusType?: 'Mahasiswa' | 'Alumni';
 }
 
 export interface Mahasiswa {

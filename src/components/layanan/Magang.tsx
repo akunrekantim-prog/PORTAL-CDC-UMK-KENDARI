@@ -87,8 +87,8 @@ export default function Magang({ lowongan = [], onSelectLowongan }: MagangProps)
                 className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group"
               >
                 <div>
-                  {/* Company Logo Image Container */}
-                  <div className="w-full h-44 relative overflow-hidden bg-slate-50 flex items-center justify-center p-4 border-b border-slate-100">
+                  {/* Company Logo Image Container (Background Putih Bersih) */}
+                  <div className="w-full h-44 relative overflow-hidden bg-white flex items-center justify-center p-3 border-b border-slate-100">
                     {item.companyLogo ? (
                       <img
                         src={item.companyLogo}

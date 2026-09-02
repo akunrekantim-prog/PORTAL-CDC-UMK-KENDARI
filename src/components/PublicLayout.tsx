@@ -670,8 +670,8 @@ export default function PublicLayout({
                                 </div>
                               </div>
                             ) : (
-                              /* Company Logo Container (Khusus Input Mitra: Style Original contain p-4) */
-                              <div className="w-full h-44 relative overflow-hidden bg-slate-50 flex items-center justify-center p-4 border-b border-slate-100">
+                              /* Company Logo Container (Background Putih Bersih) */
+                              <div className="w-full h-44 relative overflow-hidden bg-white flex items-center justify-center p-3 border-b border-slate-100">
                                 {item.companyLogo ? (
                                   <img
                                     src={item.companyLogo}
@@ -1735,8 +1735,8 @@ export default function PublicLayout({
                               </div>
                             </div>
                           ) : (
-                            /* Company Logo Container (Khusus Input Mitra) */
-                            <div className="w-full h-44 relative overflow-hidden bg-slate-50 flex items-center justify-center p-4 border-b border-slate-100">
+                            /* Company Logo Container (Background Putih Bersih) */
+                            <div className="w-full h-44 relative overflow-hidden bg-white flex items-center justify-center p-3 border-b border-slate-100">
                               {hasLogo ? (
                                 <img
                                   src={item.companyLogo}
@@ -2257,8 +2257,8 @@ export default function PublicLayout({
                             }}
                             disabled={prestasiPage === 1}
                             className={`w-10 h-10 rounded-lg border flex items-center justify-center text-sm font-semibold transition cursor-pointer ${prestasiPage === 1
-                                ? 'border-slate-200 text-slate-300 cursor-not-allowed bg-slate-50'
-                                : 'border-slate-200 text-slate-700 hover:border-[#1E3A8A] hover:text-[#1E3A8A] bg-white'
+                              ? 'border-slate-200 text-slate-300 cursor-not-allowed bg-slate-50'
+                              : 'border-slate-200 text-slate-700 hover:border-[#1E3A8A] hover:text-[#1E3A8A] bg-white'
                               }`}
                             aria-label="Previous Page"
                           >
@@ -2300,8 +2300,8 @@ export default function PublicLayout({
                                   window.scrollTo({ top: 350, behavior: 'smooth' });
                                 }}
                                 className={`w-10 h-10 rounded-lg border text-sm font-bold transition-all cursor-pointer ${isActive
-                                    ? 'bg-[#1E3A8A] text-white border-[#1E3A8A] shadow-xs'
-                                    : 'bg-white text-slate-700 border-slate-200 hover:border-[#1E3A8A] hover:text-[#1E3A8A]'
+                                  ? 'bg-[#1E3A8A] text-white border-[#1E3A8A] shadow-xs'
+                                  : 'bg-white text-slate-700 border-slate-200 hover:border-[#1E3A8A] hover:text-[#1E3A8A]'
                                   }`}
                               >
                                 {page}
@@ -2317,8 +2317,8 @@ export default function PublicLayout({
                             }}
                             disabled={prestasiPage === totalPrestasiPages}
                             className={`w-10 h-10 rounded-lg border flex items-center justify-center text-sm font-semibold transition cursor-pointer ${prestasiPage === totalPrestasiPages
-                                ? 'border-slate-200 text-slate-300 cursor-not-allowed bg-slate-50'
-                                : 'border-slate-200 text-slate-700 hover:border-[#1E3A8A] hover:text-[#1E3A8A] bg-white'
+                              ? 'border-slate-200 text-slate-300 cursor-not-allowed bg-slate-50'
+                              : 'border-slate-200 text-slate-700 hover:border-[#1E3A8A] hover:text-[#1E3A8A] bg-white'
                               }`}
                             aria-label="Next Page"
                           >

@@ -300,7 +300,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                       <Clock className="w-4 h-4 text-rose-500 shrink-0" />
                       <span>Pendaftaran Ditutup</span>
                     </div>
-                  ) : (job.ctaEnabled === false || (job.sumber === 'admin' && !job.ctaEnabled)) ? null : (job.linkEksternal && job.linkEksternal.trim()) ? (
+                  ) : (job.sumber === 'admin' && !job.ctaEnabled && (!job.linkEksternal || !job.linkEksternal.trim())) ? null : (job.linkEksternal && job.linkEksternal.trim()) ? (
                     <a
                       href={job.linkEksternal}
                       target="_blank"
@@ -315,6 +315,8 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                       onClick={() => {
                         if (!isLoggedIn && onNavigateToRegister) {
                           onNavigateToRegister('alumni');
+                        } else if (onApply) {
+                          onApply();
                         } else {
                           setIsApplyModalOpen(true);
                         }
@@ -567,7 +569,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                       </div>
                       <p className="text-[11px] text-rose-700 font-medium">Batas waktu lamaran telah berakhir.</p>
                     </div>
-                  ) : (job.ctaEnabled === false || (job.sumber === 'admin' && !job.ctaEnabled)) ? null : (job.linkEksternal && job.linkEksternal.trim()) ? (
+                  ) : (job.sumber === 'admin' && !job.ctaEnabled && (!job.linkEksternal || !job.linkEksternal.trim())) ? null : (job.linkEksternal && job.linkEksternal.trim()) ? (
                     <a
                       href={job.linkEksternal}
                       target="_blank"
@@ -582,6 +584,8 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                       onClick={() => {
                         if (!isLoggedIn && onNavigateToRegister) {
                           onNavigateToRegister('alumni');
+                        } else if (onApply) {
+                          onApply();
                         } else {
                           setIsApplyModalOpen(true);
                         }
