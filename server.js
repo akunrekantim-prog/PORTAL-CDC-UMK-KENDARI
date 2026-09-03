@@ -84,7 +84,8 @@ app.get('/api/health', async (req, res) => {
     const userCount = await prisma.user.count();
     res.json({ status: 'ok', database: 'connected', userCount });
   } catch (error) {
-    res.status(500).json({ status: 'error', error: error.message });
+    console.error('[Health Check Error]:', error);
+    res.status(500).json({ status: 'error', message: 'Database connection failed' });
   }
 });
 
@@ -148,7 +149,7 @@ app.get('/api/all-data', authenticateToken, apiLimiter, async (req, res) => {
     });
   } catch (error) {
     console.error('[Express API /all-data Error]:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'Failed to fetch data. Please try again.' });
   }
 });
 
