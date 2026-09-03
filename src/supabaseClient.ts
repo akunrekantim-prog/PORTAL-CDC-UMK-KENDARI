@@ -7,7 +7,7 @@ const supabaseUrl =
   (typeof meta !== 'undefined' && meta.env && meta.env.VITE_SUPABASE_URL) ||
   process.env.VITE_SUPABASE_URL ||
   process.env.SUPABASE_URL ||
-  'https://wrhybdieqoyqhricplci.supabase.co';
+  '';
 
 const supabaseAnonKey =
   (typeof meta !== 'undefined' && meta.env && meta.env.VITE_SUPABASE_ANON_KEY) ||
@@ -15,10 +15,10 @@ const supabaseAnonKey =
   process.env.SUPABASE_ANON_KEY ||
   '';
 
-if (!supabaseAnonKey) {
-  console.warn(
-    '[Supabase Client] SUPABASE_ANON_KEY tidak di-set. ' +
-    'Salin .env.example ke .env dan isi VITE_SUPABASE_ANON_KEY dari Supabase Dashboard → Project Settings → API.'
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error(
+    '[Supabase Client] VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY harus di-set. ' +
+    'Salin .env.example ke .env dan isi credentials dari Supabase Dashboard → Project Settings → API.'
   );
 }
 

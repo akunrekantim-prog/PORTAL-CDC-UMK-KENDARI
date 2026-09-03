@@ -117,7 +117,7 @@ export default function App() {
   };
 
   // Login handler using simulated bcrypt/SQL
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
 
@@ -126,43 +126,37 @@ export default function App() {
       return;
     }
 
-    const users = getFromDB<UserType>('users');
-    const matched = users.find(u => u.email.toLowerCase() === loginEmail.toLowerCase());
+    // Call backend API for authentication
+    try {
+      const response = await fetch('http://localhost:5000/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: loginEmail.toLowerCase(), 
+          password: loginPassword 
+        })
+      });
 
-    if (!matched) {
-      setLoginError('Kredensial salah atau akun tidak ditemukan.');
-      return;
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        setLoginError(result.message || 'Login gagal. Periksa kredensial Anda.');
+        return;
+      }
+
+      // Store JWT token with expiry
+      localStorage.setItem('cdc_auth_token', result.token);
+      localStorage.setItem('cdc_token_expiry', (Date.now() + result.expiresIn * 1000).toString());
+      localStorage.setItem('cdc_session_id', result.user.id);
+
+      // Update local state
+      setCurrentUser(result.user);
+      setCurrentView('dashboard');
+      reloadDatabase();
+    } catch (error) {
+      console.error('[Login Error]:', error);
+      setLoginError('Tidak dapat terhubung ke server. Pastikan backend berjalan di port 5000.');
     }
-
-    // Password Validation
-    const userPassword = matched.password || 'password';
-    const isValidPassword = loginPassword === userPassword || (matched.role === 'admin' && (loginPassword === 'admin123' || loginPassword === 'password'));
-
-    if (!isValidPassword) {
-      setLoginError('Kata sandi yang Anda masukkan salah. Silakan periksa kembali.');
-      return;
-    }
-
-    if (matched.status === 'pending') {
-      setLoginError('Akun Anda masih ditinjau administrator (Status: Pending).');
-      return;
-    }
-
-    if (matched.status === 'inactive' || matched.status === 'rejected') {
-      setLoginError('Akun dinonaktifkan atau ditolak oleh operator CDC.');
-      return;
-    }
-
-    // Success Authentication
-    const updatedMatched = { ...matched, lastLoginAt: new Date().toISOString() };
-    const updatedUsers = users.map(u => u.id === matched.id ? updatedMatched : u);
-    saveToDB('users', updatedUsers);
-
-    setCurrentUser(updatedMatched);
-    setCurrentView('dashboard');
-    reloadDatabase();
-    // Save to session tracking
-    localStorage.setItem('cdc_session_id', matched.id);
   };
 
   // Development Direct-Switch tool (very powerful for multi-role testing in AI Studio iframe!)

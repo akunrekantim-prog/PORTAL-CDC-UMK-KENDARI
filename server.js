@@ -1,6 +1,9 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 
 dotenv.config();
@@ -8,20 +11,72 @@ dotenv.config();
 const app = express();
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 5000;
+const JWT_SECRET = process.env.JWT_SECRET || 'CHANGE_THIS_IN_PRODUCTION_' + Math.random().toString(36);
+
+// Security: Helmet headers
+app.use(helmet({
+  contentSecurityPolicy: false, // Allow inline scripts for development
+  crossOriginEmbedderPolicy: false
+}));
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// CORS Header
+// CORS Header - Restricted to specific origins
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5000',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:5000',
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Credentials', 'true');
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
   }
   next();
 });
+
+// Rate Limiting
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // max 5 attempts per IP
+  message: { success: false, message: 'Terlalu banyak percobaan login. Coba lagi dalam 15 menit.' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+const apiLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 100, // max 100 requests per minute
+  message: { error: 'Terlalu banyak request. Coba lagi nanti.' }
+});
+
+// JWT Authentication Middleware
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+  if (!token) {
+    return res.status(401).json({ error: 'Access denied. No token provided.' });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: 'Invalid or expired token.' });
+    }
+    req.user = user;
+    next();
+  });
+};
 
 // Healthcheck API
 app.get('/api/health', async (req, res) => {
@@ -34,9 +89,23 @@ app.get('/api/health', async (req, res) => {
 });
 
 // GET /api/all-data - Agregat seluruh data live dari database Supabase PostgreSQL
-app.get('/api/all-data', async (req, res) => {
+// PROTECTED: Requires authentication, excludes sensitive fields
+app.get('/api/all-data', authenticateToken, apiLimiter, async (req, res) => {
   try {
-    const users = await prisma.user.findMany();
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        status: true,
+        photoUrl: true,
+        createdAt: true,
+        lastLoginAt: true
+        // password EXCLUDED for security
+      }
+    });
     const mahasiswa = await prisma.mahasiswa.findMany();
     const alumni = await prisma.alumni.findMany();
     const mitra = await prisma.mitra.findMany();
@@ -84,7 +153,8 @@ app.get('/api/all-data', async (req, res) => {
 });
 
 // POST /api/login - Verifikasi Bcrypt Password Hash di Supabase PostgreSQL
-app.post('/api/login', async (req, res) => {
+// WITH rate limiting and JWT token generation
+app.post('/api/login', loginLimiter, async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ success: false, message: 'Email dan password wajib diisi.' });
@@ -96,31 +166,58 @@ app.post('/api/login', async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({ success: false, message: 'Akun tidak ditemukan.' });
+      // Use generic message to prevent user enumeration
+      return res.status(401).json({ success: false, message: 'Email atau password salah.' });
     }
 
+    // Check account status BEFORE password verification (prevent timing attacks)
+    if (user.status === 'PENDING') {
+      return res.status(403).json({ success: false, message: 'Akun Anda masih ditinjau administrator.' });
+    }
+
+    if (user.status === 'INACTIVE' || user.status === 'REJECTED') {
+      return res.status(403).json({ success: false, message: 'Akun dinonaktifkan atau ditolak.' });
+    }
+
+    // Password verification
     if (!user.password) {
-      const isDefaultValid = (password === 'password' || password === 'admin123');
-      if (!isDefaultValid) {
-        return res.status(401).json({ success: false, message: 'Kata sandi salah.' });
-      }
-      return res.json({ success: true, user });
+      return res.status(401).json({ success: false, message: 'Password belum diset. Hubungi administrator.' });
     }
 
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
-      return res.status(401).json({ success: false, message: 'Kata sandi yang dimasukkan salah.' });
+      return res.status(401).json({ success: false, message: 'Email atau password salah.' });
     }
 
+    // Update last login
     await prisma.user.update({
       where: { id: user.id },
       data: { lastLoginAt: new Date() }
     });
 
-    res.json({ success: true, user });
+    // Generate JWT token with 24 hour expiry
+    const token = jwt.sign(
+      { 
+        id: user.id, 
+        email: user.email, 
+        role: user.role 
+      },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    // Return user data WITHOUT password
+    const { password: _, ...userWithoutPassword } = user;
+
+    res.json({ 
+      success: true, 
+      user: userWithoutPassword,
+      token,
+      expiresIn: 86400 // 24 hours in seconds
+    });
   } catch (error) {
     console.error('[Express Login Error]:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, message: 'Terjadi kesalahan server. Coba lagi.' });
   }
 });
 
