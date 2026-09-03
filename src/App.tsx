@@ -87,10 +87,13 @@ export default function App() {
     penulis: k.penulis
   });
 
-  // Seed baseline database on mounting
+  // Load baseline database langsung dari Supabase PostgreSQL saat mounting
   useEffect(() => {
-    initializeDB();
-    reloadDatabase();
+    async function loadData() {
+      await initializeDB();
+      reloadDatabase();
+    }
+    loadData();
   }, []);
 
   const reloadDatabase = () => {
@@ -161,16 +164,60 @@ export default function App() {
   };
 
   // Development Direct-Switch tool (very powerful for multi-role testing in AI Studio iframe!)
-  const handleFastRoleSwitch = (role: 'admin' | 'user' | 'mitra') => {
-    const users = getFromDB<UserType>('users');
-    let target = users.find(u => u.status === 'active' && u.role === role);
-
-    if (target) {
-      setCurrentUser(target);
-      setCurrentView('dashboard');
-      reloadDatabase();
-      localStorage.setItem('cdc_session_id', target.id);
+  const handleFastRoleSwitch = (role: 'admin' | 'user' | 'mitra' | 'viewer' | 'mahasiswa') => {
+    let users = getFromDB<UserType>('users');
+    if (!users || users.length === 0) {
+      initializeDB();
+      users = getFromDB<UserType>('users');
     }
+
+    const searchRole = role === 'mahasiswa' ? 'user' : role;
+    let target = users.find(
+      u => (u.role === searchRole || u.role === role || (searchRole === 'user' && (u.role === 'mahasiswa' || u.role === 'alumni' || u.role === 'user'))) && (u.status === 'active' || u.status === 'pending')
+    );
+
+    // Fallback jika user tidak ditemukan di memory DB
+    if (!target) {
+      if (role === 'admin') {
+        target = {
+          id: 'usr_admin',
+          name: 'Operator CDC UM Kendari',
+          email: 'admin@umkendari.ac.id',
+          phone: '081234567890',
+          role: 'admin',
+          status: 'active',
+          photoUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=200&auto=format&fit=crop',
+          createdAt: new Date().toISOString()
+        };
+      } else if (role === 'mitra') {
+        target = {
+          id: 'usr_mitra1',
+          name: 'Budi Setiawan (HRD PT Go Digital)',
+          email: 'mitra@umkendari.ac.id',
+          phone: '081299998888',
+          role: 'mitra',
+          status: 'active',
+          photoUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=200&auto=format&fit=crop',
+          createdAt: new Date().toISOString()
+        };
+      } else {
+        target = {
+          id: 'usr_mhs1',
+          name: 'Muhammad Fadly Alamsyah',
+          email: 'mhs@umkendari.ac.id',
+          phone: '085241009988',
+          role: 'user',
+          status: 'active',
+          photoUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200&auto=format&fit=crop',
+          createdAt: new Date().toISOString()
+        };
+      }
+    }
+
+    setCurrentUser(target);
+    setCurrentView('dashboard');
+    reloadDatabase();
+    localStorage.setItem('cdc_session_id', target.id);
   };
 
   const handleLogout = () => {

@@ -1325,7 +1325,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
 
     const newLow: Lowongan = {
       id: editLowonganId || `low_admin_${Date.now()}`,
-      mitraId: editLowonganId ? (existing?.mitraId || 'admin_cdc') : 'admin_cdc',
+      mitraId: editLowonganId ? (existing?.mitraId && existing.mitraId !== 'admin_cdc' ? existing.mitraId : undefined) : undefined,
       createdBy: user.id,
       judul: lJudul.trim(),
       tipe: lTipe,

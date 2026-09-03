@@ -1185,7 +1185,7 @@ export default function PublicLayout({
                       <div className="bg-[#1E3A8A] px-5 py-3.5 flex items-center justify-between">
                         <h4 className="font-extrabold text-sm text-white uppercase tracking-wider
                                        flex items-center gap-2">
-                          <Star className="w-4 h-4 text-amber-400" /> Popular Info
+                          Popular Info
                         </h4>
                       </div>
                       <ul className="divide-y divide-slate-100">
@@ -1247,7 +1247,7 @@ export default function PublicLayout({
                   <div className="bg-slate-50 px-5 py-3.5 border-b border-slate-200">
                     <h4 className="font-extrabold text-sm text-slate-800 uppercase tracking-wider
                                    flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-[#10B981]" /> Info Terkini Loker
+                      Info Terkini Loker
                     </h4>
                   </div>
                   <div className="p-4 space-y-3">
@@ -2254,8 +2254,8 @@ export default function PublicLayout({
                             }}
                             disabled={prestasiPage === 1}
                             className={`w-10 h-10 rounded-lg border flex items-center justify-center text-sm font-semibold transition cursor-pointer ${prestasiPage === 1
-                                ? 'border-slate-200 text-slate-300 cursor-not-allowed bg-slate-50'
-                                : 'border-slate-200 text-slate-700 hover:border-[#1E3A8A] hover:text-[#1E3A8A] bg-white'
+                              ? 'border-slate-200 text-slate-300 cursor-not-allowed bg-slate-50'
+                              : 'border-slate-200 text-slate-700 hover:border-[#1E3A8A] hover:text-[#1E3A8A] bg-white'
                               }`}
                             aria-label="Previous Page"
                           >
@@ -2297,8 +2297,8 @@ export default function PublicLayout({
                                   window.scrollTo({ top: 350, behavior: 'smooth' });
                                 }}
                                 className={`w-10 h-10 rounded-lg border text-sm font-bold transition-all cursor-pointer ${isActive
-                                    ? 'bg-[#1E3A8A] text-white border-[#1E3A8A] shadow-xs'
-                                    : 'bg-white text-slate-700 border-slate-200 hover:border-[#1E3A8A] hover:text-[#1E3A8A]'
+                                  ? 'bg-[#1E3A8A] text-white border-[#1E3A8A] shadow-xs'
+                                  : 'bg-white text-slate-700 border-slate-200 hover:border-[#1E3A8A] hover:text-[#1E3A8A]'
                                   }`}
                               >
                                 {page}
@@ -2314,8 +2314,8 @@ export default function PublicLayout({
                             }}
                             disabled={prestasiPage === totalPrestasiPages}
                             className={`w-10 h-10 rounded-lg border flex items-center justify-center text-sm font-semibold transition cursor-pointer ${prestasiPage === totalPrestasiPages
-                                ? 'border-slate-200 text-slate-300 cursor-not-allowed bg-slate-50'
-                                : 'border-slate-200 text-slate-700 hover:border-[#1E3A8A] hover:text-[#1E3A8A] bg-white'
+                              ? 'border-slate-200 text-slate-300 cursor-not-allowed bg-slate-50'
+                              : 'border-slate-200 text-slate-700 hover:border-[#1E3A8A] hover:text-[#1E3A8A] bg-white'
                               }`}
                             aria-label="Next Page"
                           >

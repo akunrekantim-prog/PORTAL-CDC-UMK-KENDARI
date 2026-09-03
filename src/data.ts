@@ -37,6 +37,18 @@ import {
   JobFairItem,
   JobFairCompany
 } from './types';
+import {
+  fetchInitialDatabaseFromSupabase,
+  deleteFromSupabase,
+  syncUserToSupabase,
+  syncMahasiswaToSupabase,
+  syncAlumniToSupabase,
+  syncMitraToSupabase,
+  syncLowonganToSupabase,
+  syncPengajuanToSupabase,
+  syncTracerStudyToSupabase,
+  syncKontenKarirToSupabase
+} from './services/dbService';
 
 // Daftar Fakultas Resmi Universitas Muhammadiyah Kendari (UM Kendari)
 export const FAKULTAS_LIST: string[] = [
@@ -1847,42 +1859,81 @@ const DEFAULT_SEEDS = {
   social_media: SEED_SOCIAL_MEDIA,
 };
 
+// In-Memory Database State (100% Bebas LocalStorage)
+const MEMORY_DB: Record<string, any[]> = { ...DEFAULT_SEEDS };
 let _dbInitialized = false;
 
-// Initializer to make sure local storage has everything
-export function initializeDB() {
-  const CURRENT_SEED_VERSION = 'v16_unified_user_role';
-  if (localStorage.getItem('cdc_seed_version') !== CURRENT_SEED_VERSION) {
-    Object.entries(DEFAULT_SEEDS).forEach(([key, val]) => {
-      const storageKey = `cdc_umk_${key}`;
-      localStorage.setItem(storageKey, JSON.stringify(val));
-    });
-    localStorage.setItem('cdc_seed_version', CURRENT_SEED_VERSION);
-    _dbInitialized = true;
-    return;
-  }
-
-  Object.entries(DEFAULT_SEEDS).forEach(([key, val]) => {
-    const storageKey = `cdc_umk_${key}`;
-    if (!localStorage.getItem(storageKey)) {
-      localStorage.setItem(storageKey, JSON.stringify(val));
+// Async initializer yang memuat seluruh data live dari Supabase PostgreSQL Database
+export async function initializeDB(): Promise<void> {
+  try {
+    const liveData = await fetchInitialDatabaseFromSupabase();
+    if (liveData) {
+      Object.keys(liveData).forEach(key => {
+        if (Array.isArray(liveData[key]) && liveData[key].length > 0) {
+          MEMORY_DB[key] = liveData[key];
+        }
+      });
+      console.log('⚡ [Portal Data Engine] Storage dialihkan 100% ke Supabase PostgreSQL Database!');
     }
-  });
-  _dbInitialized = true;
+  } catch (err) {
+    console.warn('[DB Init Exception] Falling back to default memory seeds:', err);
+  } finally {
+    _dbInitialized = true;
+  }
 }
 
-// Low-level fetch — ensures DB is initialized exactly once per page load
+// Fetch item dari In-Memory DB
 export function getFromDB<T>(key: DBKey): T[] {
-  if (!_dbInitialized) initializeDB();
-  const storageKey = `cdc_umk_${key}`;
-  const data = localStorage.getItem(storageKey);
-  return data ? JSON.parse(data) : [];
+  if (!_dbInitialized) {
+    initializeDB();
+  }
+  return (MEMORY_DB[key] as T[]) || [];
 }
 
-// Low-level write
+// Simpan/Update item ke In-Memory DB & Sinkronisasi Langsung ke Supabase PostgreSQL
 export function saveToDB<T>(key: DBKey, data: T[]) {
-  const storageKey = `cdc_umk_${key}`;
-  localStorage.setItem(storageKey, JSON.stringify(data));
+  MEMORY_DB[key] = data;
+
+  // Asynchronous Sync ke Supabase PostgreSQL Database API
+  setTimeout(async () => {
+    try {
+      if (key === 'users' && Array.isArray(data)) {
+        for (const item of data as any[]) {
+          await syncUserToSupabase(item);
+        }
+      } else if (key === 'mahasiswa' && Array.isArray(data)) {
+        for (const item of data as any[]) {
+          await syncMahasiswaToSupabase(item);
+        }
+      } else if (key === 'alumni' && Array.isArray(data)) {
+        for (const item of data as any[]) {
+          await syncAlumniToSupabase(item);
+        }
+      } else if (key === 'mitra' && Array.isArray(data)) {
+        for (const item of data as any[]) {
+          await syncMitraToSupabase(item);
+        }
+      } else if (key === 'lowongan' && Array.isArray(data)) {
+        for (const item of data as any[]) {
+          await syncLowonganToSupabase(item);
+        }
+      } else if (key === 'pengajuan_magang' && Array.isArray(data)) {
+        for (const item of data as any[]) {
+          await syncPengajuanToSupabase(item);
+        }
+      } else if ((key === ('tracer_study' as any) || key === 'tracer_studies') && Array.isArray(data)) {
+        for (const item of data as any[]) {
+          await syncTracerStudyToSupabase(item);
+        }
+      } else if (key === 'konten_karir' && Array.isArray(data)) {
+        for (const item of data as any[]) {
+          await syncKontenKarirToSupabase(item);
+        }
+      }
+    } catch (e) {
+      console.warn('[Sync Error]', key, e);
+    }
+  }, 0);
 }
 
 // Helper to push new item at top
@@ -1910,7 +1961,9 @@ export function updateInDB<T extends { id: string }>(key: DBKey, item: T): T {
 export function deleteInDB<T extends { id: string }>(key: DBKey, id: string) {
   const current = getFromDB<T>(key);
   const filtered = current.filter(i => i.id !== id);
+  MEMORY_DB[key] = filtered;
   saveToDB(key, filtered);
+  deleteFromSupabase(key, id);
 }
 
 /* ─────────────────────────────────────────────────────────────────

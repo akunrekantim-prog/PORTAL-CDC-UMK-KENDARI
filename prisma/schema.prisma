@@ -1,0 +1,565 @@
+// Prisma Schema untuk Portal CDC Universitas Muhammadiyah Kendari
+// Terhubung ke PostgreSQL / Supabase
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// -------------------------------------------------------------
+// ENUM TYPES
+// -------------------------------------------------------------
+
+enum UserRole {
+  USER
+  MAHASISWA
+  ALUMNI
+  JOB_SEEKER
+  MITRA
+  ADMIN
+  VIEWER
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+  REJECTED
+}
+
+enum TipeLowongan {
+  MAGANG
+  KERJA
+}
+
+enum StatusLowongan {
+  DRAFT
+  PUBLISHED
+  CLOSED
+  ARCHIVED
+}
+
+enum StatusPengajuan {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  REVISION
+  ACCEPTED
+  REJECTED
+  ONGOING
+  REPORT_SUBMITTED
+  COMPLETED
+  MENUNGGU_REVIEW
+  SELEKSI_ADMINISTRASI
+  INTERVIEW
+  DITERIMA
+  DITOLAK
+}
+
+enum StatusKerjasama {
+  AKTIF
+  NONAKTIF
+  PENDING
+}
+
+// -------------------------------------------------------------
+// MODEL ENTITIES
+// -------------------------------------------------------------
+
+model User {
+  id          String     @id @default(uuid())
+  name        String
+  email       String     @unique
+  password    String?
+  phone       String?
+  role        UserRole   @default(MAHASISWA)
+  status      UserStatus @default(PENDING)
+  photoUrl    String?
+  lastLoginAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  mahasiswa Mahasiswa?
+  alumni    Alumni?
+  mitra     Mitra?
+
+  @@map("users")
+}
+
+model Mahasiswa {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nim               String   @unique
+  nama              String
+  email             String
+  phone             String?
+  programStudi      String
+  fakultas          String
+  angkatan          String
+  semester          Int      @default(1)
+  alamat            String?
+  photoUrl          String?
+  aboutMe           String?
+  ipk               String?
+  skills            String[] @default([])
+  sendOpportunities String?
+  cvName            String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  pengajuan      PengajuanMagang[]
+  tracerStudy    TracerStudy[]
+  experiences    MahasiswaExperience[]
+  certificates   MahasiswaCertificate[]
+  qualifications MahasiswaQualification[]
+  documents      UploadedDocument[]
+
+  @@map("mahasiswas")
+}
+
+model Alumni {
+  id              String          @id @default(uuid())
+  userId          String          @unique
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nim             String?
+  nama            String
+  email           String
+  phone           String?
+  programStudi    String
+  fakultas        String
+  tahunLulus      String
+  statusPekerjaan String
+  instansiKerja   String?
+  jabatan         String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  surveiLulusans  SurveiLulusan[]
+
+  @@map("alumnis")
+}
+
+model Mitra {
+  id              String          @id @default(uuid())
+  userId          String          @unique
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  namaInstansi    String
+  bidangIndustri  String?
+  alamat          String?
+  kontakPerson    String
+  email           String
+  phone           String?
+  website         String?
+  logoUrl         String?
+  deskripsi       String?
+  statusKerjaSama StatusKerjasama @default(PENDING)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  lowongan Lowongan[]
+  survei   SurveiLulusan[]
+
+  @@map("mitras")
+}
+
+model Lowongan {
+  id             String         @id @default(uuid())
+  mitraId        String?
+  mitra          Mitra?         @relation(fields: [mitraId], references: [id], onDelete: SetNull)
+  createdBy      String
+  judul          String
+  tipe           TipeLowongan   @default(KERJA)
+  namaInstansi   String
+  companyLogo    String?
+  bannerImage    String?
+  imageUrl       String?
+  flyer          String?
+  flyers         String[]       @default([])
+  sumber         String         @default("admin")
+  linkEksternal  String?
+  jenisPekerjaan String?
+  isPinned       Boolean        @default(false)
+  lokasi         String
+  deskripsi      String?
+  kualifikasi    String[]       @default([])
+  tanggungJawab  String[]       @default([])
+  keahlian       String[]       @default([])
+  kategori       String?
+  gaji           String?
+  benefit        String[]       @default([])
+  kuota          Int?
+  deadline       DateTime
+  status         StatusLowongan @default(PUBLISHED)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  pengajuan PengajuanMagang[]
+
+  @@map("lowongans")
+}
+
+model PengajuanMagang {
+  id                String          @id @default(uuid())
+  mahasiswaId       String
+  mahasiswa         Mahasiswa       @relation(fields: [mahasiswaId], references: [id], onDelete: Cascade)
+  userId            String
+  lowonganId        String?
+  lowongan          Lowongan?       @relation(fields: [lowonganId], references: [id], onDelete: SetNull)
+  mitraId           String?
+  namaInstansi      String?
+  namaMahasiswa     String
+  nim               String
+  programStudi      String
+  tujuanMagang      String
+  lokasiMagang      String?
+  catatan           String?
+  berkasUrl         String?
+  berkasNama        String?
+  tanggalMulai      DateTime?
+  tanggalSelesai    DateTime?
+  status            StatusPengajuan @default(SUBMITTED)
+  catatanAdmin      String?
+  interviewStatus   String?
+  interviewDate     DateTime?
+  interviewTime     String?
+  interviewMethod   String?
+  interviewLink     String?
+  interviewLocation String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@map("pengajuan_magangs")
+}
+
+model TracerStudy {
+  id               String    @id @default(uuid())
+  mahasiswaId      String
+  mahasiswa        Mahasiswa @relation(fields: [mahasiswaId], references: [id], onDelete: Cascade)
+  userId           String
+  nama             String
+  programStudi     String
+  tahunLulus       String
+  statusPekerjaan  String
+  masaTungguKerja  String?
+  namaInstansi     String?
+  jabatan          String?
+  bidangPekerjaan  String?
+  kesesuaianBidang String?
+  rangePenghasilan String?
+  saranUntukKampus String?
+  submittedAt      DateTime  @default(now())
+
+  @@map("tracer_studies")
+}
+
+model KontenKarir {
+  id           String    @id @default(uuid())
+  jenis        String
+  judul        String
+  body         String
+  penulis      String?
+  namaInstansi String?
+  tipe         String?
+  linkLamar    String?
+  kategori     String?
+  gaji         String?
+  kuota        Int?
+  deadline     DateTime?
+  thumbnail    String?
+  scope        String?   @default("NASIONAL")
+  status       String    @default("published")
+  isPinned     Boolean   @default(false)
+  showOnHome   Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@map("konten_karirs")
+}
+
+model SurveiLulusan {
+  id                  String   @id @default(uuid())
+  mitraId             String
+  mitra               Mitra    @relation(fields: [mitraId], references: [id], onDelete: Cascade)
+  namaInstansi        String
+  alumniId            String?
+  alumni              Alumni?  @relation(fields: [alumniId], references: [id], onDelete: SetNull)
+  kualitasLulusan     Int
+  kemampuanTeknis     Int
+  kemampuanKomunikasi Int
+  etikaKerja          Int
+  kemampuanKerjaTim   Int
+  saran               String?
+  submittedAt         DateTime @default(now())
+
+  @@map("survei_lulusans")
+}
+
+model MahasiswaExperience {
+  id          String    @id @default(uuid())
+  mahasiswaId String
+  mahasiswa   Mahasiswa @relation(fields: [mahasiswaId], references: [id], onDelete: Cascade)
+  position    String
+  company     String
+  period      String
+  description String?
+  createdAt   DateTime  @default(now())
+
+  @@map("mahasiswa_experiences")
+}
+
+model MahasiswaCertificate {
+  id          String    @id @default(uuid())
+  mahasiswaId String
+  mahasiswa   Mahasiswa @relation(fields: [mahasiswaId], references: [id], onDelete: Cascade)
+  name        String
+  issuer      String
+  year        String
+  fileUrl     String?
+  createdAt   DateTime  @default(now())
+
+  @@map("mahasiswa_certificates")
+}
+
+model MahasiswaQualification {
+  id          String    @id @default(uuid())
+  mahasiswaId String
+  mahasiswa   Mahasiswa @relation(fields: [mahasiswaId], references: [id], onDelete: Cascade)
+  institution String
+  level       String
+  year        String
+  ipk         String?
+  createdAt   DateTime  @default(now())
+
+  @@map("mahasiswa_qualifications")
+}
+
+model UploadedDocument {
+  id          String     @id @default(uuid())
+  userId      String
+  mahasiswaId String?
+  mahasiswa   Mahasiswa? @relation(fields: [mahasiswaId], references: [id], onDelete: Cascade)
+  fileName    String
+  fileUrl     String
+  fileType    String
+  fileSize    Int?
+  category    String     @default("cv")
+  createdAt   DateTime   @default(now())
+
+  @@map("uploaded_documents")
+}
+
+model Berita {
+  id             String           @id @default(uuid())
+  judul          String
+  slug           String?          @unique
+  body           String
+  thumbnail      String?
+  penulis        String?
+  kategori       String?
+  tags           String[]         @default([])
+  isPinned       Boolean          @default(false)
+  status         String           @default("draft")
+  viewCount      Int              @default(0)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  komentarBerita KomentarBerita[]
+
+  @@map("beritas")
+}
+
+model KomentarBerita {
+  id        String   @id @default(uuid())
+  beritaId  String
+  berita    Berita   @relation(fields: [beritaId], references: [id], onDelete: Cascade)
+  userId    String?
+  nama      String
+  email     String?
+  konten    String
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+
+  @@map("komentar_beritas")
+}
+
+model Pengumuman {
+  id        String   @id @default(uuid())
+  judul     String
+  body      String
+  thumbnail String?
+  isPinned  Boolean  @default(false)
+  status    String   @default("draft")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("pengumumans")
+}
+
+model GaleriItem {
+  id        String    @id @default(uuid())
+  judul     String
+  imageUrl  String
+  kategori  String?
+  deskripsi String?
+  tanggal   DateTime?
+  createdAt DateTime  @default(now())
+
+  @@map("galeri_items")
+}
+
+model KalenderKegiatan {
+  id             String    @id @default(uuid())
+  judul          String
+  deskripsi      String?
+  tanggalMulai   DateTime
+  tanggalSelesai DateTime?
+  lokasi         String?
+  kategori       String?
+  warna          String?   @default("#3B82F6")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("kalender_kegiatans")
+}
+
+model HeroSlide {
+  id        String   @id @default(uuid())
+  judul     String
+  subjudul  String?
+  imageUrl  String
+  linkUrl   String?
+  linkLabel String?
+  urutan    Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@map("hero_slides")
+}
+
+model JobFairEvent {
+  id             String           @id @default(uuid())
+  judul          String
+  deskripsi      String?
+  tanggalMulai   DateTime
+  tanggalSelesai DateTime?
+  lokasi         String?
+  bannerUrl      String?
+  status         String           @default("upcoming")
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  companies      JobFairCompany[]
+
+  @@map("job_fair_events")
+}
+
+model JobFairCompany {
+  id             String       @id @default(uuid())
+  jobFairId      String
+  jobFair        JobFairEvent @relation(fields: [jobFairId], references: [id], onDelete: Cascade)
+  namaInstansi   String
+  logoUrl        String?
+  bidangIndustri String?
+  jumlahLowongan Int?         @default(0)
+  createdAt      DateTime     @default(now())
+
+  @@map("job_fair_companies")
+}
+
+model CampusHiring {
+  id           String   @id @default(uuid())
+  namaInstansi String
+  logoUrl      String?
+  tanggal      DateTime
+  lokasi       String?
+  deskripsi    String?
+  linkDaftar   String?
+  status       String   @default("upcoming")
+  createdAt    DateTime @default(now())
+
+  @@map("campus_hirings")
+}
+
+model MouStakeholder {
+  id            String    @id @default(uuid())
+  namaInstansi  String
+  logoUrl       String?
+  jenisMou      String?
+  tanggalMou    DateTime?
+  berlakuHingga DateTime?
+  status        String    @default("aktif")
+  createdAt     DateTime  @default(now())
+
+  @@map("mou_stakeholders")
+}
+
+model SuratKeputusan {
+  id        String   @id @default(uuid())
+  nomor     String
+  judul     String
+  tanggal   DateTime
+  fileUrl   String?
+  kategori  String?
+  createdAt DateTime @default(now())
+
+  @@map("surat_keputusans")
+}
+
+model LaporanKinerja {
+  id        String   @id @default(uuid())
+  judul     String
+  tahun     Int
+  periode   String?
+  fileUrl   String?
+  deskripsi String?
+  createdAt DateTime @default(now())
+
+  @@map("laporan_kinerjas")
+}
+
+model AnggotaTim {
+  id        String   @id @default(uuid())
+  nama      String
+  jabatan   String
+  photoUrl  String?
+  email     String?
+  bio       String?
+  urutan    Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@map("anggota_tims")
+}
+
+model KonselingConfig {
+  id        String   @id @default(uuid())
+  deskripsi String?
+  kontakWa  String?
+  email     String?
+  updatedAt DateTime @default(now())
+
+  @@map("konseling_configs")
+}
+
+model VisiMisiConfig {
+  id        String   @id @default(uuid())
+  visi      String
+  misi      String[] @default([])
+  updatedAt DateTime @default(now())
+
+  @@map("visi_misi_configs")
+}
+
+model SocialMediaItem {
+  id        String   @id @default(uuid())
+  platform  String
+  url       String
+  icon      String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@map("social_media_items")
+}
