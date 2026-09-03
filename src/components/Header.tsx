@@ -332,8 +332,16 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
           </div>
 
           {/* Right: Date & Flag Language Switcher */}
-          <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4 shrink-0">
+          <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-3 shrink-0">
             <span className="text-blue-200 font-semibold truncate text-[11px] sm:text-xs">{formattedDate}</span>
+
+            <button
+              type="button"
+              onClick={onNavigateToLogin}
+              className="bg-[#F26522] hover:bg-[#d85416] text-white px-2.5 py-0.5 rounded text-[11px] font-bold transition shadow-xs cursor-pointer flex items-center gap-1"
+            >
+              <span>Masuk / Login</span>
+            </button>
 
             {/* 🇮🇩 / 🇬🇧 DROPDOWN LANGUAGE SWITCHER */}
             <div className="relative shrink-0" ref={langDropdownRef}>

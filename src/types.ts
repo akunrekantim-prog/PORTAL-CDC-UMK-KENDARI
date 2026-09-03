@@ -22,6 +22,7 @@ export interface User {
   photoUrl?: string;
   lastLoginAt?: string;
   createdAt: string;
+  userStatusType?: 'Mahasiswa' | 'Alumni';
 }
 
 export interface Mahasiswa {
@@ -152,7 +153,7 @@ export interface Alumni {
   programStudi: string;
   fakultas: string;
   tahunLulus: string; // e.g. "2024"
-  statusPekerjaan: 'bekerja' | 'wirausaha' | 'lanjut_studi' | 'belum_bekerja';
+  statusPekerjaan: 'bekerja' | 'wirausaha' | 'lanjut_studi' | 'belum_bekerja' | 'mahasiswa_aktif';
   instansiKerja?: string;
   jabatan?: string;
 }
@@ -574,3 +575,11 @@ export interface JobFairItem {
   status: 'buka' | 'berlangsung' | 'selesai';
   createdAt: string;
 }
+
+export interface StatistikConfig {
+  id: string;
+  jumlahAlumni: string; // e.g. "20.000+"
+  jumlahMitra: string;  // e.g. "10"
+  updatedAt?: string;
+}
+

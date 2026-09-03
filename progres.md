@@ -1,8 +1,73 @@
 # Progres Pengerjaan — Portal CDC UM Kendari
 
-Periode: 23–25 Agustus 2026  
+Periode: 23 Agustus – 31 Agustus 2026  
 Branch: `main`  
 Repo: `D:\PORTAL-CDC-UMK-KENDARI`
+
+---
+
+## Tanggal: 31 Agustus 2026
+**Oleh: ARYA APRIAWAN**
+**Fokus Pekerjaan:** Redesign CTA WhatsApp Konseling Karir (Box Navy + Button Hijau WhatsApp), Perbaikan Tabel Jadwal Header Navy, Pembersihan Section Poster, dan Perapihan EventCardLayout (Hapus Badge Total & Reset Filter Redundan).
+
+### Ringkasan Perubahan
+1. **Redesign Section CTA WhatsApp Konseling Karir (`BimbinganKarir.tsx`):**
+   - Mengubah warna background box container CTA dari hitam (`bg-slate-900`) menjadi **biru navy (`bg-[#000066]`)** agar konsisten dengan identitas warna CDC UM Kendari.
+   - Mengubah tombol "Hubungi Admin via WhatsApp" dari putih solid (`bg-white text-slate-900`) menjadi **hijau WhatsApp (`bg-[#25D366] text-white`)** dengan hover `bg-[#1ebe5d]`.
+   - Menambahkan **ikon SVG logo WhatsApp resmi** di dalam tombol CTA (menggantikan ikon panah `ArrowUpRight`).
+   - Menyesuaikan warna teks deskripsi menjadi `text-blue-200` dan `text-blue-300/70` agar kontras optimal dengan latar biru navy.
+2. **Perbaikan Header Tabel Jadwal Konseling (`BimbinganKarir.tsx`):**
+   - Mengubah warna header tabel jadwal dari abu-abu muda (`bg-slate-50 text-slate-500`) menjadi **biru navy (`bg-[#000066] text-white`)** agar konsisten dengan branding header portal.
+3. **Pembersihan Section Poster & Pamflet (`BimbinganKarir.tsx`):**
+   - Menghapus blok header "Poster & Pamflet" beserta tombol "Perbesar" (`ZoomIn` icon) yang redundan — poster tetap bisa di-zoom via klik langsung pada gambar.
+   - Menghapus import `ZoomIn` yang tidak terpakai lagi dari lucide-react.
+4. **Perapihan EventCardLayout (`EventCardLayout.tsx`):**
+   - Menghapus badge "Menampilkan X Kegiatan" dan tombol "Reset Filter" yang redundan dari panel kontrol pencarian.
+   - Menghapus fungsi `resetFilters` dan variabel `hasActiveFilters` yang tidak terpakai lagi.
+   - Mengganti referensi `resetFilters` pada empty state menjadi inline `setSearchQuery('')`.
+   - Menghapus import `Layers` yang tidak terpakai lagi dari lucide-react.
+
+### File Diubah
+- **[MODIFY]** `src/components/layanan/BimbinganKarir.tsx` (redesign CTA WhatsApp navy + hijau, header tabel navy, hapus section poster header)
+- **[MODIFY]** `src/components/layanan/ui/EventCardLayout.tsx` (hapus badge total kegiatan & reset filter redundan)
+- **[MODIFY]** `progres.md` (update progres)
+
+### Verifikasi
+- ✅ `git diff` — 2 file termodifikasi, 17 insertions, 58 deletions (kode lebih bersih)
+- ✅ Semua perubahan sesuai identitas warna CDC UM Kendari (navy `#000066`, hijau WhatsApp `#25D366`)
+
+---
+
+## Tanggal: 31 Agustus 2026 (Sesi 2)
+**Oleh: ARYA APRIAWAN**
+**Fokus Pekerjaan:** Pagination Menu Internship Maksimal 6 Card Per Halaman, Penambahan 7 Data Dummy Magang Baru, dan Bump Seed Version.
+
+### Ringkasan Perubahan
+1. **Pagination Internship Maksimal 6 Card (`Magang.tsx`):**
+   - Mengubah `itemsPerPage` dari `9` menjadi `6` agar konsisten dengan standar pagination menu layanan lainnya.
+   - Mengganti implementasi pagination inline (styling rounded-lg terpisah) dengan komponen reusable `Pagination` dari `./ui/Pagination.tsx` (kotak persegi bersambung, warna aktif navy `#000066`, ellipsis untuk banyak halaman, tombol panah prev/next).
+   - Menghapus import `ShieldCheck` yang tidak terpakai dari lucide-react.
+2. **Penambahan 7 Data Dummy Lowongan Magang (`data.ts`):**
+   - Menambahkan 7 seed lowongan magang baru ke `SEED_LOWONGAN` (id: `low_magang3` s/d `low_magang9`) agar total magang menjadi 9 item (2 lama + 7 baru):
+     1. **Data Analyst Intern** — PT Sultra Data Analytics
+     2. **Social Media Marketing Intern** — CV Kreatif Sultra
+     3. **Mobile App Developer Intern** — PT Appsolute Kendari
+     4. **Graphic Designer Intern** — Studio Desain Sultra
+     5. **Network & IT Support Intern** — PT Jaringan Nusantara Kendari
+     6. **Accounting & Finance Intern** — KAP Sultra & Rekan
+     7. **Human Resource Intern** — PT Sumber Daya Sultra
+   - Semua dummy bertipe `tipe: 'magang'`, `status: 'published'`, `sumber: 'admin'`, dengan variasi instansi, kategori, keahlian, dan deadline berbeda.
+3. **Bump Seed Version (`data.ts`):**
+   - Mengubah `CURRENT_SEED_VERSION` dari `'v16_unified_user_role'` menjadi `'v17_magang_dummy_7'` agar localStorage ter-reset dan data dummy baru termuat otomatis.
+
+### File Diubah
+- **[MODIFY]** `src/components/layanan/Magang.tsx` (pagination 6 card + komponen Pagination navy, hapus import ShieldCheck)
+- **[MODIFY]** `src/data.ts` (7 dummy magang baru, bump seed v17)
+- **[MODIFY]** `progres.md` (update progres)
+
+### Verifikasi
+- ✅ `npx tsc --noEmit` — 0 error
+- ✅ Total magang: 9 item → Halaman 1: 6 card, Halaman 2: 3 card (pagination otomatis muncul)
 
 ---
 

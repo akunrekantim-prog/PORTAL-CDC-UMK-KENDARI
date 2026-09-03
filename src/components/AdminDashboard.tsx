@@ -41,7 +41,8 @@ import {
   CdcClubConfig,
   HeroSlideItem,
   CampusHiringItem,
-  JobFairItem
+  JobFairItem,
+  StatistikConfig
 } from '../types';
 import {
   getFromDB,
@@ -69,7 +70,10 @@ import {
   getCampusHiring,
   saveCampusHiring,
   getJobFair,
-  saveJobFair
+  saveJobFair,
+  getStatistikConfig,
+  saveStatistikConfig,
+  trackAndGetVisitorCount
 } from '../data';
 import {
   LayoutDashboard,
@@ -161,7 +165,7 @@ interface AdminDashboardProps {
   onReloadData?: () => void;
 }
 
-type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin' | 'keanggotaan' | 'visi-misi' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'media-sosial' | 'komentar' | 'konseling' | 'hero-slider' | 'campus-hiring' | 'job-fair';
+type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin' | 'keanggotaan' | 'visi-misi' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'media-sosial' | 'komentar' | 'konseling' | 'hero-slider' | 'campus-hiring' | 'job-fair' | 'statistik-beranda';
 type KontenSubTab = 'riwayat' | 'pembuatan';
 type MitraSubTab = 'approval' | 'list';
 
@@ -518,7 +522,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const [socUrl, setSocUrl] = useState('');
   const [socIsActive, setSocIsActive] = useState(true);
 
-  // State Pengumuman Khusus / Utama Beranda
+  // Form states Pengumuman Khusus / Utama Beranda
   const [annIsImportant, setAnnIsImportant] = useState<boolean>(true);
   const [annDisplayType, setAnnDisplayType] = useState<'badge' | 'poster'>('badge');
   const [annTitle, setAnnTitle] = useState<string>('');
@@ -529,6 +533,25 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const [annShowBadge, setAnnShowBadge] = useState<boolean>(true);
   const [annBadgeText, setAnnBadgeText] = useState<string>('PENGUMUMAN SANGAT PENTING');
   const [annShowBadgeIcon, setAnnShowBadgeIcon] = useState<boolean>(true);
+
+  // Form states Statistik Beranda (Alumni & Mitra Perusahaan)
+  const [statAlumni, setStatAlumni] = useState(() => getStatistikConfig().jumlahAlumni);
+  const [statMitra, setStatMitra] = useState(() => getStatistikConfig().jumlahMitra);
+
+  const handleSaveStatistik = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!statAlumni.trim() || !statMitra.trim()) {
+      triggerToast('error', 'Jumlah Alumni dan Jumlah Mitra Perusahaan wajib diisi!');
+      return;
+    }
+    saveStatistikConfig({
+      jumlahAlumni: statAlumni.trim(),
+      jumlahMitra: statMitra.trim(),
+    });
+    reloadAll();
+    if (onReloadData) onReloadData();
+    triggerToast('success', 'Statistik Beranda (Alumni & Mitra Perusahaan) berhasil disimpan!');
+  };
 
   const syncAnnState = () => {
     const list = getFromDB<Pengumuman>('pengumuman');
@@ -658,6 +681,10 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
     setKNarasiWa(cfg.narasiWa || '');
     setKAdminWaNum(cfg.adminWaNumber || '');
     setKAdminWaMsg(cfg.adminWaDefaultMessage || '');
+
+    const statCfg = getStatistikConfig();
+    setStatAlumni(statCfg.jumlahAlumni);
+    setStatMitra(statCfg.jumlahMitra);
   };
 
   useEffect(() => {
@@ -686,7 +713,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       group: 'INTERAKSI PUBLIK',
       items: [
         { id: 'media-sosial', label: 'Media Sosial & WA CS', icon: <Globe className="w-4 h-4" /> },
-        { id: 'komentar', label: 'Moderasi Komentar Berita', icon: <MessageSquare className="w-4 h-4" /> }
+        { id: 'komentar', label: 'Moderasi Komentar Berita', icon: <MessageSquare className="w-4 h-4" /> },
+        { id: 'statistik-beranda', label: 'Statistik Beranda', icon: <TrendingUp className="w-4 h-4" /> }
       ]
     },
     {
@@ -1179,9 +1207,15 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       setEditId(null);
       setEJenis(jenis || 'berita');
       setEJudul(''); setEBody(''); setEPenulis(''); setEThumbnail('');
+      setENamaInstansi((jenis === 'workshop' || jenis === 'softskill' || jenis === 'seminar') ? 'CDC UM Kendari' : '');
       setELinkLamar(''); setEKategori((jenis || 'berita') === 'presentasi' ? 'internasional' : ''); setEScope('LOKAL');
       setEGaji(''); setEKuota(''); setEDeadline(''); setELinkCta(''); setEStatus('published');
-      setETanggal(''); setEWaktu(''); setELokasiEvent(''); setEPembicara('');
+      setETanggal('');
+      setEWaktu((jenis === 'workshop' || jenis === 'softskill' || jenis === 'seminar') ? '09:00 - 15:00 WITA' : '');
+      setELokasiEvent((jenis === 'workshop' || jenis === 'softskill' || jenis === 'seminar') ? 'Aula Gedung Rektorat UM Kendari' : '');
+      setEPembicara('');
+      setEKuotaEvent((jenis === 'workshop' || jenis === 'softskill' || jenis === 'seminar') ? '100' : '');
+      setETerdaftar((jenis === 'workshop' || jenis === 'softskill' || jenis === 'seminar') ? '0' : '');
       setELinkDaftar(''); setEStatusEvent('buka');
       setESubKategori('akademik'); setENamaMahasiswa(''); setEProdi('');
       setETahunPres(new Date().getFullYear().toString()); setEPeringkat('Juara 1'); setETerverifikasi(true);
@@ -1550,7 +1584,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       triggerToast('error', 'Judul wajib diisi.');
       return;
     }
-    const isWysiwyg = eJenis === 'berita' || eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar';
+    const isWysiwyg = eJenis === 'berita';
     const rawBody = (isWysiwyg && beritaEditRef.current)
       ? (beritaEditRef.current.innerHTML || '')
       : eBody;
@@ -1569,8 +1603,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       return;
     }
     if (THUMB_REQUIRED[eJenis] && !eThumbnail) {
-      setSaveError(`Thumbnail wajib diunggah untuk ${JENIS_LABEL[eJenis]}.`);
-      triggerToast('error', `Thumbnail wajib untuk ${JENIS_LABEL[eJenis]}.`);
+      setSaveError(`Thumbnail / Poster wajib diunggah untuk ${JENIS_LABEL[eJenis]}.`);
+      triggerToast('error', `Thumbnail / Poster wajib untuk ${JENIS_LABEL[eJenis]}.`);
       return;
     }
     if ((eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') && !eTanggal) {
@@ -1586,14 +1620,14 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       judul: eJudul.trim(),
       body: finalBody,
       penulis: eJenis === 'berita' ? (ePenulis.trim() || user.name) : undefined,
-      namaInstansi: eJenis === 'lowongan' ? eNamaInstansi.trim() : undefined,
+      namaInstansi: (eJenis === 'lowongan' || eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? (eNamaInstansi.trim() || 'CDC UM Kendari') : undefined,
       tipe: eJenis === 'lowongan' ? eTipe : undefined,
       linkLamar: eJenis === 'lowongan' ? eLinkLamar.trim() : undefined,
       kategori: (eJenis === 'lowongan' || eJenis === 'program' || eJenis === 'presentasi') ? eKategori.trim() : undefined,
       gaji: eJenis === 'lowongan' ? eGaji.trim() : undefined,
       kuota: eJenis === 'lowongan' && eKuota ? Number(eKuota) : undefined,
       deadline: eJenis === 'lowongan' ? eDeadline : undefined,
-      linkCta: (eJenis === 'program' || eJenis === 'workshop' || eJenis === 'softskill') ? eLinkCta.trim() : undefined,
+      linkCta: (eJenis === 'program' || eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? (eLinkCta.trim() || eLinkDaftar.trim() || undefined) : undefined,
       thumbnail: THUMB_REQUIRED[eJenis] ? eThumbnail : undefined,
       scope: eJenis === 'berita' ? eScope : undefined,
       // Field khusus Presentasi
@@ -1608,10 +1642,10 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       updatedAt: now,
       createdBy: 'usr_admin',
       createdByName: 'Admin Website',
-      // Field khusus event layanan
+      // Field khusus event layanan (workshop / softskill / seminar)
       tanggal: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? eTanggal : undefined,
-      waktu: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? eWaktu.trim() : undefined,
-      lokasiEvent: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? eLokasiEvent.trim() : undefined,
+      waktu: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? (eWaktu.trim() || '09:00 - 15:00 WITA') : undefined,
+      lokasiEvent: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? (eLokasiEvent.trim() || 'Aula Gedung Rektorat UM Kendari') : undefined,
       pembicara: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? ePembicara.trim() : undefined,
       kuotaEvent: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') && eKuotaEvent ? Number(eKuotaEvent) : undefined,
       terdaftar: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') && eTerdaftar ? Number(eTerdaftar) : undefined,
@@ -3010,15 +3044,65 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                       )}
 
                       {(eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') && (
-                        <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
-                          <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-slate-500">Tanggal Pelaksanaan *</label>
-                            <input value={eTanggal} onChange={(e) => setETanggal(e.target.value)} type="date" required className={`w-full px-3 py-2 rounded-xl border text-sm ${!eTanggal ? 'border-rose-300 bg-rose-50/40 focus:border-rose-400 focus:ring-2 focus:ring-rose-200' : 'border-slate-300'}`} />
-                            {!eTanggal && <p className="text-[11px] text-rose-500 font-medium">Wajib diisi — klik ikon kalender di kanan input dan pilih tanggal.</p>}
+                        <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-100 bg-slate-50/60 p-4 rounded-2xl">
+                          <div className="sm:col-span-2 text-xs font-bold text-blue-700 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-200 pb-2">
+                            <GraduationCap className="w-4 h-4 text-blue-600" />
+                            Detail & Parameter Kegiatan Event ({JENIS_LABEL[eJenis]})
                           </div>
+
                           <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-slate-500">Waktu (mis. 09:00 - 14:00 WITA)</label>
-                            <input value={eWaktu} onChange={(e) => setEWaktu(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="09:00 - 14:00 WITA" />
+                            <label className="text-xs font-medium text-slate-700">Penyelenggara / Pengorganisir *</label>
+                            <input value={eNamaInstansi} onChange={(e) => setENamaInstansi(e.target.value)} placeholder="CDC UM Kendari & Digital Creative Studio" className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white" />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-medium text-slate-700">Narasumber / Pembicara</label>
+                            <input value={ePembicara} onChange={(e) => setEPembicara(e.target.value)} placeholder="Ahmad Fauzi, S.Kom. (Senior Product Designer)" className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white" />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-medium text-slate-700">Tanggal Pelaksanaan *</label>
+                            <input value={eTanggal} onChange={(e) => setETanggal(e.target.value)} type="date" required className={`w-full px-3 py-2 rounded-xl border text-sm bg-white ${!eTanggal ? 'border-rose-300 bg-rose-50/40 focus:border-rose-400 focus:ring-2 focus:ring-rose-200' : 'border-slate-300'}`} />
+                            {!eTanggal && <p className="text-[11px] text-rose-500 font-medium">Wajib diisi — pilih tanggal kegiatan.</p>}
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-medium text-slate-700">Waktu Pelaksanaan</label>
+                            <input value={eWaktu} onChange={(e) => setEWaktu(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white" placeholder="09:00 - 15:00 WITA" />
+                          </div>
+
+                          <div className="space-y-1.5 sm:col-span-2">
+                            <label className="text-xs font-medium text-slate-700">Lokasi Pelaksanaan Kegiatan</label>
+                            <input value={eLokasiEvent} onChange={(e) => setELokasiEvent(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white" placeholder="Lab Komputer Gd. Rektorat Lt. 3 UMK / Online Zoom" />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-medium text-slate-700">Kuota Peserta (Orang)</label>
+                            <input value={eKuotaEvent} onChange={(e) => setEKuotaEvent(e.target.value)} type="number" min="1" className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white" placeholder="50" />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-medium text-slate-700">Jumlah Terdaftar</label>
+                            <input value={eTerdaftar} onChange={(e) => setETerdaftar(e.target.value)} type="number" min="0" className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white" placeholder="0" />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-medium text-slate-700">Status Pendaftaran Event</label>
+                            <Dropdown
+                              value={eStatusEvent}
+                              onChange={(v) => setEStatusEvent(v as any)}
+                              className="w-full"
+                              options={[
+                                { value: 'buka', label: 'Pendaftaran Dibuka' },
+                                { value: 'segera', label: 'Segera Dibuka' },
+                                { value: 'selesai', label: 'Kegiatan Selesai' }
+                              ]}
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-medium text-slate-700">Link Form Pendaftaran Eksternal (URL)</label>
+                            <input value={eLinkDaftar} onChange={(e) => setELinkDaftar(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white" placeholder="https://bit.ly/form-pendaftaran-workshop" />
                           </div>
                         </div>
                       )}
@@ -3094,20 +3178,28 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                       </div>
                     )}
 
-                    {eJenis === 'program' || eJenis === 'presentasi' ? (
+                    {eJenis === 'program' || eJenis === 'presentasi' || eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar' ? (
                       <div className="space-y-2">
-                        <label className="text-xs font-medium text-slate-500">Deskripsi {eJenis === 'presentasi' ? 'Prestasi / Capaian' : 'Konten (opsional — kosongkan jika hanya ingin mengarahkan klik kartu ke link)'}</label>
+                        <label className="text-xs font-medium text-slate-500">
+                          Deskripsi &amp; Detail Kegiatan / Pokok Materi (opsional)
+                        </label>
                         <textarea
                           ref={bodyRef}
                           value={eBody}
                           onChange={(e) => setEBody(e.target.value)}
                           rows={10}
                           className="w-full border border-slate-300 rounded-xl p-3 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-300"
-                          placeholder={eJenis === 'presentasi' ? "Tulis deskripsi singkat capaian presentasi ini..." : "Tulis detail program & pengumuman di sini (opsional). Kosongkan jika klik kartu langsung diarahkan ke link di atas."}
+                          placeholder={
+                            eJenis === 'presentasi'
+                              ? "Tulis deskripsi singkat capaian presentasi ini..."
+                              : (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar')
+                              ? "Tuliskan deskripsi lengkap kegiatan, pokok materi pembelajaran, dan instruksi bagi peserta..."
+                              : "Tulis detail program & pengumuman di sini (opsional). Kosongkan jika klik kartu langsung diarahkan ke link di atas."
+                          }
                         />
                         {eBody.trim() && (
                           <div className="space-y-2">
-                            <label className="text-xs font-medium text-slate-500">Pratinjau</label>
+                            <label className="text-xs font-medium text-slate-500">Pratinjau Teks</label>
                             <div className="border border-slate-200 rounded-xl p-4 bg-white max-h-80 overflow-auto no-scrollbar">
                               {renderMedium(eBody)}
                             </div>
@@ -7775,6 +7867,124 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                     </>
                   );
                 })()}
+              </div>
+            )}
+
+            {/* ============== STATISTIK BERANDA (ALUMNI & MITRA) ============== */}
+            {activeTab === 'statistik-beranda' && (
+              <div className="space-y-6" id="adm-statistik-beranda">
+                <div className="border-b border-slate-200 pb-5">
+                  <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                    <TrendingUp className="w-6 h-6 text-[#0077C6]" /> Kelola Statistik Beranda
+                  </h1>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Atur jumlah Alumni dan Mitra Perusahaan yang ditampilkan pada strip statistik halaman depan publik.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                  {/* FORM EDITABLE FIELDS */}
+                  <div className="lg:col-span-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+                    <h2 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
+                      <Edit3 className="w-4 h-4 text-emerald-600" /> Data Statistik Utama
+                    </h2>
+
+                    {/* Input Alumni */}
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                        Jumlah Alumni <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={statAlumni}
+                        onChange={(e) => setStatAlumni(e.target.value)}
+                        placeholder="Contoh: 20.000+"
+                        className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0077C6] focus:border-[#0077C6] text-sm font-semibold text-slate-900"
+                      />
+                      <p className="text-xs text-slate-400">
+                        * Format teks bebas (misal: <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700 font-mono">20.000+</code> atau <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700 font-mono">25.500+</code>).
+                      </p>
+                    </div>
+
+                    {/* Input Mitra */}
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                        Jumlah Mitra Perusahaan <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={statMitra}
+                        onChange={(e) => setStatMitra(e.target.value)}
+                        placeholder="Contoh: 10"
+                        className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#0077C6] focus:border-[#0077C6] text-sm font-semibold text-slate-900"
+                      />
+                      <p className="text-xs text-slate-400">
+                        * Format teks bebas (misal: <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700 font-mono">10</code>, <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700 font-mono">50+</code>, atau <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700 font-mono">100+ Perusahaan</code>).
+                      </p>
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-100">
+                      <button
+                        onClick={handleSaveStatistik}
+                        className="w-full bg-[#0077C6] hover:bg-[#1E3A8A] text-white py-3 rounded-xl font-bold text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        <Save className="w-4 h-4" /> Simpan Perubahan Statistik
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* INFORMASI OTOMATIS & PREVIEW */}
+                  <div className="lg:col-span-6 space-y-6">
+                    {/* Read-only Automated System Info */}
+                    <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
+                      <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
+                        <Info className="w-4 h-4 text-blue-600" /> Data Terhitung Otomatis Oleh Sistem
+                      </h2>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
+                          <div className="text-slate-400 font-medium">Total Pengunjung</div>
+                          <div className="text-lg font-extrabold text-blue-900 mt-1 font-mono">{trackAndGetVisitorCount()}</div>
+                          <div className="text-[11px] text-slate-400 mt-1 italic">Di-track otomatis via peramban</div>
+                        </div>
+                        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
+                          <div className="text-slate-400 font-medium">Tahun Pengalaman</div>
+                          <div className="text-lg font-extrabold text-blue-900 mt-1 font-mono">10+ Tahun</div>
+                          <div className="text-[11px] text-slate-400 mt-1 italic">Dihitung dari tahun dasar 2016</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* LIVE PREVIEW BANNER */}
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                          <Eye className="w-4 h-4 text-emerald-600" /> Pratinjau Tampilan Beranda Publik
+                        </h2>
+                        <span className="text-[11px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">Live Preview</span>
+                      </div>
+
+                      {/* Mockup strip */}
+                      <div className="bg-[#1E3A8A] p-5 rounded-2xl text-center grid grid-cols-2 sm:grid-cols-4 gap-4 shadow-inner">
+                        <div className="space-y-0.5">
+                          <div className="text-xl sm:text-2xl font-black text-[#10B981]">{statAlumni || '20.000+'}</div>
+                          <div className="text-[10px] text-blue-200 font-bold uppercase tracking-wider">Alumni</div>
+                        </div>
+                        <div className="space-y-0.5">
+                          <div className="text-xl sm:text-2xl font-black text-[#10B981]">{statMitra || '10'}</div>
+                          <div className="text-[10px] text-blue-200 font-bold uppercase tracking-wider">Mitra Perusahaan</div>
+                        </div>
+                        <div className="space-y-0.5">
+                          <div className="text-xl sm:text-2xl font-black text-[#10B981]">{trackAndGetVisitorCount()}</div>
+                          <div className="text-[10px] text-blue-200 font-bold uppercase tracking-wider">Total Pengunjung</div>
+                        </div>
+                        <div className="space-y-0.5">
+                          <div className="text-xl sm:text-2xl font-black text-[#10B981]">10+</div>
+                          <div className="text-[10px] text-blue-200 font-bold uppercase tracking-wider">Tahun Pengalaman</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 

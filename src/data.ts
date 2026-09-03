@@ -35,7 +35,8 @@ import {
   HeroSlideItem,
   CampusHiringItem,
   JobFairItem,
-  JobFairCompany
+  JobFairCompany,
+  StatistikConfig
 } from './types';
 import {
   fetchInitialDatabaseFromSupabase,
@@ -444,6 +445,146 @@ export const SEED_LOWONGAN: Lowongan[] = [
     deadline: '2026-07-20',
     status: 'published',
     createdAt: '2026-05-12T11:00:00Z'
+  },
+  {
+    id: 'low_magang3',
+    mitraId: 'mtr1',
+    createdBy: 'usr_mitra1',
+    judul: 'Data Analyst Intern',
+    tipe: 'magang',
+    namaInstansi: 'PT Sultra Data Analytics',
+    lokasi: 'Kendari (On-site)',
+    kategori: 'Data & Analitik',
+    gaji: 'Uang Saku',
+    deskripsi: 'Menganalisis data operasional perusahaan, membuat dashboard visualisasi, dan menyusun laporan insight bisnis berbasis data.',
+    kualifikasi: ['Mahasiswa aktif Statistika / Informatika / Matematika', 'Menguasai Excel & SQL dasar', 'Familiar dengan Python atau R'],
+    keahlian: ['SQL', 'Python', 'Excel', 'Data Visualization'],
+    benefit: ['Uang saku bulanan', 'Sertifikat magang resmi', 'Portofolio proyek data nyata'],
+    kuota: 3,
+    deadline: '2026-08-15',
+    status: 'published',
+    sumber: 'admin',
+    createdAt: '2026-06-01T08:00:00Z'
+  },
+  {
+    id: 'low_magang4',
+    mitraId: 'mtr1',
+    createdBy: 'usr_mitra1',
+    judul: 'Social Media Marketing Intern',
+    tipe: 'magang',
+    namaInstansi: 'CV Kreatif Sultra',
+    lokasi: 'Kendari (Hybrid)',
+    kategori: 'Pemasaran & Digital',
+    gaji: 'Uang Saku',
+    deskripsi: 'Mengelola akun media sosial klien, membuat konten kreatif, dan menganalisis performa kampanye digital.',
+    kualifikasi: ['Mahasiswa aktif Ilmu Komunikasi / Manajemen / DKV', 'Kreatif dan up-to-date dengan tren media sosial', 'Mampu menggunakan Canva / Adobe Photoshop'],
+    keahlian: ['Social Media', 'Content Creation', 'Canva', 'Copywriting'],
+    benefit: ['Uang saku bulanan', 'Sertifikat magang', 'Pengalaman mengelola brand nyata'],
+    kuota: 2,
+    deadline: '2026-08-20',
+    status: 'published',
+    sumber: 'admin',
+    createdAt: '2026-06-03T09:00:00Z'
+  },
+  {
+    id: 'low_magang5',
+    mitraId: 'mtr1',
+    createdBy: 'usr_mitra1',
+    judul: 'Mobile App Developer Intern',
+    tipe: 'magang',
+    namaInstansi: 'PT Appsolute Kendari',
+    lokasi: 'Kendari (On-site)',
+    kategori: 'TI / Pengembangan Mobile',
+    gaji: 'Uang Saku',
+    deskripsi: 'Mengembangkan aplikasi mobile berbasis React Native / Flutter untuk kebutuhan klien korporat dan UMKM lokal.',
+    kualifikasi: ['Mahasiswa Teknik Informatika / Sistem Informasi semester 5+', 'Memahami dasar React Native atau Flutter', 'Familiar dengan REST API'],
+    keahlian: ['React Native', 'Flutter', 'REST API', 'Git'],
+    benefit: ['Uang saku bulanan', 'Sertifikat magang', 'Mentorship senior developer'],
+    kuota: 2,
+    deadline: '2026-09-01',
+    status: 'published',
+    sumber: 'admin',
+    createdAt: '2026-06-05T10:00:00Z'
+  },
+  {
+    id: 'low_magang6',
+    mitraId: 'mtr1',
+    createdBy: 'usr_mitra1',
+    judul: 'Graphic Designer Intern',
+    tipe: 'magang',
+    namaInstansi: 'Studio Desain Sultra',
+    lokasi: 'Kendari (On-site)',
+    kategori: 'Desain Kreatif & Multimedia',
+    gaji: 'Uang Saku',
+    deskripsi: 'Merancang materi visual untuk branding, packaging produk UMKM, dan konten media sosial klien.',
+    kualifikasi: ['Mahasiswa DKV / Informatika / Komunikasi', 'Menguasai Adobe Illustrator & Photoshop', 'Memiliki portofolio desain'],
+    keahlian: ['Adobe Illustrator', 'Photoshop', 'Branding', 'Layout Design'],
+    benefit: ['Uang saku bulanan', 'Sertifikat magang', 'Portofolio proyek klien nyata'],
+    kuota: 2,
+    deadline: '2026-09-10',
+    status: 'published',
+    sumber: 'admin',
+    createdAt: '2026-06-08T08:30:00Z'
+  },
+  {
+    id: 'low_magang7',
+    mitraId: 'mtr1',
+    createdBy: 'usr_mitra1',
+    judul: 'Network & IT Support Intern',
+    tipe: 'magang',
+    namaInstansi: 'PT Jaringan Nusantara Kendari',
+    lokasi: 'Kendari (On-site)',
+    kategori: 'TI / Infrastruktur Jaringan',
+    gaji: 'Uang Saku',
+    deskripsi: 'Membantu tim IT dalam instalasi, konfigurasi, dan troubleshooting jaringan komputer serta perangkat server perusahaan.',
+    kualifikasi: ['Mahasiswa Teknik Informatika / Teknik Komputer semester 5+', 'Memahami TCP/IP, LAN, dan konfigurasi router/switch', 'Familiar dengan OS Linux dasar'],
+    keahlian: ['Networking', 'TCP/IP', 'Linux', 'Troubleshooting'],
+    benefit: ['Uang saku bulanan', 'Sertifikat magang', 'Peluang rekrutmen setelah lulus'],
+    kuota: 3,
+    deadline: '2026-09-15',
+    status: 'published',
+    sumber: 'admin',
+    createdAt: '2026-06-10T09:00:00Z'
+  },
+  {
+    id: 'low_magang8',
+    mitraId: 'mtr1',
+    createdBy: 'usr_mitra1',
+    judul: 'Accounting & Finance Intern',
+    tipe: 'magang',
+    namaInstansi: 'KAP Sultra & Rekan',
+    lokasi: 'Kendari (On-site)',
+    kategori: 'Keuangan & Akuntansi',
+    gaji: 'Uang Saku',
+    deskripsi: 'Membantu proses audit internal, pencatatan jurnal keuangan, dan penyusunan laporan keuangan bulanan.',
+    kualifikasi: ['Mahasiswa Akuntansi / Manajemen Keuangan semester 6+', 'Memahami dasar akuntansi & perpajakan', 'Mampu mengoperasikan spreadsheet & software akuntansi'],
+    keahlian: ['Akuntansi', 'Perpajakan', 'Microsoft Excel', 'Laporan Keuangan'],
+    benefit: ['Uang saku bulanan', 'Sertifikat magang', 'Pengalaman audit profesional'],
+    kuota: 2,
+    deadline: '2026-09-20',
+    status: 'published',
+    sumber: 'admin',
+    createdAt: '2026-06-12T10:00:00Z'
+  },
+  {
+    id: 'low_magang9',
+    mitraId: 'mtr1',
+    createdBy: 'usr_mitra1',
+    judul: 'Human Resource Intern',
+    tipe: 'magang',
+    namaInstansi: 'PT Sumber Daya Sultra',
+    lokasi: 'Kendari (Hybrid)',
+    kategori: 'SDM & Personalia',
+    gaji: 'Uang Saku',
+    deskripsi: 'Membantu proses rekrutmen, administrasi kepegawaian, dan pelaksanaan program pengembangan karyawan.',
+    kualifikasi: ['Mahasiswa Manajemen SDM / Psikologi / Hukum semester 5+', 'Komunikatif dan detail-oriented', 'Mampu mengoperasikan Microsoft Office'],
+    keahlian: ['Rekrutmen', 'Administrasi', 'Microsoft Office', 'Komunikasi'],
+    benefit: ['Uang saku bulanan', 'Sertifikat magang', 'Networking profesional HR'],
+    kuota: 2,
+    deadline: '2026-09-25',
+    status: 'published',
+    sumber: 'admin',
+    createdAt: '2026-06-15T08:00:00Z'
   },
   {
     id: 'low3',
@@ -1836,7 +1977,8 @@ export type DBKey =
   | 'mou_stakeholder'
   | 'galeri_items'
   | 'social_media'
-  | 'komentar_berita';
+  | 'komentar_berita'
+  | 'statistik_config';
 
 const DEFAULT_SEEDS = {
   users: SEED_USERS,
@@ -1864,6 +2006,7 @@ const MEMORY_DB: Record<string, any[]> = { ...DEFAULT_SEEDS };
 let _dbInitialized = false;
 
 // Async initializer yang memuat seluruh data live dari Supabase PostgreSQL Database
+// dengan fallback ke localStorage jika Supabase gagal
 export async function initializeDB(): Promise<void> {
   try {
     const liveData = await fetchInitialDatabaseFromSupabase();
@@ -1876,7 +2019,23 @@ export async function initializeDB(): Promise<void> {
       console.log('⚡ [Portal Data Engine] Storage dialihkan 100% ke Supabase PostgreSQL Database!');
     }
   } catch (err) {
-    console.warn('[DB Init Exception] Falling back to default memory seeds:', err);
+    console.warn('[DB Init Exception] Falling back to localStorage:', err);
+    // Fallback: gunakan localStorage dengan versioning
+    const CURRENT_SEED_VERSION = 'v17_magang_dummy_7';
+    if (localStorage.getItem('cdc_seed_version') !== CURRENT_SEED_VERSION) {
+      Object.entries(DEFAULT_SEEDS).forEach(([key, val]) => {
+        const storageKey = `cdc_umk_${key}`;
+        localStorage.setItem(storageKey, JSON.stringify(val));
+      });
+      localStorage.setItem('cdc_seed_version', CURRENT_SEED_VERSION);
+    } else {
+      Object.entries(DEFAULT_SEEDS).forEach(([key, val]) => {
+        const storageKey = `cdc_umk_${key}`;
+        if (!localStorage.getItem(storageKey)) {
+          localStorage.setItem(storageKey, JSON.stringify(val));
+        }
+      });
+    }
   } finally {
     _dbInitialized = true;
   }
@@ -1978,7 +2137,8 @@ export interface RegisterAlumniPayload {
   programStudi: string;
   fakultas: string;
   tahunLulus: string;
-  statusPekerjaan?: 'bekerja' | 'wirausaha' | 'lanjut_studi' | 'belum_bekerja';
+  userStatusType?: 'Mahasiswa' | 'Alumni';
+  statusPekerjaan?: 'bekerja' | 'wirausaha' | 'lanjut_studi' | 'belum_bekerja' | 'mahasiswa_aktif';
 }
 
 export interface RegisterMitraPayload {
@@ -2016,6 +2176,7 @@ export function registerUser(
     password: payload.password || 'password',
     phone: payload.phone || '',
     role: role === 'alumni' ? 'user' : 'mitra',
+    userStatusType: role === 'alumni' ? ((payload as RegisterAlumniPayload).userStatusType || 'Mahasiswa') : undefined,
     status: 'active', // Active by default so testing is smooth and immediate
     photoUrl: role === 'alumni'
       ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop'
@@ -2037,7 +2198,7 @@ export function registerUser(
       programStudi: almPayload.programStudi,
       fakultas: almPayload.fakultas,
       tahunLulus: almPayload.tahunLulus,
-      statusPekerjaan: almPayload.statusPekerjaan || 'belum_bekerja'
+      statusPekerjaan: almPayload.statusPekerjaan || (almPayload.userStatusType === 'Mahasiswa' ? 'mahasiswa_aktif' : 'belum_bekerja')
     };
     insertToDB<Alumni>('alumni', newAlumni);
 
@@ -2053,8 +2214,8 @@ export function registerUser(
       programStudi: almPayload.programStudi,
       angkatan: almPayload.tahunLulus,
       graduationYear: almPayload.tahunLulus,
-      semester: 8,
-      userStatusType: 'Alumni',
+      semester: almPayload.userStatusType === 'Mahasiswa' ? 6 : 8,
+      userStatusType: almPayload.userStatusType || 'Mahasiswa',
       alamat: '',
       photoUrl: newUser.photoUrl,
       aboutMe: '',
@@ -3132,6 +3293,41 @@ export function getGaleriItems(): GaleriItem[] {
 export function saveGaleriItems(items: GaleriItem[]): void {
   localStorage.setItem('cdc_umk_galeri_items', JSON.stringify(items));
 }
+
+/* ─────────────────────────────────────────────────────────────────
+   STATISTIK BERANDA CONFIG HELPERS (Alumni & Mitra Perusahaan)
+───────────────────────────────────────────────────────────────── */
+export const DEFAULT_STATISTIK_CONFIG: StatistikConfig = {
+  id: 'cfg_statistik',
+  jumlahAlumni: '20.000+',
+  jumlahMitra: '10',
+  updatedAt: new Date().toISOString()
+};
+
+export function getStatistikConfig(): StatistikConfig {
+  const saved = localStorage.getItem('cdc_umk_statistik_config');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed && typeof parsed === 'object' && parsed.jumlahAlumni && parsed.jumlahMitra) {
+        return parsed;
+      }
+    } catch { }
+  }
+  return DEFAULT_STATISTIK_CONFIG;
+}
+
+export function saveStatistikConfig(config: Partial<StatistikConfig>): StatistikConfig {
+  const current = getStatistikConfig();
+  const updated: StatistikConfig = {
+    ...current,
+    ...config,
+    updatedAt: new Date().toISOString()
+  };
+  localStorage.setItem('cdc_umk_statistik_config', JSON.stringify(updated));
+  return updated;
+}
+
 
 
 

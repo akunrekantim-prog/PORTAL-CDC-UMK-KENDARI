@@ -5,9 +5,14 @@ import {
   Clock,
   User,
   Facebook,
-  MessageCircle,
   Linkedin,
-  CheckCircle
+  CheckCircle,
+  Building2,
+  Mic,
+  MapPin,
+  Users,
+  ExternalLink,
+  Calendar
 } from 'lucide-react';
 import { EventLayananItem } from '../../types';
 import { renderContentMarkdown } from '../../markdown';
@@ -203,6 +208,88 @@ export default function EventDetailView({
               </div>
             )}
 
+            {/* EVENT DETAILS INFORMATION PANEL & REGISTRATION BOX */}
+            <div className="bg-gradient-to-br from-slate-50 via-blue-50/40 to-slate-100 border border-slate-200/90 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xs">
+              {/* Status Header Badge */}
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 pb-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Status Event:</span>
+                  {event.status === 'buka' && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      Pendaftaran Dibuka
+                    </span>
+                  )}
+                  {event.status === 'segera' && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-800 border border-amber-300">
+                      <Clock className="w-3.5 h-3.5 text-amber-600" />
+                      Segera Dibuka
+                    </span>
+                  )}
+                  {event.status === 'selesai' && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-slate-200 text-slate-700 border border-slate-300">
+                      Kegiatan Selesai
+                    </span>
+                  )}
+                </div>
+
+                {event.quota != null && (
+                  <div className="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
+                    <Users className="w-4 h-4 text-blue-600" />
+                    <span>Kuota Peserta: <strong>{event.registeredCount || 0} / {event.quota} Terdaftar</strong></span>
+                  </div>
+                )}
+              </div>
+
+              {/* Grid Information Items */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs sm:text-sm">
+                {event.organizer && (
+                  <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1">
+                    <div className="text-xs font-bold text-slate-400 flex items-center gap-1.5 uppercase tracking-wider">
+                      <Building2 className="w-4 h-4 text-blue-600" /> Penyelenggara
+                    </div>
+                    <div className="font-extrabold text-slate-900 leading-snug">{event.organizer}</div>
+                  </div>
+                )}
+
+                {event.speaker && (
+                  <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1">
+                    <div className="text-xs font-bold text-slate-400 flex items-center gap-1.5 uppercase tracking-wider">
+                      <Mic className="w-4 h-4 text-amber-500" /> Pembicara / Narasumber
+                    </div>
+                    <div className="font-extrabold text-slate-900 leading-snug">{event.speaker}</div>
+                  </div>
+                )}
+
+                {event.location && (
+                  <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1">
+                    <div className="text-xs font-bold text-slate-400 flex items-center gap-1.5 uppercase tracking-wider">
+                      <MapPin className="w-4 h-4 text-rose-500" /> Lokasi Kegiatan
+                    </div>
+                    <div className="font-extrabold text-slate-900 leading-snug">{event.location}</div>
+                  </div>
+                )}
+              </div>
+
+              {/* Registration Action Button (CTA) */}
+              {event.registrationLink && event.status !== 'selesai' && (
+                <div className="pt-2 border-t border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="text-xs text-slate-500">
+                    Klik tombol di samping untuk langsung membuka formulir pendaftaran peserta.
+                  </div>
+                  <a
+                    href={event.registrationLink}
+                    target={event.registrationLink.startsWith('http') ? '_blank' : undefined}
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 bg-[#0077C6] hover:bg-[#1E3A8A] text-white font-extrabold text-xs sm:text-sm px-6 py-3.5 rounded-2xl shadow-md transition-all hover:scale-[1.02] cursor-pointer"
+                  >
+                    <span>Daftar Kegiatan Sekarang</span>
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+                </div>
+              )}
+            </div>
+
             {/* ARTICLE BODY */}
             <div className="prose prose-slate max-w-none text-slate-700 text-sm sm:text-base leading-relaxed space-y-6 pt-2">
               <div className="space-y-4 text-slate-700 leading-relaxed font-normal">
@@ -259,3 +346,4 @@ export default function EventDetailView({
     </div>
   );
 }
+

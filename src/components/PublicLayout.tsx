@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 
 import { Lowongan, Berita, Pengumuman, KontenKarir, CdcClubConfig, HelpdeskConfig } from '../types';
-import { sortJobsByNewest, formatDateDisplay, isJobDeadlinePassed, getFromDB, trackAndGetVisitorCount, getAdminWaPrestasi, getVisiMisiConfig, getCdcClubConfig, getHelpdeskConfig } from '../data';
+import { sortJobsByNewest, formatDateDisplay, isJobDeadlinePassed, getFromDB, trackAndGetVisitorCount, getAdminWaPrestasi, getVisiMisiConfig, getCdcClubConfig, getHelpdeskConfig, getStatistikConfig } from '../data';
 import { motion, AnimatePresence } from 'motion/react';
 import Header from './Header';
 import { Footer } from './Footer';
@@ -46,7 +46,7 @@ import {
   getCompanyInitials
 } from './JobSearchMasterDetail';
 import Dropdown from './Dropdown';
-import SocialShareBar from './ui/SocialShareBar';
+import SocialShareBar, { WhatsAppWaIcon } from './ui/SocialShareBar';
 import { stripHtmlTags } from '../markdown';
 
 /* ─── Types ─────────────────────────────────── */
@@ -104,12 +104,15 @@ const CRED_BADGES = [
 const START_YEAR_CDC = 2016; // Tahun acuan dasar CDC (2026 -> 10+, 2027 -> 11+, dst)
 const expYears = Math.max(10, new Date().getFullYear() - START_YEAR_CDC);
 
-const STATS = [
-  { value: '20.000+', label: 'Alumni' },
-  { value: '10', label: 'Mitra Perusahaan' },
-  { value: trackAndGetVisitorCount(), label: 'Total Pengunjung' },
-  { value: `${expYears}+`, label: 'Tahun Pengalaman' },
-];
+const getStatsList = () => {
+  const cfg = getStatistikConfig();
+  return [
+    { value: cfg.jumlahAlumni || '20.000+', label: 'Alumni' },
+    { value: cfg.jumlahMitra || '10', label: 'Mitra Perusahaan' },
+    { value: trackAndGetVisitorCount(), label: 'Total Pengunjung' },
+    { value: `${expYears}+`, label: 'Tahun Pengalaman' },
+  ];
+};
 
 /* ─── Helper Animasi Counter Angka Beranda ─────────────────── */
 function parseStatValue(raw: string) {
@@ -480,7 +483,7 @@ export default function PublicLayout({
             <div className="bg-[#1E3A8A] py-7">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8
                               grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
-                {STATS.map(({ value, label }) => (
+                {getStatsList().map(({ value, label }) => (
                   <div key={label} className="space-y-1">
                     <div className="text-3xl sm:text-4xl font-extrabold text-[#10B981]">
                       <AnimatedCounterStat rawValue={value} />
@@ -667,8 +670,8 @@ export default function PublicLayout({
                                 </div>
                               </div>
                             ) : (
-                              /* Company Logo Container (Khusus Input Mitra: Style Original contain p-4) */
-                              <div className="w-full h-44 relative overflow-hidden bg-slate-50 flex items-center justify-center p-4 border-b border-slate-100">
+                              /* Company Logo Container (Background Putih Bersih) */
+                              <div className="w-full h-44 relative overflow-hidden bg-white flex items-center justify-center p-3 border-b border-slate-100">
                                 {item.companyLogo ? (
                                   <img
                                     src={item.companyLogo}
@@ -1732,8 +1735,8 @@ export default function PublicLayout({
                               </div>
                             </div>
                           ) : (
-                            /* Company Logo Container (Khusus Input Mitra) */
-                            <div className="w-full h-44 relative overflow-hidden bg-slate-50 flex items-center justify-center p-4 border-b border-slate-100">
+                            /* Company Logo Container (Background Putih Bersih) */
+                            <div className="w-full h-44 relative overflow-hidden bg-white flex items-center justify-center p-3 border-b border-slate-100">
                               {hasLogo ? (
                                 <img
                                   src={item.companyLogo}
@@ -2352,35 +2355,7 @@ export default function PublicLayout({
         </div>
       )}
 
-      {/* ══════════════════════════════════════════
-          FLOATING WHATSAPP CHAT BUTTON (PUBLIC)
-      ══════════════════════════════════════════ */}
-      {(() => {
-        const hConfig = getHelpdeskConfig();
-        if (hConfig.isFloatingActive === false) return null;
-        const cleanWa = (hConfig.whatsappNumber || '0852-4100-9988').replace(/\D/g, '').replace(/^0/, '62');
-        const defaultMsg = hConfig.defaultMessage || 'Halo Admin CDC UM Kendari, saya ingin bertanya mengenai...';
-        const waUrl = `https://wa.me/${cleanWa}?text=${encodeURIComponent(defaultMsg)}`;
 
-        return (
-          <div className="fixed bottom-6 right-6 z-40 flex items-center gap-2 group animate-fade-in">
-            <div className="hidden sm:flex items-center bg-slate-900 text-white px-3.5 py-2 rounded-2xl shadow-xl text-xs font-bold border border-slate-800 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-300 -translate-x-2 group-hover:translate-x-0">
-              <span>Chat WhatsApp CDC UMK</span>
-            </div>
-            <a
-              href={waUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-14 h-14 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center shadow-2xl transition-all duration-300 hover:scale-110 border-2 border-white relative group cursor-pointer"
-              title="Hubungi Admin CDC via WhatsApp"
-            >
-              <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-400 rounded-full animate-ping" />
-              <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-400 rounded-full border-2 border-white" />
-              <MessageCircle className="w-7 h-7 text-white" />
-            </a>
-          </div>
-        );
-      })()}
 
       {/* ══════════════════════════════════════════
           FOOTER
