@@ -11,7 +11,19 @@ dotenv.config();
 const app = express();
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 5000;
-const JWT_SECRET = process.env.JWT_SECRET || 'CHANGE_THIS_IN_PRODUCTION_' + Math.random().toString(36);
+
+// SECURITY: JWT_SECRET MUST be set in production with cryptographically secure random string
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'CRITICAL: JWT_SECRET must be set in .env for production. ' +
+      'Generate with: node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"'
+    );
+  }
+  // Development fallback only - NOT for production
+  console.warn('⚠️  WARNING: Using fallback JWT_SECRET for DEVELOPMENT ONLY. Set JWT_SECRET in .env!');
+}
 
 // Security: Helmet headers
 app.use(helmet({
@@ -223,18 +235,40 @@ app.post('/api/login', loginLimiter, async (req, res) => {
 });
 
 // GET all items from table
+// SECURITY: Whitelist allowed tables to prevent SQL injection
+const ALLOWED_TABLES = [
+  'users', 'mahasiswa', 'alumni', 'mitra', 'lowongan', 
+  'pengajuanMagang', 'tracerStudy', 'kontenKarir', 'berita',
+  'pengumuman', 'suratKeputusan', 'kalenderKegiatan', 
+  'laporanKinerja', 'mouStakeholder', 'galeriItem',
+  'heroSlide', 'visiMisiConfig', 'anggotaTim', 'socialMediaItem'
+];
+
 app.get('/api/:table', async (req, res) => {
   const { table } = req.params;
+  
+  // SECURITY: Validate table name against whitelist
+  if (!ALLOWED_TABLES.includes(table)) {
+    return res.status(400).json({ 
+      error: 'Invalid table name',
+      allowedTables: ALLOWED_TABLES 
+    });
+  }
+  
   try {
     const modelName = table.charAt(0).toLowerCase() + table.slice(1);
     if (prisma[modelName]) {
       const data = await prisma[modelName].findMany();
       return res.json(data);
     }
-    const rawData = await prisma.$queryRawUnsafe(`SELECT * FROM "${table}"`);
+    
+    // Use parameterized query with validated table name
+    const rawData = await prisma.$queryRaw`SELECT * FROM ${table}`;
     res.json(rawData);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    // Don't leak error details in production
+    console.error('[API Error]:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 

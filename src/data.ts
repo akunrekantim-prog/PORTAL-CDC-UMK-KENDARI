@@ -130,7 +130,7 @@ export const SEED_USERS: User[] = [
     id: 'usr_admin',
     name: 'Operator CDC UM Kendari',
     email: 'admin@umkendari.ac.id',
-    password: 'password',
+    password: '', // SECURITY: Set via seed script with bcrypt - see SEED_PASSWORDS_README.md
     phone: '081234567890',
     role: 'admin',
     status: 'active',
@@ -141,7 +141,7 @@ export const SEED_USERS: User[] = [
     id: 'usr_mhs1',
     name: 'Muhammad Fadly Alamsyah',
     email: 'mhs@umkendari.ac.id',
-    password: 'password',
+    password: '', // SECURITY: Set via seed script with bcrypt - see SEED_PASSWORDS_README.md
     phone: '085241009988',
     role: 'user',
     status: 'active',
@@ -152,7 +152,7 @@ export const SEED_USERS: User[] = [
     id: 'usr_mhs2',
     name: 'Siti Rahmawati',
     email: 'rahma@umkendari.ac.id',
-    password: 'password',
+    password: '', // SECURITY: Set via seed script with bcrypt - see SEED_PASSWORDS_README.md
     phone: '082199008811',
     role: 'user',
     status: 'pending',
@@ -163,7 +163,7 @@ export const SEED_USERS: User[] = [
     id: 'usr_alumni1',
     name: 'Fachrul Alam Prasetyo, S.Kom.',
     email: 'alumni@umkendari.ac.id',
-    password: 'password',
+    password: '', // SECURITY: Set via seed script with bcrypt - see SEED_PASSWORDS_README.md
     phone: '081122334455',
     role: 'user',
     status: 'active',
@@ -174,7 +174,7 @@ export const SEED_USERS: User[] = [
     id: 'usr_alumni2',
     name: 'Andi Megawati, S.E.',
     email: 'mega@umkendari.ac.id',
-    password: 'password',
+    password: '', // SECURITY: Set via seed script with bcrypt - see SEED_PASSWORDS_README.md
     phone: '085311223344',
     role: 'user',
     status: 'active',
@@ -185,7 +185,7 @@ export const SEED_USERS: User[] = [
     id: 'usr_mitra1',
     name: 'Budi Setiawan (HRD PT Go Digital)',
     email: 'mitra@umkendari.ac.id',
-    password: 'password',
+    password: '', // SECURITY: Set via seed script with bcrypt - see SEED_PASSWORDS_README.md
     phone: '081299998888',
     role: 'mitra',
     status: 'active',
@@ -196,7 +196,7 @@ export const SEED_USERS: User[] = [
     id: 'usr_mitra2',
     name: 'Suhartono (Bank Syariah Indonesia Kendari)',
     email: 'bsi@umkendari.ac.id',
-    password: 'password',
+    password: '', // SECURITY: Set via seed script with bcrypt - see SEED_PASSWORDS_README.md
     phone: '081377776666',
     role: 'mitra',
     status: 'pending',
@@ -207,7 +207,7 @@ export const SEED_USERS: User[] = [
     id: 'usr_viewer',
     name: 'Dr. H. Ruslan, M.Si.',
     email: 'viewer@umkendari.ac.id',
-    password: 'password',
+    password: '', // SECURITY: Set via seed script with bcrypt - see SEED_PASSWORDS_README.md
     phone: '081144455566',
     role: 'user',
     status: 'active',
