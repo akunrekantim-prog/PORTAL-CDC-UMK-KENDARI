@@ -22,6 +22,7 @@ interface ShareableDetailPageProps {
   title: string;
   categoryLabel: string;
   imageUrl?: string;
+  posterAspect?: '16:9' | '9:16';
   metaItems: React.ReactNode[];
   onBack: () => void;
   children?: React.ReactNode;
@@ -33,6 +34,7 @@ export default function ShareableDetailPage({
   title,
   categoryLabel,
   imageUrl,
+  posterAspect = '16:9',
   metaItems,
   onBack,
   children
@@ -177,11 +179,15 @@ export default function ShareableDetailPage({
 
             {/* FEATURED MAIN COVER IMAGE / POSTER */}
             {imageUrl && (
-              <div className="w-full aspect-[16/9] sm:aspect-[21/9] rounded-2xl overflow-hidden border border-slate-200/80 bg-slate-900 shadow-sm relative">
+              <div className={`w-full rounded-2xl overflow-hidden border border-slate-200/80 bg-slate-950 shadow-sm relative flex items-center justify-center ${
+                posterAspect === '9:16'
+                  ? 'max-w-md mx-auto aspect-[9/16] my-4'
+                  : 'aspect-[16/9] sm:aspect-[21/9]'
+              }`}>
                 <img
                   src={imageUrl}
                   alt={title}
-                  className="w-full h-full object-cover"
+                  className={`w-full h-full ${posterAspect === '9:16' ? 'object-contain' : 'object-cover'}`}
                 />
               </div>
             )}

@@ -101,6 +101,7 @@ export default function CampusHiring() {
           title={selectedEvent.judul}
           categoryLabel="Campus Hiring - Recruitment"
           imageUrl={selectedEvent.bannerUrl || selectedEvent.logoPerusahaan || '/poster-cdc-web-umk-1.svg'}
+          posterAspect={selectedEvent.posterAspect || '16:9'}
           onBack={handleBackToList}
           metaItems={[]}
         >
@@ -158,13 +159,13 @@ export default function CampusHiring() {
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleOpenEventDetail(event); } }}
                 className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md hover:border-slate-300 transition-all flex flex-col h-full cursor-pointer"
               >
-                {/* Thumbnail / Logo Perusahaan */}
-                <div className="relative aspect-[16/9] bg-slate-100 overflow-hidden border-b border-slate-100">
+                {/* Thumbnail / Poster (Selalu 16:9 di tampilan daftar, 9:16 tampil penuh di detail saat diklik) */}
+                <div className="relative overflow-hidden border-b border-slate-100 bg-slate-950 flex items-center justify-center aspect-[16/9]">
                   {event.bannerUrl || event.logoPerusahaan ? (
                     <img
                       src={event.bannerUrl || event.logoPerusahaan}
                       alt={event.judul}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
                       loading="lazy"
                     />
                   ) : (

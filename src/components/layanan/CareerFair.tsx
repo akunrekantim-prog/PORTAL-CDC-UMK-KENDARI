@@ -84,6 +84,7 @@ export default function CareerFair() {
           title={selectedFair.judul}
           categoryLabel="Job Fair"
           imageUrl={selectedFair.bannerUrl || '/poster-cdc-web-umk-2.svg'}
+          posterAspect={selectedFair.posterAspect || '16:9'}
           onBack={handleBackToList}
           metaItems={[]}
         >
@@ -141,12 +142,12 @@ export default function CareerFair() {
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleOpenFairDetail(fair); } }}
                 className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md hover:border-slate-300 transition-all flex flex-col h-full cursor-pointer"
               >
-                {/* Thumbnail / Poster */}
-                <div className="relative aspect-[16/9] bg-slate-100 overflow-hidden border-b border-slate-100">
+                {/* Thumbnail / Poster (Selalu 16:9 di tampilan daftar, 9:16 tampil penuh di detail saat diklik) */}
+                <div className="relative overflow-hidden border-b border-slate-100 bg-slate-950 flex items-center justify-center aspect-[16/9]">
                   <img
                     src={fair.bannerUrl || '/poster-cdc-web-umk-2.svg'}
                     alt={fair.judul}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
                     loading="lazy"
                   />
                 </div>

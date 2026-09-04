@@ -153,6 +153,7 @@ import {
   Menu,
   CheckCircle,
   Command,
+  Ticket,
   ArrowUpRight,
   Zap,
   Sliders,
@@ -177,7 +178,9 @@ const JENIS_LABEL: Record<JenisKonten, string> = {
   workshop: 'Workshop & Pelatihan Karir',
   softskill: 'Pelatihan Softskill & Kewirausahaan',
   seminar: 'Seminar Sukses Berkarir',
-  presentasi: 'Prestasi'
+  presentasi: 'Prestasi',
+  job_fair: 'Job Fair & Expo',
+  campus_hiring: 'Campus Hiring'
 };
 
 const JENIS_ICON: Record<JenisKonten, React.ReactNode> = {
@@ -188,7 +191,9 @@ const JENIS_ICON: Record<JenisKonten, React.ReactNode> = {
   workshop: <GraduationCap className="w-4 h-4" />,
   softskill: <Award className="w-4 h-4" />,
   seminar: <GraduationCap className="w-4 h-4" />,
-  presentasi: <Trophy className="w-4 h-4" />
+  presentasi: <Trophy className="w-4 h-4" />,
+  job_fair: <Ticket className="w-4 h-4" />,
+  campus_hiring: <Building2 className="w-4 h-4" />
 };
 
 // Rasio thumbnail wajib per jenis
@@ -200,7 +205,9 @@ const THUMB_REQUIRED: Record<JenisKonten, boolean> = {
   workshop: true,   // poster pamflet kegiatan
   softskill: true,  // poster pamflet kegiatan
   seminar: true,    // poster pamflet kegiatan
-  presentasi: true   // wajib upload poster/dokumentasi
+  presentasi: true,  // wajib upload poster/dokumentasi
+  job_fair: true,   // poster job fair (16:9 / 9:16)
+  campus_hiring: true // poster campus hiring (16:9 / 9:16)
 };
 
 const CATEGORY_DESCS: Record<JenisKonten, string> = {
@@ -211,7 +218,9 @@ const CATEGORY_DESCS: Record<JenisKonten, string> = {
   workshop: 'Workshop pengembangan keterampilan teknis & persiapan karir.',
   softskill: 'Pelatihan karakter, pembinaan softskill, & kewirausahaan.',
   seminar: 'Seminar nasional, talkshow karir, & webinar alumni.',
-  presentasi: 'Publikasi piagam & pencapaian prestasi mahasiswa/alumni.'
+  presentasi: 'Publikasi piagam & pencapaian prestasi mahasiswa/alumni.',
+  job_fair: 'Upload poster event Bursa Kerja Akbar (Job Fair & Expo).',
+  campus_hiring: 'Upload poster rekrutmen & wawancara langsung (Campus Hiring).'
 };
 
 const formatTanggal = (iso?: string) =>
@@ -443,11 +452,13 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const [chPerusahaan, setChPerusahaan] = useState('');
   const [chLogoUrl, setChLogoUrl] = useState('');
   const [chBannerUrl, setChBannerUrl] = useState('');
+  const [chPosterAspect, setChPosterAspect] = useState<'16:9' | '9:16'>('16:9');
   const [chTanggal, setChTanggal] = useState('');
   const [chWaktu, setChWaktu] = useState('08:30 - 15:00 WITA');
   const [chLokasi, setChLokasi] = useState('Aula Gedung Rektorat Lt. 2 UM Kendari');
   const [chTipe, setChTipe] = useState<'on-campus' | 'virtual'>('on-campus');
   const [chLinkVirtual, setChLinkVirtual] = useState('');
+  const [chLinkDaftar, setChLinkDaftar] = useState('');
   const [chPosisiStr, setChPosisiStr] = useState('');
   const [chSyaratStr, setChSyaratStr] = useState('');
   const [chKuota, setChKuota] = useState('100');
@@ -461,6 +472,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const [jfJudul, setJfJudul] = useState('');
   const [jfTagline, setJfTagline] = useState('');
   const [jfBannerUrl, setJfBannerUrl] = useState('');
+  const [jfPosterAspect, setJfPosterAspect] = useState<'16:9' | '9:16'>('16:9');
   const [jfTglMulai, setJfTglMulai] = useState('');
   const [jfTglSelesai, setJfTglSelesai] = useState('');
   const [jfWaktu, setJfWaktu] = useState('08:00 - 16:00 WITA');
@@ -1169,6 +1181,14 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       openLowonganForm();
       return;
     }
+    if (jenis === 'job_fair' || (item && item.jenis === 'job_fair')) {
+      openJfModal();
+      return;
+    }
+    if (jenis === 'campus_hiring' || (item && item.jenis === 'campus_hiring')) {
+      openChModal();
+      return;
+    }
     if (item) {
       setEditId(item.id);
       setEJenis(item.jenis);
@@ -1851,6 +1871,278 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
 
   const formatInline = (text: string) => renderInline(text);
 
+  // ===== CAMPUS HIRING HELPERS =====
+  const openChModal = (item?: CampusHiringItem) => {
+    if (item) {
+      setEditChId(item.id);
+      setChJudul(item.judul);
+      setChPerusahaan(item.namaPerusahaan);
+      setChLogoUrl(item.logoPerusahaan || '');
+      setChBannerUrl(item.bannerUrl || '');
+      setChPosterAspect(item.posterAspect || '16:9');
+      setChTanggal(item.tanggal || '');
+      setChWaktu(item.waktu || '08:30 - 15:00 WITA');
+      setChLokasi(item.lokasi || 'Aula Gedung Rektorat Lt. 2 UM Kendari');
+      setChTipe(item.tipe || 'on-campus');
+      setChLinkVirtual(item.linkVirtual || '');
+      setChLinkDaftar(item.linkVirtual || '');
+      setChPosisiStr((item.posisiBuka || []).join(', '));
+      setChSyaratStr((item.persyaratan || []).join('\n'));
+      setChKuota(String(item.kuota || 100));
+      setChDeskripsi(item.deskripsi || '');
+      setChStatus(item.status || 'buka');
+    } else {
+      setEditChId(null);
+      setChJudul('');
+      setChPerusahaan('');
+      setChLogoUrl('');
+      setChBannerUrl('');
+      setChPosterAspect('16:9');
+      setChTanggal('');
+      setChWaktu('08:30 - 15:00 WITA');
+      setChLokasi('Aula Gedung Rektorat Lt. 2 UM Kendari');
+      setChTipe('on-campus');
+      setChLinkVirtual('');
+      setChLinkDaftar('');
+      setChPosisiStr('');
+      setChSyaratStr('');
+      setChKuota('100');
+      setChDeskripsi('');
+      setChStatus('buka');
+    }
+    setShowChForm(true);
+    setKontenSub('pembuatan');
+  };
+
+  const handleSaveCh = (e: React.FormEvent) => {
+    e.preventDefault();
+    const posterUrl = chBannerUrl.trim() || chLogoUrl.trim();
+    if (!posterUrl) {
+      triggerToast('error', 'Poster (Gambar) Campus Hiring wajib diunggah atau diisi URL-nya.');
+      return;
+    }
+
+    let currentList = getCampusHiring();
+    const now = new Date().toISOString();
+    const posArray = chPosisiStr.split(',').map((s) => s.trim()).filter(Boolean);
+    const reqArray = chSyaratStr.split('\n').map((s) => s.trim()).filter(Boolean);
+    const finalLink = chLinkDaftar.trim() || chLinkVirtual.trim() || undefined;
+
+    const finalJudul = chJudul.trim() || 'Agenda Campus Hiring CDC UM Kendari';
+    const finalPerusahaan = chPerusahaan.trim() || 'Mitra Perusahaan CDC';
+    const finalTanggal = chTanggal.trim() || formatTanggal(now);
+
+    if (editChId) {
+      currentList = currentList.map((item) =>
+        item.id === editChId
+          ? {
+            ...item,
+            judul: finalJudul,
+            namaPerusahaan: finalPerusahaan,
+            logoPerusahaan: chLogoUrl.trim() || undefined,
+            bannerUrl: posterUrl,
+            posterAspect: chPosterAspect,
+            tanggal: finalTanggal,
+            waktu: chWaktu.trim() || '08:30 - 15:00 WITA',
+            lokasi: chLokasi.trim() || 'Aula Gedung Rektorat Lt. 2 UM Kendari',
+            tipe: chTipe,
+            linkVirtual: finalLink,
+            posisiBuka: posArray,
+            persyaratan: reqArray,
+            kuota: Number(chKuota) || 100,
+            deskripsi: chDeskripsi.trim() || undefined,
+            status: chStatus
+          }
+          : item
+      );
+    } else {
+      const newItem: CampusHiringItem = {
+        id: `ch_${Date.now()}`,
+        judul: finalJudul,
+        namaPerusahaan: finalPerusahaan,
+        logoPerusahaan: chLogoUrl.trim() || undefined,
+        bannerUrl: posterUrl,
+        posterAspect: chPosterAspect,
+        tanggal: finalTanggal,
+        waktu: chWaktu.trim() || '08:30 - 15:00 WITA',
+        lokasi: chLokasi.trim() || 'Aula Gedung Rektorat Lt. 2 UM Kendari',
+        tipe: chTipe,
+        linkVirtual: finalLink,
+        posisiBuka: posArray,
+        persyaratan: reqArray,
+        kuota: Number(chKuota) || 100,
+        terdaftarCount: 0,
+        deskripsi: chDeskripsi.trim() || undefined,
+        status: chStatus,
+        createdAt: now
+      };
+      currentList.unshift(newItem);
+    }
+
+    saveCampusHiring(currentList);
+    setCampusHiringItems(currentList);
+    reloadAll();
+    if (onReloadData) onReloadData();
+    setShowChForm(false);
+    setKontenSub('riwayat');
+    triggerToast('success', editChId ? 'Agenda Campus Hiring diperbarui.' : 'Poster Campus Hiring berhasil dipublikasikan.');
+  };
+
+  const handleDeleteCh = (item: CampusHiringItem) => {
+    if (confirm(`Hapus agenda Campus Hiring "${item.judul}"?`)) {
+      const currentList = getCampusHiring().filter((i) => i.id !== item.id);
+      saveCampusHiring(currentList);
+      setCampusHiringItems(currentList);
+      reloadAll();
+      if (onReloadData) onReloadData();
+      triggerToast('success', 'Agenda berhasil dihapus.');
+    }
+  };
+
+  const handleChBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 3 * 1024 * 1024) {
+        triggerToast('error', 'Ukuran file gambar maksimal 3MB.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setChBannerUrl(ev.target?.result as string);
+        triggerToast('success', 'Banner berhasil dimuat.');
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // ===== JOB FAIR HELPERS =====
+  const openJfModal = (item?: JobFairItem) => {
+    if (item) {
+      setEditJfId(item.id);
+      setJfJudul(item.judul);
+      setJfTagline(item.tagline || '');
+      setJfBannerUrl(item.bannerUrl || '');
+      setJfPosterAspect(item.posterAspect || '16:9');
+      setJfTglMulai(item.tanggalMulai || '');
+      setJfTglSelesai(item.tanggalSelesai || '');
+      setJfWaktu(item.waktu || '08:00 - 16:00 WITA');
+      setJfLokasi(item.lokasi || 'Auditorium Utama UM Kendari');
+      setJfHtm(item.htm || 'Gratis Khusus Mahasiswa & Alumni UM Kendari');
+      setJfDeskripsi(item.deskripsi || '');
+      setJfPerusahaanStr((item.perusahaanPeserta || []).map((c) => c.nama).join(', '));
+      setJfStatus(item.status || 'buka');
+    } else {
+      setEditJfId(null);
+      setJfJudul('');
+      setJfTagline('');
+      setJfBannerUrl('');
+      setJfPosterAspect('16:9');
+      setJfTglMulai('');
+      setJfTglSelesai('');
+      setJfWaktu('08:00 - 16:00 WITA');
+      setJfLokasi('Auditorium Utama UM Kendari');
+      setJfHtm('Gratis Khusus Mahasiswa & Alumni UM Kendari');
+      setJfDeskripsi('');
+      setJfPerusahaanStr('');
+      setJfStatus('buka');
+    }
+    setShowJfForm(true);
+    setKontenSub('pembuatan');
+  };
+
+  const handleSaveJf = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!jfBannerUrl.trim()) {
+      triggerToast('error', 'Poster (Gambar) Job Fair wajib diunggah atau diisi URL-nya.');
+      return;
+    }
+
+    let currentList = getJobFair();
+    const now = new Date().toISOString();
+    const compList = jfPerusahaanStr.split(',').map((s, idx) => ({
+      id: `p_${idx}_${Date.now()}`,
+      nama: s.trim()
+    })).filter((c) => c.nama.length > 0);
+
+    const finalJudul = jfJudul.trim() || 'Job Fair & Career Expo CDC UM Kendari';
+    const finalTglMulai = jfTglMulai.trim() || formatTanggal(now);
+
+    if (editJfId) {
+      currentList = currentList.map((item) =>
+        item.id === editJfId
+          ? {
+            ...item,
+            judul: finalJudul,
+            tagline: jfTagline.trim() || undefined,
+            bannerUrl: jfBannerUrl.trim(),
+            posterAspect: jfPosterAspect,
+            tanggalMulai: finalTglMulai,
+            tanggalSelesai: jfTglSelesai.trim() || finalTglMulai,
+            waktu: jfWaktu.trim() || '08:00 - 16:00 WITA',
+            lokasi: jfLokasi.trim() || 'Auditorium Utama UM Kendari',
+            htm: jfHtm.trim() || 'Gratis Khusus Mahasiswa & Alumni UM Kendari',
+            perusahaanPeserta: compList.length > 0 ? compList : item.perusahaanPeserta,
+            deskripsi: jfDeskripsi.trim() || undefined,
+            status: jfStatus
+          }
+          : item
+      );
+    } else {
+      const newItem: JobFairItem = {
+        id: `jf_${Date.now()}`,
+        judul: finalJudul,
+        tagline: jfTagline.trim() || undefined,
+        bannerUrl: jfBannerUrl.trim(),
+        posterAspect: jfPosterAspect,
+        tanggalMulai: finalTglMulai,
+        tanggalSelesai: jfTglSelesai.trim() || finalTglMulai,
+        waktu: jfWaktu.trim() || '08:00 - 16:00 WITA',
+        lokasi: jfLokasi.trim() || 'Auditorium Utama UM Kendari',
+        htm: jfHtm.trim() || 'Gratis Khusus Mahasiswa & Alumni UM Kendari',
+        perusahaanPeserta: compList,
+        deskripsi: jfDeskripsi.trim() || undefined,
+        status: jfStatus,
+        createdAt: now
+      };
+      currentList.unshift(newItem);
+    }
+
+    saveJobFair(currentList);
+    setJobFairItems(currentList);
+    reloadAll();
+    if (onReloadData) onReloadData();
+    setShowJfForm(false);
+    setKontenSub('riwayat');
+    triggerToast('success', editJfId ? 'Job Fair diperbarui.' : 'Poster Job Fair berhasil dipublikasikan.');
+  };
+
+  const handleDeleteJf = (item: JobFairItem) => {
+    if (confirm(`Hapus Job Fair "${item.judul}"?`)) {
+      const currentList = getJobFair().filter((i) => i.id !== item.id);
+      saveJobFair(currentList);
+      setJobFairItems(currentList);
+      reloadAll();
+      if (onReloadData) onReloadData();
+      triggerToast('success', 'Job Fair berhasil dihapus.');
+    }
+  };
+
+  const handleJfBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 3 * 1024 * 1024) {
+        triggerToast('error', 'Ukuran file gambar maksimal 3MB.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setJfBannerUrl(ev.target?.result as string);
+        triggerToast('success', 'Banner berhasil dimuat.');
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   /* =========================================================
    *  LAYOUT
    * =======================================================*/
@@ -2175,13 +2467,15 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
 
                   {/* Right Header Navigation Buttons */}
                   <div className="flex items-center gap-3 shrink-0">
-                    {(kontenSub === 'pembuatan' || editorOpen || showLowonganForm || selectedCategory !== null) && (
+                    {(kontenSub === 'pembuatan' || editorOpen || showLowonganForm || showJfForm || showChForm || selectedCategory !== null) && (
                       <button
                         onClick={() => {
-                          if (kontenSub === 'pembuatan' || editorOpen || showLowonganForm) {
+                          if (kontenSub === 'pembuatan' || editorOpen || showLowonganForm || showJfForm || showChForm) {
                             setKontenSub('riwayat');
                             setEditorOpen(false);
                             setShowLowonganForm(false);
+                            setShowJfForm(false);
+                            setShowChForm(false);
                           } else if (selectedCategory !== null) {
                             setSelectedCategory(null);
                           }
@@ -2198,13 +2492,19 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                 {kontenSub === 'riwayat' && selectedCategory === null && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5" id="adm-konten-kategori-grid">
                     {(Object.keys(JENIS_LABEL) as JenisKonten[]).map((jenis) => {
-                      const count = (konten.filter((k) => k.jenis === jenis).length) + (jenis === 'lowongan' ? adminLowongan.length : 0);
+                      const count = (konten.filter((k) => k.jenis === jenis).length) 
+                        + (jenis === 'lowongan' ? adminLowongan.length : 0)
+                        + (jenis === 'job_fair' ? getJobFair().length : 0)
+                        + (jenis === 'campus_hiring' ? getCampusHiring().length : 0);
                       return (
                         <button
                           key={jenis}
                           onClick={() => {
                             setSelectedCategory(jenis);
                             setKontenJenisFilter(jenis);
+                            setKontenSub('riwayat');
+                            setShowJfForm(false);
+                            setShowChForm(false);
                           }}
                           className="text-left bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs hover:shadow-xl hover:border-blue-400/80 hover:-translate-y-1 transition-all duration-200 cursor-pointer flex flex-col justify-between space-y-4 group relative overflow-hidden"
                         >
@@ -2677,6 +2977,94 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                       </div>
                     )}
 
+                    {/* List Job Fair jika Kategori Job Fair */}
+                    {selectedCategory === 'job_fair' && (() => {
+                      const jfList = getJobFair().filter(item => !kontenQuery || item.judul.toLowerCase().includes(kontenQuery.toLowerCase()));
+                      return (
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between px-1">
+                            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Postingan Job Fair &amp; Expo ({jfList.length})</span>
+                          </div>
+                          {jfList.length === 0 ? (
+                            <div className="bg-white rounded-3xl p-10 text-center border border-slate-200/80 space-y-2">
+                              <Ticket className="w-10 h-10 text-emerald-600 mx-auto" />
+                              <h4 className="text-sm font-bold text-slate-800">Belum ada poster Job Fair</h4>
+                              <p className="text-xs text-slate-500">Klik tombol (+) di sudut kanan bawah untuk membuat poster Job Fair baru.</p>
+                            </div>
+                          ) : (
+                            jfList.map((item) => (
+                              <div key={item.id} className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex items-center gap-4">
+                                {item.bannerUrl ? (
+                                  <button onClick={() => setZoomImage(item.bannerUrl!)} className="flex-shrink-0 relative group">
+                                    <img src={item.bannerUrl} alt="" className={`w-20 object-cover rounded-xl bg-slate-950 ${item.posterAspect === '9:16' ? 'h-28 object-contain' : 'h-14 object-cover'}`} />
+                                    <span className="absolute inset-0 bg-black/0 group-hover:bg-black/30 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition"><ZoomIn className="w-5 h-5 text-white" /></span>
+                                  </button>
+                                ) : (
+                                  <div className="w-20 h-14 flex-shrink-0 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600"><Ticket className="w-5 h-5" /></div>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-0.5">
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Job Fair</span>
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">Rasio: {item.posterAspect || '16:9'}</span>
+                                  </div>
+                                  <div className="font-bold text-slate-800 truncate">{item.judul}</div>
+                                  <div className="text-[11px] text-slate-400">{item.tanggalMulai} · {item.lokasi}</div>
+                                </div>
+                                <div className="flex gap-1.5 flex-shrink-0">
+                                  <button onClick={() => openJfModal(item)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Edit3 className="w-3.5 h-3.5" /> Edit</button>
+                                  <button onClick={() => handleDeleteJf(item)} className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Trash2 className="w-3.5 h-3.5" /> Hapus</button>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      );
+                    })()}
+
+                    {/* List Campus Hiring jika Kategori Campus Hiring */}
+                    {selectedCategory === 'campus_hiring' && (() => {
+                      const chList = getCampusHiring().filter(item => !kontenQuery || item.judul.toLowerCase().includes(kontenQuery.toLowerCase()) || item.namaPerusahaan.toLowerCase().includes(kontenQuery.toLowerCase()));
+                      return (
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between px-1">
+                            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Postingan Campus Hiring ({chList.length})</span>
+                          </div>
+                          {chList.length === 0 ? (
+                            <div className="bg-white rounded-3xl p-10 text-center border border-slate-200/80 space-y-2">
+                              <Building2 className="w-10 h-10 text-blue-600 mx-auto" />
+                              <h4 className="text-sm font-bold text-slate-800">Belum ada poster Campus Hiring</h4>
+                              <p className="text-xs text-slate-500">Klik tombol (+) di sudut kanan bawah untuk membuat poster Campus Hiring baru.</p>
+                            </div>
+                          ) : (
+                            chList.map((item) => (
+                              <div key={item.id} className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex items-center gap-4">
+                                {item.bannerUrl || item.logoPerusahaan ? (
+                                  <button onClick={() => setZoomImage(item.bannerUrl || item.logoPerusahaan!)} className="flex-shrink-0 relative group">
+                                    <img src={item.bannerUrl || item.logoPerusahaan} alt="" className={`w-20 object-cover rounded-xl bg-slate-950 ${item.posterAspect === '9:16' ? 'h-28 object-contain' : 'h-14 object-cover'}`} />
+                                    <span className="absolute inset-0 bg-black/0 group-hover:bg-black/30 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition"><ZoomIn className="w-5 h-5 text-white" /></span>
+                                  </button>
+                                ) : (
+                                  <div className="w-20 h-14 flex-shrink-0 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600"><Building2 className="w-5 h-5" /></div>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-0.5">
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-300">Campus Hiring</span>
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">Rasio: {item.posterAspect || '16:9'}</span>
+                                  </div>
+                                  <div className="font-bold text-slate-800 truncate">{item.judul}</div>
+                                  <div className="text-[11px] text-slate-400">{item.namaPerusahaan} · {item.tanggal}</div>
+                                </div>
+                                <div className="flex gap-1.5 flex-shrink-0">
+                                  <button onClick={() => openChModal(item)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Edit3 className="w-3.5 h-3.5" /> Edit</button>
+                                  <button onClick={() => handleDeleteCh(item)} className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Trash2 className="w-3.5 h-3.5" /> Hapus</button>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      );
+                    })()}
+
                     {/* List Postingan Filtered By selectedCategory */}
                     <div className="space-y-3">
                       {konten.filter(k => k.jenis === selectedCategory && (!kontenQuery || k.judul.toLowerCase().includes(kontenQuery.toLowerCase()))).length === 0 ? (
@@ -2739,6 +3127,10 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                       onClick={() => {
                         if (selectedCategory === 'lowongan') {
                           openLowonganForm();
+                        } else if (selectedCategory === 'job_fair') {
+                          openJfModal();
+                        } else if (selectedCategory === 'campus_hiring') {
+                          openChModal();
                         } else {
                           setEJenis(selectedCategory);
                           setKontenSub('pembuatan');
@@ -2754,6 +3146,334 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                         + Buat {JENIS_LABEL[selectedCategory]} Baru
                       </span>
                     </button>
+                  </div>
+                )}
+
+                {kontenSub === 'pembuatan' && showJfForm && (
+                  <div className="bg-white rounded-2xl border border-emerald-200 shadow-sm p-6 space-y-6" id="adm-jf-admin-form">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                      <div>
+                        <h2 className="font-extrabold text-slate-900 text-lg flex items-center gap-2">
+                          <Ticket className="w-5 h-5 text-emerald-600" />
+                          {editJfId ? 'Edit Job Fair & Career Expo' : 'Input Job Fair & Career Expo Baru'}
+                        </h2>
+                        <p className="text-xs text-slate-400 mt-0.5">Event Job Fair ini akan tampil di bagian <b>Layanan Job Fair & Expo</b> publik dengan poster rasio 16:9 atau 9:16.</p>
+                      </div>
+                      <button type="button" onClick={() => { setShowJfForm(false); setKontenSub('riwayat'); }} className="text-slate-400 hover:text-slate-700">
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <form onSubmit={handleSaveJf} className="space-y-4 text-sm">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5 md:col-span-2">
+                          <label className="text-xs font-bold text-slate-700">Judul Event Job Fair <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                          <input
+                            type="text"
+                            value={jfJudul}
+                            onChange={(e) => setJfJudul(e.target.value)}
+                            placeholder="misal: UMK Mega Career Expo & Job Fair Nasional 2026"
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700">Tagline / Sub-Judul Event <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                          <input
+                            type="text"
+                            value={jfTagline}
+                            onChange={(e) => setJfTagline(e.target.value)}
+                            placeholder="misal: Langkah Awal Karir Impianmu Dimulai dari Sini!"
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700">HTM / Tiket Masuk <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                          <input
+                            type="text"
+                            value={jfHtm}
+                            onChange={(e) => setJfHtm(e.target.value)}
+                            placeholder="Gratis Khusus Mahasiswa & Alumni UM Kendari"
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700">Tanggal Mulai Event <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                          <input
+                            type="date"
+                            value={jfTglMulai}
+                            onChange={(e) => setJfTglMulai(e.target.value)}
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700">Tanggal Selesai Event <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                          <input
+                            type="date"
+                            value={jfTglSelesai}
+                            onChange={(e) => setJfTglSelesai(e.target.value)}
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5 md:col-span-2">
+                          <label className="text-xs font-bold text-slate-700">Lokasi / Venue Event <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                          <input
+                            type="text"
+                            value={jfLokasi}
+                            onChange={(e) => setJfLokasi(e.target.value)}
+                            placeholder="Auditorium Utama & Lapangan Indoor UM Kendari"
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5 md:col-span-2">
+                          <label className="text-xs font-bold text-slate-700">Daftar Perusahaan Peserta (Dipisah Koma) <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                          <input
+                            type="text"
+                            value={jfPerusahaanStr}
+                            onChange={(e) => setJfPerusahaanStr(e.target.value)}
+                            placeholder="PT Bank BCA, PT Indofood, PT Telkom Indonesia, PT Vale Indonesia, PT Astra International"
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5 md:col-span-2">
+                          <label className="text-xs font-bold text-slate-700">Banner / Poster Utama Event * <span className="text-emerald-600 font-bold">(Wajib)</span></label>
+                          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+                            <input
+                              type="text"
+                              value={jfBannerUrl}
+                              onChange={(e) => setJfBannerUrl(e.target.value)}
+                              placeholder="/poster-cdc-web-umk-2.svg atau https://..."
+                              className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                            />
+                            <label className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200 shrink-0">
+                              <Upload className="w-4 h-4 text-emerald-600" /> Upload Poster
+                              <input type="file" accept="image/*" onChange={handleJfBannerUpload} className="hidden" />
+                            </label>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5 md:col-span-2">
+                          <label className="text-xs font-bold text-slate-700">Format / Rasio Poster *</label>
+                          <div className="flex flex-wrap items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={() => setJfPosterAspect('16:9')}
+                              className={`px-4 py-2 rounded-xl border text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                                jfPosterAspect === '16:9'
+                                  ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-xs'
+                                  : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                              }`}
+                            >
+                              <span className="w-3 h-3 rounded-full border border-current flex items-center justify-center">
+                                {jfPosterAspect === '16:9' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />}
+                              </span>
+                              <span>16:9 (Landscape / Horisontal)</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setJfPosterAspect('9:16')}
+                              className={`px-4 py-2 rounded-xl border text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                                jfPosterAspect === '9:16'
+                                  ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-xs'
+                                  : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                              }`}
+                            >
+                              <span className="w-3 h-3 rounded-full border border-current flex items-center justify-center">
+                                {jfPosterAspect === '9:16' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />}
+                              </span>
+                              <span>9:16 (Portrait / Pamflet Berdiri)</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5 md:col-span-2">
+                          <label className="text-xs font-bold text-slate-700">Deskripsi Event</label>
+                          <textarea
+                            value={jfDeskripsi}
+                            onChange={(e) => setJfDeskripsi(e.target.value)}
+                            rows={3}
+                            placeholder="Penjelasan deskripsi pameran bursa kerja..."
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
+                        <button
+                          type="button"
+                          onClick={() => { setShowJfForm(false); setKontenSub('riwayat'); }}
+                          className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold"
+                        >
+                          Batal
+                        </button>
+                        <button
+                          type="submit"
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm"
+                        >
+                          <Save className="w-4 h-4" /> Simpan Job Fair
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
+                {kontenSub === 'pembuatan' && showChForm && (
+                  <div className="bg-white rounded-2xl border border-blue-200 shadow-sm p-6 space-y-6" id="adm-ch-admin-form">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                      <div>
+                        <h2 className="font-extrabold text-slate-900 text-lg flex items-center gap-2">
+                          <Building2 className="w-5 h-5 text-blue-600" />
+                          {editChId ? 'Edit Agenda Campus Hiring' : 'Input Agenda Campus Hiring Baru'}
+                        </h2>
+                        <p className="text-xs text-slate-400 mt-0.5">Event Campus Hiring ini akan tampil di bagian <b>Layanan Campus Hiring</b> publik dengan poster rasio 16:9 atau 9:16.</p>
+                      </div>
+                      <button type="button" onClick={() => { setShowChForm(false); setKontenSub('riwayat'); }} className="text-slate-400 hover:text-slate-700">
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <form onSubmit={handleSaveCh} className="space-y-4 text-sm">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5 md:col-span-2">
+                          <label className="text-xs font-bold text-slate-700">Judul Rekrutmen / Event <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                          <input
+                            type="text"
+                            value={chJudul}
+                            onChange={(e) => setChJudul(e.target.value)}
+                            placeholder="misal: On-Campus Recruitment PT Bank Central Asia Tbk 2026"
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700">Nama Perusahaan Mitra <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                          <input
+                            type="text"
+                            value={chPerusahaan}
+                            onChange={(e) => setChPerusahaan(e.target.value)}
+                            placeholder="misal: PT Indofood Sukses Makmur Tbk"
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700">Tanggal &amp; Waktu Rekrutmen <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                          <input
+                            type="text"
+                            value={chTanggal}
+                            onChange={(e) => setChTanggal(e.target.value)}
+                            placeholder="misal: Senin, 20 Oktober 2026 (09:00 - 15:00 WITA)"
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5 md:col-span-2">
+                          <label className="text-xs font-bold text-slate-700">Lokasi / Ruangan Tes <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                          <input
+                            type="text"
+                            value={chLokasi}
+                            onChange={(e) => setChLokasi(e.target.value)}
+                            placeholder="misal: Aula Utama Gedung Rektorat Lt. 3 UM Kendari"
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5 md:col-span-2">
+                          <label className="text-xs font-bold text-slate-700">Banner / Poster Utama Event * <span className="text-blue-600 font-bold">(Wajib)</span></label>
+                          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+                            <input
+                              type="text"
+                              value={chBannerUrl}
+                              onChange={(e) => setChBannerUrl(e.target.value)}
+                              placeholder="/poster-cdc-web-umk-1.png atau https://..."
+                              className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                            />
+                            <label className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200 shrink-0">
+                              <Upload className="w-4 h-4 text-blue-600" /> Upload Poster
+                              <input type="file" accept="image/*" onChange={handleChBannerUpload} className="hidden" />
+                            </label>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5 md:col-span-2">
+                          <label className="text-xs font-bold text-slate-700">Format / Rasio Poster *</label>
+                          <div className="flex flex-wrap items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={() => setChPosterAspect('16:9')}
+                              className={`px-4 py-2 rounded-xl border text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                                chPosterAspect === '16:9'
+                                  ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-xs'
+                                  : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                              }`}
+                            >
+                              <span className="w-3 h-3 rounded-full border border-current flex items-center justify-center">
+                                {chPosterAspect === '16:9' && <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />}
+                              </span>
+                              <span>16:9 (Landscape / Horisontal)</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setChPosterAspect('9:16')}
+                              className={`px-4 py-2 rounded-xl border text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                                chPosterAspect === '9:16'
+                                  ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-xs'
+                                  : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                              }`}
+                            >
+                              <span className="w-3 h-3 rounded-full border border-current flex items-center justify-center">
+                                {chPosterAspect === '9:16' && <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />}
+                              </span>
+                              <span>9:16 (Portrait / Pamflet Berdiri)</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5 md:col-span-2">
+                          <label className="text-xs font-bold text-slate-700">Link Pendaftaran / Formulir (CTA)</label>
+                          <input
+                            type="text"
+                            value={chLinkDaftar}
+                            onChange={(e) => setChLinkDaftar(e.target.value)}
+                            placeholder="https://forms.gle/... atau https://..."
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5 md:col-span-2">
+                          <label className="text-xs font-bold text-slate-700">Deskripsi Ringkas & Syarat Rekrutmen</label>
+                          <textarea
+                            value={chDeskripsi}
+                            onChange={(e) => setChDeskripsi(e.target.value)}
+                            rows={3}
+                            placeholder="Persyaratan peserta, kualifikasi jurusan, berkas yang wajib dibawa..."
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
+                        <button
+                          type="button"
+                          onClick={() => { setShowChForm(false); setKontenSub('riwayat'); }}
+                          className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold"
+                        >
+                          Batal
+                        </button>
+                        <button
+                          type="submit"
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm"
+                        >
+                          <Save className="w-4 h-4" /> Simpan Campus Hiring
+                        </button>
+                      </div>
+                    </form>
                   </div>
                 )}
 
@@ -6341,6 +7061,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                   setChPerusahaan(item.namaPerusahaan);
                   setChLogoUrl(item.logoPerusahaan || '');
                   setChBannerUrl(item.bannerUrl || '');
+                  setChPosterAspect(item.posterAspect || '16:9');
                   setChTanggal(item.tanggal || '');
                   setChWaktu(item.waktu || '08:30 - 15:00 WITA');
                   setChLokasi(item.lokasi || 'Aula Gedung Rektorat Lt. 2 UM Kendari');
@@ -6357,6 +7078,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                   setChPerusahaan('');
                   setChLogoUrl('');
                   setChBannerUrl('');
+                  setChPosterAspect('16:9');
                   setChTanggal('');
                   setChWaktu('08:30 - 15:00 WITA');
                   setChLokasi('Aula Gedung Rektorat Lt. 2 UM Kendari');
@@ -6373,8 +7095,9 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
 
               const handleSaveCh = (e: React.FormEvent) => {
                 e.preventDefault();
-                if (!chJudul.trim() || !chPerusahaan.trim() || !chTanggal.trim()) {
-                  triggerToast('error', 'Judul, Nama Perusahaan, dan Tanggal Pelaksanaan wajib diisi.');
+                const posterUrl = chBannerUrl.trim() || chLogoUrl.trim();
+                if (!posterUrl) {
+                  triggerToast('error', 'Poster (Gambar) Campus Hiring wajib diunggah atau diisi URL-nya.');
                   return;
                 }
 
@@ -6382,21 +7105,27 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                 const now = new Date().toISOString();
                 const posArray = chPosisiStr.split(',').map((s) => s.trim()).filter(Boolean);
                 const reqArray = chSyaratStr.split('\n').map((s) => s.trim()).filter(Boolean);
+                const finalLink = (chLinkDaftar || '').trim() || chLinkVirtual.trim() || undefined;
+
+                const finalJudul = chJudul.trim() || 'Agenda Campus Hiring CDC UM Kendari';
+                const finalPerusahaan = chPerusahaan.trim() || 'Mitra Perusahaan CDC';
+                const finalTanggal = chTanggal.trim() || formatTanggal(now);
 
                 if (editChId) {
                   currentList = currentList.map((item) =>
                     item.id === editChId
                       ? {
                         ...item,
-                        judul: chJudul.trim(),
-                        namaPerusahaan: chPerusahaan.trim(),
+                        judul: finalJudul,
+                        namaPerusahaan: finalPerusahaan,
                         logoPerusahaan: chLogoUrl.trim() || undefined,
-                        bannerUrl: chBannerUrl.trim() || undefined,
-                        tanggal: chTanggal,
-                        waktu: chWaktu.trim(),
-                        lokasi: chLokasi.trim(),
+                        bannerUrl: posterUrl,
+                        posterAspect: chPosterAspect,
+                        tanggal: finalTanggal,
+                        waktu: chWaktu.trim() || '08:30 - 15:00 WITA',
+                        lokasi: chLokasi.trim() || 'Aula Gedung Rektorat Lt. 2 UM Kendari',
                         tipe: chTipe,
-                        linkVirtual: chTipe === 'virtual' ? chLinkVirtual.trim() : undefined,
+                        linkVirtual: finalLink,
                         posisiBuka: posArray,
                         persyaratan: reqArray,
                         kuota: Number(chKuota) || 100,
@@ -6408,15 +7137,16 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                 } else {
                   const newItem: CampusHiringItem = {
                     id: `ch_${Date.now()}`,
-                    judul: chJudul.trim(),
-                    namaPerusahaan: chPerusahaan.trim(),
+                    judul: finalJudul,
+                    namaPerusahaan: finalPerusahaan,
                     logoPerusahaan: chLogoUrl.trim() || undefined,
-                    bannerUrl: chBannerUrl.trim() || undefined,
-                    tanggal: chTanggal,
-                    waktu: chWaktu.trim(),
-                    lokasi: chLokasi.trim(),
+                    bannerUrl: posterUrl,
+                    posterAspect: chPosterAspect,
+                    tanggal: finalTanggal,
+                    waktu: chWaktu.trim() || '08:30 - 15:00 WITA',
+                    lokasi: chLokasi.trim() || 'Aula Gedung Rektorat Lt. 2 UM Kendari',
                     tipe: chTipe,
-                    linkVirtual: chTipe === 'virtual' ? chLinkVirtual.trim() : undefined,
+                    linkVirtual: finalLink,
                     posisiBuka: posArray,
                     persyaratan: reqArray,
                     kuota: Number(chKuota) || 100,
@@ -6494,7 +7224,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5 md:col-span-2">
-                          <label className="text-xs font-bold text-slate-700">Judul Rekrutmen / Event *</label>
+                          <label className="text-xs font-bold text-slate-700">Judul Rekrutmen / Event <span className="text-slate-400 font-normal">(Opsional)</span></label>
                           <input
                             type="text"
                             value={chJudul}
@@ -6505,7 +7235,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                         </div>
 
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Nama Perusahaan Mitra *</label>
+                          <label className="text-xs font-bold text-slate-700">Nama Perusahaan Mitra <span className="text-slate-400 font-normal">(Opsional)</span></label>
                           <input
                             type="text"
                             value={chPerusahaan}
@@ -6516,7 +7246,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                         </div>
 
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Tipe Pelaksanaan *</label>
+                          <label className="text-xs font-bold text-slate-700">Tipe Pelaksanaan <span className="text-slate-400 font-normal">(Opsional)</span></label>
                           <select
                             value={chTipe}
                             onChange={(e) => setChTipe(e.target.value as 'on-campus' | 'virtual')}
@@ -6528,7 +7258,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                         </div>
 
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Tanggal Pelaksanaan *</label>
+                          <label className="text-xs font-bold text-slate-700">Tanggal Pelaksanaan <span className="text-slate-400 font-normal">(Opsional)</span></label>
                           <input
                             type="date"
                             value={chTanggal}
@@ -6538,7 +7268,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                         </div>
 
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Jam / Waktu Pelaksanaan</label>
+                          <label className="text-xs font-bold text-slate-700">Jam / Waktu Pelaksanaan <span className="text-slate-400 font-normal">(Opsional)</span></label>
                           <input
                             type="text"
                             value={chWaktu}
@@ -6549,7 +7279,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                         </div>
 
                         <div className="space-y-1.5 md:col-span-2">
-                          <label className="text-xs font-bold text-slate-700">Lokasi / Venue Pelaksanaan *</label>
+                          <label className="text-xs font-bold text-slate-700">Lokasi / Venue Pelaksanaan <span className="text-slate-400 font-normal">(Opsional)</span></label>
                           <input
                             type="text"
                             value={chLokasi}
@@ -6619,7 +7349,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                         </div>
 
                         <div className="space-y-1.5 md:col-span-2">
-                          <label className="text-xs font-bold text-slate-700">Banner / Poster Promo (Upload / Input URL)</label>
+                          <label className="text-xs font-bold text-slate-700">Banner / Poster Promo * <span className="text-blue-600 font-bold">(Wajib)</span></label>
                           <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
                             <input
                               type="text"
@@ -6632,6 +7362,40 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                               <Upload className="w-4 h-4 text-blue-600" /> Upload Poster
                               <input type="file" accept="image/*" onChange={handleChBannerUpload} className="hidden" />
                             </label>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5 md:col-span-2">
+                          <label className="text-xs font-bold text-slate-700">Format / Rasio Poster *</label>
+                          <div className="flex flex-wrap items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={() => setChPosterAspect('16:9')}
+                              className={`px-4 py-2 rounded-xl border text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                                chPosterAspect === '16:9'
+                                  ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-xs'
+                                  : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                              }`}
+                            >
+                              <span className="w-3 h-3 rounded-full border border-current flex items-center justify-center">
+                                {chPosterAspect === '16:9' && <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />}
+                              </span>
+                              <span>16:9 (Landscape / Horisontal)</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setChPosterAspect('9:16')}
+                              className={`px-4 py-2 rounded-xl border text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                                chPosterAspect === '9:16'
+                                  ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-xs'
+                                  : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                              }`}
+                            >
+                              <span className="w-3 h-3 rounded-full border border-current flex items-center justify-center">
+                                {chPosterAspect === '9:16' && <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />}
+                              </span>
+                              <span>9:16 (Portrait / Pamflet Berdiri)</span>
+                            </button>
                           </div>
                         </div>
 
@@ -6733,6 +7497,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                   setJfJudul(item.judul);
                   setJfTagline(item.tagline || '');
                   setJfBannerUrl(item.bannerUrl || '');
+                  setJfPosterAspect(item.posterAspect || '16:9');
                   setJfTglMulai(item.tanggalMulai || '');
                   setJfTglSelesai(item.tanggalSelesai || '');
                   setJfWaktu(item.waktu || '08:00 - 16:00 WITA');
@@ -6746,6 +7511,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                   setJfJudul('');
                   setJfTagline('');
                   setJfBannerUrl('');
+                  setJfPosterAspect('16:9');
                   setJfTglMulai('');
                   setJfTglSelesai('');
                   setJfWaktu('08:00 - 16:00 WITA');
@@ -6760,8 +7526,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
 
               const handleSaveJf = (e: React.FormEvent) => {
                 e.preventDefault();
-                if (!jfJudul.trim() || !jfTglMulai.trim()) {
-                  triggerToast('error', 'Judul Job Fair dan Tanggal Mulai wajib diisi.');
+                if (!jfBannerUrl.trim()) {
+                  triggerToast('error', 'Poster (Gambar) Job Fair wajib diunggah atau diisi URL-nya.');
                   return;
                 }
 
@@ -6772,19 +7538,23 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                   nama: s.trim()
                 })).filter((c) => c.nama.length > 0);
 
+                const finalJudul = jfJudul.trim() || 'Job Fair & Career Expo CDC UM Kendari';
+                const finalTglMulai = jfTglMulai.trim() || formatTanggal(now);
+
                 if (editJfId) {
                   currentList = currentList.map((item) =>
                     item.id === editJfId
                       ? {
                         ...item,
-                        judul: jfJudul.trim(),
+                        judul: finalJudul,
                         tagline: jfTagline.trim() || undefined,
-                        bannerUrl: jfBannerUrl.trim() || undefined,
-                        tanggalMulai: jfTglMulai,
-                        tanggalSelesai: jfTglSelesai || jfTglMulai,
-                        waktu: jfWaktu.trim(),
-                        lokasi: jfLokasi.trim(),
-                        htm: jfHtm.trim(),
+                        bannerUrl: jfBannerUrl.trim(),
+                        posterAspect: jfPosterAspect,
+                        tanggalMulai: finalTglMulai,
+                        tanggalSelesai: jfTglSelesai.trim() || finalTglMulai,
+                        waktu: jfWaktu.trim() || '08:00 - 16:00 WITA',
+                        lokasi: jfLokasi.trim() || 'Auditorium Utama UM Kendari',
+                        htm: jfHtm.trim() || 'Gratis Khusus Mahasiswa & Alumni UM Kendari',
                         perusahaanPeserta: compList.length > 0 ? compList : item.perusahaanPeserta,
                         deskripsi: jfDeskripsi.trim() || undefined,
                         status: jfStatus
@@ -6794,14 +7564,15 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                 } else {
                   const newItem: JobFairItem = {
                     id: `jf_${Date.now()}`,
-                    judul: jfJudul.trim(),
+                    judul: finalJudul,
                     tagline: jfTagline.trim() || undefined,
-                    bannerUrl: jfBannerUrl.trim() || undefined,
-                    tanggalMulai: jfTglMulai,
-                    tanggalSelesai: jfTglSelesai || jfTglMulai,
-                    waktu: jfWaktu.trim(),
-                    lokasi: jfLokasi.trim(),
-                    htm: jfHtm.trim(),
+                    bannerUrl: jfBannerUrl.trim(),
+                    posterAspect: jfPosterAspect,
+                    tanggalMulai: finalTglMulai,
+                    tanggalSelesai: jfTglSelesai.trim() || finalTglMulai,
+                    waktu: jfWaktu.trim() || '08:00 - 16:00 WITA',
+                    lokasi: jfLokasi.trim() || 'Auditorium Utama UM Kendari',
+                    htm: jfHtm.trim() || 'Gratis Khusus Mahasiswa & Alumni UM Kendari',
                     perusahaanPeserta: compList,
                     deskripsi: jfDeskripsi.trim() || undefined,
                     status: jfStatus,
@@ -6876,7 +7647,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5 md:col-span-2">
-                          <label className="text-xs font-bold text-slate-700">Judul Event Job Fair *</label>
+                          <label className="text-xs font-bold text-slate-700">Judul Event Job Fair <span className="text-slate-400 font-normal">(Opsional)</span></label>
                           <input
                             type="text"
                             value={jfJudul}
@@ -6887,7 +7658,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                         </div>
 
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Tagline / Sub-Judul Event</label>
+                          <label className="text-xs font-bold text-slate-700">Tagline / Sub-Judul Event <span className="text-slate-400 font-normal">(Opsional)</span></label>
                           <input
                             type="text"
                             value={jfTagline}
@@ -6898,7 +7669,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                         </div>
 
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">HTM / Tiket Masuk</label>
+                          <label className="text-xs font-bold text-slate-700">HTM / Tiket Masuk <span className="text-slate-400 font-normal">(Opsional)</span></label>
                           <input
                             type="text"
                             value={jfHtm}
@@ -6909,7 +7680,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                         </div>
 
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Tanggal Mulai Event *</label>
+                          <label className="text-xs font-bold text-slate-700">Tanggal Mulai Event <span className="text-slate-400 font-normal">(Opsional)</span></label>
                           <input
                             type="date"
                             value={jfTglMulai}
@@ -6919,7 +7690,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                         </div>
 
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Tanggal Selesai Event</label>
+                          <label className="text-xs font-bold text-slate-700">Tanggal Selesai Event <span className="text-slate-400 font-normal">(Opsional)</span></label>
                           <input
                             type="date"
                             value={jfTglSelesai}
@@ -6929,7 +7700,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                         </div>
 
                         <div className="space-y-1.5 md:col-span-2">
-                          <label className="text-xs font-bold text-slate-700">Lokasi / Venue Event *</label>
+                          <label className="text-xs font-bold text-slate-700">Lokasi / Venue Event <span className="text-slate-400 font-normal">(Opsional)</span></label>
                           <input
                             type="text"
                             value={jfLokasi}
@@ -6940,7 +7711,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                         </div>
 
                         <div className="space-y-1.5 md:col-span-2">
-                          <label className="text-xs font-bold text-slate-700">Daftar Perusahaan Peserta (Dipisah Koma)</label>
+                          <label className="text-xs font-bold text-slate-700">Daftar Perusahaan Peserta (Dipisah Koma) <span className="text-slate-400 font-normal">(Opsional)</span></label>
                           <input
                             type="text"
                             value={jfPerusahaanStr}
@@ -6951,7 +7722,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                         </div>
 
                         <div className="space-y-1.5 md:col-span-2">
-                          <label className="text-xs font-bold text-slate-700">Banner / Poster Utama Event (Upload / Input URL)</label>
+                          <label className="text-xs font-bold text-slate-700">Banner / Poster Utama Event * <span className="text-emerald-600 font-bold">(Wajib)</span></label>
                           <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
                             <input
                               type="text"
@@ -6964,6 +7735,40 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                               <Upload className="w-4 h-4 text-emerald-600" /> Upload Poster
                               <input type="file" accept="image/*" onChange={handleJfBannerUpload} className="hidden" />
                             </label>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5 md:col-span-2">
+                          <label className="text-xs font-bold text-slate-700">Format / Rasio Poster *</label>
+                          <div className="flex flex-wrap items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={() => setJfPosterAspect('16:9')}
+                              className={`px-4 py-2 rounded-xl border text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                                jfPosterAspect === '16:9'
+                                  ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-xs'
+                                  : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                              }`}
+                            >
+                              <span className="w-3 h-3 rounded-full border border-current flex items-center justify-center">
+                                {jfPosterAspect === '16:9' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />}
+                              </span>
+                              <span>16:9 (Landscape / Horisontal)</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setJfPosterAspect('9:16')}
+                              className={`px-4 py-2 rounded-xl border text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                                jfPosterAspect === '9:16'
+                                  ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-xs'
+                                  : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                              }`}
+                            >
+                              <span className="w-3 h-3 rounded-full border border-current flex items-center justify-center">
+                                {jfPosterAspect === '9:16' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />}
+                              </span>
+                              <span>9:16 (Portrait / Pamflet Berdiri)</span>
+                            </button>
                           </div>
                         </div>
 

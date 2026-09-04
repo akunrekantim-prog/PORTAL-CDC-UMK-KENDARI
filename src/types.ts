@@ -81,7 +81,7 @@ export interface Mahasiswa {
   university?: string;
 }
 
-export type JenisKonten = 'berita' | 'lowongan' | 'program' | 'pengumuman' | 'workshop' | 'softskill' | 'seminar' | 'presentasi';
+export type JenisKonten = 'berita' | 'lowongan' | 'program' | 'pengumuman' | 'workshop' | 'softskill' | 'seminar' | 'presentasi' | 'job_fair' | 'campus_hiring';
 
 export interface EventLayananItem {
   id: string;
@@ -537,6 +537,7 @@ export interface CampusHiringItem {
   namaPerusahaan: string;
   logoPerusahaan?: string;
   bannerUrl?: string; // Poster 9:16 atau 16:9
+  posterAspect?: '16:9' | '9:16';
   tanggal: string; // YYYY-MM-DD
   waktu?: string; // e.g. "08:30 - 15:00 WITA"
   lokasi: string; // e.g. "Aula Rektorat Lt. 2 UM Kendari"
@@ -564,6 +565,7 @@ export interface JobFairItem {
   judul: string; // e.g. "UMK Career Expo & Job Fair 2026"
   tagline?: string;
   bannerUrl?: string;
+  posterAspect?: '16:9' | '9:16';
   tanggalMulai: string; // YYYY-MM-DD
   tanggalSelesai: string; // YYYY-MM-DD
   waktu?: string;
