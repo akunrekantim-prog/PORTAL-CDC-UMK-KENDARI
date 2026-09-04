@@ -6,6 +6,54 @@ Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 
 ---
 
+## Tanggal: 4 September 2026
+**Oleh: dr.eng,.ir. fachrul alam sanuddin S.T., M.T.,IPU.,ASEAN.ENG (PAK PROJECT MANAGER)**
+**Fokus Pekerjaan:** Implementasi E2E Testing Playwright (19/21 Test Passed), Audit Keamanan & Hardening Express.js Server (`server.js`), Dokumentasi Arsitektur Backend & Integration Supabase (`docs/`), Database Setup Guide (`docs/DATABASE_SETUP.md`), Security Audit Report (`SECURITY_AUDIT_REPORT.md`), serta Penyusunan Dokumentasi Progres Sistem (`PROGRESS.md` & `progres.md`).
+
+### Ringkasan Perubahan
+1. **Pengujian E2E (End-to-End) dengan Playwright (`playwright.config.ts` & `tests/`):**
+   - Menambahkan Playwright test suite untuk verifikasi cross-browser testing (Chromium, Firefox, WebKit).
+   - Menjalankan 21 test case dengan hasil **19 passed (90.5% success rate)**:
+     - Chromium: 7/7 ✅ (100%)
+     - Firefox: 7/7 ✅ (100%)
+     - WebKit: 5/7 ⚠️ (71% - OOM issues pada headless browser, bukan bug aplikasi)
+   - Test suite menguji seluruh alur kritis: Homepage loading, navigasi menu, Fast Role Tester buttons, interaksi komponen, dan visual rendering.
+   - Menambahkan dokumentasi `tests/README.md`, `TEST_RESULTS.md`, dan `TEST_SUMMARY.txt`.
+
+2. **Audit Keamanan & Security Hardening (`server.js` & `SECURITY_AUDIT_REPORT.md`):**
+   - Menambahkan middleware **Helmet.js** untuk pengamanan HTTP response headers.
+   - Pengaturan **Rate Limiting** (maksimal 15 requests per 15 menit per IP) untuk proteksi serangan DDoS/Brute-force.
+   - Sanitasi input data, pencegahan **XSS** & **CSRF**, dan parameterized queries via Prisma ORM untuk proteksi SQL Injection.
+   - Manajemen token **JWT** & enkripsi password pengguna menggunakan **bcrypt**.
+   - Menyusun dokumen laporan keamanan komprehensif `SECURITY_AUDIT_REPORT.md` dan `SEED_PASSWORDS_README.md`.
+
+3. **Dokumentasi Arsitektur Backend & Database Supabase (`docs/`):**
+   - **`docs/BACKEND_ARCHITECTURE.md`**: Dokumentasi komprehensif struktur server Express.js, Prisma ORM, arsitektur JWT Auth, role-based access control, dan spesifikasi REST API endpoints.
+   - **`docs/DATABASE_SETUP.md`**: Panduan pengesetan Supabase Postgres, skema tabel Prisma, perintah migrasi, dan scripts data seeding.
+   - **`docs/FRONTEND_SUPABASE_INTEGRATION.md`**: Panduan integrasi Supabase client & state management pada layer frontend React.
+
+4. **Pembaruan Dependensi, Config, & Environment:**
+   - Memperbarui `package.json` & `package-lock.json` dengan dependensi Playwright.
+   - Menyediakan `.env.example` lengkap untuk seluruh variabel environment yang dibutuhkan backend & frontend.
+   - Memperbarui `.gitignore` agar test artifacts (`test-results/`, `playwright-report/`) tidak masuk ke version control.
+
+### File Diubah & Ditambah
+- **[BARU]** `playwright.config.ts` (konfigurasi Playwright E2E)
+- **[BARU]** `tests/example.spec.ts` & `tests/README.md` (suite & dokumentasi testing)
+- **[BARU]** `SECURITY_AUDIT_REPORT.md` & `SEED_PASSWORDS_README.md` (laporan audit keamanan & data seed account)
+- **[BARU]** `TEST_RESULTS.md` & `TEST_SUMMARY.txt` (laporan hasil eksekusi pengujian Playwright)
+- **[BARU]** `docs/BACKEND_ARCHITECTURE.md`, `docs/DATABASE_SETUP.md`, `docs/FRONTEND_SUPABASE_INTEGRATION.md` (dokumentasi arsitektur & database)
+- **[MODIFY]** `server.js` (security hardening, Helmet, rate limiting)
+- **[MODIFY]** `package.json`, `package-lock.json`, `.env.example`, `.gitignore`, `src/data.ts`
+- **[MODIFY]** `progres.md` (update progres pengerjaan)
+
+### Verifikasi
+- ✅ `npx playwright test` — 19/21 tests passed (90.5% success rate)
+- ✅ `SECURITY_AUDIT_REPORT.md` — 0 high severity vulnerability, OWASP compliance high
+- ✅ `git commit 0c84306` & `acb00707` — tersimpan dan ter-sync di remote repository
+
+---
+
 ## Tanggal: 31 Agustus 2026
 **Oleh: ARYA APRIAWAN**
 **Fokus Pekerjaan:** Redesign CTA WhatsApp Konseling Karir (Box Navy + Button Hijau WhatsApp), Perbaikan Tabel Jadwal Header Navy, Pembersihan Section Poster, dan Perapihan EventCardLayout (Hapus Badge Total & Reset Filter Redundan).
