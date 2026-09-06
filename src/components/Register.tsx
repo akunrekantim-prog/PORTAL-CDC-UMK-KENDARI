@@ -17,7 +17,8 @@ import {
   AlertCircle,
   Info,
   ArrowRight,
-  ArrowLeft
+  ArrowLeft,
+  X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -50,6 +51,15 @@ const INDUSTRI_LIST = [
   'Lembaga Nirlaba, NGO & Yayasan Sosial',
   'Lainnya'
 ];
+
+export function isPasswordValid(password: string): boolean {
+  return (
+    password.length >= 8 &&
+    /[A-Z]/.test(password) &&
+    /[a-z]/.test(password) &&
+    /[0-9]/.test(password)
+  );
+}
 
 export default function Register({
   initialTab = 'alumni',
@@ -141,8 +151,8 @@ export default function Register({
       setErrorMsg('Format alamat email tidak valid.');
       return false;
     }
-    if (alumniForm.password.length < 6) {
-      setErrorMsg('Kata sandi minimal terdiri dari 6 karakter.');
+    if (!isPasswordValid(alumniForm.password)) {
+      setErrorMsg('Masukkan kombinasi minimal 8 karakter yang terdiri dari huruf besar, huruf kecil, dan angka.');
       return false;
     }
     if (alumniForm.password !== alumniForm.confirmPassword) {
@@ -170,8 +180,8 @@ export default function Register({
       setErrorMsg('Format email instansi/perusahaan tidak valid.');
       return false;
     }
-    if (mitraForm.password.length < 6) {
-      setErrorMsg('Kata sandi minimal terdiri dari 6 karakter.');
+    if (!isPasswordValid(mitraForm.password)) {
+      setErrorMsg('Masukkan kombinasi minimal 8 karakter yang terdiri dari huruf besar, huruf kecil, dan angka.');
       return false;
     }
     if (mitraForm.password !== mitraForm.confirmPassword) {
@@ -544,9 +554,9 @@ export default function Register({
 
                   {/* Error Alert Box */}
                   {errorMsg && (
-                    <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl text-xs flex items-start gap-3">
-                      <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-                      <div className="flex-1 font-medium">{errorMsg}</div>
+                    <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl text-xs flex items-start gap-3 shadow-sm">
+                      <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                      <div className="flex-1 font-medium whitespace-pre-line leading-relaxed">{errorMsg}</div>
                     </div>
                   )}
 
@@ -711,7 +721,7 @@ export default function Register({
                       </div>
 
                       {/* Row 5: Kata Sandi & Konfirmasi Kata Sandi */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
                         <div className="space-y-1.5">
                           <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
                             Kata Sandi <span className="text-red-500">*</span>
@@ -723,7 +733,11 @@ export default function Register({
                               value={alumniForm.password}
                               onChange={(e) => setAlumniForm({ ...alumniForm, password: e.target.value })}
                               placeholder="Masukkan kata sandi"
-                              className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 pr-10 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                              className={`w-full rounded-lg border py-2.5 px-3.5 pr-10 text-sm text-slate-800 placeholder:text-slate-400 transition ${
+                                alumniForm.password.length > 0 && !isPasswordValid(alumniForm.password)
+                                  ? 'border-rose-500 bg-rose-50/20 focus:border-rose-500 focus:outline-none focus:ring-1 focus:ring-rose-500'
+                                  : 'border-slate-200 bg-white focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B]'
+                              }`}
                             />
                             <button
                               type="button"
@@ -734,6 +748,12 @@ export default function Register({
                               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                             </button>
                           </div>
+                          {alumniForm.password.length > 0 && !isPasswordValid(alumniForm.password) && (
+                            <div className="flex items-start gap-1.5 text-xs text-rose-600 mt-1.5">
+                              <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                              <span>Masukkan kombinasi minimal 8 karakter yang terdiri dari huruf besar, huruf kecil, dan angka.</span>
+                            </div>
+                          )}
                         </div>
 
                         <div className="space-y-1.5">
@@ -747,7 +767,13 @@ export default function Register({
                               value={alumniForm.confirmPassword}
                               onChange={(e) => setAlumniForm({ ...alumniForm, confirmPassword: e.target.value })}
                               placeholder="Masukkan konfirmasi kata sandi"
-                              className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 pr-10 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                              className={`w-full rounded-lg border py-2.5 px-3.5 pr-10 text-sm text-slate-800 placeholder:text-slate-400 transition ${
+                                alumniForm.confirmPassword.length > 0 && alumniForm.password !== alumniForm.confirmPassword
+                                  ? 'border-rose-500 bg-rose-50/20 focus:border-rose-500 focus:outline-none focus:ring-1 focus:ring-rose-500'
+                                  : alumniForm.confirmPassword.length > 0 && alumniForm.password === alumniForm.confirmPassword
+                                  ? 'border-emerald-500 bg-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500'
+                                  : 'border-slate-200 bg-white focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B]'
+                              }`}
                             />
                             <button
                               type="button"
@@ -758,6 +784,19 @@ export default function Register({
                               {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                             </button>
                           </div>
+                          {alumniForm.confirmPassword.length > 0 && (
+                            alumniForm.password !== alumniForm.confirmPassword ? (
+                              <div className="flex items-start gap-1.5 text-xs text-rose-600 mt-1.5">
+                                <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                                <span>Konfirmasi kata sandi tidak cocok.</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-start gap-1.5 text-xs text-emerald-600 mt-1.5">
+                                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                                <span>Konfirmasi kata sandi cocok.</span>
+                              </div>
+                            )
+                          )}
                         </div>
                       </div>
 
@@ -932,7 +971,7 @@ export default function Register({
                       </div>
 
                       {/* Row 5: Kata Sandi & Konfirmasi Kata Sandi for Mitra */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
                         <div className="space-y-1.5">
                           <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
                             Kata Sandi <span className="text-red-500">*</span>
@@ -944,7 +983,11 @@ export default function Register({
                               value={mitraForm.password}
                               onChange={(e) => setMitraForm({ ...mitraForm, password: e.target.value })}
                               placeholder="Masukkan kata sandi"
-                              className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 pr-10 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                              className={`w-full rounded-lg border py-2.5 px-3.5 pr-10 text-sm text-slate-800 placeholder:text-slate-400 transition ${
+                                mitraForm.password.length > 0 && !isPasswordValid(mitraForm.password)
+                                  ? 'border-rose-500 bg-rose-50/20 focus:border-rose-500 focus:outline-none focus:ring-1 focus:ring-rose-500'
+                                  : 'border-slate-200 bg-white focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B]'
+                              }`}
                             />
                             <button
                               type="button"
@@ -955,6 +998,12 @@ export default function Register({
                               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                             </button>
                           </div>
+                          {mitraForm.password.length > 0 && !isPasswordValid(mitraForm.password) && (
+                            <div className="flex items-start gap-1.5 text-xs text-rose-600 mt-1.5">
+                              <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                              <span>Masukkan kombinasi minimal 8 karakter yang terdiri dari huruf besar, huruf kecil, dan angka.</span>
+                            </div>
+                          )}
                         </div>
 
                         <div className="space-y-1.5">
@@ -968,7 +1017,13 @@ export default function Register({
                               value={mitraForm.confirmPassword}
                               onChange={(e) => setMitraForm({ ...mitraForm, confirmPassword: e.target.value })}
                               placeholder="Masukkan konfirmasi kata sandi"
-                              className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 pr-10 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
+                              className={`w-full rounded-lg border py-2.5 px-3.5 pr-10 text-sm text-slate-800 placeholder:text-slate-400 transition ${
+                                mitraForm.confirmPassword.length > 0 && mitraForm.password !== mitraForm.confirmPassword
+                                  ? 'border-rose-500 bg-rose-50/20 focus:border-rose-500 focus:outline-none focus:ring-1 focus:ring-rose-500'
+                                  : mitraForm.confirmPassword.length > 0 && mitraForm.password === mitraForm.confirmPassword
+                                  ? 'border-emerald-500 bg-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500'
+                                  : 'border-slate-200 bg-white focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B]'
+                              }`}
                             />
                             <button
                               type="button"
@@ -979,6 +1034,19 @@ export default function Register({
                               {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                             </button>
                           </div>
+                          {mitraForm.confirmPassword.length > 0 && (
+                            mitraForm.password !== mitraForm.confirmPassword ? (
+                              <div className="flex items-start gap-1.5 text-xs text-rose-600 mt-1.5">
+                                <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                                <span>Konfirmasi kata sandi tidak cocok.</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-start gap-1.5 text-xs text-emerald-600 mt-1.5">
+                                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                                <span>Konfirmasi kata sandi cocok.</span>
+                              </div>
+                            )
+                          )}
                         </div>
                       </div>
 
