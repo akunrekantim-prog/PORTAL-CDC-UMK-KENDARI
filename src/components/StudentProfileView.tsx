@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   User as UserType,
   Mahasiswa
@@ -671,9 +672,16 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
 
       {/* 3. MAIN PROFILE CONTENT & STRUCTURE */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-
-        {/* SUB-TAB A: PROFIL SAYA */}
-        {subTab === 'profile' && (
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={subTab}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {/* SUB-TAB A: PROFIL SAYA */}
+            {subTab === 'profile' && (
           <div className="space-y-6 animate-fadeIn">
 
             {/* KELENGKAPAN PROFIL PROGRESS CARD (DYNAMIC & CLEAN DESIGN) */}
@@ -1218,6 +1226,8 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
             </div>
           </div>
         )}
+          </motion.div>
+        </AnimatePresence>
 
       </div>
 

@@ -25,6 +25,7 @@ import {
   ChevronRight,
   ShieldCheck
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { JobApplicationModal } from './JobApplicationModal';
 import { JobSearchMasterDetail } from './JobSearchMasterDetail';
 import { StudentProfileView } from './StudentProfileView';
@@ -297,11 +298,16 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
         </div>
 
         {/* ── MOBILE DROPDOWN DRAWER (Matching Beranda Structure & No Icons) ── */}
-        {mobileMenuOpen && (
-          <div
-            className="md:hidden bg-white border-t border-gray-100 shadow-xl absolute w-full left-0 top-full z-[90] max-h-[80vh] overflow-y-auto"
-            id="mobile-nav-drawer"
-          >
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="md:hidden bg-white border-t border-gray-100 shadow-xl absolute w-full left-0 top-full z-[90] max-h-[80vh] overflow-y-auto"
+              id="mobile-nav-drawer"
+            >
             <div className="border-b border-gray-100">
               <button
                 onClick={() => {
@@ -383,53 +389,70 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
                 </span>
               </button>
             </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       <main className="w-full flex-grow py-8">
-        {selectedJobForDetail ? (
-          <JobDetail
-            job={selectedJobForDetail}
-            onBack={() => setSelectedJobForDetail(null)}
-            onApply={() => setApplyingJob(selectedJobForDetail)}
-            isLoggedIn={true}
-            hideHeader={true}
-            hideFooter={true}
-          />
-        ) : (
-          <>
-            {/* VIEW A: SEARCH JOBS */}
-            {activeTab === 'search' && (
-              <JobSearchMasterDetail
-                jobs={allLowongan}
-                onApply={(job) => setApplyingJob(job)}
+        <AnimatePresence mode="wait">
+          {selectedJobForDetail ? (
+            <motion.div
+              key={`detail-${selectedJobForDetail.id}`}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <JobDetail
+                job={selectedJobForDetail}
+                onBack={() => setSelectedJobForDetail(null)}
+                onApply={() => setApplyingJob(selectedJobForDetail)}
                 isLoggedIn={true}
+                hideHeader={true}
+                hideFooter={true}
               />
-            )}
+            </motion.div>
+          ) : (
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {/* VIEW A: SEARCH JOBS */}
+              {activeTab === 'search' && (
+                <JobSearchMasterDetail
+                  jobs={allLowongan}
+                  onApply={(job) => setApplyingJob(job)}
+                  isLoggedIn={true}
+                />
+              )}
 
-            {/* VIEW B: MY APPLICATIONS (STATUS LAMARAN, JADWAL INTERVIEW & HISTORY) */}
-            {activeTab === 'applications' && (
-              <StudentApplicationsView
-                user={user}
-                mahasiswaData={mahasiswaData}
-                allLowongan={allLowongan}
-                onSelectJob={(job) => setSelectedJobForDetail(job)}
-                onNavigateToSearch={() => setActiveTab('search')}
-              />
-            )}
+              {/* VIEW B: MY APPLICATIONS (STATUS LAMARAN, JADWAL INTERVIEW & HISTORY) */}
+              {activeTab === 'applications' && (
+                <StudentApplicationsView
+                  user={user}
+                  mahasiswaData={mahasiswaData}
+                  allLowongan={allLowongan}
+                  onSelectJob={(job) => setSelectedJobForDetail(job)}
+                  onNavigateToSearch={() => setActiveTab('search')}
+                />
+              )}
 
-            {/* VIEW C: MY PROFILE */}
-            {activeTab === 'profile' && (
-              <StudentProfileView
-                user={user}
-                mahasiswaData={mahasiswaData}
-                onProfileUpdated={loadStudentData}
-                onSelectJob={(job) => setSelectedJobForDetail(job)}
-              />
-            )}
-          </>
-        )}
+              {/* VIEW C: MY PROFILE */}
+              {activeTab === 'profile' && (
+                <StudentProfileView
+                  user={user}
+                  mahasiswaData={mahasiswaData}
+                  onProfileUpdated={loadStudentData}
+                  onSelectJob={(job) => setSelectedJobForDetail(job)}
+                />
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
       {/* Apply Modal */}
