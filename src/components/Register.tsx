@@ -639,7 +639,7 @@ export default function Register({
                         </div>
                       </div>
 
-                      {/* Row 3: Kategori Pengguna & Status Kegiatan Saat Ini */}
+                      {/* Row 3: Kategori Pengguna & Status Karir Saat Ini (Hanya untuk Alumni) */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div className="space-y-1.5">
                           <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
@@ -656,29 +656,25 @@ export default function Register({
                           </select>
                         </div>
 
-                        <div className="space-y-1.5">
-                          <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
-                            {alumniForm.userType === 'Mahasiswa' ? 'Status Kegiatan Saat Ini' : 'Status Karir Saat Ini'} {alumniForm.userType === 'Alumni' && <span className="text-red-500">*</span>}
-                          </label>
-                          <select
-                            value={alumniForm.userType === 'Mahasiswa' ? 'mahasiswa_aktif' : alumniForm.statusPekerjaan}
-                            onChange={(e) => setAlumniForm({ ...alumniForm, statusPekerjaan: e.target.value })}
-                            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 text-sm text-slate-800 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition cursor-pointer"
-                            id="register-status-kegiatan-select"
-                          >
-                            {alumniForm.userType === 'Mahasiswa' ? (
-                              <option value="mahasiswa_aktif">Mahasiswa Aktif</option>
-                            ) : (
-                              <>
-                                <option value="" disabled>Pilih Status Karir</option>
-                                <option value="belum_bekerja">Belum Bekerja / Sedang Mencari Kerja</option>
-                                <option value="bekerja">Bekerja (Karyawan Swasta / BUMN / PNS / Freelance)</option>
-                                <option value="wirausaha">Wirausaha / Membuka Usaha Mandiri</option>
-                                <option value="lanjut_studi">Melanjutkan Studi (S2 / Profesi)</option>
-                              </>
-                            )}
-                          </select>
-                        </div>
+                        {alumniForm.userType === 'Alumni' && (
+                          <div className="space-y-1.5">
+                            <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
+                              Status Karir Saat Ini <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                              value={alumniForm.statusPekerjaan}
+                              onChange={(e) => setAlumniForm({ ...alumniForm, statusPekerjaan: e.target.value })}
+                              className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 text-sm text-slate-800 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition cursor-pointer"
+                              id="register-status-kegiatan-select"
+                            >
+                              <option value="" disabled>Pilih Status Karir</option>
+                              <option value="belum_bekerja">Belum Bekerja / Sedang Mencari Kerja</option>
+                              <option value="bekerja">Bekerja (Karyawan Swasta / BUMN / PNS / Freelance)</option>
+                              <option value="wirausaha">Wirausaha / Membuka Usaha Mandiri</option>
+                              <option value="lanjut_studi">Melanjutkan Studi (S2 / Profesi)</option>
+                            </select>
+                          </div>
+                        )}
                       </div>
 
                       <div className="border-t border-slate-100 pt-2"></div>
