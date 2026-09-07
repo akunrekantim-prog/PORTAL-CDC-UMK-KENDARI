@@ -86,7 +86,22 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
       if (mahasiswaData.phone !== undefined) setMobile(mahasiswaData.phone);
       if (mahasiswaData.aboutMe !== undefined) setAboutMe(mahasiswaData.aboutMe);
       if (mahasiswaData.userStatusType) setUserStatusType(mahasiswaData.userStatusType);
-      if (mahasiswaData.qualifications !== undefined) setQualifications(mahasiswaData.qualifications);
+      if (mahasiswaData.qualifications !== undefined) {
+        setQualifications(mahasiswaData.qualifications);
+        const q0 = mahasiswaData.qualifications[0];
+        if (q0) {
+          if (q0.institution) setNewInst(q0.institution);
+          if (q0.level?.includes('-')) {
+            setNewLevel(q0.level.split('-')[0].trim());
+            setNewFieldOfStudy(q0.level.split('-').slice(1).join('-').trim());
+          } else if (q0.level) {
+            setNewLevel(q0.level);
+          }
+          if (q0.ipk) setNewIpk(q0.ipk);
+        } else {
+          setNewFieldOfStudy(mahasiswaData.programStudi || '');
+        }
+      }
       if (mahasiswaData.skills !== undefined) setSkills(mahasiswaData.skills);
       if (mahasiswaData.experiences !== undefined) setExperiences(mahasiswaData.experiences);
       if (mahasiswaData.certificates !== undefined) setCertificates(mahasiswaData.certificates);
@@ -173,13 +188,19 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
   const [newFieldOfStudy, setNewFieldOfStudy] = useState(() => {
     const q0 = mahasiswaData?.qualifications?.[0];
     if (q0?.level?.includes('-')) return q0.level.split('-').slice(1).join('-').trim();
-    return 'Sistem dan Teknologi Informasi';
+    return mahasiswaData?.programStudi || '';
   });
-  const [newAdmissionMonth, setNewAdmissionMonth] = useState('Agustus');
-  const [newAdmissionYear, setNewAdmissionYear] = useState('2024');
+  const [newAdmissionMonth, setNewAdmissionMonth] = useState(() => {
+    return mahasiswaData?.qualifications?.[0] ? 'Agustus' : '';
+  });
+  const [newAdmissionYear, setNewAdmissionYear] = useState(() => {
+    return mahasiswaData?.angkatan || '';
+  });
   const [isStillStudying, setIsStillStudying] = useState(true);
   const [newGraduationMonth, setNewGraduationMonth] = useState('');
-  const [newGraduationYear, setNewGraduationYear] = useState('2028');
+  const [newGraduationYear, setNewGraduationYear] = useState(() => {
+    return mahasiswaData?.graduationYear || '';
+  });
   const [newIpk, setNewIpk] = useState(() => mahasiswaData?.qualifications?.[0]?.ipk || '');
 
   // Animation variants for smooth inline card transformation (CDC UI Style)
@@ -1163,6 +1184,24 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                   >
                     <X className="w-5 h-5" />
                   </button>
+                ) : qualifications.length === 0 ? (
+                  <button
+                    onClick={() => {
+                      setNewInst(university || 'Universitas Muhammadiyah Kendari');
+                      setNewLevel('S1');
+                      setNewFieldOfStudy('');
+                      setNewAdmissionMonth('Agustus');
+                      setNewAdmissionYear(new Date().getFullYear().toString());
+                      setNewGraduationMonth('');
+                      setNewGraduationYear((new Date().getFullYear() + 4).toString());
+                      setIsStillStudying(true);
+                      setNewIpk('');
+                      setEditingSection('education');
+                    }}
+                    className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-emerald-600" /> Tambah Pendidikan
+                  </button>
                 ) : (
                   <button
                     onClick={() => setEditingSection('education')}
@@ -1298,20 +1337,38 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                       </div>
                     </div>
 
-                    <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-slate-100">
-                      <button
-                        type="button"
-                        onClick={() => setEditingSection(null)}
-                        className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition cursor-pointer"
-                      >
-                        Batal
-                      </button>
-                      <button
-                        type="submit"
-                        className="bg-[#FFCC00] hover:bg-amber-400 text-slate-900 font-bold px-7 py-2.5 rounded-xl text-xs sm:text-sm shadow-xs transition cursor-pointer active:scale-95 flex items-center gap-1.5"
-                      >
-                        Save
-                      </button>
+                    <div className="pt-3 flex items-center justify-between border-t border-slate-100">
+                      <div>
+                        {qualifications.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setQualifications([]);
+                              saveProfileData({ qualifications: [] });
+                              setEditingSection(null);
+                              triggerToast('Riwayat pendidikan berhasil direset.');
+                            }}
+                            className="text-rose-600 hover:text-rose-700 font-bold text-xs hover:underline cursor-pointer flex items-center gap-1"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" /> Hapus Pendidikan
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2.5">
+                        <button
+                          type="button"
+                          onClick={() => setEditingSection(null)}
+                          className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition cursor-pointer"
+                        >
+                          Batal
+                        </button>
+                        <button
+                          type="submit"
+                          className="bg-[#FFCC00] hover:bg-amber-400 text-slate-900 font-bold px-7 py-2.5 rounded-xl text-xs sm:text-sm shadow-xs transition cursor-pointer active:scale-95 flex items-center gap-1.5"
+                        >
+                          Save
+                        </button>
+                      </div>
                     </div>
                   </motion.form>
                 ) : (
@@ -1323,52 +1380,57 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     exit="exit"
                     className="space-y-4"
                   >
-                    {/* CDC UI Style Clean Table / Card */}
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 py-2 border-b border-slate-100 text-xs">
-                        <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">UNIVERSITY</div>
-                        <div className="md:col-span-2 font-bold text-slate-900 text-sm">
-                          {qualifications[0]?.institution || university || 'Universitas Muhammadiyah Kendari'}
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 py-2 border-b border-slate-100 text-xs">
-                        <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">QUALIFICATION</div>
-                        <div className="md:col-span-2 font-bold text-slate-900 text-sm">
-                          {qualifications[0]?.level?.includes('-') ? qualifications[0]?.level.split('-')[0].trim() : (qualifications[0]?.level || newLevel || 'S1')}
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 py-2 border-b border-slate-100 text-xs">
-                        <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">FIELD OF STUDY</div>
-                        <div className="md:col-span-2 font-bold text-slate-900 text-sm">
-                          {qualifications[0]?.level?.includes('-') ? qualifications[0]?.level.split('-').slice(1).join('-').trim() : (newFieldOfStudy || 'Sistem dan Teknologi Informasi')}
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 py-2 border-b border-slate-100 text-xs">
-                        <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">ADMISSION DATE</div>
-                        <div className="md:col-span-2 font-bold text-slate-900 text-sm">
-                          {newAdmissionMonth} {newAdmissionYear}
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 py-2 border-b border-slate-100 text-xs">
-                        <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">GRADUATION DATE</div>
-                        <div className="md:col-span-2 font-bold text-slate-900 text-sm">
-                          {qualifications[0]?.year || (isStillStudying ? `Sedang Berjalan (Estimasi ${newGraduationYear})` : newGraduationYear) || '-'}
-                        </div>
-                      </div>
-
-                      {qualifications[0]?.ipk && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 py-2 text-xs">
-                          <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">IPK / NILAI AKHIR</div>
-                          <div className="md:col-span-2 font-bold text-emerald-700 text-sm">
-                            {qualifications[0]?.ipk}
+                    {qualifications.length === 0 ? (
+                      <p className="text-xs text-slate-500 italic py-2">
+                        Belum ada riwayat pendidikan yang ditambahkan.
+                      </p>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 py-2 border-b border-slate-100 text-xs">
+                          <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">UNIVERSITY</div>
+                          <div className="md:col-span-2 font-bold text-slate-900 text-sm">
+                            {qualifications[0]?.institution || university || 'Universitas Muhammadiyah Kendari'}
                           </div>
                         </div>
-                      )}
-                    </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 py-2 border-b border-slate-100 text-xs">
+                          <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">QUALIFICATION</div>
+                          <div className="md:col-span-2 font-bold text-slate-900 text-sm">
+                            {qualifications[0]?.level?.includes('-') ? qualifications[0]?.level.split('-')[0].trim() : (qualifications[0]?.level || newLevel || 'S1')}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 py-2 border-b border-slate-100 text-xs">
+                          <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">FIELD OF STUDY</div>
+                          <div className="md:col-span-2 font-bold text-slate-900 text-sm">
+                            {qualifications[0]?.level?.includes('-') ? qualifications[0]?.level.split('-').slice(1).join('-').trim() : (newFieldOfStudy || '-')}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 py-2 border-b border-slate-100 text-xs">
+                          <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">ADMISSION DATE</div>
+                          <div className="md:col-span-2 font-bold text-slate-900 text-sm">
+                            {newAdmissionMonth ? `${newAdmissionMonth} ` : ''}{newAdmissionYear || '-'}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 py-2 border-b border-slate-100 text-xs">
+                          <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">GRADUATION DATE</div>
+                          <div className="md:col-span-2 font-bold text-slate-900 text-sm">
+                            {qualifications[0]?.year || (isStillStudying ? `Sedang Berjalan (Estimasi ${newGraduationYear || '2028'})` : (newGraduationYear || '-'))}
+                          </div>
+                        </div>
+
+                        {qualifications[0]?.ipk && (
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 py-2 text-xs">
+                            <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">IPK / NILAI AKHIR</div>
+                            <div className="md:col-span-2 font-bold text-emerald-700 text-sm">
+                              {qualifications[0]?.ipk}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
 
                   </motion.div>

@@ -26,8 +26,7 @@ import {
   Phone
 } from 'lucide-react';
 import { getFromDB, saveToDB, getHelpdeskConfig } from '../data';
-import { User as UserType, HelpdeskConfig } from '../types';
-import GoogleAuthModal, { GoogleLogo } from './GoogleAuthModal';
+import { promptGoogleLogin, GoogleLogo } from '../utils/googleAuth';
 
 interface LoginProps {
   onLoginSuccess: (user: UserType) => void;
@@ -50,8 +49,23 @@ export default function Login({
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showForgotModal, setShowForgotModal] = useState(false);
-  const [showGoogleModal, setShowGoogleModal] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [helpdeskConfig, setHelpdeskConfig] = useState<HelpdeskConfig>(() => getHelpdeskConfig());
+
+  const handleGoogleLogin = () => {
+    setErrorMessage('');
+    promptGoogleLogin({
+      onSuccess: (user) => {
+        onLoginSuccess(user);
+      },
+      onError: (err) => {
+        setErrorMessage(err);
+      },
+      onLoading: (loading) => {
+        setIsGoogleLoading(loading);
+      }
+    });
+  };
 
   // Reload config when modal is opened
   useEffect(() => {
@@ -296,15 +310,22 @@ export default function Login({
                 <div className="border-t border-slate-200 w-full"></div>
               </div>
 
-              {/* Google Sign-In Button (CDC UI Style) */}
+              {/* Google Sign-In Button (Direct Official Popup) */}
               <button
                 type="button"
-                onClick={() => setShowGoogleModal(true)}
-                className="w-full bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 font-bold py-3.5 px-4 rounded-xl border border-slate-900 transition duration-150 flex items-center justify-center gap-3 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99]"
+                onClick={handleGoogleLogin}
+                disabled={isGoogleLoading}
+                className="w-full bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 font-bold py-3.5 px-4 rounded-xl border border-slate-900 transition duration-150 flex items-center justify-center gap-3 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99] disabled:opacity-60"
                 id="login-hero-google-btn"
               >
-                <GoogleLogo className="w-5 h-5" />
-                <span className="text-sm sm:text-base font-bold text-slate-900">Log In with Google</span>
+                {isGoogleLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin text-slate-700" />
+                ) : (
+                  <GoogleLogo className="w-5 h-5" />
+                )}
+                <span className="text-sm sm:text-base font-bold text-slate-900">
+                  {isGoogleLoading ? 'Menghubungkan ke Google...' : 'Log In with Google'}
+                </span>
               </button>
 
               {/* Divider: ATAU */}
@@ -438,15 +459,22 @@ export default function Login({
                 <div className="border-t border-slate-200 w-full"></div>
               </div>
 
-              {/* Google Sign-In Button (CDC UI Style) */}
+              {/* Google Sign-In Button (Direct Official Popup) */}
               <button
                 type="button"
-                onClick={() => setShowGoogleModal(true)}
-                className="w-full bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 font-bold py-3 px-4 rounded-xl border border-slate-900 transition duration-150 flex items-center justify-center gap-3 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99]"
+                onClick={handleGoogleLogin}
+                disabled={isGoogleLoading}
+                className="w-full bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 font-bold py-3 px-4 rounded-xl border border-slate-900 transition duration-150 flex items-center justify-center gap-3 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99] disabled:opacity-60"
                 id="login-form-google-btn"
               >
-                <GoogleLogo className="w-5 h-5" />
-                <span className="text-sm sm:text-base font-bold text-slate-900">Log In with Google</span>
+                {isGoogleLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin text-slate-700" />
+                ) : (
+                  <GoogleLogo className="w-5 h-5" />
+                )}
+                <span className="text-sm sm:text-base font-bold text-slate-900">
+                  {isGoogleLoading ? 'Menghubungkan ke Google...' : 'Log In with Google'}
+                </span>
               </button>
 
               {/* Divider: ATAU */}
@@ -497,14 +525,7 @@ export default function Login({
 
       </div>
 
-      {/* ─────────────────────────────────────────────────────────────
-          4. MODAL: GOOGLE AUTH (LOGIN / REGISTER DIRECT)
-      ───────────────────────────────────────────────────────────── */}
-      <GoogleAuthModal
-        isOpen={showGoogleModal}
-        onClose={() => setShowGoogleModal(false)}
-        onSuccess={onLoginSuccess}
-      />
+
 
       {/* ─────────────────────────────────────────────────────────────
           5. MODAL: LUPA KATA SANDI / BANTUAN PEMULIHAN AKUN

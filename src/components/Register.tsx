@@ -36,7 +36,8 @@ interface RegisterProps {
   onRegisterSuccess?: (user: any) => void;
   onLoginSuccess?: (user: any) => void;
 }
-import GoogleAuthModal, { GoogleLogo } from './GoogleAuthModal';
+
+import { promptGoogleLogin, GoogleLogo } from '../utils/googleAuth';
 
 const INDUSTRI_LIST = [
   'Teknologi Informasi, Software & Telekomunikasi',
@@ -75,7 +76,7 @@ export default function Register({
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successUser, setSuccessUser] = useState<any | null>(null);
-  const [showGoogleModal, setShowGoogleModal] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const handleGoogleSuccess = (user: any) => {
     if (onLoginSuccess) {
@@ -83,6 +84,21 @@ export default function Register({
     } else if (onRegisterSuccess) {
       onRegisterSuccess(user);
     }
+  };
+
+  const handleGoogleLogin = () => {
+    setErrorMsg('');
+    promptGoogleLogin({
+      onSuccess: (user) => {
+        handleGoogleSuccess(user);
+      },
+      onError: (err) => {
+        setErrorMsg(err);
+      },
+      onLoading: (loading) => {
+        setIsGoogleLoading(loading);
+      }
+    });
   };
 
   // Password Visibility States
@@ -384,15 +400,22 @@ export default function Register({
                 <div className="border-t border-slate-200 w-full"></div>
               </div>
 
-              {/* Google Sign-In / Register Button (CDC UI Style) */}
+              {/* Google Sign-In / Register Button (Direct Official Popup) */}
               <button
                 type="button"
-                onClick={() => setShowGoogleModal(true)}
-                className="w-full bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 font-bold py-3.5 px-4 rounded-xl border border-slate-900 transition duration-150 flex items-center justify-center gap-3 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99]"
+                onClick={handleGoogleLogin}
+                disabled={isGoogleLoading}
+                className="w-full bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 font-bold py-3.5 px-4 rounded-xl border border-slate-900 transition duration-150 flex items-center justify-center gap-3 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99] disabled:opacity-60"
                 id="register-hero-google-btn"
               >
-                <GoogleLogo className="w-5 h-5" />
-                <span className="text-sm sm:text-base font-bold text-slate-900">Log In with Google</span>
+                {isGoogleLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin text-slate-700" />
+                ) : (
+                  <GoogleLogo className="w-5 h-5" />
+                )}
+                <span className="text-sm sm:text-base font-bold text-slate-900">
+                  {isGoogleLoading ? 'Menghubungkan ke Google...' : 'Log In with Google'}
+                </span>
               </button>
 
               {/* Under-Action Login Link */}
@@ -416,11 +439,7 @@ export default function Register({
             © {new Date().getFullYear()} Career Development Center — Universitas Muhammadiyah Kendari
           </div>
 
-          <GoogleAuthModal
-            isOpen={showGoogleModal}
-            onClose={() => setShowGoogleModal(false)}
-            onSuccess={handleGoogleSuccess}
-          />
+
         </div>
       </div>
     );
@@ -846,15 +865,22 @@ export default function Register({
                         <div className="border-t border-slate-200 w-full"></div>
                       </div>
 
-                      {/* Google Sign-In Button (CDC UI Style) */}
+                      {/* Google Sign-In Button (Direct Official Popup) */}
                       <button
                         type="button"
-                        onClick={() => setShowGoogleModal(true)}
-                        className="w-full bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 font-bold py-3 px-4 rounded-xl border border-slate-900 transition duration-150 flex items-center justify-center gap-3 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99]"
+                        onClick={handleGoogleLogin}
+                        disabled={isGoogleLoading}
+                        className="w-full bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 font-bold py-3 px-4 rounded-xl border border-slate-900 transition duration-150 flex items-center justify-center gap-3 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99] disabled:opacity-60"
                         id="register-alumni-google-btn"
                       >
-                        <GoogleLogo className="w-5 h-5" />
-                        <span className="text-sm sm:text-base font-bold text-slate-900">Log In with Google</span>
+                        {isGoogleLoading ? (
+                          <Loader2 className="w-5 h-5 animate-spin text-slate-700" />
+                        ) : (
+                          <GoogleLogo className="w-5 h-5" />
+                        )}
+                        <span className="text-sm sm:text-base font-bold text-slate-900">
+                          {isGoogleLoading ? 'Menghubungkan ke Google...' : 'Log In with Google'}
+                        </span>
                       </button>
 
                       {/* Under-Card Link */}
@@ -1119,12 +1145,19 @@ export default function Register({
                       {/* Google Sign-In Button (CDC UI Style) */}
                       <button
                         type="button"
-                        onClick={() => setShowGoogleModal(true)}
-                        className="w-full bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 font-bold py-3 px-4 rounded-xl border border-slate-900 transition duration-150 flex items-center justify-center gap-3 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99]"
+                        onClick={handleGoogleLogin}
+                        disabled={isGoogleLoading}
+                        className="w-full bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 font-bold py-3 px-4 rounded-xl border border-slate-900 transition duration-150 flex items-center justify-center gap-3 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99] disabled:opacity-60"
                         id="register-mitra-google-btn"
                       >
-                        <GoogleLogo className="w-5 h-5" />
-                        <span className="text-sm sm:text-base font-bold text-slate-900">Log In with Google</span>
+                        {isGoogleLoading ? (
+                          <Loader2 className="w-5 h-5 animate-spin text-slate-700" />
+                        ) : (
+                          <GoogleLogo className="w-5 h-5" />
+                        )}
+                        <span className="text-sm sm:text-base font-bold text-slate-900">
+                          {isGoogleLoading ? 'Menghubungkan ke Google...' : 'Log In with Google'}
+                        </span>
                       </button>
 
                       {/* Under-Card Link */}

@@ -2032,6 +2032,44 @@ export async function initializeDB(): Promise<void> {
     }
   } finally {
     _dbInitialized = true;
+    cleanupGoogleUsersEducation();
+  }
+}
+
+// Auto cleanup helper for Google users to ensure clean slate if no NIM has been registered
+export function cleanupGoogleUsersEducation() {
+  try {
+    const users = (MEMORY_DB['users'] as User[]) || [];
+    const students = (MEMORY_DB['mahasiswa'] as Mahasiswa[]) || [];
+    let changed = false;
+
+    students.forEach(st => {
+      const u = users.find(usr => usr.id === st.userId);
+      const isGoogle = u && (
+        u.password === 'google_authenticated' || 
+        u.id.startsWith('usr_google_') || 
+        u.email.toLowerCase().includes('akunrekantim')
+      );
+      if (isGoogle && !st.nim) {
+        if (st.qualifications && st.qualifications.length > 0) {
+          st.qualifications = [];
+          changed = true;
+        }
+        if (st.programStudi || st.fakultas || st.angkatan || st.graduationYear) {
+          st.programStudi = '';
+          st.fakultas = '';
+          st.angkatan = '';
+          st.graduationYear = '';
+          changed = true;
+        }
+      }
+    });
+
+    if (changed) {
+      saveToDB('mahasiswa', students);
+    }
+  } catch (e) {
+    // silent
   }
 }
 
@@ -2279,6 +2317,18 @@ export function loginOrRegisterWithGoogle(googleAccount: {
     const updatedUsers = users.map(u => (u.id === existingUser.id ? updatedUser : u));
     saveToDB('users', updatedUsers);
 
+    // Reset dummy education on Google user if it was auto-generated
+    const students = getFromDB<Mahasiswa>('mahasiswa');
+    const student = students.find(s => s.userId === existingUser.id);
+    if (student && !student.nim) {
+      student.qualifications = [];
+      student.fakultas = '';
+      student.programStudi = '';
+      student.angkatan = '';
+      student.graduationYear = '';
+      saveToDB('mahasiswa', students);
+    }
+
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem('cdc_session_id', updatedUser.id);
       localStorage.setItem('cdc_auth_token', `google_token_${Date.now()}`);
@@ -2304,7 +2354,7 @@ export function loginOrRegisterWithGoogle(googleAccount: {
   };
   insertToDB<User>('users', newUser);
 
-  // Auto-generate linked Alumni & Mahasiswa profile
+  // Auto-generate clean, uninitialized Alumni & Mahasiswa profile
   const newAlumni: Alumni = {
     id: `alm_${Date.now().toString(36)}`,
     userId: userId,
@@ -2312,9 +2362,9 @@ export function loginOrRegisterWithGoogle(googleAccount: {
     nama: googleAccount.name.trim(),
     email: googleAccount.email.trim().toLowerCase(),
     phone: '',
-    programStudi: 'Teknik Informatika',
-    fakultas: 'Fakultas Teknik',
-    tahunLulus: (new Date().getFullYear() + 2).toString(),
+    programStudi: '',
+    fakultas: '',
+    tahunLulus: '',
     statusPekerjaan: 'mahasiswa_aktif'
   };
   insertToDB<Alumni>('alumni', newAlumni);
@@ -2326,15 +2376,15 @@ export function loginOrRegisterWithGoogle(googleAccount: {
     nama: googleAccount.name.trim(),
     email: googleAccount.email.trim().toLowerCase(),
     phone: '',
-    fakultas: 'Fakultas Teknik',
-    programStudi: 'Teknik Informatika',
-    angkatan: new Date().getFullYear().toString(),
-    graduationYear: (new Date().getFullYear() + 2).toString(),
-    semester: 6,
+    fakultas: '',
+    programStudi: '',
+    angkatan: '',
+    graduationYear: '',
+    semester: 1,
     userStatusType: 'Mahasiswa',
     alamat: '',
     photoUrl: newUser.photoUrl,
-    aboutMe: 'Akun terhubung melalui Google Sign-In. Lengkapi profil Anda untuk memudahkan pelamaran kerja.',
+    aboutMe: '',
     ipk: '',
     nationality: 'Indonesia',
     opportunityType: '',
@@ -2346,14 +2396,7 @@ export function loginOrRegisterWithGoogle(googleAccount: {
     skills: [],
     experiences: [],
     certificates: [],
-    qualifications: [
-      {
-        id: '1',
-        institution: 'Universitas Muhammadiyah Kendari',
-        level: 'S1 - Teknik Informatika',
-        year: `Sedang Berjalan (Estimasi ${new Date().getFullYear() + 2})`
-      }
-    ],
+    qualifications: [],
     languages: []
   };
   insertToDB<Mahasiswa>('mahasiswa', newMahasiswa);

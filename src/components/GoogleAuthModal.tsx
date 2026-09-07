@@ -4,17 +4,20 @@
  *
  * GoogleAuthModal Component — Portal CDC UM Kendari
  * ─────────────────────────────────────────────────────────────────
- * Realistic, secure Google Account Chooser & Fast Authentication modal.
- * Allows users to:
- * - 1-Click login with existing registered accounts
- * - Enter any custom Google/Gmail account for direct login/registration
+ * Realistic, secure Google Account Chooser & Real Google OAuth integration.
+ * Supports:
+ * 1. Official Google OAuth 2.0 Popup (using your Google Client ID)
+ * 2. 1-Click fast select with existing accounts
+ * 3. Custom Google account input
  */
 
 import React, { useState } from 'react';
-import { X, Loader2, ArrowRight, Plus } from 'lucide-react';
+import { X, Loader2, ArrowRight, Plus, ExternalLink } from 'lucide-react';
 import { motion } from 'motion/react';
 import { loginOrRegisterWithGoogle, getFromDB } from '../data';
 import { User } from '../types';
+
+export const GOOGLE_CLIENT_ID = '1077773131381-g3j12rlo2epjlg1rvahq5vljo15ir38e.apps.googleusercontent.com';
 
 interface GoogleAuthModalProps {
   isOpen: boolean;
@@ -55,6 +58,7 @@ export default function GoogleAuthModal({
   const [customEmail, setCustomEmail] = useState('');
   const [customError, setCustomError] = useState('');
   const [loadingEmail, setLoadingEmail] = useState<string | null>(null);
+  const [isConnectingGoogle, setIsConnectingGoogle] = useState(false);
 
   if (!isOpen) return null;
 
@@ -75,11 +79,63 @@ export default function GoogleAuthModal({
     }
   ].filter((acc, idx, arr) => arr.findIndex(a => a.email.toLowerCase() === acc.email.toLowerCase()) === idx);
 
+  // Trigger Real Google OAuth 2.0 Popup
+  const triggerRealGooglePopup = () => {
+    setCustomError('');
+    if (typeof window !== 'undefined' && (window as any).google?.accounts?.oauth2) {
+      setIsConnectingGoogle(true);
+      try {
+        const tokenClient = (window as any).google.accounts.oauth2.initTokenClient({
+          client_id: GOOGLE_CLIENT_ID,
+          scope: 'email profile openid',
+          callback: async (resp: any) => {
+            if (resp && resp.access_token) {
+              try {
+                const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                  headers: { Authorization: `Bearer ${resp.access_token}` }
+                });
+                const profile = await res.json();
+                if (profile && profile.email) {
+                  const { user } = loginOrRegisterWithGoogle({
+                    name: profile.name || profile.email.split('@')[0],
+                    email: profile.email,
+                    photoUrl: profile.picture
+                  });
+                  onSuccess(user);
+                  onClose();
+                  return;
+                }
+              } catch (err: any) {
+                setCustomError('Gagal mengambil data profil Google: ' + err.message);
+              } finally {
+                setIsConnectingGoogle(false);
+              }
+            } else if (resp && resp.error) {
+              setIsConnectingGoogle(false);
+              if (resp.error !== 'popup_closed_by_user') {
+                setCustomError(`Pemberitahuan Google: ${resp.error_description || resp.error}. Pastikan http://localhost:3000 sudah ditambahkan di Authorized origins Google Cloud.`);
+              }
+            }
+          },
+          error_callback: (err: any) => {
+            setIsConnectingGoogle(false);
+            setCustomError(`Tidak dapat membuka popup Google: ${err?.message || 'Pastikan http://localhost:3000 telah didaftarkan di Authorized origins Google Cloud Console.'}`);
+          }
+        });
+        tokenClient.requestAccessToken();
+      } catch (err: any) {
+        setIsConnectingGoogle(false);
+        setCustomError('Gagal menginisialisasi Google Auth: ' + err.message);
+      }
+    } else {
+      setCustomError('Library Google Sign-In sedang dimuat di browser. Silakan coba kembali dalam beberapa detik.');
+    }
+  };
+
   const handleSelectAccount = async (account: { name: string; email: string; photoUrl?: string }) => {
     setLoadingEmail(account.email);
     setCustomError('');
 
-    // Simulate authentic Google OAuth response handshake
     await new Promise(r => setTimeout(r, 650));
 
     try {
@@ -155,24 +211,57 @@ export default function GoogleAuthModal({
             Login dengan Google
           </h3>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Pilih akun untuk melanjutkan ke <span className="font-semibold text-slate-700">Portal CDC UM Kendari</span>
+            Pilih metode login untuk masuk ke <span className="font-semibold text-slate-700">Portal CDC UM Kendari</span>
           </p>
         </div>
 
         {/* Modal Body */}
         <div className="p-6 sm:p-7 space-y-4">
           {customError && (
-            <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3 rounded-xl text-xs font-medium">
+            <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3 rounded-xl text-xs font-medium leading-relaxed">
               {customError}
             </div>
           )}
 
+          {/* 1. REAL GOOGLE POPUP BUTTON */}
+          <div>
+            <button
+              type="button"
+              disabled={isConnectingGoogle}
+              onClick={triggerRealGooglePopup}
+              className="w-full bg-[#1A73E8] hover:bg-[#1557B0] active:bg-[#0D47A1] text-white font-bold py-3.5 px-4 rounded-2xl shadow-md transition duration-150 flex items-center justify-center gap-3 cursor-pointer disabled:opacity-75"
+            >
+              {isConnectingGoogle ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span className="text-xs sm:text-sm">Menghubungkan ke Google...</span>
+                </>
+              ) : (
+                <>
+                  <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center shrink-0">
+                    <GoogleLogo className="w-4 h-4" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold">Buka Popup Login Resmi Google</span>
+                  <ExternalLink className="w-4 h-4 opacity-80 shrink-0" />
+                </>
+              )}
+            </button>
+            <p className="text-[11px] text-slate-400 text-center mt-1.5">
+              Membuka jendela resmi akun Google Anda
+            </p>
+          </div>
+
+          {/* Divider */}
+          <div className="relative flex items-center justify-center py-1">
+            <div className="border-t border-slate-200 w-full"></div>
+            <span className="bg-white px-2.5 text-[11px] text-slate-400 font-bold uppercase tracking-wider">
+              Atau Akun Cepat
+            </span>
+            <div className="border-t border-slate-200 w-full"></div>
+          </div>
+
           {!isCustomMode ? (
             <div className="space-y-2">
-              <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-1">
-                Pilih Akun yang Tersedia:
-              </div>
-
               {/* Account List */}
               <div className="divide-y divide-slate-100 border border-slate-200/80 rounded-2xl overflow-hidden bg-slate-50/40">
                 {sampleAccounts.map(account => {
@@ -181,7 +270,7 @@ export default function GoogleAuthModal({
                     <button
                       key={account.email}
                       type="button"
-                      disabled={Boolean(loadingEmail)}
+                      disabled={Boolean(loadingEmail) || isConnectingGoogle}
                       onClick={() => handleSelectAccount(account)}
                       className="w-full text-left p-3.5 sm:p-4 hover:bg-slate-100/80 transition flex items-center gap-3.5 cursor-pointer disabled:opacity-60 group"
                     >
@@ -216,7 +305,7 @@ export default function GoogleAuthModal({
                 {/* Option: Use Another Account */}
                 <button
                   type="button"
-                  disabled={Boolean(loadingEmail)}
+                  disabled={Boolean(loadingEmail) || isConnectingGoogle}
                   onClick={() => setIsCustomMode(true)}
                   className="w-full text-left p-3.5 sm:p-4 hover:bg-slate-100/80 transition flex items-center gap-3.5 cursor-pointer group text-slate-700"
                 >
@@ -225,10 +314,10 @@ export default function GoogleAuthModal({
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-bold text-sm text-slate-800 group-hover:text-[#0077C6] transition">
-                      Gunakan akun Google lain
+                      Ketik Email Google Lain
                     </div>
                     <div className="text-xs text-slate-500">
-                      Masuk atau daftar dengan email Gmail lainnya
+                      Masukkan nama dan email Gmail secara manual
                     </div>
                   </div>
                 </button>
@@ -272,7 +361,7 @@ export default function GoogleAuthModal({
                 </button>
                 <button
                   type="submit"
-                  disabled={Boolean(loadingEmail)}
+                  disabled={Boolean(loadingEmail) || isConnectingGoogle}
                   className="bg-[#0077C6] hover:bg-blue-700 text-white text-xs sm:text-sm font-bold px-6 py-2.5 rounded-xl shadow-xs transition flex items-center gap-2 cursor-pointer active:scale-95"
                 >
                   {loadingEmail ? (
