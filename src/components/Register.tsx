@@ -1182,13 +1182,6 @@ export default function Register({
 
         </div>
       </main>
-
-      <GoogleAuthModal
-        isOpen={showGoogleModal}
-        onClose={() => setShowGoogleModal(false)}
-        onSuccess={handleGoogleSuccess}
-      />
-
     </div>
   );
 }

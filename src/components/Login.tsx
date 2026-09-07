@@ -26,6 +26,7 @@ import {
   Phone
 } from 'lucide-react';
 import { getFromDB, saveToDB, getHelpdeskConfig } from '../data';
+import { User as UserType, HelpdeskConfig } from '../types';
 import { promptGoogleLogin, GoogleLogo } from '../utils/googleAuth';
 
 interface LoginProps {

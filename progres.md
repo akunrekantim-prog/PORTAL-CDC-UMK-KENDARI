@@ -2482,3 +2482,42 @@ Apa yang dikerjakan ARYA APRIAWAN:
 Kesimpulan: tidak ada perubahan kode pada sesi ini (audit & verifikasi).
 Semua commit sebelumnya sudah dipush ke origin/main.
 ============================================================
+
+
+============================================================
+REKAP PROGRES — 07 September 2026 (Sesi: Integrasi Resmi Google OAuth 2.0 & Reset Education Akun Baru)
+Nama: IKHSAN
+============================================================
+
+Apa yang dikerjakan IKHSAN:
+
+1. Integrasi Penuh Google OAuth 2.0 Real (Popup Otentikasi Resmi Google)
+   - Menambahkan Google Identity Services (GSI) script SDK di index.html.
+   - Mengonfigurasi Client ID Google resmi (1077773131381-g3j12rlo2epjlg1rvahq5vljo15ir38e.apps.googleusercontent.com) yang telah dihubungkan ke Authorized JavaScript Origins http://localhost:3000 dan http://localhost:5173 di Google Cloud Console.
+   - Membuat utilitas src/utils/googleAuth.tsx dengan fungsi promptGoogleLogin() yang langsung memanggil popup resmi Google (google.accounts.oauth2.initTokenClient dengan prompt: 'select_account').
+   - Mengambil data profil asli akun Google via Google Userinfo API (nama, email, foto profil), lalu melakukan auto-register / login langsung sebagai user Portal CDC.
+   - Menghubungkan langsung ke tombol "Log In with Google" di Login.tsx dan Register.tsx tanpa melalui modal perantara lokal.
+
+2. Reset & Clean State Seksi Education untuk Akun Baru (Google Auth)
+   - Pada StudentProfileView.tsx:
+     * Ketika akun baru belum mengisi riwayat pendidikan (qualifications.length === 0), tidak lagi menampilkan data dummy bawaan (Teknik Informatika / Sarjana S1), melainkan pesan kosong: "Belum ada riwayat pendidikan yang ditambahkan." (senada dengan seksi Skill).
+     * Tombol aksi di kanan atas berubah dinamis menjadi tombol hijau "+ Tambah Pendidikan".
+     * Menyediakan tombol merah "Hapus Riwayat Pendidikan" di dalam mode edit jika pengguna ingin mereset/mengosongkan riwayat pendidikan yang sudah disimpan.
+   - Pada src/data.ts:
+     * Menambahkan fungsi cleanupGoogleUsersEducation() yang otomatis membersihkan sisa riwayat pendidikan dummy pada akun pengguna Google yang belum memiliki NIM.
+     * Dipanggil otomatis saat inisialisasi database (initializeDB) dan saat proses loginOrRegisterWithGoogle.
+
+3. Bugfix & Perbaikan Komponen Auth
+   - src/components/Register.tsx:
+     * Memperbaiki bug layar putih (blank screen) dengan mengembalikan state successUser dan setSuccessUser yang sempat terpotong.
+     * Menghapus sisa tag komponen GoogleAuthModal yang sudah tidak terpakai di bawah formulir pendaftaran.
+   - src/components/Login.tsx:
+     * Mengembalikan import types UserType dan HelpdeskConfig yang terpotong.
+   - tsconfig.json:
+     * Menambahkan include: ["src"] dan exclude scripts luar agar validasi TypeScript fokus penuh pada aplikasi frontend.
+
+4. Verifikasi & Pengujian
+   - TypeScript Typecheck (npx tsc --noEmit): lolos 100% tanpa error (Exit code: 0).
+   - Vite Production Build (npx vite build): berhasil ditransformasikan dan dibuild sempurna (2131 modules, built in ~6.8s).
+============================================================
+
