@@ -58,11 +58,8 @@ export default function App() {
   const [viewingBeritaSlug, setViewingBeritaSlug] = useState<string | null>(null);
   const [viewingProgramId, setViewingProgramId] = useState<string | null>(null);
 
-  // Authentication State
+  // Authentication State (user login via backend; handleFastRoleSwitch HANYA dev)
   const [currentUser, setCurrentUser] = useState<UserType | null>(null);
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
 
   // Local database States for passing to sub-components
   const [allLowongan, setAllLowongan] = useState<Lowongan[]>([]);
@@ -116,53 +113,21 @@ export default function App() {
     setAllKonten(getFromDB<KontenKarir>('konten_karir'));
   };
 
-  // Login handler using simulated bcrypt/SQL
-  const handleLoginSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoginError('');
-
-    if (!loginEmail || !loginPassword) {
-      setLoginError('Email dan Password wajib diisi.');
-      return;
-    }
-
-    // Call backend API for authentication
-    try {
-      const response = await fetch('http://localhost:5000/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          email: loginEmail.toLowerCase(), 
-          password: loginPassword 
-        })
-      });
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        setLoginError(result.message || 'Login gagal. Periksa kredensial Anda.');
-        return;
-      }
-
-      // Store JWT token with expiry
-      localStorage.setItem('cdc_auth_token', result.token);
-      localStorage.setItem('cdc_token_expiry', (Date.now() + result.expiresIn * 1000).toString());
-      localStorage.setItem('cdc_session_id', result.user.id);
-
-      // Update local state
-      setCurrentUser(result.user);
-      setCurrentView('dashboard');
-      reloadDatabase();
-    } catch (error) {
-      console.error('[Login Error]:', error);
-      setLoginError('Tidak dapat terhubung ke server. Pastikan backend berjalan di port 5000.');
-    }
-  };
+  // Login resmi lewat komponen Login (POST /api/login backend, bcrypt + JWT).
+  // handleLoginSubmit lama (inline App.tsx) DIHAPUS — sumber ganda = celah auth.
+  // Development Direct-Switch tool — HANYA aktif bila DEV build + VITE_ENABLE_FAST_AUTH=true.
+  // Di production tombol disembunyikan agar tidak jadi backdoor.
+  const FAST_AUTH_ENABLED =
+    (typeof import.meta !== 'undefined' &&
+      (import.meta as any).env &&
+      (import.meta as any).env.DEV === true &&
+      (import.meta as any).env.VITE_ENABLE_FAST_AUTH === 'true') ||
+    (typeof process !== 'undefined' && (process as any).env && (process as any).env.VITE_ENABLE_FAST_AUTH === 'true' && (process as any).env.NODE_ENV !== 'production');
 
   // SECURITY: Direct-switch hanya aktif di development.
   // Di production, fallback admin sintetis DINONAKTIFKAN — akses admin wajib via /api/login + JWT.
   const handleFastRoleSwitch = (role: 'admin' | 'user' | 'mitra' | 'viewer' | 'mahasiswa') => {
-    if (!import.meta.env.DEV) {
+    if (!FAST_AUTH_ENABLED) {
       console.warn('[Security] Fast role switch dinonaktifkan di production.');
       return;
     }
@@ -193,17 +158,26 @@ export default function App() {
     setCurrentView('public');
     setPublicTab('beranda');
     reloadDatabase();
-    localStorage.removeItem('cdc_session_id');
+    try {
+      localStorage.removeItem('cdc_auth_token');
+      localStorage.removeItem('cdc_token_expiry');
+      localStorage.removeItem('cdc_session_id');
+    } catch { /* abaikan */ }
+    // Bersihkan httpOnly auth cookie sisi server (fire-and-forget)
+    try { fetch('/api/logout', { method: 'POST', credentials: 'include' }); } catch { /* abaikan */ }
+    // Fallback langsung (kalau proxy): panggil origin API
+    try {
+      const base = (typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.VITE_API_URL) || 'http://localhost:5000/api';
+      fetch(`${base}/logout`, { method: 'POST', credentials: 'include' }).catch(()=>{});
+    } catch { /* abaikan */ }
   };
 
   // Navigation callbacks
   const handleNavigateToLogin = () => {
-    setLoginError('');
     setCurrentView('login');
   };
 
   const handleNavigateToRegister = (type: 'alumni' | 'perusahaan' = 'alumni') => {
-    setLoginError('');
     setRegisterTab(type);
     setCurrentView('register');
   };
@@ -247,10 +221,9 @@ export default function App() {
   return (
     <div className="bg-white min-h-screen font-sans" id="app-root">
 
-      {/* SECURITY: Fast-Role switcher hanya aktif di development (import.meta.env.DEV).
-          Di production build (npm run build), blok ini TIDAK dirender sama sekali.
-          Dashboard admin di production hanya bisa dibuka via JWT login yang valid. */}
-      {import.meta.env.DEV && (
+      {/* SECURITY: Fast-Role switcher hanya aktif di dev (DEV build + VITE_ENABLE_FAST_AUTH).
+          Di production build blok ini TIDAK dirender sama sekali. */}
+      {FAST_AUTH_ENABLED && (
       <div
         id="aistudio-role-switcher"
         className="bg-slate-900 border-b border-slate-800 py-2.5 px-4 flex flex-wrap items-center justify-between gap-3 text-white"
@@ -434,10 +407,19 @@ export default function App() {
         {/* VIEW 4: LOGIN FORM ROUTE */}
         {currentView === 'login' && (
           <Login
-            onLoginSuccess={(user) => {
+            onLoginSuccess={async (user) => {
               setCurrentUser(user);
               setCurrentView('dashboard');
-              reloadDatabase();
+              // Tarik ulang dataset privat (/all-data) dengan token baru agar dashboard tidak hanya lihat data publik.
+              const { fetchInitialDatabaseFromSupabase } = await import('./services/dbService');
+              const full = await fetchInitialDatabaseFromSupabase();
+              if (full) {
+                const { initializeDB: _reinit } = await import('./data');
+                // MEMORY_DB sudah tertimpa fetchInitial..., reloadDatabase sinkronkan state React.
+                reloadDatabase();
+              } else {
+                reloadDatabase();
+              }
             }}
             onNavigateToRegister={handleNavigateToRegister}
             onNavigateHome={() => {
@@ -467,10 +449,11 @@ export default function App() {
           />
         )}
 
-        {/* VIEW 5: DISPATCH DASHBOARDS TO ROLE-SPECIFIC PANELS */}
+        {/* VIEW 5: DISPATCH DASHBOARDS TO ROLE-SPECIFIC PANELS
+            Role backend dinormalisasi dbService: admin / mitra / mahasiswa / alumni / user. */}
         {currentView === 'dashboard' && currentUser && (
           <div id="dashboard-panel-resolver">
-            {currentUser.role === 'user' && (
+            {['user', 'mahasiswa', 'alumni', 'job_seeker'].includes(currentUser.role) && (
               <MahasiswaDashboard
                 user={currentUser}
                 onLogout={handleLogout}

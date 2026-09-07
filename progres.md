@@ -6,6 +6,45 @@ Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 
 ---
 
+## Tanggal: 7 September 2026
+**Oleh: ARYA APRIAWAN**
+**Fokus Pekerjaan:** Hardening total API backend (eksekusi 13 temuan SECURITY_AUDIT_REPORT) — CRITICAL SQLi DELETE, JWT secret enforcement, httpOnly cookie, CSP ketat, body-limit 2MB, validasi Zod, sanitasi DOMPurify frontend, hapus default password.
+
+### Ringkasan Perubahan
+1. **CRITICAL-01 SQLi DELETE (`server.js`):** `$executeRawUnsafe` DIHAPUS total — ganti `prisma[model].delete({ where: { id } })` parameterized + guard format ID `^[\w\-\.]+$`. Grep `executeRawUnsafe|queryRaw` = 0 hasil.
+2. **HIGH-01 JWT secret:** fallback `Math.random` dihapus — dev pakai `crypto.randomBytes(64)`, prod WAJIB `JWT_SECRET` min 32 char (throw bila kosong/pendek). Terbukti: boot prod tanpa secret → `CRITICAL: JWT_SECRET harus diset`.
+3. **HIGH-03 XSS:** `markdown.tsx` + `AdminDashboard.tsx` (renderMedium, markdownToHtml, init editor, save body) disanitasi DOMPurify ketat (FORBID script/iframe/event-handler). Stat-card `dangerouslySetInnerHTML` statis dihapus → render text biasa.
+4. **HIGH-04 token storage:** login set `httpOnly` cookie (`secure`+`strict` di prod) + endpoint `/api/logout`; `dbService.ts` semua fetch privat pakai `credentials: include`; logout App.tsx bersihkan cookie server.
+5. **MEDIUM-02 validasi:** schema Zod `userSyncSchema` (case-insensitive role/status) di `/api/sync/users`; whitelist entity; payload guard 1.5MB; semua field di-slice batas panjang.
+6. **MEDIUM-03 error leak:** semua catch API → `Internal server error` generik; tambah 404 handler + error middleware (stack hanya di dev).
+7. **MEDIUM-04/LOW-02/LOW-03:** body limit 50MB → 2MB (413 terbukti); CORS tanpa `Allow-Origin` untuk origin tak dikenal + `Vary: Origin`; CSP helmet ketat + HSTS prod; `requireAdmin` dipakai; register/login tambah length-guard.
+8. **HIGH-02 default password:** `registerUser` lokal tolak fallback `'password'` — wajib kuat (8+upper+lower+angka); komentar seed `"password"` dihapus; sync users tolak create tanpa password.
+9. **HIGH-01 lanjutan (bug nyata ditemukan saat attack-test):** regex email double-escaped menolak SEMUA email valid — diperbaiki, terbukti register/login shaping benar.
+10. **Deps + test-infra:** `zod`, `isomorphic-dompurify`, `cookie-parser` (+types) terinstal; `npm audit` 0 vuln; `vite.config.ts` proxy `/api`; `playwright.config.ts` serial workers=1 + FAST_AUTH env (7/7 chromium lolos).
+
+### Verifikasi (bukti nyata, bukan klaim)
+- ✅ `npx tsc --noEmit` — 0 error (`npm run lint` LINT:0)
+- ✅ `npm audit` — 0 vulnerabilities
+- ✅ `npm run build` — sukses 34.3s (2133 modules)
+- ✅ Attack-test live server uji (13 vektor): SQLi DELETE→400, unauth all-data→401, CORS evil→no header, CSP header aktif, body 3MB→413, invalid table→400, Zod kosong→400, non-admin sync→403, weak pw→400 pesan password, bad email→400, login shaping→500 DB-down (bukan 400 validasi), 404 handler, prod-tanpa-secret→throw
+- ✅ `npx playwright test --project=chromium --workers=1` — 7/7 passed (29.9s)
+- ⚠️ DB live (docker/supabase) tidak tersedia di mesin ini — endpoint butuh DB balas 500 generik `Internal server error` (aman, tanpa leak). Verifikasi penuh lawan DB staging/prod oleh tim.
+
+### File Diubah
+- **[MODIFY]** `server.js` (hardening total: JWT, CSP, CORS, limiter, Zod, cookie, DELETE parameterized, error generik)
+- **[MODIFY]** `src/markdown.tsx` (DOMPurify), `src/components/AdminDashboard.tsx` (4 titik sanitasi + hapus innerHTML statis)
+- **[MODIFY]** `src/services/dbService.ts` (credentials include + logout helper), `src/App.tsx` (logout bersihkan cookie + DEV-gating ganda)
+- **[MODIFY]** `src/components/Login.tsx` (loginToBackend + Google Auth tim dipertahankan), `src/data.ts` (tolak default password), `vite.config.ts` (proxy /api), `playwright.config.ts` (serial + FAST_AUTH)
+- **[MODIFY]** `package.json`, `package-lock.json` (zod, isomorphic-dompurify, cookie-parser)
+- **[MODIFY]** `progres.md` (entri ini)
+
+### Merge dengan kerja tim (commit 9d2bd94, Fachrul)
+- Remote sudah berisi RLS + backend-only auth + Google Auth client-side + DEV-gated switcher — tidak ada yang dibuang.
+- `server.js`/`dbService.ts` diambil versi hardening ini (superset: limiter publik, RBAC tulis, Zod, cookie, DELETE ber-auth; versi tim DELETE tanpa auth + `$queryRaw` tanpa parameter justru diperkuat).
+- `App.tsx`: hapus `handleLoginSubmit` ganda (celah auth) + gating lapis ganda `DEV && VITE_ENABLE_FAST_AUTH`; `Login.tsx`: versi `loginToBackend` (env URL + normalisasi role, bug cek UPPERCASE tim diperbaiki) + tombol Google Auth tim tetap jalan.
+
+---
+
 ## Tanggal: 4 September 2026
 **Oleh: dr.eng,.ir. fachrul alam sanuddin S.T., M.T.,IPU.,ASEAN.ENG (PAK PROJECT MANAGER)**
 **Fokus Pekerjaan:** Implementasi E2E Testing Playwright (19/21 Test Passed), Audit Keamanan & Hardening Express.js Server (`server.js`), Dokumentasi Arsitektur Backend & Integration Supabase (`docs/`), Database Setup Guide (`docs/DATABASE_SETUP.md`), Security Audit Report (`SECURITY_AUDIT_REPORT.md`), serta Penyusunan Dokumentasi Progres Sistem (`PROGRESS.md` & `progres.md`).

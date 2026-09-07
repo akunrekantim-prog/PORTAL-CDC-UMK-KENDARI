@@ -26,6 +26,7 @@ import {
   Phone
 } from 'lucide-react';
 import { getHelpdeskConfig } from '../data';
+import { loginToBackend } from '../services/dbService';
 import { User as UserType, HelpdeskConfig } from '../types';
 import { promptGoogleLogin, GoogleLogo } from '../utils/googleAuth';
 
@@ -36,8 +37,6 @@ interface LoginProps {
 }
 
 type LoginRole = 'mahasiswa' | 'mitra';
-
-const API_BASE_URL = 'http://localhost:5000/api';
 
 export default function Login({
   onLoginSuccess,
@@ -94,44 +93,34 @@ export default function Login({
 
     setIsLoading(true);
     try {
-      // SECURITY: Autentikasi SEPENUHNYA dilakukan di backend (server.js /api/login)
-      // - bcrypt.compare() memverifikasi hash password
-      // - status akun (PENDING/INACTIVE/REJECTED) dicek server
-      // - JWT token (24 jam) diterbitkan server
-      // - TIDAK ADA verifikasi / komparasi password di sisi client
-      const response = await fetch(`${API_BASE_URL}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: email.trim().toLowerCase(),
-          password
-        })
-      });
+      // Login via backend Express: bcrypt server-side + JWT 24 jam + httpOnly cookie.
+      // TIDAK ada pencocokan password di frontend (bocor kredensial + backdoor).
+      // loginToBackend simpan cdc_auth_token + expiry + session, kirim credentials include.
+      const { user } = await loginToBackend(email.trim(), password);
 
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        setErrorMessage(result.message || 'Login gagal. Periksa kredensial Anda.');
-        return;
-      }
-
-      // Role check advisory (UI only — server tetap otoritatif untuk akses data)
-      if (selectedRole === 'mitra' && (result.user.role === 'user' || result.user.role === 'admin')) {
+      // Role check advisory (berdasar role resmi dari server, sudah lowercase-normalized)
+      if (selectedRole === 'mitra' && user.role !== 'mitra' && user.role !== 'admin') {
         setErrorMessage('Akun ini terdaftar sebagai akun Mahasiswa / Alumni. Silakan gunakan pilihan Masuk dengan Akun Mahasiswa / Alumni.');
         return;
       }
 
-      if (selectedRole === 'mahasiswa' && result.user.role === 'mitra') {
+      if (selectedRole === 'mahasiswa' && user.role === 'mitra') {
         setErrorMessage('Akun ini terdaftar sebagai akun Mitra Perusahaan. Silakan gunakan pilihan Masuk dengan Akun Mitra.');
         return;
       }
 
-      // Simpan token JWT + metadata session (expiry client-side untuk UX)
-      localStorage.setItem('cdc_auth_token', result.token);
-      localStorage.setItem('cdc_token_expiry', (Date.now() + (result.expiresIn || 86400) * 1000).toString());
-      localStorage.setItem('cdc_session_id', result.user.id);
+      if (user.status === 'pending') {
+        setErrorMessage('Akun Anda masih dalam proses verifikasi oleh administrator (Status: Pending).');
+        return;
+      }
 
-      onLoginSuccess(result.user);
+      if (user.status === 'inactive' || user.status === 'rejected') {
+        setErrorMessage('Akun dinonaktifkan atau ditolak oleh operator CDC.');
+        return;
+      }
+
+      // Success: token sudah disimpan loginToBackend (cdc_auth_token + expiry + session)
+      onLoginSuccess(user as UserType);
     } catch (err: any) {
       setErrorMessage(err.message || 'Tidak dapat terhubung ke server. Pastikan backend berjalan di port 5000.');
     } finally {

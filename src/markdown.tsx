@@ -1,4 +1,5 @@
 import React from 'react';
+import DOMPurify from 'isomorphic-dompurify';
 
 /**
  * Membersihkan tag HTML & entity sehingga menghasilkan teks polos (plain text)
@@ -38,6 +39,16 @@ export function stripHtmlTags(raw?: string): string {
     .trim();
 }
 
+function sanitizeHtml(raw: string): string {
+  return DOMPurify.sanitize(raw, {
+    ALLOWED_TAGS: ['p','br','strong','em','u','s','sub','sup','mark','span','a','ul','ol','li','h1','h2','h3','h4','h5','h6','blockquote','hr','code','pre','img','figure','figcaption','div'],
+    ALLOWED_ATTR: ['href','target','rel','src','alt','title','class','style','id'],
+    ALLOW_DATA_ATTR: false,
+    FORBID_TAGS: ['script','style','iframe','object','embed','form','input','button','link','meta'],
+    FORBID_ATTR: ['onerror','onload','onclick','onmouseover','onfocus','onblur','oninput','onsubmit'],
+  });
+}
+
 /**
  * Render ringkas untuk isi konten berita/admin/layanan (format Medium-style & GitHub Markdown):
  * - Baris "# " => Heading 1 / Title
@@ -52,12 +63,9 @@ export function stripHtmlTags(raw?: string): string {
  */
 export function renderContentMarkdown(raw?: string): React.ReactNode {
   if (!raw) return null;
-  // Jika isi sudah berupa HTML (berita yang diedit via WYSIWYG), render langsung.
+  // Jika isi sudah berupa HTML (berita yang diedit via WYSIWYG), sanitize ketat via DOMPurify
   if (/<[a-z][\s\S]*>/i.test(raw)) {
-    const clean = raw
-      .replace(/<script[\s\S]*?<\/script>/gi, '')
-      .replace(/ on\w+="[^"]*"/gi, '')
-      .replace(/javascript:/gi, '');
+    const clean = sanitizeHtml(raw);
     return <div className="prose-berita" dangerouslySetInnerHTML={{ __html: clean }} />;
   }
   const blocks: React.ReactNode[] = [];

@@ -21,10 +21,8 @@ import {
   X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { registerToBackend } from '../services/dbService';
 import {
-  registerUser,
-  RegisterAlumniPayload,
-  RegisterMitraPayload,
   FAKULTAS_LIST,
   PRODI_MAP
 } from '../data';
@@ -226,24 +224,19 @@ export default function Register({
 
     setIsLoading(true);
     try {
-      await new Promise(r => setTimeout(r, 600));
-
-      const payload: RegisterAlumniPayload = {
+      const role = alumniForm.userType === 'Mahasiswa' ? 'MAHASISWA' : 'ALUMNI';
+      const user = await registerToBackend({
         name: alumniForm.name.trim(),
-        nim: alumniForm.nim.trim().toUpperCase(),
         email: alumniForm.email.trim(),
         password: alumniForm.password,
         phone: alumniForm.phone.trim(),
+        role: role as any,
+        nim: alumniForm.nim.trim().toUpperCase(),
         fakultas: alumniForm.fakultas,
         programStudi: alumniForm.programStudi,
-        tahunLulus: alumniForm.tahunLulus,
-        userStatusType: alumniForm.userType,
-        statusPekerjaan: (alumniForm.userType === 'Mahasiswa'
-          ? 'mahasiswa_aktif'
-          : (alumniForm.statusPekerjaan || 'belum_bekerja')) as any
-      };
+        tahunLulus: alumniForm.tahunLulus
+      });
 
-      const user = registerUser('alumni', payload);
       setSuccessUser(user);
       if (onRegisterSuccess) onRegisterSuccess(user);
     } catch (err: any) {
@@ -260,22 +253,21 @@ export default function Register({
 
     setIsLoading(true);
     try {
-      await new Promise(r => setTimeout(r, 600));
-
-      const payload: RegisterMitraPayload = {
+      const user = await registerToBackend({
+        name: mitraForm.kontakPerson.trim(),
+        email: mitraForm.email.trim(),
+        password: mitraForm.password,
+        phone: mitraForm.phone.trim(),
+        role: 'MITRA',
         namaInstansi: mitraForm.namaInstansi.trim(),
         kontakPerson: mitraForm.jabatanKontak
           ? `${mitraForm.kontakPerson.trim()} (${mitraForm.jabatanKontak.trim()})`
           : mitraForm.kontakPerson.trim(),
-        email: mitraForm.email.trim(),
-        password: mitraForm.password,
-        phone: mitraForm.phone.trim(),
         bidangIndustri: mitraForm.bidangIndustri,
         alamat: mitraForm.alamat.trim(),
         website: mitraForm.website.trim()
-      };
+      });
 
-      const user = registerUser('mitra', payload);
       setSuccessUser(user);
       if (onRegisterSuccess) onRegisterSuccess(user);
     } catch (err: any) {
