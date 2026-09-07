@@ -162,12 +162,43 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
   const [sendOpportunities, setSendOpportunities] = useState(mahasiswaData?.sendOpportunities || '');
   const [cvName, setCvName] = useState(mahasiswaData?.cvName || '');
 
-  // Qualification State (Pendidikan)
+  // Qualification State (Pendidikan - CDC UI Style)
   const [qualifications, setQualifications] = useState(() => mahasiswaData?.qualifications || []);
-  const [newInst, setNewInst] = useState('');
-  const [newLevel, setNewLevel] = useState('');
-  const [newYear, setNewYear] = useState('');
-  const [newIpk, setNewIpk] = useState('');
+  const [newInst, setNewInst] = useState(() => mahasiswaData?.university || 'Universitas Muhammadiyah Kendari');
+  const [newLevel, setNewLevel] = useState(() => {
+    const q0 = mahasiswaData?.qualifications?.[0];
+    if (q0?.level?.includes('-')) return q0.level.split('-')[0].trim();
+    return q0?.level || 'S1';
+  });
+  const [newFieldOfStudy, setNewFieldOfStudy] = useState(() => {
+    const q0 = mahasiswaData?.qualifications?.[0];
+    if (q0?.level?.includes('-')) return q0.level.split('-').slice(1).join('-').trim();
+    return 'Sistem dan Teknologi Informasi';
+  });
+  const [newAdmissionMonth, setNewAdmissionMonth] = useState('Agustus');
+  const [newAdmissionYear, setNewAdmissionYear] = useState('2024');
+  const [isStillStudying, setIsStillStudying] = useState(true);
+  const [newGraduationMonth, setNewGraduationMonth] = useState('');
+  const [newGraduationYear, setNewGraduationYear] = useState('2028');
+  const [newIpk, setNewIpk] = useState(() => mahasiswaData?.qualifications?.[0]?.ipk || '');
+
+  // Animation variants for smooth inline card transformation (CDC UI Style)
+  const sectionVariants = {
+    initial: { opacity: 0, y: 8 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.22, ease: [0.22, 1, 0.36, 1] as const } },
+    exit: { opacity: 0, y: -8, transition: { duration: 0.16, ease: [0.22, 1, 0.36, 1] as const } }
+  };
+
+  // Open section and smooth scroll helper
+  const handleOpenSection = (sectionId: string) => {
+    setEditingSection(prev => prev === sectionId ? null : sectionId);
+    setTimeout(() => {
+      const el = document.getElementById(`section-${sectionId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
+  };
 
   // Skills State
   const [skills, setSkills] = useState<string[]>(() => mahasiswaData?.skills || []);
@@ -362,29 +393,45 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
     triggerToast('Bahasa berhasil dihapus');
   };
 
-  // Add Qualification Handler
-  const handleAddQualification = (e: React.FormEvent) => {
+  // Save Education Handler (CDC UI Style)
+  const handleSaveEducation = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newInst.trim() && newLevel.trim()) {
-      const nextQual = [
-        ...qualifications,
+    if (!newInst.trim()) {
+      triggerToast('Nama universitas wajib diisi');
+      return;
+    }
+    const fullLevel = newFieldOfStudy.trim() ? `${newLevel.trim()} - ${newFieldOfStudy.trim()}` : newLevel.trim();
+    const gradDateStr = isStillStudying 
+      ? `Sedang Berjalan (Estimasi ${newGraduationYear || '2028'})`
+      : `${newGraduationMonth ? newGraduationMonth + ' ' : ''}${newGraduationYear || '2026'}`.trim();
+
+    let nextQual: typeof qualifications;
+    if (qualifications.length > 0) {
+      nextQual = [
+        {
+          ...qualifications[0],
+          institution: newInst.trim(),
+          level: fullLevel,
+          year: gradDateStr,
+          ipk: newIpk.trim() || undefined
+        },
+        ...qualifications.slice(1)
+      ];
+    } else {
+      nextQual = [
         {
           id: Date.now().toString(),
           institution: newInst.trim(),
-          level: newLevel.trim(),
-          year: newYear.trim() || '2026',
-          ...(newIpk.trim() ? { ipk: newIpk.trim() } : {})
+          level: fullLevel,
+          year: gradDateStr,
+          ipk: newIpk.trim() || undefined
         }
       ];
-      setQualifications(nextQual);
-      setNewInst('');
-      setNewLevel('');
-      setNewYear('');
-      setNewIpk('');
-      setEditingSection(null);
-      saveProfileData({ qualifications: nextQual });
-      triggerToast('Pendidikan berhasil ditambahkan!');
     }
+    setQualifications(nextQual);
+    saveProfileData({ qualifications: nextQual });
+    setEditingSection(null);
+    triggerToast('Data pendidikan berhasil disimpan!');
   };
 
   const handleRemoveQualification = (qualId: string) => {
@@ -430,7 +477,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
       isCompleted: isPersonalCompleted,
       weight: 20,
       detail: isPersonalCompleted ? 'Identitas Lengkap' : 'Belum Lengkap',
-      action: () => setEditingSection('personal'),
+      action: () => handleOpenSection('personal'),
       actionLabel: 'Lengkapi Data'
     },
     {
@@ -439,7 +486,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
       isCompleted: isBioCompleted,
       weight: 10,
       detail: isBioCompleted ? 'Bio Terisi' : 'Belum Diisi',
-      action: () => setEditingSection('aboutMe'),
+      action: () => handleOpenSection('aboutMe'),
       actionLabel: 'Tulis Bio'
     },
     {
@@ -448,7 +495,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
       isCompleted: isEducationCompleted,
       weight: 15,
       detail: qualifications.length > 0 ? `${qualifications.length} Riwayat` : 'Belum Ada',
-      action: () => setEditingSection('education'),
+      action: () => handleOpenSection('education'),
       actionLabel: 'Tambah Pendidikan'
     },
     {
@@ -457,7 +504,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
       isCompleted: isSkillsCompleted,
       weight: 15,
       detail: skills.length > 0 ? `${skills.length} Keahlian` : 'Belum Ada',
-      action: () => setEditingSection('skills'),
+      action: () => handleOpenSection('skills'),
       actionLabel: 'Kelola Skill'
     },
     {
@@ -466,7 +513,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
       isCompleted: isExperienceCompleted,
       weight: 10,
       detail: experiences.length > 0 ? `${experiences.length} Pengalaman` : 'Belum Ada',
-      action: () => setEditingSection('experience'),
+      action: () => handleOpenSection('experience'),
       actionLabel: 'Tambah Pengalaman'
     },
     {
@@ -475,7 +522,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
       isCompleted: isCertificateCompleted,
       weight: 10,
       detail: certificates.length > 0 ? `${certificates.length} Sertifikat` : 'Belum Ada',
-      action: () => setEditingSection('certificate'),
+      action: () => handleOpenSection('certificate'),
       actionLabel: 'Tambah Sertifikat'
     },
     {
@@ -484,7 +531,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
       isCompleted: isLanguageCompleted,
       weight: 5,
       detail: languagesList.length > 0 ? `${languagesList.length} Bahasa` : 'Belum Ada',
-      action: () => setEditingSection('languages'),
+      action: () => handleOpenSection('languages'),
       actionLabel: 'Tambah Bahasa'
     },
     {
@@ -493,7 +540,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
       isCompleted: isCareerCompleted,
       weight: 5,
       detail: isCareerCompleted ? 'Terisi' : 'Belum Diisi',
-      action: () => setEditingSection('career'),
+      action: () => handleOpenSection('career'),
       actionLabel: 'Atur Preferensi'
     }
   ];
@@ -557,62 +604,224 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
 
           {/* Profile Info Summary */}
           <div className="space-y-3 text-center md:text-left flex-1 min-w-0">
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
-              <button
-                type="button"
-                onClick={() => setEditingSection('headerInfo')}
-                className="bg-blue-50 hover:bg-blue-100 text-[#0077C6] text-xs font-bold px-3.5 py-1 rounded-full border border-blue-200 uppercase tracking-wider flex items-center gap-1.5 transition group cursor-pointer"
-                title="Klik untuk ubah status (Mahasiswa / Alumni)"
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-[#0077C6]" />
-                <span>{userStatusType}</span>
-                <Pencil className="w-3 h-3 opacity-60 group-hover:opacity-100" />
-              </button>
+            <AnimatePresence mode="wait">
+              {editingSection === 'headerInfo' ? (
+                <motion.form
+                  key="edit-header"
+                  variants={sectionVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  onSubmit={handleSaveProfileSection}
+                  className="bg-slate-50/95 border border-slate-200/90 rounded-2xl p-5 space-y-4 shadow-xs"
+                >
+                  <div className="flex items-center justify-between border-b border-slate-200/70 pb-3">
+                    <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                      <Pencil className="w-4 h-4 text-[#0077C6]" /> Edit Info Profil Utama
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setEditingSection(null)}
+                      className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-200/60 transition cursor-pointer"
+                      title="Batal"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
 
-              <button
-                type="button"
-                onClick={() => setEditingSection('headerInfo')}
-                className="text-xs text-[#0077C6] hover:text-blue-700 hover:underline flex items-center gap-1 font-semibold md:ml-auto cursor-pointer"
-                title="Edit Info Utama (Status, Nama & Universitas)"
-              >
-                <Pencil className="w-3.5 h-3.5" /> Edit Info Profil
-              </button>
-            </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Status Keanggotaan</label>
+                      <select
+                        value={userStatusType}
+                        onChange={e => setUserStatusType(e.target.value as 'Mahasiswa' | 'Alumni')}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                      >
+                        <option value="Mahasiswa">Mahasiswa</option>
+                        <option value="Alumni">Alumni</option>
+                      </select>
+                    </div>
 
-            <h1
-              onClick={() => setEditingSection('headerInfo')}
-              className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight cursor-pointer hover:text-[#0077C6] transition group flex items-center justify-center md:justify-start gap-2"
-              title="Klik untuk edit nama"
-            >
-              <span>{`${firstName} ${lastName}`.trim() || user.name}</span>
-            </h1>
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Nama Perguruan Tinggi *</label>
+                      <input
+                        type="text"
+                        value={university}
+                        onChange={e => setUniversity(e.target.value)}
+                        required
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                      />
+                    </div>
 
-            <div
-              onClick={() => setEditingSection('headerInfo')}
-              className="flex items-center justify-center md:justify-start gap-2 text-slate-600 text-xs sm:text-sm font-medium cursor-pointer hover:text-slate-900 transition group w-fit mx-auto md:mx-0"
-              title="Klik untuk ubah nama Universitas"
-            >
-              <GraduationCap className="w-4 h-4 text-[#0077C6] shrink-0" />
-              <span className="underline underline-offset-4 decoration-slate-300 group-hover:decoration-[#0077C6]">{university}</span>
-              <Pencil className="w-3 h-3 opacity-0 group-hover:opacity-100 transition text-[#0077C6]" />
-            </div>
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Nama Depan *</label>
+                      <input
+                        type="text"
+                        value={firstName}
+                        onChange={e => setFirstName(e.target.value)}
+                        required
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Nama Belakang</label>
+                      <input
+                        type="text"
+                        value={lastName}
+                        onChange={e => setLastName(e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-200/70">
+                    <button
+                      type="button"
+                      onClick={() => setEditingSection(null)}
+                      className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-100 transition cursor-pointer"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      type="submit"
+                      className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-5 py-2 rounded-xl text-xs shadow-xs transition cursor-pointer active:scale-95"
+                    >
+                      Simpan Perubahan
+                    </button>
+                  </div>
+                </motion.form>
+              ) : (
+                <motion.div
+                  key="view-header"
+                  variants={sectionVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  className="space-y-3"
+                >
+                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditingSection('headerInfo')}
+                      className="bg-blue-50 hover:bg-blue-100 text-[#0077C6] text-xs font-bold px-3.5 py-1 rounded-full border border-blue-200 uppercase tracking-wider flex items-center gap-1.5 transition group cursor-pointer"
+                      title="Klik untuk ubah status (Mahasiswa / Alumni)"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5 text-[#0077C6]" />
+                      <span>{userStatusType}</span>
+                      <Pencil className="w-3 h-3 opacity-60 group-hover:opacity-100" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setEditingSection('headerInfo')}
+                      className="text-xs text-[#0077C6] hover:text-blue-700 hover:underline flex items-center gap-1 font-semibold md:ml-auto cursor-pointer"
+                      title="Edit Info Utama (Status, Nama & Universitas)"
+                    >
+                      <Pencil className="w-3.5 h-3.5" /> Edit Info Profil
+                    </button>
+                  </div>
+
+                  <h1
+                    onClick={() => setEditingSection('headerInfo')}
+                    className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight cursor-pointer hover:text-[#0077C6] transition group flex items-center justify-center md:justify-start gap-2"
+                    title="Klik untuk edit nama"
+                  >
+                    <span>{`${firstName} ${lastName}`.trim() || user.name}</span>
+                  </h1>
+
+                  <div
+                    onClick={() => setEditingSection('headerInfo')}
+                    className="flex items-center justify-center md:justify-start gap-2 text-slate-600 text-xs sm:text-sm font-medium cursor-pointer hover:text-slate-900 transition group w-fit mx-auto md:mx-0"
+                    title="Klik untuk ubah nama Universitas"
+                  >
+                    <GraduationCap className="w-4 h-4 text-[#0077C6] shrink-0" />
+                    <span className="underline underline-offset-4 decoration-slate-300 group-hover:decoration-[#0077C6]">{university}</span>
+                    <Pencil className="w-3 h-3 opacity-0 group-hover:opacity-100 transition text-[#0077C6]" />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Tentang Saya (Bio Card) */}
-            <div className="pt-3 border-t border-slate-100 mt-3 space-y-1.5 bg-slate-50/80 p-4 rounded-2xl border border-slate-200/80">
+            <div id="section-aboutMe" className="pt-3 border-t border-slate-100 mt-3 space-y-1.5 bg-slate-50/80 p-4 rounded-2xl border border-slate-200/80 scroll-mt-24">
               <div className="flex items-center justify-between text-xs font-bold text-slate-700">
                 <span className="uppercase tracking-wider text-xs text-[#0077C6] font-bold flex items-center gap-1.5">
                   <UserIcon className="w-3.5 h-3.5 text-[#0077C6]" /> TENTANG SAYA
                 </span>
-                <button
-                  onClick={() => setEditingSection('aboutMe')}
-                  className="text-[#0077C6] hover:text-blue-700 hover:underline flex items-center gap-1 font-semibold text-xs cursor-pointer"
-                >
-                  {aboutMe ? 'Edit Bio' : '+ Tulis Bio'} <Pencil className="w-3 h-3" />
-                </button>
+                {editingSection === 'aboutMe' ? (
+                  <button
+                    onClick={() => setEditingSection(null)}
+                    className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-200/60 transition cursor-pointer"
+                    title="Tutup Edit"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setEditingSection('aboutMe')}
+                    className="text-[#0077C6] hover:text-blue-700 hover:underline flex items-center gap-1 font-semibold text-xs cursor-pointer"
+                  >
+                    {aboutMe ? 'Edit Bio' : '+ Tulis Bio'} <Pencil className="w-3 h-3" />
+                  </button>
+                )}
               </div>
-              <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-normal max-w-2xl whitespace-pre-line">
-                {aboutMe || <span className="italic text-slate-400">Belum ada deskripsi profil atau bio yang ditulis. Klik &quot;+ Tulis Bio&quot; untuk memperkenalkan diri Anda.</span>}
-              </p>
+
+              <AnimatePresence mode="wait">
+                {editingSection === 'aboutMe' ? (
+                  <motion.div
+                    key="edit-about"
+                    variants={sectionVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className="space-y-3 pt-1"
+                  >
+                    <textarea
+                      rows={4}
+                      value={aboutMe}
+                      onChange={e => setAboutMe(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white leading-relaxed"
+                      placeholder="Tuliskan deskripsi singkat mengenai latar belakang, passion, dan tujuan karir Anda..."
+                    />
+                    <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-200/60">
+                      <button
+                        type="button"
+                        onClick={() => setEditingSection(null)}
+                        className="px-4 py-2 text-xs font-bold text-slate-600 rounded-xl border border-slate-200 hover:bg-slate-100 transition cursor-pointer"
+                      >
+                        Batal
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          saveProfileData({ aboutMe });
+                          setEditingSection(null);
+                          triggerToast('Bio berhasil diperbarui!');
+                        }}
+                        className="px-5 py-2 text-xs font-bold text-white bg-[#0077C6] hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer active:scale-95"
+                      >
+                        Simpan Bio
+                      </button>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.p
+                    key="view-about"
+                    variants={sectionVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className="text-xs sm:text-sm text-slate-700 leading-relaxed font-normal max-w-2xl whitespace-pre-line"
+                  >
+                    {aboutMe || (
+                      <span className="italic text-slate-400">
+                        Belum ada deskripsi profil atau bio yang ditulis. Klik &quot;+ Tulis Bio&quot; untuk memperkenalkan diri Anda.
+                      </span>
+                    )}
+                  </motion.p>
+                )}
+              </AnimatePresence>
             </div>
           </div>
 
@@ -769,7 +978,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
             {/* ══════════════════════════════════════════
                 SEKSI 1: DATA PRIBADI
             ══════════════════════════════════════════ */}
-            <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-6 hover:border-slate-300 transition-all">
+            <div id="section-personal" className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-6 hover:border-slate-300 transition-all scroll-mt-24">
               <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
@@ -780,120 +989,456 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     <p className="text-xs text-slate-500 font-normal">Informasi identitas resmi pelamar</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setEditingSection('personal')}
-                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Pencil className="w-3.5 h-3.5 text-slate-500" /> Edit Data
-                </button>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
-                <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
-                  <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">NAMA LENGKAP</div>
-                  <div className="font-bold text-slate-900 text-sm truncate">{`${firstName} ${lastName}`.trim() || 'Belum Diisi'}</div>
-                </div>
-
-                {userStatusType === 'Mahasiswa' && (
-                  <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
-                    <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">NIM (NOMOR INDUK MAHASISWA)</div>
-                    <div className="font-bold text-slate-900 text-sm">{nim || 'Belum Diisi'}</div>
-                  </div>
+                {editingSection === 'personal' ? (
+                  <button
+                    onClick={() => setEditingSection(null)}
+                    className="text-slate-400 hover:text-slate-700 p-2 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+                    title="Tutup / Batal"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setEditingSection('personal')}
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Pencil className="w-3.5 h-3.5 text-slate-500" /> Edit Data
+                  </button>
                 )}
-
-                <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
-                  <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">EMAIL</div>
-                  <div className="font-bold text-slate-900 text-sm truncate">{email || user.email}</div>
-                </div>
-
-                <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
-                  <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">NO. TELEPON / WHATSAPP</div>
-                  <div className="font-bold text-slate-900 text-sm">{mobile || 'Belum Diisi'}</div>
-                </div>
-
-                <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
-                  <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">JENIS KELAMIN</div>
-                  <div className="font-bold text-slate-900 text-sm">{gender === 'Male' ? 'Laki-Laki' : gender === 'Female' ? 'Perempuan' : (gender || 'Belum Diisi')}</div>
-                </div>
-
-                <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
-                  <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">KEWARGANEGARAAN</div>
-                  <div className="font-bold text-slate-900 text-sm">{nationality || 'Indonesian'}</div>
-                </div>
-
-                <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
-                  <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">HAK KERJA</div>
-                  <div className="font-bold text-slate-900 text-sm">{workRights || 'Belum Diisi'}</div>
-                </div>
               </div>
+
+              <AnimatePresence mode="wait">
+                {editingSection === 'personal' ? (
+                  <motion.form
+                    key="edit-personal"
+                    variants={sectionVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    onSubmit={handleSaveProfileSection}
+                    className="space-y-4 text-xs"
+                  >
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1.5">Nama Depan *</label>
+                        <input
+                          type="text"
+                          value={firstName}
+                          onChange={e => setFirstName(e.target.value)}
+                          required
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1.5">Nama Belakang</label>
+                        <input
+                          type="text"
+                          value={lastName}
+                          onChange={e => setLastName(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className={userStatusType === 'Mahasiswa' ? "grid grid-cols-1 sm:grid-cols-2 gap-3.5" : "block"}>
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1.5">Email / Kontak</label>
+                        <input
+                          type="email"
+                          value={email}
+                          onChange={e => setEmail(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                        />
+                      </div>
+                      {userStatusType === 'Mahasiswa' && (
+                        <div>
+                          <label className="font-bold text-slate-700 block mb-1.5">NIM (Nomor Induk Mahasiswa)</label>
+                          <input
+                            type="text"
+                            value={nim}
+                            onChange={e => setNim(e.target.value)}
+                            placeholder="Contoh: 202101001"
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1.5">No. Telepon / WhatsApp</label>
+                        <input
+                          type="text"
+                          value={mobile}
+                          onChange={e => setMobile(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1.5">Jenis Kelamin</label>
+                        <select
+                          value={gender}
+                          onChange={e => setGender(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                        >
+                          <option value="">-- Pilih Jenis Kelamin --</option>
+                          <option value="Male">Laki-Laki</option>
+                          <option value="Female">Perempuan</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1.5">Kewarganegaraan</label>
+                        <input
+                          type="text"
+                          value={nationality}
+                          onChange={e => setNationality(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1.5">Hak Kerja</label>
+                        <input
+                          type="text"
+                          value={workRights}
+                          onChange={e => setWorkRights(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-slate-100">
+                      <button
+                        type="button"
+                        onClick={() => setEditingSection(null)}
+                        className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition cursor-pointer"
+                      >
+                        Batal
+                      </button>
+                      <button
+                        type="submit"
+                        className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-xs transition cursor-pointer active:scale-95"
+                      >
+                        Simpan Perubahan
+                      </button>
+                    </div>
+                  </motion.form>
+                ) : (
+                  <motion.div
+                    key="view-personal"
+                    variants={sectionVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs"
+                  >
+                    <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
+                      <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">NAMA LENGKAP</div>
+                      <div className="font-bold text-slate-900 text-sm truncate">{`${firstName} ${lastName}`.trim() || 'Belum Diisi'}</div>
+                    </div>
+
+                    {userStatusType === 'Mahasiswa' && (
+                      <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
+                        <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">NIM (NOMOR INDUK MAHASISWA)</div>
+                        <div className="font-bold text-slate-900 text-sm">{nim || 'Belum Diisi'}</div>
+                      </div>
+                    )}
+
+                    <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
+                      <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">EMAIL</div>
+                      <div className="font-bold text-slate-900 text-sm truncate">{email || user.email}</div>
+                    </div>
+
+                    <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
+                      <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">NO. TELEPON / WHATSAPP</div>
+                      <div className="font-bold text-slate-900 text-sm">{mobile || 'Belum Diisi'}</div>
+                    </div>
+
+                    <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
+                      <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">JENIS KELAMIN</div>
+                      <div className="font-bold text-slate-900 text-sm">{gender === 'Male' ? 'Laki-Laki' : gender === 'Female' ? 'Perempuan' : (gender || 'Belum Diisi')}</div>
+                    </div>
+
+                    <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
+                      <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">KEWARGANEGARAAN</div>
+                      <div className="font-bold text-slate-900 text-sm">{nationality || 'Indonesian'}</div>
+                    </div>
+
+                    <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
+                      <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">HAK KERJA</div>
+                      <div className="font-bold text-slate-900 text-sm">{workRights || 'Belum Diisi'}</div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* ══════════════════════════════════════════
-                SEKSI 2: PENDIDIKAN
+                SEKSI 2: PENDIDIKAN (EDUCATION - CDC UI STYLE)
             ══════════════════════════════════════════ */}
-            <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-6 hover:border-slate-300 transition-all">
+            <div id="section-education" className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-6 hover:border-slate-300 transition-all scroll-mt-24">
               <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
                     <GraduationCap className="w-5 h-5 text-emerald-600" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-slate-900">Pendidikan</h3>
+                    <h3 className="text-base font-bold text-slate-900">Education</h3>
                     <p className="text-xs text-slate-500 font-normal">Riwayat studi perguruan tinggi dan sekolah</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setEditingSection('education')}
-                  className="bg-[#0077C6]/10 hover:bg-[#0077C6]/20 text-[#0077C6] px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" /> Tambah Pendidikan
-                </button>
+
+                {editingSection === 'education' ? (
+                  <button
+                    onClick={() => setEditingSection(null)}
+                    className="text-slate-400 hover:text-slate-700 p-2 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+                    title="Tutup / Batal"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setEditingSection('education')}
+                    className="text-[#EAB308] hover:text-amber-600 bg-amber-50/80 hover:bg-amber-100/80 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Pencil className="w-3.5 h-3.5 text-[#EAB308]" /> Edit
+                  </button>
+                )}
               </div>
 
-              <div className="space-y-3.5">
-                {qualifications.length === 0 ? (
-                  <p className="text-xs text-slate-500 italic">Belum ada riwayat pendidikan yang ditambahkan.</p>
-                ) : (
-                  qualifications.map(q => (
-                    <div key={q.id} className="bg-slate-50/80 border border-slate-200/70 hover:border-emerald-300 rounded-2xl p-4.5 transition-all space-y-2 relative group">
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-1">
-                          <div className="text-xs font-bold text-blue-700 uppercase tracking-wider flex items-center gap-1.5">
-                            <Building2 className="w-3.5 h-3.5 text-blue-600" />
-                            {q.institution}
-                          </div>
-                          <h4 className="font-bold text-slate-900 text-sm sm:text-base">{q.level}</h4>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium text-slate-600 bg-white px-3 py-1 rounded-full border border-slate-200">
-                            Tahun Lulus: {q.year}
-                          </span>
-                          <button
-                            onClick={() => handleRemoveQualification(q.id)}
-                            className="text-slate-400 hover:text-rose-600 p-1 transition opacity-70 group-hover:opacity-100 cursor-pointer"
-                            title="Hapus Pendidikan"
+              <AnimatePresence mode="wait">
+                {editingSection === 'education' ? (
+                  <motion.form
+                    key="edit-education"
+                    variants={sectionVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    onSubmit={handleSaveEducation}
+                    className="space-y-4 text-xs"
+                  >
+                    {/* CDC UI Style Fields */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="sm:col-span-2">
+                        <label className="font-bold text-slate-700 block mb-1.5">University *</label>
+                        <input
+                          type="text"
+                          required
+                          value={newInst}
+                          onChange={e => setNewInst(e.target.value)}
+                          placeholder="Universitas Muhammadiyah Kendari"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1.5">Qualification</label>
+                        <select
+                          value={newLevel}
+                          onChange={e => setNewLevel(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                        >
+                          <option value="S1">S1 (Sarjana)</option>
+                          <option value="D3">D3 (Diploma 3)</option>
+                          <option value="D4">D4 (Sarjana Terapan)</option>
+                          <option value="S2">S2 (Magister)</option>
+                          <option value="S3">S3 (Doktor)</option>
+                          <option value="SMA / SMK">SMA / SMK</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1.5">Field of Study (Jurusan / Program Studi)</label>
+                        <input
+                          type="text"
+                          value={newFieldOfStudy}
+                          onChange={e => setNewFieldOfStudy(e.target.value)}
+                          placeholder="Contoh: Sistem dan Teknologi Informasi"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1.5">Admission Date (Bulan &amp; Tahun Masuk)</label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <select
+                            value={newAdmissionMonth}
+                            onChange={e => setNewAdmissionMonth(e.target.value)}
+                            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
                           >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                            {['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'].map(m => (
+                              <option key={m} value={m}>{m}</option>
+                            ))}
+                          </select>
+                          <input
+                            type="text"
+                            value={newAdmissionYear}
+                            onChange={e => setNewAdmissionYear(e.target.value)}
+                            placeholder="2024"
+                            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                          />
                         </div>
                       </div>
-                      {q.ipk && (
-                        <div className="pt-1 flex items-center gap-2">
-                          <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold px-2.5 py-0.5 rounded-full">
-                            IPK: {q.ipk}
-                          </span>
+
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1.5">Graduation Date (Bulan &amp; Tahun Lulus)</label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <select
+                            value={newGraduationMonth}
+                            onChange={e => setNewGraduationMonth(e.target.value)}
+                            disabled={isStillStudying}
+                            className={`w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 ${isStillStudying ? 'bg-slate-100 text-slate-400' : 'bg-white'}`}
+                          >
+                            <option value="">-- Bulan --</option>
+                            {['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'].map(m => (
+                              <option key={m} value={m}>{m}</option>
+                            ))}
+                          </select>
+                          <input
+                            type="text"
+                            value={newGraduationYear}
+                            onChange={e => setNewGraduationYear(e.target.value)}
+                            placeholder={isStillStudying ? 'Estimasi (2028)' : '2026'}
+                            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="sm:col-span-2 flex items-center gap-2.5 pt-1">
+                        <input
+                          type="checkbox"
+                          id="still-studying-check"
+                          checked={isStillStudying}
+                          onChange={e => setIsStillStudying(e.target.checked)}
+                          className="w-4 h-4 text-[#EAB308] rounded border-slate-300 focus:ring-[#EAB308] accent-amber-500 cursor-pointer"
+                        />
+                        <label htmlFor="still-studying-check" className="text-xs font-semibold text-slate-700 cursor-pointer select-none">
+                          I still studying here (Masih menempuh pendidikan di sini)
+                        </label>
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="font-bold text-slate-700 block mb-1.5">
+                          IPK / Nilai Akhir <span className="text-slate-400 font-normal">(Opsional)</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={newIpk}
+                          onChange={e => setNewIpk(e.target.value)}
+                          placeholder="Contoh: 3.85 / 4.00"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-slate-100">
+                      <button
+                        type="button"
+                        onClick={() => setEditingSection(null)}
+                        className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition cursor-pointer"
+                      >
+                        Batal
+                      </button>
+                      <button
+                        type="submit"
+                        className="bg-[#FFCC00] hover:bg-amber-400 text-slate-900 font-bold px-7 py-2.5 rounded-xl text-xs sm:text-sm shadow-xs transition cursor-pointer active:scale-95 flex items-center gap-1.5"
+                      >
+                        Save
+                      </button>
+                    </div>
+                  </motion.form>
+                ) : (
+                  <motion.div
+                    key="view-education"
+                    variants={sectionVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className="space-y-4"
+                  >
+                    {/* CDC UI Style Clean Table / Card */}
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 py-2 border-b border-slate-100 text-xs">
+                        <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">UNIVERSITY</div>
+                        <div className="md:col-span-2 font-bold text-slate-900 text-sm">
+                          {qualifications[0]?.institution || university || 'Universitas Muhammadiyah Kendari'}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 py-2 border-b border-slate-100 text-xs">
+                        <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">QUALIFICATION</div>
+                        <div className="md:col-span-2 font-bold text-slate-900 text-sm">
+                          {qualifications[0]?.level?.includes('-') ? qualifications[0]?.level.split('-')[0].trim() : (qualifications[0]?.level || newLevel || 'S1')}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 py-2 border-b border-slate-100 text-xs">
+                        <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">FIELD OF STUDY</div>
+                        <div className="md:col-span-2 font-bold text-slate-900 text-sm">
+                          {qualifications[0]?.level?.includes('-') ? qualifications[0]?.level.split('-').slice(1).join('-').trim() : (newFieldOfStudy || 'Sistem dan Teknologi Informasi')}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 py-2 border-b border-slate-100 text-xs">
+                        <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">ADMISSION DATE</div>
+                        <div className="md:col-span-2 font-bold text-slate-900 text-sm">
+                          {newAdmissionMonth} {newAdmissionYear}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 py-2 border-b border-slate-100 text-xs">
+                        <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">GRADUATION DATE</div>
+                        <div className="md:col-span-2 font-bold text-slate-900 text-sm">
+                          {qualifications[0]?.year || (isStillStudying ? `Sedang Berjalan (Estimasi ${newGraduationYear})` : newGraduationYear) || '-'}
+                        </div>
+                      </div>
+
+                      {qualifications[0]?.ipk && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 py-2 text-xs">
+                          <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">IPK / NILAI AKHIR</div>
+                          <div className="md:col-span-2 font-bold text-emerald-700 text-sm">
+                            {qualifications[0]?.ipk}
+                          </div>
                         </div>
                       )}
                     </div>
-                  ))
+
+                    {/* Additional Qualifications List if more than 1 */}
+                    {qualifications.length > 1 && (
+                      <div className="pt-4 border-t border-slate-100 space-y-3">
+                        <div className="text-xs font-bold text-slate-600 uppercase tracking-wider">Riwayat Pendidikan Lainnya:</div>
+                        <div className="space-y-2">
+                          {qualifications.slice(1).map((q) => (
+                            <div key={q.id} className="bg-slate-50/90 border border-slate-200/80 rounded-xl p-3.5 flex items-center justify-between text-xs">
+                              <div>
+                                <div className="font-bold text-slate-900">{q.institution}</div>
+                                <div className="text-slate-600 font-medium">{q.level} • {q.year}</div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveQualification(q.id)}
+                                className="text-slate-400 hover:text-rose-600 p-1 transition cursor-pointer"
+                                title="Hapus"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
                 )}
-              </div>
+              </AnimatePresence>
             </div>
 
             {/* ══════════════════════════════════════════
                 SEKSI 3: SKILL & KEAHLIAN
             ══════════════════════════════════════════ */}
-            <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-6 hover:border-slate-300 transition-all">
+            <div id="section-skills" className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-6 hover:border-slate-300 transition-all scroll-mt-24">
               <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
@@ -904,41 +1449,151 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     <p className="text-xs text-slate-500 font-normal">Keahlian teknis dan kompetensi utama Anda</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setEditingSection('skills')}
-                  className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" /> Kelola Skill
-                </button>
-              </div>
 
-              <div className="flex flex-wrap gap-2.5">
-                {skills.length === 0 ? (
-                  <p className="text-xs text-slate-500 italic">Belum ada skill yang ditambahkan.</p>
+                {editingSection === 'skills' ? (
+                  <button
+                    onClick={() => setEditingSection(null)}
+                    className="text-slate-400 hover:text-slate-700 p-2 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+                    title="Tutup / Selesai"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
                 ) : (
-                  skills.map(sk => (
-                    <span
-                      key={sk}
-                      className="bg-slate-100 text-slate-800 border border-slate-200/90 hover:border-blue-300 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-2xs transition"
-                    >
-                      <span>{sk}</span>
-                      <button
-                        onClick={() => handleRemoveSkill(sk)}
-                        className="text-slate-400 hover:text-rose-600 transition ml-0.5 cursor-pointer"
-                        title="Hapus Skill"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </span>
-                  ))
+                  <button
+                    onClick={() => setEditingSection('skills')}
+                    className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Pencil className="w-3.5 h-3.5" /> Kelola Skill
+                  </button>
                 )}
               </div>
+
+              <AnimatePresence mode="wait">
+                {editingSection === 'skills' ? (
+                  <motion.div
+                    key="edit-skills"
+                    variants={sectionVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className="space-y-4"
+                  >
+                    <form onSubmit={handleAddSkill} className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Ketik skill baru (misal: React, Python, UI/UX)..."
+                        value={newSkillInput}
+                        onChange={e => setNewSkillInput(e.target.value)}
+                        className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                      />
+                      <button
+                        type="submit"
+                        className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center gap-1 transition shadow-xs cursor-pointer active:scale-95"
+                      >
+                        <Plus className="w-4 h-4" /> Tambah
+                      </button>
+                    </form>
+
+                    {/* Rekomendasi / Saran Cepat */}
+                    <div className="space-y-2 pt-1">
+                      <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                        Saran Keahlian Populer (Klik untuk tambah):
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {['Komunikasi', 'Microsoft Office', 'JavaScript', 'Python', 'React', 'UI/UX Design', 'Data Analysis', 'Public Speaking', 'Problem Solving', 'Teamwork', 'Manajemen Waktu', 'Bahasa Inggris']
+                          .filter(s => !skills.includes(s))
+                          .map(preset => (
+                            <button
+                              key={preset}
+                              type="button"
+                              onClick={() => {
+                                const nextSkills = [...skills, preset];
+                                setSkills(nextSkills);
+                                saveProfileData({ skills: nextSkills });
+                                triggerToast(`Skill "${preset}" berhasil ditambahkan!`);
+                              }}
+                              className="text-xs bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-[#0077C6] border border-slate-200/80 hover:border-blue-300 px-2.5 py-1 rounded-lg transition cursor-pointer"
+                            >
+                              + {preset}
+                            </button>
+                          ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 pt-2 border-t border-slate-100">
+                      <div className="text-xs font-bold text-slate-700">Daftar Skill Anda Saat Ini:</div>
+                      <div className="flex flex-wrap gap-2 p-1 max-h-48 overflow-y-auto">
+                        {skills.length === 0 ? (
+                          <span className="text-xs text-slate-400 italic">Belum ada skill yang ditambahkan.</span>
+                        ) : (
+                          skills.map(sk => (
+                            <span
+                              key={sk}
+                              className="bg-blue-50 text-blue-800 border border-blue-200 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2"
+                            >
+                              <span>{sk}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveSkill(sk)}
+                                className="text-blue-400 hover:text-rose-600 transition cursor-pointer"
+                                title="Hapus Skill"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </span>
+                          ))
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="pt-3 flex justify-end border-t border-slate-100">
+                      <button
+                        type="button"
+                        onClick={() => setEditingSection(null)}
+                        className="bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 py-2.5 rounded-xl text-xs transition cursor-pointer active:scale-95"
+                      >
+                        Selesai
+                      </button>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="view-skills"
+                    variants={sectionVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className="flex flex-wrap gap-2.5"
+                  >
+                    {skills.length === 0 ? (
+                      <p className="text-xs text-slate-500 italic">Belum ada skill yang ditambahkan.</p>
+                    ) : (
+                      skills.map(sk => (
+                        <span
+                          key={sk}
+                          className="bg-slate-100 text-slate-800 border border-slate-200/90 hover:border-blue-300 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-2xs transition"
+                        >
+                          <span>{sk}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveSkill(sk)}
+                            className="text-slate-400 hover:text-rose-600 transition ml-0.5 cursor-pointer"
+                            title="Hapus Skill"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </span>
+                      ))
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* ══════════════════════════════════════════
                 SEKSI 4: PENGALAMAN
             ══════════════════════════════════════════ */}
-            <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-6 hover:border-slate-300 transition-all">
+            <div id="section-experience" className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-6 hover:border-slate-300 transition-all scroll-mt-24">
               <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
@@ -949,53 +1604,179 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     <p className="text-xs text-slate-500 font-normal">Riwayat pekerjaan, magang, dan kegiatan organisasi</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setEditingSection('experience')}
-                  className="bg-amber-50 hover:bg-amber-100 text-amber-800 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" /> Tambah Pengalaman
-                </button>
-              </div>
 
-              <div className="space-y-4">
-                {experiences.length === 0 ? (
-                  <p className="text-xs text-slate-500 italic">Belum ada pengalaman yang ditambahkan.</p>
+                {editingSection === 'experience' ? (
+                  <button
+                    onClick={() => setEditingSection(null)}
+                    className="text-slate-400 hover:text-slate-700 p-2 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+                    title="Tutup / Batal"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
                 ) : (
-                  experiences.map(exp => (
-                    <div key={exp.id} className="bg-slate-50/80 border border-slate-200/70 hover:border-amber-300 rounded-2xl p-4.5 space-y-2 relative transition-all border-l-4 border-l-amber-500">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-bold text-slate-900 text-sm sm:text-base">{exp.position}</h4>
-                          <div className="text-xs font-bold text-amber-700 flex items-center gap-1.5 mt-0.5">
-                            <Building2 className="w-3.5 h-3.5" /> {exp.company}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium text-slate-600 bg-white px-3 py-1 rounded-full border border-slate-200">
-                            {exp.period}
-                          </span>
-                          <button
-                            onClick={() => handleRemoveExperience(exp.id)}
-                            className="text-slate-400 hover:text-rose-600 transition p-1 cursor-pointer"
-                            title="Hapus Pengalaman"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-600 leading-relaxed font-normal pt-1">
-                        {exp.description}
-                      </p>
-                    </div>
-                  ))
+                  <button
+                    onClick={() => setEditingSection('experience')}
+                    className="bg-amber-50 hover:bg-amber-100 text-amber-800 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Tambah Pengalaman
+                  </button>
                 )}
               </div>
+
+              <AnimatePresence mode="wait">
+                {editingSection === 'experience' ? (
+                  <motion.div
+                    key="edit-experience"
+                    variants={sectionVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className="space-y-5"
+                  >
+                    <form onSubmit={handleAddExperience} className="space-y-4 text-xs bg-slate-50/80 p-4.5 rounded-2xl border border-slate-200">
+                      <div className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">
+                        Formulir Tambah Pengalaman Baru
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                          <label className="font-bold text-slate-700 block mb-1.5">Posisi / Jabatan *</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="Contoh: Web Developer Intern"
+                            value={newExpPos}
+                            onChange={e => setNewExpPos(e.target.value)}
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="font-bold text-slate-700 block mb-1.5">Perusahaan / Organisasi *</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="Contoh: PT Go Digital Kendari"
+                            value={newExpComp}
+                            onChange={e => setNewExpComp(e.target.value)}
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1.5">Periode Kerja / Kegiatan</label>
+                        <input
+                          type="text"
+                          placeholder="Contoh: Jan 2025 - Sekarang"
+                          value={newExpPeriod}
+                          onChange={e => setNewExpPeriod(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1.5">Deskripsi Tugas / Tanggung Jawab</label>
+                        <textarea
+                          rows={3}
+                          placeholder="Tuliskan ringkasan tanggung jawab dan pencapaian Anda..."
+                          value={newExpDesc}
+                          onChange={e => setNewExpDesc(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white leading-relaxed"
+                        />
+                      </div>
+
+                      <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-200/70">
+                        <button
+                          type="button"
+                          onClick={() => setEditingSection(null)}
+                          className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-100 transition cursor-pointer"
+                        >
+                          Batal
+                        </button>
+                        <button
+                          type="submit"
+                          className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-xs transition cursor-pointer active:scale-95"
+                        >
+                          Simpan Pengalaman
+                        </button>
+                      </div>
+                    </form>
+
+                    {/* Existing experiences in edit mode */}
+                    {experiences.length > 0 && (
+                      <div className="space-y-3 pt-2">
+                        <div className="text-xs font-bold text-slate-700">Daftar Pengalaman yang Tersimpan:</div>
+                        <div className="space-y-3">
+                          {experiences.map(exp => (
+                            <div key={exp.id} className="bg-slate-50/90 border border-slate-200/80 rounded-2xl p-4 flex items-start justify-between">
+                              <div className="space-y-1">
+                                <h4 className="font-bold text-slate-900 text-sm">{exp.position}</h4>
+                                <div className="text-xs font-semibold text-amber-700">{exp.company} • {exp.period}</div>
+                                {exp.description && <p className="text-xs text-slate-600 mt-1">{exp.description}</p>}
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveExperience(exp.id)}
+                                className="text-slate-400 hover:text-rose-600 transition p-1 cursor-pointer"
+                                title="Hapus Pengalaman"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="view-experience"
+                    variants={sectionVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className="space-y-4"
+                  >
+                    {experiences.length === 0 ? (
+                      <p className="text-xs text-slate-500 italic">Belum ada pengalaman yang ditambahkan.</p>
+                    ) : (
+                      experiences.map(exp => (
+                        <div key={exp.id} className="bg-slate-50/80 border border-slate-200/70 hover:border-amber-300 rounded-2xl p-4.5 space-y-2 relative transition-all border-l-4 border-l-amber-500">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h4 className="font-bold text-slate-900 text-sm sm:text-base">{exp.position}</h4>
+                              <div className="text-xs font-bold text-amber-700 flex items-center gap-1.5 mt-0.5">
+                                <Building2 className="w-3.5 h-3.5" /> {exp.company}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-medium text-slate-600 bg-white px-3 py-1 rounded-full border border-slate-200">
+                                {exp.period}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveExperience(exp.id)}
+                                className="text-slate-400 hover:text-rose-600 transition p-1 cursor-pointer"
+                                title="Hapus Pengalaman"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                          <p className="text-xs text-slate-600 leading-relaxed font-normal pt-1">
+                            {exp.description}
+                          </p>
+                        </div>
+                      ))
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* ══════════════════════════════════════════
                 SEKSI 5: SERTIFIKAT & LISENSI
             ══════════════════════════════════════════ */}
-            <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-6 hover:border-slate-300 transition-all">
+            <div id="section-certificate" className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-6 hover:border-slate-300 transition-all scroll-mt-24">
               <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
@@ -1006,44 +1787,156 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     <p className="text-xs text-slate-500 font-normal">Sertifikat kompetensi, keahlian profesi, dan lisensi resmi</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setEditingSection('certificate')}
-                  className="bg-rose-50 hover:bg-rose-100 text-rose-700 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" /> Tambah Sertifikat
-                </button>
-              </div>
 
-              <div className="space-y-3.5">
-                {certificates.length === 0 ? (
-                  <p className="text-xs text-slate-500 italic">Belum ada sertifikat yang ditambahkan.</p>
+                {editingSection === 'certificate' ? (
+                  <button
+                    onClick={() => setEditingSection(null)}
+                    className="text-slate-400 hover:text-slate-700 p-2 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+                    title="Tutup / Batal"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
                 ) : (
-                  certificates.map(cert => (
-                    <div key={cert.id} className="bg-slate-50/80 border border-slate-200/70 hover:border-rose-300 rounded-2xl p-4.5 flex items-center justify-between transition-all">
-                      <div className="space-y-1">
-                        <h4 className="font-bold text-slate-900 text-sm sm:text-base">{cert.name}</h4>
-                        <div className="text-xs font-semibold text-rose-700 flex items-center gap-1.5">
-                          <Award className="w-3.5 h-3.5 text-rose-600" /> Penerbit: {cert.issuer || 'Lembaga Sertifikasi'}
-                        </div>
-                        <div className="text-xs text-slate-500 font-medium">Tahun Perolehan: {cert.year}</div>
-                      </div>
-                      <button
-                        onClick={() => handleRemoveCertificate(cert.id)}
-                        className="text-slate-400 hover:text-rose-600 transition p-1 cursor-pointer"
-                        title="Hapus Sertifikat"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))
+                  <button
+                    onClick={() => setEditingSection('certificate')}
+                    className="bg-rose-50 hover:bg-rose-100 text-rose-700 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Tambah Sertifikat
+                  </button>
                 )}
               </div>
+
+              <AnimatePresence mode="wait">
+                {editingSection === 'certificate' ? (
+                  <motion.div
+                    key="edit-certificate"
+                    variants={sectionVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className="space-y-5"
+                  >
+                    <form onSubmit={handleAddCertificate} className="space-y-4 text-xs bg-slate-50/80 p-4.5 rounded-2xl border border-slate-200">
+                      <div className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">
+                        Formulir Tambah Sertifikat Baru
+                      </div>
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1.5">Nama Sertifikat / Pelatihan *</label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="Contoh: Sertifikat Kompetensi Fullstack Developer - BNSP"
+                          value={newCertName}
+                          onChange={e => setNewCertName(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                          <label className="font-bold text-slate-700 block mb-1.5">Penerbit / Lembaga Sertifikasi</label>
+                          <input
+                            type="text"
+                            placeholder="Contoh: BNSP / Google / Dicoding"
+                            value={newCertIssuer}
+                            onChange={e => setNewCertIssuer(e.target.value)}
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="font-bold text-slate-700 block mb-1.5">Tahun Perolehan</label>
+                          <input
+                            type="text"
+                            placeholder="Contoh: 2025"
+                            value={newCertYear}
+                            onChange={e => setNewCertYear(e.target.value)}
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-200/70">
+                        <button
+                          type="button"
+                          onClick={() => setEditingSection(null)}
+                          className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-100 transition cursor-pointer"
+                        >
+                          Batal
+                        </button>
+                        <button
+                          type="submit"
+                          className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-xs transition cursor-pointer active:scale-95"
+                        >
+                          Simpan Sertifikat
+                        </button>
+                      </div>
+                    </form>
+
+                    {/* Existing certificates in edit mode */}
+                    {certificates.length > 0 && (
+                      <div className="space-y-3 pt-2">
+                        <div className="text-xs font-bold text-slate-700">Daftar Sertifikat yang Tersimpan:</div>
+                        <div className="space-y-2">
+                          {certificates.map(cert => (
+                            <div key={cert.id} className="bg-slate-50/90 border border-slate-200/80 rounded-2xl p-4 flex items-center justify-between text-xs">
+                              <div className="space-y-0.5">
+                                <div className="font-bold text-slate-900 text-sm">{cert.name}</div>
+                                <div className="text-rose-700 font-semibold">{cert.issuer || 'Lembaga Sertifikasi'} • Tahun {cert.year}</div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveCertificate(cert.id)}
+                                className="text-slate-400 hover:text-rose-600 transition p-1 cursor-pointer"
+                                title="Hapus Sertifikat"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="view-certificate"
+                    variants={sectionVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className="space-y-3.5"
+                  >
+                    {certificates.length === 0 ? (
+                      <p className="text-xs text-slate-500 italic">Belum ada sertifikat yang ditambahkan.</p>
+                    ) : (
+                      certificates.map(cert => (
+                        <div key={cert.id} className="bg-slate-50/80 border border-slate-200/70 hover:border-rose-300 rounded-2xl p-4.5 flex items-center justify-between transition-all">
+                          <div className="space-y-1">
+                            <h4 className="font-bold text-slate-900 text-sm sm:text-base">{cert.name}</h4>
+                            <div className="text-xs font-semibold text-rose-700 flex items-center gap-1.5">
+                              <Award className="w-3.5 h-3.5 text-rose-600" /> Penerbit: {cert.issuer || 'Lembaga Sertifikasi'}
+                            </div>
+                            <div className="text-xs text-slate-500 font-medium">Tahun Perolehan: {cert.year}</div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveCertificate(cert.id)}
+                            className="text-slate-400 hover:text-rose-600 transition p-1 cursor-pointer"
+                            title="Hapus Sertifikat"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* ══════════════════════════════════════════
                 SEKSI 6: BAHASA
             ══════════════════════════════════════════ */}
-            <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-6 hover:border-slate-300 transition-all">
+            <div id="section-languages" className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-6 hover:border-slate-300 transition-all scroll-mt-24">
               <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center font-bold">
@@ -1054,41 +1947,146 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     <p className="text-xs text-slate-500 font-normal">Kemampuan dan penguasaan bahasa komunikasi</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setEditingSection('languages')}
-                  className="bg-teal-50 hover:bg-teal-100 text-teal-700 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" /> Tambah Bahasa
-                </button>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                {languagesList.length === 0 ? (
-                  <p className="text-xs text-slate-500 italic col-span-2">Belum ada bahasa yang ditambahkan.</p>
+                {editingSection === 'languages' ? (
+                  <button
+                    onClick={() => setEditingSection(null)}
+                    className="text-slate-400 hover:text-slate-700 p-2 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+                    title="Tutup / Batal"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
                 ) : (
-                  languagesList.map(lang => (
-                    <div key={lang.id} className="bg-slate-50/80 border border-slate-200/70 rounded-2xl p-4 flex items-center justify-between">
-                      <div>
-                        <div className="font-bold text-slate-900 text-sm">{lang.name}</div>
-                        <div className="text-xs text-teal-700 font-bold mt-0.5">{lang.level}</div>
-                      </div>
-                      <button
-                        onClick={() => handleRemoveLanguage(lang.id)}
-                        className="text-slate-400 hover:text-rose-600 transition p-1 cursor-pointer"
-                        title="Hapus Bahasa"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))
+                  <button
+                    onClick={() => setEditingSection('languages')}
+                    className="bg-teal-50 hover:bg-teal-100 text-teal-700 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Tambah Bahasa
+                  </button>
                 )}
               </div>
+
+              <AnimatePresence mode="wait">
+                {editingSection === 'languages' ? (
+                  <motion.div
+                    key="edit-languages"
+                    variants={sectionVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className="space-y-4"
+                  >
+                    <form onSubmit={handleAddLanguage} className="space-y-4 text-xs bg-slate-50/80 p-4.5 rounded-2xl border border-slate-200">
+                      <div className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">
+                        Formulir Tambah Bahasa
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                          <label className="font-bold text-slate-700 block mb-1.5">Nama Bahasa *</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="Contoh: Bahasa Inggris / Bahasa Jepang"
+                            value={newLangName}
+                            onChange={e => setNewLangName(e.target.value)}
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="font-bold text-slate-700 block mb-1.5">Tingkat Kemampuan</label>
+                          <select
+                            value={newLangLevel}
+                            onChange={e => setNewLangLevel(e.target.value)}
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                          >
+                            <option value="Fasih / Native">Fasih / Native</option>
+                            <option value="Tingkat Lanjut / Advanced">Tingkat Lanjut / Advanced</option>
+                            <option value="Menengah / Intermediate">Menengah / Intermediate</option>
+                            <option value="Dasar / Elementary">Dasar / Elementary</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-200/70">
+                        <button
+                          type="button"
+                          onClick={() => setEditingSection(null)}
+                          className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-100 transition cursor-pointer"
+                        >
+                          Batal
+                        </button>
+                        <button
+                          type="submit"
+                          className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-xs transition cursor-pointer active:scale-95"
+                        >
+                          Simpan Bahasa
+                        </button>
+                      </div>
+                    </form>
+
+                    {/* Existing languages in edit mode */}
+                    {languagesList.length > 0 && (
+                      <div className="space-y-3 pt-2">
+                        <div className="text-xs font-bold text-slate-700">Daftar Bahasa yang Dikuasai:</div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {languagesList.map(lang => (
+                            <div key={lang.id} className="bg-slate-50/90 border border-slate-200/80 rounded-2xl p-3.5 flex items-center justify-between text-xs">
+                              <div>
+                                <div className="font-bold text-slate-900">{lang.name}</div>
+                                <div className="text-teal-700 font-semibold">{lang.level}</div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveLanguage(lang.id)}
+                                className="text-slate-400 hover:text-rose-600 transition p-1 cursor-pointer"
+                                title="Hapus Bahasa"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="view-languages"
+                    variants={sectionVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className="grid grid-cols-1 sm:grid-cols-2 gap-3.5"
+                  >
+                    {languagesList.length === 0 ? (
+                      <p className="text-xs text-slate-500 italic col-span-2">Belum ada bahasa yang ditambahkan.</p>
+                    ) : (
+                      languagesList.map(lang => (
+                        <div key={lang.id} className="bg-slate-50/80 border border-slate-200/70 rounded-2xl p-4 flex items-center justify-between">
+                          <div>
+                            <div className="font-bold text-slate-900 text-sm">{lang.name}</div>
+                            <div className="text-xs text-teal-700 font-bold mt-0.5">{lang.level}</div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveLanguage(lang.id)}
+                            className="text-slate-400 hover:text-rose-600 transition p-1 cursor-pointer"
+                            title="Hapus Bahasa"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* ══════════════════════════════════════════
                 SEKSI 7: PREFERENSI KARIR
             ══════════════════════════════════════════ */}
-            <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-6 hover:border-slate-300 transition-all">
+            <div id="section-career" className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-6 hover:border-slate-300 transition-all scroll-mt-24">
               <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-[#0077C6]/10 text-[#0077C6] flex items-center justify-center font-bold">
@@ -1099,35 +2097,126 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     <p className="text-xs text-slate-500 font-normal">Kriteria pekerjaan dan penempatan yang dicari</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setEditingSection('career')}
-                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Pencil className="w-3.5 h-3.5 text-slate-500" /> Edit
-                </button>
+
+                {editingSection === 'career' ? (
+                  <button
+                    onClick={() => setEditingSection(null)}
+                    className="text-slate-400 hover:text-slate-700 p-2 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+                    title="Tutup / Batal"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setEditingSection('career')}
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Pencil className="w-3.5 h-3.5 text-slate-500" /> Edit
+                  </button>
+                )}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1">
-                  <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">JENIS KESEMPATAN</div>
-                  <div className="font-bold text-slate-900 text-sm">{opportunityType || 'Belum Diisi'}</div>
-                </div>
+              <AnimatePresence mode="wait">
+                {editingSection === 'career' ? (
+                  <motion.form
+                    key="edit-career"
+                    variants={sectionVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    onSubmit={handleSaveProfileSection}
+                    className="space-y-4 text-xs"
+                  >
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1.5">Jenis Kesempatan</label>
+                        <input
+                          type="text"
+                          placeholder="Contoh: Internship, Placement, Full-time"
+                          value={opportunityType}
+                          onChange={e => setOpportunityType(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1.5">Tanggal Siap Kerja</label>
+                        <input
+                          type="text"
+                          placeholder="Contoh: Segera / As soon as possible"
+                          value={opportunityStartDate}
+                          onChange={e => setOpportunityStartDate(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1.5">Industri Yang Diminati</label>
+                        <input
+                          type="text"
+                          placeholder="Contoh: IT, Perbankan, Pendidikan"
+                          value={industries}
+                          onChange={e => setIndustries(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1.5">Lokasi Kerja Impian</label>
+                        <input
+                          type="text"
+                          placeholder="Contoh: Kendari, Jakarta, Remote, Morowali"
+                          value={locations}
+                          onChange={e => setLocations(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                        />
+                      </div>
+                    </div>
 
-                <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1">
-                  <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">TANGGAL SIAP KERJA</div>
-                  <div className="font-bold text-slate-900 text-sm">{opportunityStartDate || 'Belum Diisi'}</div>
-                </div>
+                    <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-slate-100">
+                      <button
+                        type="button"
+                        onClick={() => setEditingSection(null)}
+                        className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition cursor-pointer"
+                      >
+                        Batal
+                      </button>
+                      <button
+                        type="submit"
+                        className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-xs transition cursor-pointer active:scale-95"
+                      >
+                        Simpan Perubahan
+                      </button>
+                    </div>
+                  </motion.form>
+                ) : (
+                  <motion.div
+                    key="view-career"
+                    variants={sectionVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs"
+                  >
+                    <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1">
+                      <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">JENIS KESEMPATAN</div>
+                      <div className="font-bold text-slate-900 text-sm">{opportunityType || 'Belum Diisi'}</div>
+                    </div>
 
-                <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1">
-                  <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">INDUSTRI YANG DIMINATI</div>
-                  <div className="font-bold text-slate-900 text-sm">{industries || 'Belum Diisi'}</div>
-                </div>
+                    <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1">
+                      <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">TANGGAL SIAP KERJA</div>
+                      <div className="font-bold text-slate-900 text-sm">{opportunityStartDate || 'Belum Diisi'}</div>
+                    </div>
 
-                <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1">
-                  <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">LOKASI KERJA IMPIAN</div>
-                  <div className="font-bold text-slate-900 text-sm">{locations || 'Belum Diisi'}</div>
-                </div>
-              </div>
+                    <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1">
+                      <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">INDUSTRI YANG DIMINATI</div>
+                      <div className="font-bold text-slate-900 text-sm">{industries || 'Belum Diisi'}</div>
+                    </div>
+
+                    <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1">
+                      <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">LOKASI KERJA IMPIAN</div>
+                      <div className="font-bold text-slate-900 text-sm">{locations || 'Belum Diisi'}</div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
           </div>
@@ -1231,421 +2320,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
 
       </div>
 
-      {/* 4. MODALS MANAGEMENT */}
-      {/* MODAL EDIT INFO UTAMA */}
-      {editingSection === 'headerInfo' && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white max-w-md w-full rounded-3xl border border-slate-200 shadow-2xl p-6 space-y-5 animate-fadeIn">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-slate-900">Edit Info Utama</h3>
-              <button onClick={() => setEditingSection(null)} className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <form onSubmit={handleSaveProfileSection} className="space-y-4 text-xs">
-              <div>
-                <label className="font-bold text-slate-700 block mb-1.5">Status Keanggotaan</label>
-                <select
-                  value={userStatusType}
-                  onChange={e => setUserStatusType(e.target.value as 'Mahasiswa' | 'Alumni')}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
-                >
-                  <option value="Mahasiswa">Mahasiswa</option>
-                  <option value="Alumni">Alumni</option>
-                </select>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1.5">Nama Depan *</label>
-                  <input
-                    type="text"
-                    value={firstName}
-                    onChange={e => setFirstName(e.target.value)}
-                    required
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
-                  />
-                </div>
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1.5">Nama Belakang</label>
-                  <input
-                    type="text"
-                    value={lastName}
-                    onChange={e => setLastName(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="font-bold text-slate-700 block mb-1.5">Nama Perguruan Tinggi / Universitas *</label>
-                <input
-                  type="text"
-                  value={university}
-                  onChange={e => setUniversity(e.target.value)}
-                  required
-                  placeholder="Contoh: Universitas Muhammadiyah Kendari"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
-                />
-              </div>
-
-              <div className="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
-                <button type="button" onClick={() => setEditingSection(null)} className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition cursor-pointer">Batal</button>
-                <button type="submit" className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-xs transition cursor-pointer">Simpan Perubahan</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL TENTANG SAYA (BIO) */}
-      {editingSection === 'aboutMe' && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white max-w-md w-full rounded-3xl border border-slate-200 shadow-2xl p-6 space-y-5 animate-fadeIn">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-slate-900">Edit Tentang Saya (Bio)</h3>
-              <button onClick={() => setEditingSection(null)} className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="space-y-3">
-              <label className="text-xs font-bold text-slate-700 block mb-1.5">Ringkasan Bio / Profil Profesional</label>
-              <textarea
-                rows={5}
-                value={aboutMe}
-                onChange={e => setAboutMe(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white leading-relaxed"
-                placeholder="Tuliskan deskripsi singkat mengenai latar belakang, passion, dan tujuan karir Anda..."
-              />
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                <button onClick={() => setEditingSection(null)} className="px-4 py-2.5 text-xs font-bold text-slate-600 rounded-xl border border-slate-200 hover:bg-slate-50 transition cursor-pointer">Batal</button>
-                <button onClick={() => { saveProfileData({ aboutMe }); setEditingSection(null); triggerToast('Bio berhasil diperbarui!'); }} className="px-5 py-2.5 text-xs font-bold text-white bg-[#0077C6] hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer">Simpan Bio</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL DATA PRIBADI */}
-      {editingSection === 'personal' && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white max-w-lg w-full rounded-3xl border border-slate-200 shadow-2xl p-6 space-y-5 animate-fadeIn max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-slate-900">Edit Data Pribadi</h3>
-              <button onClick={() => setEditingSection(null)} className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveProfileSection} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1.5">Nama Depan *</label>
-                  <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)} required className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white" />
-                </div>
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1.5">Nama Belakang</label>
-                  <input type="text" value={lastName} onChange={e => setLastName(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white" />
-                </div>
-              </div>
-
-              <div className={userStatusType === 'Mahasiswa' ? "grid grid-cols-1 sm:grid-cols-2 gap-3" : "block"}>
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1.5">Email / Kontak</label>
-                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white" />
-                </div>
-                {userStatusType === 'Mahasiswa' && (
-                  <div>
-                    <label className="font-bold text-slate-700 block mb-1.5">NIM (Nomor Induk Mahasiswa)</label>
-                    <input type="text" value={nim} onChange={e => setNim(e.target.value)} placeholder="Contoh: 202101001" className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white" />
-                  </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1.5">No. Telepon / WhatsApp</label>
-                  <input type="text" value={mobile} onChange={e => setMobile(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white" />
-                </div>
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1.5">Jenis Kelamin</label>
-                  <select value={gender} onChange={e => setGender(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white">
-                    <option value="">-- Pilih Jenis Kelamin --</option>
-                    <option value="Male">Laki-Laki</option>
-                    <option value="Female">Perempuan</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1.5">Kewarganegaraan</label>
-                  <input type="text" value={nationality} onChange={e => setNationality(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white" />
-                </div>
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1.5">Hak Kerja</label>
-                  <input type="text" value={workRights} onChange={e => setWorkRights(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white" />
-                </div>
-              </div>
-
-              <div className="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
-                <button type="button" onClick={() => setEditingSection(null)} className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition cursor-pointer">Batal</button>
-                <button type="submit" className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-xs transition cursor-pointer">Simpan Perubahan</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL PENDIDIKAN */}
-      {editingSection === 'education' && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white max-w-md w-full rounded-3xl border border-slate-200 shadow-2xl p-6 space-y-5 animate-fadeIn">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-slate-900">Tambah Pendidikan</h3>
-              <button onClick={() => setEditingSection(null)} className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <form onSubmit={handleAddQualification} className="space-y-4 text-xs">
-              <div>
-                <label className="font-bold text-slate-700 block mb-1.5">Nama Institusi / Universitas / Sekolah</label>
-                <input type="text" required placeholder="Contoh: Universitas Muhammadiyah Kendari" value={newInst} onChange={e => setNewInst(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white" />
-              </div>
-              <div>
-                <label className="font-bold text-slate-700 block mb-1.5">Jenjang &amp; Program Studi / Jurusan</label>
-                <input type="text" required placeholder="Contoh: S1 - Teknik Informatika" value={newLevel} onChange={e => setNewLevel(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white" />
-              </div>
-              <div>
-                <label className="font-bold text-slate-700 block mb-1.5">Tahun Lulus</label>
-                <input type="text" placeholder="Contoh: 2026" value={newYear} onChange={e => setNewYear(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white" />
-              </div>
-              <div>
-                <label className="font-bold text-slate-700 block mb-1.5">
-                  IPK / Nilai Akhir <span className="text-slate-400 font-normal">(Opsional - Khusus Perguruan Tinggi)</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="Contoh: 3.85 / 4.00 atau 3.85 (Kosongkan jika SD - SMA)"
-                  value={newIpk}
-                  onChange={e => setNewIpk(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
-                />
-              </div>
-              <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
-                <button type="button" onClick={() => setEditingSection(null)} className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition cursor-pointer">Batal</button>
-                <button type="submit" className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-xs transition cursor-pointer">Tambah</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL KELOLA SKILL */}
-      {editingSection === 'skills' && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white max-w-md w-full rounded-3xl border border-slate-200 shadow-2xl p-6 space-y-5 animate-fadeIn">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-slate-900">Kelola Skill &amp; Keahlian</h3>
-              <button onClick={() => setEditingSection(null)} className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleAddSkill} className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Ketik skill baru (misal: React, Python)..."
-                value={newSkillInput}
-                onChange={e => setNewSkillInput(e.target.value)}
-                className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
-              />
-              <button type="submit" className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center gap-1 transition shadow-xs cursor-pointer">
-                <Plus className="w-4 h-4" /> Tambah
-              </button>
-            </form>
-
-            <div className="space-y-2">
-              <div className="text-xs font-bold text-slate-500">Daftar Skill Saat Ini:</div>
-              <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto p-1">
-                {skills.map(sk => (
-                  <span key={sk} className="bg-blue-50 text-blue-800 border border-blue-200 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2">
-                    <span>{sk}</span>
-                    <button onClick={() => handleRemoveSkill(sk)} className="text-blue-400 hover:text-rose-600 transition cursor-pointer">
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="pt-2 flex justify-end border-t border-slate-100">
-              <button onClick={() => setEditingSection(null)} className="bg-slate-900 text-white font-bold px-6 py-2.5 rounded-xl text-xs transition cursor-pointer">Selesai</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL PENGALAMAN */}
-      {editingSection === 'experience' && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white max-w-md w-full rounded-3xl border border-slate-200 shadow-2xl p-6 space-y-5 animate-fadeIn">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-slate-900">Tambah Pengalaman Kerja / Organisasi</h3>
-              <button onClick={() => setEditingSection(null)} className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <form onSubmit={handleAddExperience} className="space-y-4 text-xs">
-              <div>
-                <label className="font-bold text-slate-700 block mb-1.5">Posisi / Jabatan *</label>
-                <input type="text" required placeholder="Contoh: Web Developer Intern" value={newExpPos} onChange={e => setNewExpPos(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white" />
-              </div>
-              <div>
-                <label className="font-bold text-slate-700 block mb-1.5">Perusahaan / Organisasi *</label>
-                <input type="text" required placeholder="Contoh: PT Go Digital Kendari" value={newExpComp} onChange={e => setNewExpComp(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white" />
-              </div>
-              <div>
-                <label className="font-bold text-slate-700 block mb-1.5">Periode</label>
-                <input type="text" placeholder="Contoh: Jan 2026 - Sekarang" value={newExpPeriod} onChange={e => setNewExpPeriod(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white" />
-              </div>
-              <div>
-                <label className="font-bold text-slate-700 block mb-1.5">Deskripsi Tugas / Pencapaian</label>
-                <textarea rows={3} placeholder="Tuliskan gambaran singkat tanggung jawab Anda..." value={newExpDesc} onChange={e => setNewExpDesc(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white leading-relaxed" />
-              </div>
-              <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
-                <button type="button" onClick={() => setEditingSection(null)} className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition cursor-pointer">Batal</button>
-                <button type="submit" className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-xs transition cursor-pointer">Tambah</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL SERTIFIKAT */}
-      {editingSection === 'certificate' && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white max-w-md w-full rounded-3xl border border-slate-200 shadow-2xl p-6 space-y-5 animate-fadeIn">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-slate-900">Tambah Sertifikat &amp; Lisensi</h3>
-              <button onClick={() => setEditingSection(null)} className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <form onSubmit={handleAddCertificate} className="space-y-4 text-xs">
-              <div>
-                <label className="font-bold text-slate-700 block mb-1.5">Nama Sertifikat / Pelatihan *</label>
-                <input type="text" required placeholder="Contoh: Sertifikat Kompetensi Fullstack Web Developer - BNSP" value={newCertName} onChange={e => setNewCertName(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white" />
-              </div>
-              <div>
-                <label className="font-bold text-slate-700 block mb-1.5">Penerbit / Lembaga Sertifikasi</label>
-                <input type="text" placeholder="Contoh: BNSP / Google / Dicoding" value={newCertIssuer} onChange={e => setNewCertIssuer(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white" />
-              </div>
-              <div>
-                <label className="font-bold text-slate-700 block mb-1.5">Tahun Perolehan</label>
-                <input type="text" placeholder="Contoh: 2025" value={newCertYear} onChange={e => setNewCertYear(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white" />
-              </div>
-              <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
-                <button type="button" onClick={() => setEditingSection(null)} className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition cursor-pointer">Batal</button>
-                <button type="submit" className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-xs transition cursor-pointer">Tambah Sertifikat</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL BAHASA */}
-      {editingSection === 'languages' && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white max-w-md w-full rounded-3xl border border-slate-200 shadow-2xl p-6 space-y-5 animate-fadeIn">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-slate-900">Tambah Kemampuan Bahasa</h3>
-              <button onClick={() => setEditingSection(null)} className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <form onSubmit={handleAddLanguage} className="space-y-4 text-xs">
-              <div>
-                <label className="font-bold text-slate-700 block mb-1.5">Nama Bahasa *</label>
-                <input type="text" required placeholder="Contoh: Bahasa Jepang / Bahasa Mandarin" value={newLangName} onChange={e => setNewLangName(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white" />
-              </div>
-              <div>
-                <label className="font-bold text-slate-700 block mb-1.5">Tingkat Kemampuan</label>
-                <select value={newLangLevel} onChange={e => setNewLangLevel(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white">
-                  <option value="Fasih / Native">Fasih / Native</option>
-                  <option value="Tingkat Lanjut / Advanced">Tingkat Lanjut / Advanced</option>
-                  <option value="Menengah / Intermediate">Menengah / Intermediate</option>
-                  <option value="Dasar / Elementary">Dasar / Elementary</option>
-                </select>
-              </div>
-              <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
-                <button type="button" onClick={() => setEditingSection(null)} className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition cursor-pointer">Batal</button>
-                <button type="submit" className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-xs transition cursor-pointer">Tambah</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL PREFERENSI KARIR */}
-      {editingSection === 'career' && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white max-w-md w-full rounded-3xl border border-slate-200 shadow-2xl p-6 space-y-5 animate-fadeIn">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-slate-900">Edit Preferensi Karir</h3>
-              <button onClick={() => setEditingSection(null)} className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <form onSubmit={handleSaveProfileSection} className="space-y-4 text-xs">
-              <div>
-                <label className="font-bold text-slate-700 block mb-1.5">Jenis Kesempatan</label>
-                <input
-                  type="text"
-                  placeholder="Contoh: Internship, Placement, Full-time"
-                  value={opportunityType}
-                  onChange={e => setOpportunityType(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
-                />
-              </div>
-              <div>
-                <label className="font-bold text-slate-700 block mb-1.5">Tanggal Siap Kerja</label>
-                <input
-                  type="text"
-                  placeholder="Contoh: Segera / As soon as possible"
-                  value={opportunityStartDate}
-                  onChange={e => setOpportunityStartDate(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
-                />
-              </div>
-              <div>
-                <label className="font-bold text-slate-700 block mb-1.5">Industri Yang Diminati</label>
-                <input
-                  type="text"
-                  placeholder="Contoh: IT, Perbankan, Pendidikan"
-                  value={industries}
-                  onChange={e => setIndustries(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
-                />
-              </div>
-              <div>
-                <label className="font-bold text-slate-700 block mb-1.5">Lokasi Kerja Impian</label>
-                <input
-                  type="text"
-                  placeholder="Contoh: Kendari, Jakarta, Remote, Morowali"
-                  value={locations}
-                  onChange={e => setLocations(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
-                />
-              </div>
-              <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
-                <button type="button" onClick={() => setEditingSection(null)} className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition cursor-pointer">Batal</button>
-                <button type="submit" className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs transition shadow-xs cursor-pointer active:scale-95">Simpan Perubahan</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* FOOTER */}
       <Footer />
