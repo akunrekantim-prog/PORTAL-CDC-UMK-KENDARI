@@ -483,6 +483,11 @@ export default function App() {
             onRegisterSuccess={(user) => {
               reloadDatabase();
             }}
+            onLoginSuccess={(user) => {
+              setCurrentUser(user);
+              setCurrentView('dashboard');
+              reloadDatabase();
+            }}
           />
         )}
 

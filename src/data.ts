@@ -268,12 +268,6 @@ export const SEED_MAHASISWA: Mahasiswa[] = [
         level: 'Sarjana (S1) - Teknik Informatika / Computer Science',
         year: '2026',
         ipk: '3.85 / 4.00'
-      },
-      {
-        id: '2',
-        institution: 'SMA Negeri 1 Kendari',
-        level: 'SMA - Jurusan IPA (Natural Sciences)',
-        year: '2022'
       }
     ]
   },
@@ -2221,7 +2215,6 @@ export function registerUser(
       aboutMe: '',
       ipk: '',
       nationality: 'Indonesia',
-      workRights: 'WNI (Hak Kerja Penuh)',
       opportunityType: '',
       preferredStartDate: '',
       gender: '',
@@ -2260,6 +2253,118 @@ export function registerUser(
   }
 
   return newUser;
+}
+
+/**
+ * Autentikasi langsung dengan Akun Google (Login / Auto-Register)
+ */
+export function loginOrRegisterWithGoogle(googleAccount: {
+  name: string;
+  email: string;
+  photoUrl?: string;
+}): { user: User; isNew: boolean } {
+  const users = getFromDB<User>('users');
+  const existingUser = users.find(
+    u => u.email.toLowerCase() === googleAccount.email.trim().toLowerCase()
+  );
+
+  const now = new Date().toISOString();
+
+  if (existingUser) {
+    const updatedUser: User = {
+      ...existingUser,
+      lastLoginAt: now,
+      photoUrl: googleAccount.photoUrl || existingUser.photoUrl
+    };
+    const updatedUsers = users.map(u => (u.id === existingUser.id ? updatedUser : u));
+    saveToDB('users', updatedUsers);
+
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('cdc_session_id', updatedUser.id);
+      localStorage.setItem('cdc_auth_token', `google_token_${Date.now()}`);
+    }
+
+    return { user: updatedUser, isNew: false };
+  }
+
+  // Create new user through Google OAuth
+  const userId = `usr_google_${Date.now().toString(36)}`;
+  const newUser: User = {
+    id: userId,
+    name: googleAccount.name.trim(),
+    email: googleAccount.email.trim().toLowerCase(),
+    password: 'google_authenticated',
+    phone: '',
+    role: 'user',
+    userStatusType: 'Mahasiswa',
+    status: 'active',
+    photoUrl: googleAccount.photoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
+    createdAt: now,
+    lastLoginAt: now
+  };
+  insertToDB<User>('users', newUser);
+
+  // Auto-generate linked Alumni & Mahasiswa profile
+  const newAlumni: Alumni = {
+    id: `alm_${Date.now().toString(36)}`,
+    userId: userId,
+    nim: '',
+    nama: googleAccount.name.trim(),
+    email: googleAccount.email.trim().toLowerCase(),
+    phone: '',
+    programStudi: 'Teknik Informatika',
+    fakultas: 'Fakultas Teknik',
+    tahunLulus: (new Date().getFullYear() + 2).toString(),
+    statusPekerjaan: 'mahasiswa_aktif'
+  };
+  insertToDB<Alumni>('alumni', newAlumni);
+
+  const newMahasiswa: Mahasiswa = {
+    id: `mhs_${userId}`,
+    userId: userId,
+    nim: '',
+    nama: googleAccount.name.trim(),
+    email: googleAccount.email.trim().toLowerCase(),
+    phone: '',
+    fakultas: 'Fakultas Teknik',
+    programStudi: 'Teknik Informatika',
+    angkatan: new Date().getFullYear().toString(),
+    graduationYear: (new Date().getFullYear() + 2).toString(),
+    semester: 6,
+    userStatusType: 'Mahasiswa',
+    alamat: '',
+    photoUrl: newUser.photoUrl,
+    aboutMe: 'Akun terhubung melalui Google Sign-In. Lengkapi profil Anda untuk memudahkan pelamaran kerja.',
+    ipk: '',
+    nationality: 'Indonesia',
+    opportunityType: '',
+    preferredStartDate: '',
+    gender: '',
+    industries: '',
+    locations: '',
+    university: 'Universitas Muhammadiyah Kendari',
+    skills: [],
+    experiences: [],
+    certificates: [],
+    qualifications: [
+      {
+        id: '1',
+        institution: 'Universitas Muhammadiyah Kendari',
+        level: 'S1 - Teknik Informatika',
+        year: `Sedang Berjalan (Estimasi ${new Date().getFullYear() + 2})`
+      }
+    ],
+    languages: []
+  };
+  insertToDB<Mahasiswa>('mahasiswa', newMahasiswa);
+
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem('cdc_session_id', newUser.id);
+    localStorage.setItem('cdc_auth_token', `google_token_${Date.now()}`);
+    localStorage.setItem(`cdc_saved_job_ids_${userId}`, JSON.stringify([]));
+  }
+
+  return { user: newUser, isNew: true };
 }
 
 export function updateUserProfile(userId: string, profileData: Partial<Mahasiswa>) {

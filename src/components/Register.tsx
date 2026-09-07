@@ -34,7 +34,9 @@ interface RegisterProps {
   onNavigateToLogin: () => void;
   onNavigateHome: () => void;
   onRegisterSuccess?: (user: any) => void;
+  onLoginSuccess?: (user: any) => void;
 }
+import GoogleAuthModal, { GoogleLogo } from './GoogleAuthModal';
 
 const INDUSTRI_LIST = [
   'Teknologi Informasi, Software & Telekomunikasi',
@@ -65,13 +67,23 @@ export default function Register({
   initialTab = 'alumni',
   onNavigateToLogin,
   onNavigateHome,
-  onRegisterSuccess
+  onRegisterSuccess,
+  onLoginSuccess
 }: RegisterProps) {
   const [isEnteringForm, setIsEnteringForm] = useState(false);
   const [activeTab, setActiveTab] = useState<'alumni' | 'perusahaan'>(initialTab);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successUser, setSuccessUser] = useState<any | null>(null);
+  const [showGoogleModal, setShowGoogleModal] = useState(false);
+
+  const handleGoogleSuccess = (user: any) => {
+    if (onLoginSuccess) {
+      onLoginSuccess(user);
+    } else if (onRegisterSuccess) {
+      onRegisterSuccess(user);
+    }
+  };
 
   // Password Visibility States
   const [showPassword, setShowPassword] = useState(false);
@@ -363,14 +375,25 @@ export default function Register({
                 <span>Daftar Mitra Perusahaan</span>
               </button>
 
-              {/* Divider: Atau */}
-              <div className="relative flex items-center justify-center py-2">
+              {/* Divider: or */}
+              <div className="relative flex items-center justify-center py-1">
                 <div className="border-t border-slate-200 w-full"></div>
-                <span className="bg-white px-3 text-xs text-slate-400 font-medium uppercase tracking-wider">
-                  Atau
+                <span className="bg-white px-3 text-xs text-slate-400 font-medium lowercase">
+                  or
                 </span>
                 <div className="border-t border-slate-200 w-full"></div>
               </div>
+
+              {/* Google Sign-In / Register Button (CDC UI Style) */}
+              <button
+                type="button"
+                onClick={() => setShowGoogleModal(true)}
+                className="w-full bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 font-bold py-3.5 px-4 rounded-xl border border-slate-900 transition duration-150 flex items-center justify-center gap-3 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99]"
+                id="register-hero-google-btn"
+              >
+                <GoogleLogo className="w-5 h-5" />
+                <span className="text-sm sm:text-base font-bold text-slate-900">Log In with Google</span>
+              </button>
 
               {/* Under-Action Login Link */}
               <div className="text-center text-xs text-slate-600 space-y-3">
@@ -385,16 +408,6 @@ export default function Register({
                     Login Sekarang
                   </button>
                 </div>
-
-                <div>
-                  <button
-                    type="button"
-                    onClick={onNavigateHome}
-                    className="text-slate-400 hover:text-slate-700 hover:underline cursor-pointer transition text-[11px]"
-                  >
-                    &larr; Kembali ke Beranda Portal
-                  </button>
-                </div>
               </div>
             </div>
           </div>
@@ -402,6 +415,12 @@ export default function Register({
           <div className="text-center text-[11px] text-slate-400 pt-4 border-t border-slate-100">
             © {new Date().getFullYear()} Career Development Center — Universitas Muhammadiyah Kendari
           </div>
+
+          <GoogleAuthModal
+            isOpen={showGoogleModal}
+            onClose={() => setShowGoogleModal(false)}
+            onSuccess={handleGoogleSuccess}
+          />
         </div>
       </div>
     );
@@ -818,6 +837,26 @@ export default function Register({
                         </button>
                       </div>
 
+                      {/* Divider: or */}
+                      <div className="relative flex items-center justify-center py-1">
+                        <div className="border-t border-slate-200 w-full"></div>
+                        <span className="bg-white px-3 text-xs text-slate-400 font-medium lowercase">
+                          or
+                        </span>
+                        <div className="border-t border-slate-200 w-full"></div>
+                      </div>
+
+                      {/* Google Sign-In Button (CDC UI Style) */}
+                      <button
+                        type="button"
+                        onClick={() => setShowGoogleModal(true)}
+                        className="w-full bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 font-bold py-3 px-4 rounded-xl border border-slate-900 transition duration-150 flex items-center justify-center gap-3 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99]"
+                        id="register-alumni-google-btn"
+                      >
+                        <GoogleLogo className="w-5 h-5" />
+                        <span className="text-sm sm:text-base font-bold text-slate-900">Log In with Google</span>
+                      </button>
+
                       {/* Under-Card Link */}
                       <div className="pt-2 text-center text-xs text-slate-600">
                         Sudah memiliki akun?{' '}
@@ -1068,6 +1107,26 @@ export default function Register({
                         </button>
                       </div>
 
+                      {/* Divider: or */}
+                      <div className="relative flex items-center justify-center py-1">
+                        <div className="border-t border-slate-200 w-full"></div>
+                        <span className="bg-white px-3 text-xs text-slate-400 font-medium lowercase">
+                          or
+                        </span>
+                        <div className="border-t border-slate-200 w-full"></div>
+                      </div>
+
+                      {/* Google Sign-In Button (CDC UI Style) */}
+                      <button
+                        type="button"
+                        onClick={() => setShowGoogleModal(true)}
+                        className="w-full bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 font-bold py-3 px-4 rounded-xl border border-slate-900 transition duration-150 flex items-center justify-center gap-3 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99]"
+                        id="register-mitra-google-btn"
+                      >
+                        <GoogleLogo className="w-5 h-5" />
+                        <span className="text-sm sm:text-base font-bold text-slate-900">Log In with Google</span>
+                      </button>
+
                       {/* Under-Card Link */}
                       <div className="pt-2 text-center text-xs text-slate-600">
                         Sudah memiliki akun?{' '}
@@ -1090,6 +1149,12 @@ export default function Register({
 
         </div>
       </main>
+
+      <GoogleAuthModal
+        isOpen={showGoogleModal}
+        onClose={() => setShowGoogleModal(false)}
+        onSuccess={handleGoogleSuccess}
+      />
 
     </div>
   );

@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { getFromDB, saveToDB, getHelpdeskConfig } from '../data';
 import { User as UserType, HelpdeskConfig } from '../types';
+import GoogleAuthModal, { GoogleLogo } from './GoogleAuthModal';
 
 interface LoginProps {
   onLoginSuccess: (user: UserType) => void;
@@ -49,6 +50,7 @@ export default function Login({
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showForgotModal, setShowForgotModal] = useState(false);
+  const [showGoogleModal, setShowGoogleModal] = useState(false);
   const [helpdeskConfig, setHelpdeskConfig] = useState<HelpdeskConfig>(() => getHelpdeskConfig());
 
   // Reload config when modal is opened
@@ -285,6 +287,26 @@ export default function Login({
                 <span>Masuk dengan Akun Mitra</span>
               </button>
 
+              {/* Divider: or */}
+              <div className="relative flex items-center justify-center py-1">
+                <div className="border-t border-slate-200 w-full"></div>
+                <span className="bg-white px-3 text-xs text-slate-400 font-medium lowercase">
+                  or
+                </span>
+                <div className="border-t border-slate-200 w-full"></div>
+              </div>
+
+              {/* Google Sign-In Button (CDC UI Style) */}
+              <button
+                type="button"
+                onClick={() => setShowGoogleModal(true)}
+                className="w-full bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 font-bold py-3.5 px-4 rounded-xl border border-slate-900 transition duration-150 flex items-center justify-center gap-3 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99]"
+                id="login-hero-google-btn"
+              >
+                <GoogleLogo className="w-5 h-5" />
+                <span className="text-sm sm:text-base font-bold text-slate-900">Log In with Google</span>
+              </button>
+
               {/* Divider: ATAU */}
               <div className="relative flex items-center justify-center py-1">
                 <div className="border-t border-slate-200 w-full"></div>
@@ -407,6 +429,26 @@ export default function Login({
                 </button>
               </div>
 
+              {/* Divider: or */}
+              <div className="relative flex items-center justify-center py-1">
+                <div className="border-t border-slate-200 w-full"></div>
+                <span className="bg-white px-3 text-xs text-slate-400 font-medium lowercase">
+                  or
+                </span>
+                <div className="border-t border-slate-200 w-full"></div>
+              </div>
+
+              {/* Google Sign-In Button (CDC UI Style) */}
+              <button
+                type="button"
+                onClick={() => setShowGoogleModal(true)}
+                className="w-full bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 font-bold py-3 px-4 rounded-xl border border-slate-900 transition duration-150 flex items-center justify-center gap-3 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99]"
+                id="login-form-google-btn"
+              >
+                <GoogleLogo className="w-5 h-5" />
+                <span className="text-sm sm:text-base font-bold text-slate-900">Log In with Google</span>
+              </button>
+
               {/* Divider: ATAU */}
               <div className="relative flex items-center justify-center py-1">
                 <div className="border-t border-slate-200 w-full"></div>
@@ -456,7 +498,16 @@ export default function Login({
       </div>
 
       {/* ─────────────────────────────────────────────────────────────
-          4. MODAL: LUPA KATA SANDI / BANTUAN PEMULIHAN AKUN
+          4. MODAL: GOOGLE AUTH (LOGIN / REGISTER DIRECT)
+      ───────────────────────────────────────────────────────────── */}
+      <GoogleAuthModal
+        isOpen={showGoogleModal}
+        onClose={() => setShowGoogleModal(false)}
+        onSuccess={onLoginSuccess}
+      />
+
+      {/* ─────────────────────────────────────────────────────────────
+          5. MODAL: LUPA KATA SANDI / BANTUAN PEMULIHAN AKUN
       ───────────────────────────────────────────────────────────── */}
       {showForgotModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">

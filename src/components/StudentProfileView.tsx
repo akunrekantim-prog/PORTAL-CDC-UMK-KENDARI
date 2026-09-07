@@ -405,41 +405,21 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
       ? `Sedang Berjalan (Estimasi ${newGraduationYear || '2028'})`
       : `${newGraduationMonth ? newGraduationMonth + ' ' : ''}${newGraduationYear || '2026'}`.trim();
 
-    let nextQual: typeof qualifications;
-    if (qualifications.length > 0) {
-      nextQual = [
-        {
-          ...qualifications[0],
-          institution: newInst.trim(),
-          level: fullLevel,
-          year: gradDateStr,
-          ipk: newIpk.trim() || undefined
-        },
-        ...qualifications.slice(1)
-      ];
-    } else {
-      nextQual = [
-        {
-          id: Date.now().toString(),
-          institution: newInst.trim(),
-          level: fullLevel,
-          year: gradDateStr,
-          ipk: newIpk.trim() || undefined
-        }
-      ];
-    }
+    const nextQual = [
+      {
+        id: qualifications[0]?.id || Date.now().toString(),
+        institution: newInst.trim(),
+        level: fullLevel,
+        year: gradDateStr,
+        ipk: newIpk.trim() || undefined
+      }
+    ];
     setQualifications(nextQual);
     saveProfileData({ qualifications: nextQual });
     setEditingSection(null);
     triggerToast('Data pendidikan berhasil disimpan!');
   };
 
-  const handleRemoveQualification = (qualId: string) => {
-    const nextQual = qualifications.filter(item => item.id !== qualId);
-    setQualifications(nextQual);
-    saveProfileData({ qualifications: nextQual });
-    triggerToast('Riwayat pendidikan berhasil dihapus');
-  };
 
   // Profile completion calculation system (9 dynamic weighted criteria)
   const isPhotoCompleted = Boolean(avatarUrl && avatarUrl.trim() !== '');
@@ -491,12 +471,12 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
     },
     {
       id: 'education',
-      label: `Pendidikan (${qualifications.length})`,
+      label: 'Pendidikan',
       isCompleted: isEducationCompleted,
       weight: 15,
-      detail: qualifications.length > 0 ? `${qualifications.length} Riwayat` : 'Belum Ada',
+      detail: isEducationCompleted ? 'Riwayat Terisi' : 'Belum Diisi',
       action: () => handleOpenSection('education'),
-      actionLabel: 'Tambah Pendidikan'
+      actionLabel: 'Kelola Pendidikan'
     },
     {
       id: 'skills',
@@ -1089,25 +1069,14 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                      <div>
-                        <label className="font-bold text-slate-700 block mb-1.5">Kewarganegaraan</label>
-                        <input
-                          type="text"
-                          value={nationality}
-                          onChange={e => setNationality(e.target.value)}
-                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
-                        />
-                      </div>
-                      <div>
-                        <label className="font-bold text-slate-700 block mb-1.5">Hak Kerja</label>
-                        <input
-                          type="text"
-                          value={workRights}
-                          onChange={e => setWorkRights(e.target.value)}
-                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
-                        />
-                      </div>
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1.5">Kewarganegaraan</label>
+                      <input
+                        type="text"
+                        value={nationality}
+                        onChange={e => setNationality(e.target.value)}
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                      />
                     </div>
 
                     <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-slate-100">
@@ -1165,11 +1134,6 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
                       <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">KEWARGANEGARAAN</div>
                       <div className="font-bold text-slate-900 text-sm">{nationality || 'Indonesian'}</div>
-                    </div>
-
-                    <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
-                      <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">HAK KERJA</div>
-                      <div className="font-bold text-slate-900 text-sm">{workRights || 'Belum Diisi'}</div>
                     </div>
                   </motion.div>
                 )}
@@ -1406,30 +1370,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                       )}
                     </div>
 
-                    {/* Additional Qualifications List if more than 1 */}
-                    {qualifications.length > 1 && (
-                      <div className="pt-4 border-t border-slate-100 space-y-3">
-                        <div className="text-xs font-bold text-slate-600 uppercase tracking-wider">Riwayat Pendidikan Lainnya:</div>
-                        <div className="space-y-2">
-                          {qualifications.slice(1).map((q) => (
-                            <div key={q.id} className="bg-slate-50/90 border border-slate-200/80 rounded-xl p-3.5 flex items-center justify-between text-xs">
-                              <div>
-                                <div className="font-bold text-slate-900">{q.institution}</div>
-                                <div className="text-slate-600 font-medium">{q.level} • {q.year}</div>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveQualification(q.id)}
-                                className="text-slate-400 hover:text-rose-600 p-1 transition cursor-pointer"
-                                title="Hapus"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+
                   </motion.div>
                 )}
               </AnimatePresence>
