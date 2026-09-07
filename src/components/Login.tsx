@@ -25,7 +25,7 @@ import {
   X,
   Phone
 } from 'lucide-react';
-import { getFromDB, saveToDB, getHelpdeskConfig } from '../data';
+import { getHelpdeskConfig } from '../data';
 import { User as UserType, HelpdeskConfig } from '../types';
 import { promptGoogleLogin, GoogleLogo } from '../utils/googleAuth';
 
@@ -36,6 +36,8 @@ interface LoginProps {
 }
 
 type LoginRole = 'mahasiswa' | 'mitra';
+
+const API_BASE_URL = 'http://localhost:5000/api';
 
 export default function Login({
   onLoginSuccess,
@@ -92,58 +94,46 @@ export default function Login({
 
     setIsLoading(true);
     try {
-      // Simulate slight network delay for smooth UX
-      await new Promise((r) => setTimeout(r, 450));
+      // SECURITY: Autentikasi SEPENUHNYA dilakukan di backend (server.js /api/login)
+      // - bcrypt.compare() memverifikasi hash password
+      // - status akun (PENDING/INACTIVE/REJECTED) dicek server
+      // - JWT token (24 jam) diterbitkan server
+      // - TIDAK ADA verifikasi / komparasi password di sisi client
+      const response = await fetch(`${API_BASE_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          password
+        })
+      });
 
-      const users = getFromDB<UserType>('users');
-      const matched = users.find(
-        (u) => u.email.toLowerCase() === email.trim().toLowerCase()
-      );
+      const result = await response.json();
 
-      if (!matched) {
-        setErrorMessage('Kredensial salah atau akun tidak ditemukan. Pastikan email terdaftar dengan benar.');
+      if (!response.ok || !result.success) {
+        setErrorMessage(result.message || 'Login gagal. Periksa kredensial Anda.');
         return;
       }
 
-      // Password Validation
-      const userPassword = matched.password || 'password';
-      const isValidPassword = password === userPassword || (matched.role === 'admin' && (password === 'admin123' || password === 'password'));
-
-      if (!isValidPassword) {
-        setErrorMessage('Kata sandi yang Anda masukkan salah. Silakan periksa kembali.');
-        return;
-      }
-
-      // Role check advisory
-      if (selectedRole === 'mitra' && matched.role === 'user') {
+      // Role check advisory (UI only — server tetap otoritatif untuk akses data)
+      if (selectedRole === 'mitra' && (result.user.role === 'user' || result.user.role === 'admin')) {
         setErrorMessage('Akun ini terdaftar sebagai akun Mahasiswa / Alumni. Silakan gunakan pilihan Masuk dengan Akun Mahasiswa / Alumni.');
         return;
       }
 
-      if (selectedRole === 'mahasiswa' && matched.role === 'mitra') {
+      if (selectedRole === 'mahasiswa' && result.user.role === 'mitra') {
         setErrorMessage('Akun ini terdaftar sebagai akun Mitra Perusahaan. Silakan gunakan pilihan Masuk dengan Akun Mitra.');
         return;
       }
 
-      if (matched.status === 'pending') {
-        setErrorMessage('Akun Anda masih dalam proses verifikasi oleh administrator (Status: Pending).');
-        return;
-      }
+      // Simpan token JWT + metadata session (expiry client-side untuk UX)
+      localStorage.setItem('cdc_auth_token', result.token);
+      localStorage.setItem('cdc_token_expiry', (Date.now() + (result.expiresIn || 86400) * 1000).toString());
+      localStorage.setItem('cdc_session_id', result.user.id);
 
-      if (matched.status === 'inactive' || matched.status === 'rejected') {
-        setErrorMessage('Akun dinonaktifkan atau ditolak oleh operator CDC.');
-        return;
-      }
-
-      // Success Authentication
-      const updatedMatched = { ...matched, lastLoginAt: new Date().toISOString() };
-      const updatedUsers = users.map((u) => (u.id === matched.id ? updatedMatched : u));
-      saveToDB('users', updatedUsers);
-      localStorage.setItem('cdc_session_id', matched.id);
-
-      onLoginSuccess(updatedMatched);
+      onLoginSuccess(result.user);
     } catch (err: any) {
-      setErrorMessage(err.message || 'Terjadi kesalahan saat proses login.');
+      setErrorMessage(err.message || 'Tidak dapat terhubung ke server. Pastikan backend berjalan di port 5000.');
     } finally {
       setIsLoading(false);
     }

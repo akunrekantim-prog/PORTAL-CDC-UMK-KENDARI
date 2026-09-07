@@ -18,11 +18,33 @@ import {
 const API_BASE_URL = 'http://localhost:5000/api';
 
 /**
+ * Helper to get authentication headers from localStorage
+ */
+function getAuthHeaders(): Record<string, string> {
+  const token = localStorage.getItem('cdc_auth_token');
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json'
+  };
+  
+  if (token) {
+    const expiry = localStorage.getItem('cdc_token_expiry');
+    // Check if token is not expired (simple client-side check)
+    if (!expiry || Date.now() < parseInt(expiry)) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+  }
+  
+  return headers;
+}
+
+/**
  * Mengambil seluruh data live dari database Supabase PostgreSQL
  */
 export async function fetchInitialDatabaseFromSupabase(): Promise<Record<string, any[]> | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/all-data`);
+    const response = await fetch(`${API_BASE_URL}/all-data`, {
+      headers: getAuthHeaders()
+    });
     if (!response.ok) {
       console.warn('[Supabase API] Failed to fetch all-data:', response.status);
       return null;
@@ -40,7 +62,7 @@ async function sendSyncRequest(entity: string, payload: any): Promise<boolean> {
   try {
     const response = await fetch(`${API_BASE_URL}/sync/${entity}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify(payload)
     });
 
@@ -60,7 +82,8 @@ async function sendSyncRequest(entity: string, payload: any): Promise<boolean> {
 export async function deleteFromSupabase(table: string, id: string): Promise<boolean> {
   try {
     const response = await fetch(`${API_BASE_URL}/${table}/${id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: getAuthHeaders()
     });
     if (!response.ok) return false;
     console.log(`✅ [Supabase API Delete] Item ${id} dihapus dari tabel ${table}`);

@@ -159,8 +159,13 @@ export default function App() {
     }
   };
 
-  // Development Direct-Switch tool (very powerful for multi-role testing in AI Studio iframe!)
+  // SECURITY: Direct-switch hanya aktif di development.
+  // Di production, fallback admin sintetis DINONAKTIFKAN — akses admin wajib via /api/login + JWT.
   const handleFastRoleSwitch = (role: 'admin' | 'user' | 'mitra' | 'viewer' | 'mahasiswa') => {
+    if (!import.meta.env.DEV) {
+      console.warn('[Security] Fast role switch dinonaktifkan di production.');
+      return;
+    }
     let users = getFromDB<UserType>('users');
     if (!users || users.length === 0) {
       initializeDB();
@@ -168,46 +173,13 @@ export default function App() {
     }
 
     const searchRole = role === 'mahasiswa' ? 'user' : role;
-    let target = users.find(
-      u => (u.role === searchRole || u.role === role || (searchRole === 'user' && (u.role === 'mahasiswa' || u.role === 'alumni' || u.role === 'user'))) && (u.status === 'active' || u.status === 'pending')
+    const target = users.find(
+      (u) => (u.role === searchRole || u.role === role || (searchRole === 'user' && (u.role === 'mahasiswa' || u.role === 'alumni' || u.role === 'user'))) && (u.status === 'active' || u.status === 'pending')
     );
 
-    // Fallback jika user tidak ditemukan di memory DB
     if (!target) {
-      if (role === 'admin') {
-        target = {
-          id: 'usr_admin',
-          name: 'Operator CDC UM Kendari',
-          email: 'admin@umkendari.ac.id',
-          phone: '081234567890',
-          role: 'admin',
-          status: 'active',
-          photoUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=200&auto=format&fit=crop',
-          createdAt: new Date().toISOString()
-        };
-      } else if (role === 'mitra') {
-        target = {
-          id: 'usr_mitra1',
-          name: 'Budi Setiawan (HRD PT Go Digital)',
-          email: 'mitra@umkendari.ac.id',
-          phone: '081299998888',
-          role: 'mitra',
-          status: 'active',
-          photoUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=200&auto=format&fit=crop',
-          createdAt: new Date().toISOString()
-        };
-      } else {
-        target = {
-          id: 'usr_mhs1',
-          name: 'Muhammad Fadly Alamsyah',
-          email: 'mhs@umkendari.ac.id',
-          phone: '085241009988',
-          role: 'user',
-          status: 'active',
-          photoUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200&auto=format&fit=crop',
-          createdAt: new Date().toISOString()
-        };
-      }
+      console.warn(`[DevSwitch] User role "${role}" tidak ditemukan di DB. Login via backend diperlukan.`);
+      return;
     }
 
     setCurrentUser(target);
@@ -275,7 +247,10 @@ export default function App() {
   return (
     <div className="bg-white min-h-screen font-sans" id="app-root">
 
-      {/* QUICK ROLE SWITCH TESTING UTILITY */}
+      {/* SECURITY: Fast-Role switcher hanya aktif di development (import.meta.env.DEV).
+          Di production build (npm run build), blok ini TIDAK dirender sama sekali.
+          Dashboard admin di production hanya bisa dibuka via JWT login yang valid. */}
+      {import.meta.env.DEV && (
       <div
         id="aistudio-role-switcher"
         className="bg-slate-900 border-b border-slate-800 py-2.5 px-4 flex flex-wrap items-center justify-between gap-3 text-white"
@@ -311,6 +286,7 @@ export default function App() {
           )}
         </div>
       </div>
+      )}
 
       {/* CORE VIEWPORT RESOLVER */}
       <div id="core-viewport">

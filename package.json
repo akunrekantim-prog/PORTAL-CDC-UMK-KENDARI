@@ -11,6 +11,8 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
+    "db:harden": "npx tsx scripts/harden_rls.ts",
+    "db:verify-rls": "npx tsx scripts/harden_rls.ts verify",
     "test": "playwright test",
     "test:ui": "playwright test --ui",
     "test:headed": "playwright test --headed",

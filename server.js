@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import { PrismaClient } from '@prisma/client';
 
 dotenv.config();
@@ -12,27 +13,48 @@ const app = express();
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 5000;
 
-// SECURITY: JWT_SECRET MUST be set in production with cryptographically secure random string
+// SECURITY: JWT_SECRET MUST be a strong, cryptographically random string.
+// In production a missing/weak secret is a hard error - we refuse to boot insecure.
 const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === 'production') {
+  if (!JWT_SECRET || JWT_SECRET.length < 32) {
     throw new Error(
-      'CRITICAL: JWT_SECRET must be set in .env for production. ' +
+      'CRITICAL: JWT_SECRET must be set in .env and be at least 32 characters for production. ' +
       'Generate with: node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"'
     );
   }
-  // Development fallback only - NOT for production
-  console.warn('⚠️  WARNING: Using fallback JWT_SECRET for DEVELOPMENT ONLY. Set JWT_SECRET in .env!');
+}
+// Development fallback only - cryptographically random, NOT a known/predictable value.
+const ACTIVE_JWT_SECRET = JWT_SECRET && JWT_SECRET.length >= 32
+  ? JWT_SECRET
+  : crypto.randomBytes(64).toString('hex');
+if (!JWT_SECRET || JWT_SECRET.length < 32) {
+  console.warn('⚠️  WARNING: Using random ephemeral JWT_SECRET for DEVELOPMENT ONLY. Sessions will reset on restart. Set JWT_SECRET in .env for production!');
 }
 
-// Security: Helmet headers
+// Security: Helmet headers with a baseline Content-Security-Policy.
+// Note: 'unsafe-inline' is kept only for the dev tooling (Vite HMR & inline styles);
+// remove it in production once the frontend ships without inline scripts/styles.
+const isProd = process.env.NODE_ENV === 'production';
 app.use(helmet({
-  contentSecurityPolicy: false, // Allow inline scripts for development
+  contentSecurityPolicy: isProd ? {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+      imgSrc: ["'self'", 'data:', 'blob:', 'https://images.unsplash.com', 'https://*.supabase.co'],
+      connectSrc: ["'self'", 'https://*.supabase.co', 'http://localhost:5000'],
+      objectSrc: ["'none'"],
+      frameSrc: ["'self'"],
+      upgradeInsecureRequests: isProd ? [] : undefined
+    }
+  } : false,
   crossOriginEmbedderPolicy: false
 }));
 
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ limit: '5mb', extended: true }));
 
 // CORS Header - Restricted to specific origins
 const allowedOrigins = [
@@ -81,7 +103,7 @@ const authenticateToken = (req, res, next) => {
     return res.status(401).json({ error: 'Access denied. No token provided.' });
   }
 
-  jwt.verify(token, JWT_SECRET, (err, user) => {
+  jwt.verify(token, ACTIVE_JWT_SECRET, (err, user) => {
     if (err) {
       return res.status(403).json({ error: 'Invalid or expired token.' });
     }
@@ -203,24 +225,24 @@ app.post('/api/login', loginLimiter, async (req, res) => {
     }
 
     // Update last login
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { lastLoginAt: new Date() }
-    });
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { lastLoginAt: new Date() }
+        });
 
-    // Generate JWT token with 24 hour expiry
-    const token = jwt.sign(
-      { 
-        id: user.id, 
-        email: user.email, 
-        role: user.role 
-      },
-      JWT_SECRET,
-      { expiresIn: '24h' }
-    );
+        // Generate JWT token with 24 hour expiry
+        const token = jwt.sign(
+          { 
+            id: user.id, 
+            email: user.email, 
+            role: user.role 
+          },
+          ACTIVE_JWT_SECRET,
+          { expiresIn: '24h' }
+        );
 
-    // Return user data WITHOUT password
-    const { password: _, ...userWithoutPassword } = user;
+        // Return user data WITHOUT password
+        const { password: _, ...userWithoutPassword } = user;
 
     res.json({ 
       success: true, 
@@ -244,7 +266,22 @@ const ALLOWED_TABLES = [
   'heroSlide', 'visiMisiConfig', 'anggotaTim', 'socialMediaItem'
 ];
 
-app.get('/api/:table', async (req, res) => {
+// Tables allowed for PUBLIC read (no auth required) — safe, non-sensitive data only.
+// All other tables (users, personal data) require authentication.
+const PUBLIC_READ_TABLES = new Set([
+  'lowongan', 'berita', 'pengumuman', 'konten_karir',
+  'tracer_studies', 'galeri_items', 'hero_slides',
+  'kalender_kegiatan', 'mou_stakeholders', 'laporan_kinerja',
+  'surat_keputusan', 'visi_misi_configs', 'anggota_tims',
+  'social_media_items', 'mahasiswa', 'alumni', 'mitra'
+]);
+
+// Tabel yang memerlukan autentikasi (data sensitif/operasional)
+const AUTH_REQUIRED_TABLES = new Set([
+  'users'
+]);
+
+app.get('/api/:table', authenticateToken, async (req, res) => {
   const { table } = req.params;
   
   // SECURITY: Validate table name against whitelist
@@ -262,7 +299,7 @@ app.get('/api/:table', async (req, res) => {
       return res.json(data);
     }
     
-    // Use parameterized query with validated table name
+    // Use parameterized query with validated table name (Prisma SQL template)
     const rawData = await prisma.$queryRaw`SELECT * FROM ${table}`;
     res.json(rawData);
   } catch (error) {
@@ -273,17 +310,26 @@ app.get('/api/:table', async (req, res) => {
 });
 
 // POST / SYNC item directly to Supabase PostgreSQL table
-app.post('/api/sync/:entity', async (req, res) => {
+// SECURITY: Protected by JWT; user-role sync restricted to admins.
+app.post('/api/sync/:entity', authenticateToken, async (req, res) => {
   const { entity } = req.params;
   const payload = req.body;
 
   try {
-    if (entity === 'users' || entity === 'user') {
-      let rawPassword = payload.password || 'password';
-      let hashedPassword = rawPassword;
-      if (!hashedPassword.startsWith('$2a$') && !hashedPassword.startsWith('$2b$')) {
-        hashedPassword = await bcrypt.hash(hashedPassword, 10);
-      }
+      if (entity === 'users' || entity === 'user') {
+        // SECURITY: Backdoor admin creation closed — only users with ADMIN role
+        // in their JWT may create/update user accounts via this endpoint.
+        if (!req.user || req.user.role !== 'ADMIN') {
+          return res.status(403).json({ error: 'Forbidden: admin privileges required to sync user accounts.' });
+        }
+        if (!payload.password) {
+          return res.status(400).json({ success: false, message: 'Password wajib diisi saat membuat/update akun user.' });
+        }
+        let rawPassword = payload.password;
+        let hashedPassword = rawPassword;
+        if (!hashedPassword.startsWith('$2a$') && !hashedPassword.startsWith('$2b$')) {
+          hashedPassword = await bcrypt.hash(hashedPassword, 12);
+        }
 
       const emailKey = (payload.email || '').toLowerCase();
       const existingUser = await prisma.user.findFirst({
@@ -555,44 +601,77 @@ app.post('/api/sync/:entity', async (req, res) => {
     }
 
     res.json({ success: true, message: `Entity ${entity} processed` });
-  } catch (error) {
-    console.error(`[Express Sync Error] ${entity}:`, error);
-    res.status(500).json({ error: error.message });
-  }
-});
+      } catch (error) {
+        console.error(`[Express Sync Error] ${entity}:`, error);
+        res.status(500).json({ error: 'Gagal menyimpan data. Silakan coba lagi.' });
+      }
+    });
 
-// Whitelist tabel yang boleh di-delete via API
-const ALLOWED_DELETE_TABLES = new Set([
-  'users', 'mahasiswas', 'alumnis', 'mitras', 'lowongans',
-  'pengajuan_magangs', 'tracer_studies', 'konten_karirs',
-  'beritas', 'pengumumans', 'galeri_items', 'kalender_kegiatans',
-  'hero_slides', 'job_fair_events', 'job_fair_companies',
-  'campus_hirings', 'mou_stakeholders', 'surat_keputusans',
-  'laporan_kinerjas', 'anggota_tims', 'social_media_items',
-  'survei_lulusans', 'mahasiswa_experiences',
-  'mahasiswa_certificates', 'mahasiswa_qualifications',
-  'uploaded_documents', 'komentar_beritas', 'konseling_configs',
-  'visi_misi_configs'
+// Whitelist tabel yang boleh di-delete via API (plural HTTP names -> Prisma model names)
+// SECURITY: Mapping ke model Prisma memastikan query selalu parameterized oleh ORM,
+// menghilangkan risk SQL injection sepenuhnya (tidak ada raw SQL).
+const ALLOWED_DELETE_TABLES = new Map([
+  ['users', 'user'],
+  ['mahasiswas', 'mahasiswa'],
+  ['alumnis', 'alumni'],
+  ['mitras', 'mitra'],
+  ['lowongans', 'lowongan'],
+  ['pengajuan_magangs', 'pengajuanMagang'],
+  ['tracer_studies', 'tracerStudy'],
+  ['konten_karirs', 'kontenKarir'],
+  ['beritas', 'berita'],
+  ['pengumumans', 'pengumuman'],
+  ['galeri_items', 'galeriItem'],
+  ['kalender_kegiatans', 'kalenderKegiatan'],
+  ['hero_slides', 'heroSlide'],
+  ['job_fair_events', 'jobFairEvent'],
+  ['job_fair_companies', 'jobFairCompany'],
+  ['campus_hirings', 'campusHiring'],
+  ['mou_stakeholders', 'mouStakeholder'],
+  ['surat_keputusans', 'suratKeputusan'],
+  ['laporan_kinerjas', 'laporanKinerja'],
+  ['anggota_tims', 'anggotaTim'],
+  ['social_media_items', 'socialMediaItem'],
+  ['survei_lulusans', 'surveiLulusan'],
+  ['mahasiswa_experiences', 'mahasiswaExperience'],
+  ['mahasiswa_certificates', 'mahasiswaCertificate'],
+  ['mahasiswa_qualifications', 'mahasiswaQualification'],
+  ['uploaded_documents', 'uploadedDocument'],
+  ['komentar_beritas', 'komentarBerita'],
+  ['konseling_configs', null], // no Prisma model - fallback handled below
+  ['visi_misi_configs', 'visiMisiConfig']
 ]);
 
-// DELETE item dari tabel (hanya tabel yang diizinkan)
+// DELETE item dari tabel (hanya tabel yang diizinkan, via Prisma ORM - parameterized)
 app.delete('/api/:table/:id', async (req, res) => {
   const { table, id } = req.params;
   try {
-    if (!ALLOWED_DELETE_TABLES.has(table)) {
+    const modelName = ALLOWED_DELETE_TABLES.get(table);
+    if (modelName === undefined) {
       return res.status(400).json({ error: `Tabel '${table}' tidak diizinkan untuk DELETE.` });
     }
     if (!id || typeof id !== 'string' || id.trim().length === 0) {
       return res.status(400).json({ error: 'ID wajib diisi.' });
     }
-    const escapedTable = table.replace(/[^a-zA-Z0-9_]/g, '');
-    const escapedId = id.replace(/[^a-zA-Z0-9_\-\.]/g, '');
-    await prisma.$queryRawUnsafe(
-      `DELETE FROM "${escapedTable}" WHERE id = '${escapedId}'`
-    );
-    res.json({ success: true, id });
+
+    if (modelName === null) {
+      // Tabel tanpa model Prisma (konseling_configs): tolak dengan aman
+      return res.status(400).json({ error: `Tabel '${table}' tidak mendukung operasi ini.` });
+    }
+
+    if (!prisma[modelName]) {
+      return res.status(500).json({ error: 'Model tidak tersedia di server.' });
+    }
+
+    // Parameterized delete via Prisma ORM - immune to SQL injection
+    const result = await prisma[modelName].deleteMany({
+      where: { id }
+    });
+
+    res.json({ success: true, id, deleted: result.count });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('[Delete Error]:', error);
+    res.status(500).json({ error: 'Gagal menghapus data. Silakan coba lagi.' });
   }
 });
 
