@@ -43,6 +43,19 @@ Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 - `server.js`/`dbService.ts` diambil versi hardening ini (superset: limiter publik, RBAC tulis, Zod, cookie, DELETE ber-auth; versi tim DELETE tanpa auth + `$queryRaw` tanpa parameter justru diperkuat).
 - `App.tsx`: hapus `handleLoginSubmit` ganda (celah auth) + gating lapis ganda `DEV && VITE_ENABLE_FAST_AUTH`; `Login.tsx`: versi `loginToBackend` (env URL + normalisasi role, bug cek UPPERCASE tim diperbaiki) + tombol Google Auth tim tetap jalan.
 
+### Rekap commit 7 Sep 2026 (sinkron tim, `main` → `origin/main`)
+- `bd75b10` (11:29, Ikhsan) — edit profile user (`StudentProfileView.tsx`)
+- `2672429` (11:48, Ikhsan) — log in via google (GoogleAuthModal baru + Login/Register/data)
+- `b71ee7b` (12:52, Ikhsan) — auth google v2.0 (`utils/googleAuth.tsx` + GSI `index.html`)
+- `7a21429` (13:03, Ikhsan) — auth google v2.0 lanjutan + rekap IKHSAN di `progres.md` + `tsconfig.json`
+- `9d2bd94` (16:01, Fachrul) — RLS + backend-only auth + dev-only role switcher + docs (`PROGRESS.md`, `docs/`, migrasi `003_add_rls_policies.sql`)
+- `a802d72` (19:15, ARYA APRIAWAN) — hardening total API 100% (entri ini), rebase di atas kerja tim, push sinkron
+
+### AI Penetration Test lanjutan (Strix, 7 Sep malam) — ARYA APRIAWAN
+- Strix agentic pentest dijalankan ulang terhadap `http://localhost:3000` (post-hardening), 480 request LLM.
+- Hasil sementara (5 temuan, run masih berjalan): SQLi login/search & CSP dev-server = **perlu review lanjutan**; Reflected XSS query params, Stored XSS (React render paths komentar/konten_karir/lowongan), DOM XSS (share handlers/open redirect) = **ruled out** — konsisten dengan hardening `a802d72`.
+- Artefak run (`strix_runs/`) bersifat tool-output internal (state, tmp, log) → di-gitignore, tidak masuk repo tim.
+
 ---
 
 ## Tanggal: 4 September 2026
