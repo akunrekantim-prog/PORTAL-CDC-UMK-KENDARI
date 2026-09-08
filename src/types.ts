@@ -132,7 +132,7 @@ export interface KontenKarir {
   linkDaftar?: string; // URL pendaftaran eksternal
   statusEvent?: 'buka' | 'segera' | 'selesai';
   // Field khusus Presentasi (konversi dari Prestasi)
-  subKategori?: 'akademik' | 'non-akademik'; // kategori Akademik / Non-Akademik
+  subKategori?: 'akademik' | 'non-akademik' | 'olahraga' | 'seni'; // kategori Akademik / Non-Akademik / Olahraga / Seni
   namaMahasiswa?: string;
   prodi?: string;
   tahun?: string;
@@ -354,7 +354,7 @@ export interface Prestasi {
   id: string;
   judul: string;
   tingkat: 'internasional' | 'nasional' | 'wilayah';
-  kategori: 'akademik' | 'non-akademik';
+  kategori: 'akademik' | 'non-akademik' | 'olahraga' | 'seni';
   peringkat: string; // misal: "Juara 1 / Gold Medal", "Juara 2 / Silver Medal", "Juara 3", "Best Presenter"
   tahun: string;
   namaMahasiswa: string;

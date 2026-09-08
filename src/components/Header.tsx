@@ -114,6 +114,8 @@ const NAV_ITEMS: NavItem[] = [
         children: [
           { label: 'Akademik', tab: 'presentasi-internasional-akademik' },
           { label: 'Non-Akademik', tab: 'presentasi-internasional-non-akademik' },
+          { label: 'Olahraga', tab: 'presentasi-internasional-olahraga' },
+          { label: 'Seni', tab: 'presentasi-internasional-seni' },
         ],
       },
       {
@@ -121,6 +123,8 @@ const NAV_ITEMS: NavItem[] = [
         children: [
           { label: 'Akademik', tab: 'presentasi-nasional-akademik' },
           { label: 'Non-Akademik', tab: 'presentasi-nasional-non-akademik' },
+          { label: 'Olahraga', tab: 'presentasi-nasional-olahraga' },
+          { label: 'Seni', tab: 'presentasi-nasional-seni' },
         ],
       },
       {
@@ -128,6 +132,8 @@ const NAV_ITEMS: NavItem[] = [
         children: [
           { label: 'Akademik', tab: 'presentasi-wilayah-akademik' },
           { label: 'Non-Akademik', tab: 'presentasi-wilayah-non-akademik' },
+          { label: 'Olahraga', tab: 'presentasi-wilayah-olahraga' },
+          { label: 'Seni', tab: 'presentasi-wilayah-seni' },
         ],
       },
     ],
@@ -215,6 +221,8 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
       'Wilayah': 'nav.wilayah',
       'Akademik': 'nav.akademik',
       'Non-Akademik': 'nav.nonakademik',
+      'Olahraga': 'nav.olahraga',
+      'Seni': 'nav.seni',
       'Register': 'nav.register',
       'Register User': 'nav.registeralumni',
       'Register Mitra': 'nav.registermitra',
@@ -354,9 +362,8 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                   {lang === 'en' ? 'EN' : 'ID'}
                 </span>
                 <svg
-                  className={`w-3 h-3 text-amber-400 group-hover:text-[#10006b] fill-current transition-all duration-200 ${
-                    isLangDropdownOpen ? 'rotate-180' : ''
-                  }`}
+                  className={`w-3 h-3 text-amber-400 group-hover:text-[#10006b] fill-current transition-all duration-200 ${isLangDropdownOpen ? 'rotate-180' : ''
+                    }`}
                   viewBox="0 0 20 20"
                 >
                   <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
@@ -372,11 +379,10 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                       setLang('en');
                       setIsLangDropdownOpen(false);
                     }}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-left font-bold transition-colors ${
-                      lang === 'en'
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-left font-bold transition-colors ${lang === 'en'
                         ? 'bg-orange-50 text-[#10006b] font-extrabold'
                         : 'text-gray-700 hover:bg-gray-50 hover:text-[#10006b]'
-                    }`}
+                      }`}
                   >
                     <img
                       src="/logo bendera inggris.png"
@@ -392,11 +398,10 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                       setLang('id');
                       setIsLangDropdownOpen(false);
                     }}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-left font-bold transition-colors ${
-                      lang === 'id'
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-left font-bold transition-colors ${lang === 'id'
                         ? 'bg-orange-50 text-[#10006b] font-extrabold'
                         : 'text-gray-700 hover:bg-gray-50 hover:text-[#10006b]'
-                    }`}
+                      }`}
                   >
                     <img
                       src="/logo bendera indo.png"

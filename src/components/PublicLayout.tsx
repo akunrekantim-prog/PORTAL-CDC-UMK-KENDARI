@@ -50,6 +50,13 @@ import SocialShareBar, { WhatsAppWaIcon } from './ui/SocialShareBar';
 import { stripHtmlTags } from '../markdown';
 
 /* ─── Types ─────────────────────────────────── */
+const PRESTASI_SUB_LABELS: Record<string, string> = {
+  akademik: 'Akademik',
+  'non-akademik': 'Non-Akademik',
+  olahraga: 'Olahraga',
+  seni: 'Seni',
+};
+
 interface PublicLayoutProps {
   currentTab: string;
   setTab: (tab: string) => void;
@@ -2069,7 +2076,14 @@ export default function PublicLayout({
             : currentTab.includes('nasional')
               ? 'nasional'
               : 'wilayah';
-          const currentKategori = currentTab.includes('non-akademik') ? 'non-akademik' : 'akademik';
+          const currentKategori = currentTab.includes('non-akademik')
+            ? 'non-akademik'
+            : currentTab.includes('olahraga')
+              ? 'olahraga'
+              : currentTab.includes('seni')
+                ? 'seni'
+                : 'akademik';
+          const currentKategoriLabel = PRESTASI_SUB_LABELS[currentKategori] || 'Akademik';
 
           const allPresentasi = getFromDB<KontenKarir>('konten_karir').filter(
             (k) => k.jenis === 'presentasi' && k.status !== 'draft'
@@ -2100,7 +2114,7 @@ export default function PublicLayout({
             prestasiPage * prestasiItemsPerPage
           );
 
-          const pageTitle = `Prestasi ${currentScope.charAt(0).toUpperCase() + currentScope.slice(1)} (${currentKategori === 'non-akademik' ? 'Non-Akademik' : 'Akademik'})`;
+          const pageTitle = `Prestasi ${currentScope.charAt(0).toUpperCase() + currentScope.slice(1)} (${currentKategoriLabel})`;
 
           return (
             <div className="bg-white min-h-screen font-sans text-slate-800 pb-20" id="tab-presentasi">
@@ -2140,14 +2154,14 @@ export default function PublicLayout({
                         Daftar Capaian Prestasi Unggulan
                       </h2>
                       <p className="text-slate-500 text-xs sm:text-sm mt-1">
-                        Menampilkan data prestasi mahasiswa peraih kejuaraan di tingkat {currentScope} ({currentKategori}). Klik kartu untuk melihat detail selengkapnya.
+                        Menampilkan data prestasi mahasiswa peraih kejuaraan di tingkat {currentScope} ({currentKategoriLabel}). Klik kartu untuk melihat detail selengkapnya.
                       </p>
                     </div>
 
                     <button
                       onClick={() => {
                         const waNum = getAdminWaPrestasi();
-                        const msg = encodeURIComponent(`Halo Admin CDC UM Kendari, saya ingin melaporkan pencapaian prestasi mahasiswa tingkat ${currentScope} (${currentKategori}).`);
+                        const msg = encodeURIComponent(`Halo Admin CDC UM Kendari, saya ingin melaporkan pencapaian prestasi mahasiswa tingkat ${currentScope} (${currentKategoriLabel}).`);
                         window.open(`https://wa.me/${waNum}?text=${msg}`, '_blank', 'noopener,noreferrer');
                       }}
                       className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 shadow-md transition shrink-0 cursor-pointer"
@@ -2175,7 +2189,7 @@ export default function PublicLayout({
                       <Award className="w-12 h-12 text-slate-300 mx-auto" />
                       <h3 className="font-bold text-slate-700 text-base">Belum Ada Data Prestasi untuk Kategori Ini</h3>
                       <p className="text-slate-400 text-xs max-w-md mx-auto">
-                        Belum terdapat postingan prestasi terpublikasi untuk {currentScope} ({currentKategori}). Admin dapat memposting prestasi baru dari Admin Dashboard.
+                        Belum terdapat postingan prestasi terpublikasi untuk {currentScope} ({currentKategoriLabel}). Admin dapat memposting prestasi baru dari Admin Dashboard.
                       </p>
                     </div>
                   ) : (

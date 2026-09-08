@@ -160,7 +160,7 @@ export default function PrestasiDetailView({
     : prestasi.createdByName;
 
   const scopeDisplay = (prestasi.kategori || 'internasional').toUpperCase();
-  const subCategoryDisplay = (prestasi.subKategori || 'akademik') === 'non-akademik' ? 'Non-Akademik' : 'Akademik';
+  const subCategoryDisplay = ({ akademik: 'Akademik', 'non-akademik': 'Non-Akademik', olahraga: 'Olahraga', seni: 'Seni' } as Record<string, string>)[(prestasi.subKategori || 'akademik').toLowerCase()] || 'Akademik';
 
   return (
     <div className="bg-white min-h-screen flex flex-col font-sans text-slate-800" id="prestasi-detail-page">

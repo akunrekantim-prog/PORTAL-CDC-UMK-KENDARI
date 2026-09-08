@@ -987,7 +987,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const [eLinkDaftar, setELinkDaftar] = useState('');
   const [eStatusEvent, setEStatusEvent] = useState<'buka' | 'segera' | 'selesai'>('buka');
   // Field khusus Presentasi (konversi dari Prestasi)
-  const [eSubKategori, setESubKategori] = useState<'akademik' | 'non-akademik'>('akademik');
+  const [eSubKategori, setESubKategori] = useState<'akademik' | 'non-akademik' | 'olahraga' | 'seni'>('akademik');
   const [eNamaMahasiswa, setENamaMahasiswa] = useState('');
   const [eProdi, setEProdi] = useState('');
   const [eTahunPres, setETahunPres] = useState(new Date().getFullYear().toString());
@@ -3849,7 +3849,9 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                             <label className="text-xs font-medium text-slate-500">Kategori *</label>
                             <Dropdown value={eSubKategori} onChange={(v) => setESubKategori(v as any)} className="w-full" options={[
                               { value: 'akademik', label: 'Akademik' },
-                              { value: 'non-akademik', label: 'Non-Akademik' }
+                              { value: 'non-akademik', label: 'Non-Akademik' },
+                              { value: 'olahraga', label: 'Olahraga' },
+                              { value: 'seni', label: 'Seni' }
                             ]} />
                           </div>
                           <div className="space-y-1.5">
