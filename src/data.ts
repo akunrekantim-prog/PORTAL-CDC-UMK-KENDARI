@@ -40,6 +40,7 @@ import {
 } from './types';
 import {
   fetchInitialDatabaseFromSupabase,
+  fetchPublicDatabase,
   deleteFromSupabase,
   syncUserToSupabase,
   syncMahasiswaToSupabase,
@@ -124,7 +125,8 @@ export const PRODI_MAP: Record<string, string[]> = {
   ]
 };
 
-// Mock Password: all seeded accounts use "password"
+// SEED: tidak ada password plaintext di repo — kolom password dikosongkan,
+// diisi via seed script dengan bcrypt (lihat SEED_PASSWORDS_README.md).
 export const SEED_USERS: User[] = [
   {
     id: 'usr_admin',
@@ -2113,8 +2115,9 @@ const DEFAULT_SEEDS = {
 const MEMORY_DB: Record<string, any[]> = { ...DEFAULT_SEEDS };
 let _dbInitialized = false;
 
-// Async initializer yang memuat seluruh data live dari Supabase PostgreSQL Database
-// dengan fallback ke localStorage jika Supabase gagal
+// Async initializer: boot publik (tanpa login) + full dataset (kalau ada token).
+// Urutan: /public-data dulu agar beranda selalu live → /all-data kalau ada token.
+// Fallback seed lokal HANYA jika backend tidak terjangkau (network error), TANPA menimpa kolom yang sudah live.
 export async function initializeDB(): Promise<void> {
   try {
     const liveData = await fetchInitialDatabaseFromSupabase();
@@ -2125,6 +2128,16 @@ export async function initializeDB(): Promise<void> {
         }
       });
       console.log('⚡ [Portal Data Engine] Storage dialihkan 100% ke Supabase PostgreSQL Database!');
+      return;
+    }
+    const publicData = await fetchPublicDatabase();
+    if (publicData) {
+      Object.keys(publicData).forEach(key => {
+        if (Array.isArray(publicData[key]) && publicData[key].length > 0) {
+          MEMORY_DB[key] = publicData[key];
+        }
+      });
+      console.log('⚡ [Portal Data Engine] Konten publik live dari Supabase PostgreSQL (mode tamu).');
     }
   } catch (err) {
     console.warn('[DB Init Exception] Falling back to localStorage:', err);
@@ -2184,6 +2197,23 @@ export function cleanupGoogleUsersEducation() {
     }
   } catch (e) {
     // silent
+  }
+}
+
+// Tarik ulang dataset privat (/all-data, butuh token) lalu timpa MEMORY_DB.
+// Dipakai pasca-login agar dashboard langsung lihat data live penuh.
+export async function refreshLiveDatabase(): Promise<boolean> {
+  try {
+    const liveData = await fetchInitialDatabaseFromSupabase();
+    if (!liveData) return false;
+    Object.keys(liveData).forEach(key => {
+      if (Array.isArray(liveData[key]) && liveData[key].length > 0) {
+        MEMORY_DB[key] = liveData[key];
+      }
+    });
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -2313,13 +2343,26 @@ export function registerUser(
   const userId = `usr_${role}_${Date.now().toString(36)}`;
   const now = new Date().toISOString();
 
+  // SECURITY: password wajib kuat — tidak ada lagi fallback 'password'
+  if (!payload.password || typeof payload.password !== 'string') {
+    throw new Error('Password wajib diisi.');
+  }
+  if (
+    payload.password.length < 8 ||
+    !/[A-Z]/.test(payload.password) ||
+    !/[a-z]/.test(payload.password) ||
+    !/[0-9]/.test(payload.password)
+  ) {
+    throw new Error('Password minimal 8 karakter, mengandung huruf besar, huruf kecil, dan angka.');
+  }
+
   const newUser: User = {
     id: userId,
     name: role === 'alumni'
       ? (payload as RegisterAlumniPayload).name
       : `${(payload as RegisterMitraPayload).kontakPerson} (${(payload as RegisterMitraPayload).namaInstansi})`,
     email: payload.email,
-    password: payload.password || 'password',
+    password: payload.password,
     phone: payload.phone || '',
     role: role === 'alumni' ? 'user' : 'mitra',
     userStatusType: role === 'alumni' ? ((payload as RegisterAlumniPayload).userStatusType || 'Mahasiswa') : undefined,

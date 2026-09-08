@@ -8,7 +8,10 @@ export default defineConfig({
   testDir: './tests',
   
   /* Run tests in files in parallel */
-  fullyParallel: true,
+  fullyParallel: false,
+
+  /* Serial workers — Vite dev raksasa (AdminDashboard 500KB+), parallel = timeout/OOM */
+  workers: 1,
   
   /* Fail the build on CI if you accidentally left test.only in the source code */
   forbidOnly: !!process.env.CI,
@@ -65,5 +68,9 @@ export default defineConfig({
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
+    env: {
+      // Role-switcher dev-only digate env ini — test butuh tombolnya tampil.
+      VITE_ENABLE_FAST_AUTH: 'true',
+    },
   },
 });

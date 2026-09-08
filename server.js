@@ -4,7 +4,9 @@ import bcrypt from 'bcryptjs';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import jwt from 'jsonwebtoken';
+import cookieParser from 'cookie-parser';
 import crypto from 'crypto';
+import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
 
 dotenv.config();
@@ -12,51 +14,58 @@ dotenv.config();
 const app = express();
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 5000;
+const isProd = process.env.NODE_ENV === 'production';
 
-// SECURITY: JWT_SECRET MUST be a strong, cryptographically random string.
-// In production a missing/weak secret is a hard error - we refuse to boot insecure.
-const JWT_SECRET = process.env.JWT_SECRET;
-if (process.env.NODE_ENV === 'production') {
-  if (!JWT_SECRET || JWT_SECRET.length < 32) {
+// ── JWT SECRET — wajib kriptografis, min 32 char ────────────────
+let JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  if (isProd) {
     throw new Error(
-      'CRITICAL: JWT_SECRET must be set in .env and be at least 32 characters for production. ' +
-      'Generate with: node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"'
+      'CRITICAL: JWT_SECRET harus diset di .env untuk production. ' +
+      'Generate: node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"'
     );
   }
+  JWT_SECRET = crypto.randomBytes(64).toString('hex');
+  console.warn('⚠️  WARNING: JWT_SECRET fallback dev-only (random, tidak persisten). Set JWT_SECRET di .env!');
 }
-// Development fallback only - cryptographically random, NOT a known/predictable value.
-const ACTIVE_JWT_SECRET = JWT_SECRET && JWT_SECRET.length >= 32
-  ? JWT_SECRET
-  : crypto.randomBytes(64).toString('hex');
-if (!JWT_SECRET || JWT_SECRET.length < 32) {
-  console.warn('⚠️  WARNING: Using random ephemeral JWT_SECRET for DEVELOPMENT ONLY. Sessions will reset on restart. Set JWT_SECRET in .env for production!');
+if (JWT_SECRET.length < 32) {
+  throw new Error('CRITICAL: JWT_SECRET minimal 32 karakter. Generate yang baru.');
 }
 
-// Security: Helmet headers with a baseline Content-Security-Policy.
-// Note: 'unsafe-inline' is kept only for the dev tooling (Vite HMR & inline styles);
-// remove it in production once the frontend ships without inline scripts/styles.
-const isProd = process.env.NODE_ENV === 'production';
+// ── Helmet — CSP ketat + HSTS ────────────────────────────────────
 app.use(helmet({
-  contentSecurityPolicy: isProd ? {
+  contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-      fontSrc: ["'self'", 'https://fonts.gstatic.com'],
-      imgSrc: ["'self'", 'data:', 'blob:', 'https://images.unsplash.com', 'https://*.supabase.co'],
-      connectSrc: ["'self'", 'https://*.supabase.co', 'http://localhost:5000'],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
+      imgSrc: ["'self'", 'data:', 'https:', 'blob:'],
+      connectSrc: ["'self'", 'https://*.supabase.co', 'https://*.supabase.in', 'http://localhost:5000', 'http://localhost:3000', 'http://127.0.0.1:3000', 'http://127.0.0.1:5000'],
+      frameAncestors: ["'none'"],
       objectSrc: ["'none'"],
-      frameSrc: ["'self'"],
-      upgradeInsecureRequests: isProd ? [] : undefined
+      baseUri: ["'self'"],
     }
-  } : false,
-  crossOriginEmbedderPolicy: false
+  },
+  crossOriginEmbedderPolicy: false,
+  hsts: isProd ? { maxAge: 31536000, includeSubDomains: true, preload: true } : false,
 }));
 
-app.use(express.json({ limit: '5mb' }));
-app.use(express.urlencoded({ limit: '5mb', extended: true }));
+app.use(cookieParser());
+// Body limit 2MB — cegah DoS via payload 50MB
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ limit: '2mb', extended: true }));
 
-// CORS Header - Restricted to specific origins
+if (isProd) {
+  app.set('trust proxy', 1);
+  app.use((req, res, next) => {
+    if (req.secure || req.headers['x-forwarded-proto'] === 'https') return next();
+    // Di balik reverse proxy (Vercel/NGINX) header di atas sudah cukup; jangan redirect loop di dev
+    return next();
+  });
+}
+
+// ── CORS — whitelist ketat ───────────────────────────────────────
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5000',
@@ -65,54 +74,91 @@ const allowedOrigins = [
   process.env.FRONTEND_URL
 ].filter(Boolean);
 
+if (isProd && !process.env.FRONTEND_URL) {
+  console.warn('⚠️  FRONTEND_URL tidak diset di production — CORS akan menolak origin tak dikenal.');
+}
+
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
+  if (origin && allowedOrigins.includes(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Credentials', 'true');
   }
+  // Jika origin tidak dikenal: JANGAN set Allow-Origin (browser block)
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
+  res.header('Vary', 'Origin');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
   next();
 });
 
-// Rate Limiting
+// ── Rate limiters ────────────────────────────────────────────────
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // max 5 attempts per IP
+  windowMs: 15 * 60 * 1000,
+  max: 5,
   message: { success: false, message: 'Terlalu banyak percobaan login. Coba lagi dalam 15 menit.' },
-  standardHeaders: true,
-  legacyHeaders: false
+  standardHeaders: true, legacyHeaders: false
 });
-
 const apiLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute
-  max: 100, // max 100 requests per minute
-  message: { error: 'Terlalu banyak request. Coba lagi nanti.' }
+  windowMs: 1 * 60 * 1000,
+  max: 100,
+  message: { error: 'Terlalu banyak request. Coba lagi nanti.' },
+  standardHeaders: true, legacyHeaders: false
+});
+const registerLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { success: false, message: 'Terlalu banyak percobaan registrasi. Coba lagi dalam 15 menit.' },
+  standardHeaders: true, legacyHeaders: false
+});
+const writeLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 60,
+  message: { error: 'Terlalu banyak request tulis. Coba lagi nanti.' },
+  standardHeaders: true, legacyHeaders: false
 });
 
-// JWT Authentication Middleware
+// ── Helpers ──────────────────────────────────────────────────────
+const isValidEmail = (email) =>
+  typeof email === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim()) && email.trim().length <= 254;
+const isStrongPassword = (password) =>
+  typeof password === 'string' && password.length >= 8 && password.length <= 128 &&
+  /[A-Z]/.test(password) && /[a-z]/.test(password) && /[0-9]/.test(password);
+
+// Zod — validasi input terstruktur (MEDIUM-02)
+const ROLE_VALUES = ['ADMIN','MAHASISWA','ALUMNI','MITRA','USER','VIEWER','JOB_SEEKER'];
+const STATUS_VALUES = ['PENDING','ACTIVE','INACTIVE','REJECTED'];
+const userSyncSchema = z.object({
+  id: z.string().min(1).max(100).optional(),
+  name: z.string().min(1).max(100).trim(),
+  email: z.string().email().max(254).transform(v => v.toLowerCase().trim()),
+  password: z.string().min(8).max(128).optional(),
+  phone: z.string().max(20).nullable().optional(),
+  // Terima lowercase dari frontend (normalizeRecord) → uppercase-kan dulu
+  role: z.string().trim().min(1).max(20).transform(v => v.toUpperCase()).refine(v => ROLE_VALUES.includes(v), { message: 'Invalid role' }).optional(),
+  status: z.string().trim().min(1).max(20).transform(v => v.toUpperCase()).refine(v => STATUS_VALUES.includes(v), { message: 'Invalid status' }).optional(),
+  photoUrl: z.string().max(2048).nullable().optional(),
+}).passthrough();
+
+// ── Auth middleware — header Bearer ATAU httpOnly cookie ──────────
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
-
-  if (!token) {
-    return res.status(401).json({ error: 'Access denied. No token provided.' });
-  }
-
-  jwt.verify(token, ACTIVE_JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.status(403).json({ error: 'Invalid or expired token.' });
-    }
+  let token = authHeader && authHeader.split(' ')[1];
+  if (!token && req.cookies && req.cookies.auth_token) token = req.cookies.auth_token;
+  if (!token) return res.status(401).json({ error: 'Access denied. No token provided.' });
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) return res.status(403).json({ error: 'Invalid or expired token.' });
     req.user = user;
     next();
   });
 };
+const requireAdmin = (req, res, next) => {
+  if (!req.user) return res.status(401).json({ error: 'Access denied. No token provided.' });
+  if (req.user.role !== 'ADMIN') return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+  next();
+};
 
-// Healthcheck API
+// ── Healthcheck ──────────────────────────────────────────────────
 app.get('/api/health', async (req, res) => {
   try {
     const userCount = await prisma.user.count();
@@ -123,23 +169,11 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-// GET /api/all-data - Agregat seluruh data live dari database Supabase PostgreSQL
-// PROTECTED: Requires authentication, excludes sensitive fields
+// GET /api/all-data — agregat live, butuh JWT, password never exposed
 app.get('/api/all-data', authenticateToken, apiLimiter, async (req, res) => {
   try {
     const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        role: true,
-        status: true,
-        photoUrl: true,
-        createdAt: true,
-        lastLoginAt: true
-        // password EXCLUDED for security
-      }
+      select: { id: true, name: true, email: true, phone: true, role: true, status: true, photoUrl: true, createdAt: true, lastLoginAt: true }
     });
     const mahasiswa = await prisma.mahasiswa.findMany();
     const alumni = await prisma.alumni.findMany();
@@ -159,522 +193,371 @@ app.get('/api/all-data', authenticateToken, apiLimiter, async (req, res) => {
     const visi_misi_configs = await prisma.visiMisiConfig.findMany();
     const anggota_tims = await prisma.anggotaTim.findMany({ orderBy: { urutan: 'asc' } });
     const social_media_items = await prisma.socialMediaItem.findMany();
-
-    res.json({
-      users,
-      mahasiswa,
-      alumni,
-      mitra,
-      lowongan,
-      pengajuan_magang,
-      tracer_studies,
-      konten_karir,
-      berita,
-      pengumuman,
-      surat_keputusan,
-      kalender_kegiatan,
-      laporan_kinerja,
-      mou_stakeholder,
-      galeri_items,
-      hero_slides,
-      visi_misi_configs,
-      anggota_tims,
-      social_media_items
-    });
+    res.json({ users, mahasiswa, alumni, mitra, lowongan, pengajuan_magang, tracer_studies, konten_karir, berita, pengumuman, surat_keputusan, kalender_kegiatan, laporan_kinerja, mou_stakeholder, galeri_items, hero_slides, visi_misi_configs, anggota_tims, social_media_items });
   } catch (error) {
     console.error('[Express API /all-data Error]:', error);
-    res.status(500).json({ error: 'Failed to fetch data. Please try again.' });
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// POST /api/login - Verifikasi Bcrypt Password Hash di Supabase PostgreSQL
-// WITH rate limiting and JWT token generation
+// GET /api/public-data — tanpa auth, hanya published
+app.get('/api/public-data', apiLimiter, async (req, res) => {
+  try {
+    const lowongan = await prisma.lowongan.findMany({ where: { status: 'PUBLISHED' }, orderBy: { createdAt: 'desc' } });
+    const konten_karir = await prisma.kontenKarir.findMany({ where: { status: 'published' }, orderBy: { createdAt: 'desc' } });
+    const berita = await prisma.berita.findMany({ where: { status: 'published' }, orderBy: { createdAt: 'desc' } });
+    const pengumuman = await prisma.pengumuman.findMany({ where: { status: 'published' }, orderBy: { createdAt: 'desc' } });
+    const hero_slides = await prisma.heroSlide.findMany({ where: { isActive: true }, orderBy: { urutan: 'asc' } });
+    const galeri_items = await prisma.galeriItem.findMany();
+    const mou_stakeholder = await prisma.mouStakeholder.findMany();
+    const anggota_tims = await prisma.anggotaTim.findMany({ where: { isActive: true }, orderBy: { urutan: 'asc' } });
+    const visi_misi_configs = await prisma.visiMisiConfig.findMany();
+    const social_media_items = await prisma.socialMediaItem.findMany({ where: { isActive: true } });
+    const kalender_kegiatan = await prisma.kalenderKegiatan.findMany();
+    res.json({ lowongan, konten_karir, berita, pengumuman, hero_slides, galeri_items, mou_stakeholder, anggota_tims, visi_misi_configs, social_media_items, kalender_kegiatan });
+  } catch (error) {
+    console.error('[Express API /public-data Error]:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/register — validasi ketat + hash bcrypt
+app.post('/api/register', registerLimiter, async (req, res) => {
+  const { name, email, password, phone, role, nim, namaInstansi, kontakPerson, programStudi, fakultas, tahunLulus, bidangIndustri, alamat, website } = req.body || {};
+  if (!isValidEmail(email)) return res.status(400).json({ success: false, message: 'Format email tidak valid.' });
+  if (!isStrongPassword(password)) return res.status(400).json({ success: false, message: 'Password minimal 8 karakter, mengandung huruf besar, huruf kecil, dan angka.' });
+  if (!name || !String(name).trim()) return res.status(400).json({ success: false, message: 'Nama wajib diisi.' });
+  const normalizedRole = String(role || 'MAHASISWA').toUpperCase();
+  if (!['MAHASISWA', 'ALUMNI', 'MITRA'].includes(normalizedRole)) return res.status(400).json({ success: false, message: 'Role registrasi tidak valid.' });
+  try {
+    const emailKey = String(email).toLowerCase().trim();
+    if (emailKey.length > 254) return res.status(400).json({ success: false, message: 'Email terlalu panjang.' });
+    const existing = await prisma.user.findUnique({ where: { email: emailKey } });
+    if (existing) return res.status(409).json({ success: false, message: 'Pendaftaran gagal. Silakan gunakan data lain atau hubungi admin.' });
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await prisma.user.create({
+      data: { name: String(name).trim().slice(0, 100), email: emailKey, password: hashedPassword, phone: phone ? String(phone).slice(0, 20) : null, role: normalizedRole, status: 'PENDING' }
+    });
+    if (normalizedRole === 'MITRA') {
+      const mitraId = `mtr_${Date.now().toString(36)}_${crypto.randomBytes(3).toString('hex')}`;
+      await prisma.mitra.create({
+        data: { id: mitraId, userId: newUser.id, namaInstansi: namaInstansi ? String(namaInstansi).slice(0, 150) : String(name).trim().slice(0, 150), kontakPerson: kontakPerson ? String(kontakPerson).slice(0, 100) : String(name).trim().slice(0, 100), email: emailKey, phone: phone ? String(phone).slice(0, 20) : null, bidangIndustri: bidangIndustri ? String(bidangIndustri).slice(0, 100) : 'Umum', alamat: alamat ? String(alamat).slice(0, 300) : null, website: website ? String(website).slice(0, 2048) : null, statusKerjaSama: 'PENDING' }
+      });
+    } else {
+      const mhsId = `mhs_${Date.now().toString(36)}_${crypto.randomBytes(3).toString('hex')}`;
+      const almId = `alm_${Date.now().toString(36)}_${crypto.randomBytes(3).toString('hex')}`;
+      const nimVal = nim ? String(nim).toUpperCase().slice(0, 30) : `NIM${Date.now().toString(36).toUpperCase()}`;
+      await prisma.mahasiswa.create({
+        data: { id: mhsId, userId: newUser.id, nim: nimVal, nama: String(name).trim().slice(0, 100), email: emailKey, phone: phone ? String(phone).slice(0, 20) : null, programStudi: programStudi ? String(programStudi).slice(0, 100) : '-', fakultas: fakultas ? String(fakultas).slice(0, 100) : '-', angkatan: tahunLulus ? String(tahunLulus).slice(0, 10) : String(new Date().getFullYear()) }
+      });
+      await prisma.alumni.create({
+        data: { id: almId, userId: newUser.id, nim: nimVal, nama: String(name).trim().slice(0, 100), email: emailKey, phone: phone ? String(phone).slice(0, 20) : null, programStudi: programStudi ? String(programStudi).slice(0, 100) : '-', fakultas: fakultas ? String(fakultas).slice(0, 100) : '-', tahunLulus: tahunLulus ? String(tahunLulus).slice(0, 10) : String(new Date().getFullYear()), statusPekerjaan: 'belum_bekerja' }
+      });
+    }
+    const { password: _, ...userSafe } = newUser;
+    return res.status(201).json({ success: true, message: 'Pendaftaran berhasil. Akun menunggu verifikasi administrator.', user: userSafe });
+  } catch (error) {
+    console.error('[Express Register Error]:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
+// POST /api/login — bcrypt + JWT + httpOnly cookie
 app.post('/api/login', loginLimiter, async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
+  const { email, password } = req.body || {};
+  if (!isValidEmail(email) || typeof password !== 'string' || !password) {
     return res.status(400).json({ success: false, message: 'Email dan password wajib diisi.' });
   }
-
   try {
-    const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase() }
-    });
-
-    if (!user) {
-      // Use generic message to prevent user enumeration
-      return res.status(401).json({ success: false, message: 'Email atau password salah.' });
-    }
-
-    // Check account status BEFORE password verification (prevent timing attacks)
-    if (user.status === 'PENDING') {
-      return res.status(403).json({ success: false, message: 'Akun Anda masih ditinjau administrator.' });
-    }
-
-    if (user.status === 'INACTIVE' || user.status === 'REJECTED') {
-      return res.status(403).json({ success: false, message: 'Akun dinonaktifkan atau ditolak.' });
-    }
-
-    // Password verification
-    if (!user.password) {
-      return res.status(401).json({ success: false, message: 'Password belum diset. Hubungi administrator.' });
-    }
-
+    const user = await prisma.user.findUnique({ where: { email: String(email).toLowerCase().trim() } });
+    if (!user) return res.status(401).json({ success: false, message: 'Email atau password salah.' });
+    if (user.status === 'PENDING') return res.status(403).json({ success: false, message: 'Akun Anda masih ditinjau administrator.' });
+    if (user.status === 'INACTIVE' || user.status === 'REJECTED') return res.status(403).json({ success: false, message: 'Akun dinonaktifkan atau ditolak.' });
+    if (!user.password) return res.status(401).json({ success: false, message: 'Password belum diset. Hubungi administrator.' });
     const isValid = await bcrypt.compare(password, user.password);
-    if (!isValid) {
-      return res.status(401).json({ success: false, message: 'Email atau password salah.' });
-    }
-
-    // Update last login
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { lastLoginAt: new Date() }
-        });
-
-        // Generate JWT token with 24 hour expiry
-        const token = jwt.sign(
-          { 
-            id: user.id, 
-            email: user.email, 
-            role: user.role 
-          },
-          ACTIVE_JWT_SECRET,
-          { expiresIn: '24h' }
-        );
-
-        // Return user data WITHOUT password
-        const { password: _, ...userWithoutPassword } = user;
-
-    res.json({ 
-      success: true, 
-      user: userWithoutPassword,
-      token,
-      expiresIn: 86400 // 24 hours in seconds
+    if (!isValid) return res.status(401).json({ success: false, message: 'Email atau password salah.' });
+    await prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
+    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '24h' });
+    const { password: _, ...userWithoutPassword } = user;
+    // httpOnly cookie — mitigasi XSS HIGH-04 (JS tidak bisa baca token)
+    res.cookie('auth_token', token, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'strict' : 'lax',
+      maxAge: 24 * 60 * 60 * 1000,
+      path: '/'
     });
+    res.json({ success: true, user: userWithoutPassword, token, expiresIn: 86400 });
   } catch (error) {
     console.error('[Express Login Error]:', error);
-    res.status(500).json({ success: false, message: 'Terjadi kesalahan server. Coba lagi.' });
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 });
 
-// GET all items from table
-// SECURITY: Whitelist allowed tables to prevent SQL injection
-const ALLOWED_TABLES = [
-  'users', 'mahasiswa', 'alumni', 'mitra', 'lowongan', 
-  'pengajuanMagang', 'tracerStudy', 'kontenKarir', 'berita',
-  'pengumuman', 'suratKeputusan', 'kalenderKegiatan', 
-  'laporanKinerja', 'mouStakeholder', 'galeriItem',
-  'heroSlide', 'visiMisiConfig', 'anggotaTim', 'socialMediaItem'
-];
+app.post('/api/logout', (req, res) => {
+  res.clearCookie('auth_token', { httpOnly: true, secure: isProd, sameSite: isProd ? 'strict' : 'lax', path: '/' });
+  res.json({ success: true });
+});
 
-// Tables allowed for PUBLIC read (no auth required) — safe, non-sensitive data only.
-// All other tables (users, personal data) require authentication.
-const PUBLIC_READ_TABLES = new Set([
-  'lowongan', 'berita', 'pengumuman', 'konten_karir',
-  'tracer_studies', 'galeri_items', 'hero_slides',
-  'kalender_kegiatan', 'mou_stakeholders', 'laporan_kinerja',
-  'surat_keputusan', 'visi_misi_configs', 'anggota_tims',
-  'social_media_items', 'mahasiswa', 'alumni', 'mitra'
-]);
+// ── GET /api/:table — whitelist model + RBAC ─────────────────────
+const TABLE_TO_MODEL = {
+  users: 'user', user: 'user',
+  mahasiswa: 'mahasiswa', mahasiswas: 'mahasiswa',
+  alumni: 'alumni', alumnis: 'alumni',
+  mitra: 'mitra', mitras: 'mitra',
+  lowongan: 'lowongan', lowongans: 'lowongan',
+  pengajuan_magang: 'pengajuanMagang', pengajuan_magangs: 'pengajuanMagang',
+  tracer_study: 'tracerStudy', tracer_studies: 'tracerStudy',
+  konten_karir: 'kontenKarir', konten_karirs: 'kontenKarir',
+  berita: 'berita', beritas: 'berita',
+  pengumuman: 'pengumuman', pengumumans: 'pengumuman',
+  surat_keputusan: 'suratKeputusan', surat_keputusans: 'suratKeputusan',
+  kalender_kegiatan: 'kalenderKegiatan', kalender_kegiatans: 'kalenderKegiatan',
+  laporan_kinerja: 'laporanKinerja', laporan_kinerjas: 'laporanKinerja',
+  mou_stakeholder: 'mouStakeholder', mou_stakeholders: 'mouStakeholder',
+  galeri_items: 'galeriItem', galeri_item: 'galeriItem',
+  hero_slides: 'heroSlide', hero_slide: 'heroSlide',
+  anggota_tims: 'anggotaTim', anggota_tim: 'anggotaTim',
+  social_media: 'socialMediaItem', social_media_items: 'socialMediaItem',
+  visi_misi_configs: 'visiMisiConfig',
+  konseling_configs: 'konselingConfig',
+  uploaded_documents: 'uploadedDocument',
+  komentar_berita: 'komentarBerita', komentar_beritas: 'komentarBerita',
+  survei_lulusan: 'surveiLulusan', survei_lulusans: 'surveiLulusan',
+  mahasiswa_experiences: 'mahasiswaExperience',
+  mahasiswa_certificates: 'mahasiswaCertificate',
+  mahasiswa_qualifications: 'mahasiswaQualification',
+  job_fair_events: 'jobFairEvent', job_fair_companies: 'jobFairCompany',
+  campus_hirings: 'campusHiring', campus_hiring: 'campusHiring'
+};
 
-// Tabel yang memerlukan autentikasi (data sensitif/operasional)
-const AUTH_REQUIRED_TABLES = new Set([
-  'users'
-]);
-
-app.get('/api/:table', authenticateToken, async (req, res) => {
+app.get('/api/:table', authenticateToken, apiLimiter, async (req, res) => {
   const { table } = req.params;
-  
-  // SECURITY: Validate table name against whitelist
-  if (!ALLOWED_TABLES.includes(table)) {
-    return res.status(400).json({ 
-      error: 'Invalid table name',
-      allowedTables: ALLOWED_TABLES 
-    });
+  const modelName = TABLE_TO_MODEL[table];
+  if (!modelName || !prisma[modelName]) {
+    return res.status(400).json({ error: 'Invalid table name', allowedTables: Object.keys(TABLE_TO_MODEL) });
   }
-  
+  if (modelName === 'user' && req.user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+  }
   try {
-    const modelName = table.charAt(0).toLowerCase() + table.slice(1);
-    if (prisma[modelName]) {
-      const data = await prisma[modelName].findMany();
+    if (modelName === 'user') {
+      const data = await prisma.user.findMany({
+        select: { id: true, name: true, email: true, phone: true, role: true, status: true, photoUrl: true, createdAt: true, lastLoginAt: true }
+      });
       return res.json(data);
     }
-    
-    // Use parameterized query with validated table name (Prisma SQL template)
-    const rawData = await prisma.$queryRaw`SELECT * FROM ${table}`;
-    res.json(rawData);
+    const data = await prisma[modelName].findMany();
+    res.json(data);
   } catch (error) {
-    // Don't leak error details in production
     console.error('[API Error]:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// POST / SYNC item directly to Supabase PostgreSQL table
-// SECURITY: Protected by JWT; user-role sync restricted to admins.
-app.post('/api/sync/:entity', authenticateToken, async (req, res) => {
+// ── POST /api/sync/:entity — Zod + RBAC + ownership ───────────────
+app.post('/api/sync/:entity', authenticateToken, writeLimiter, async (req, res) => {
   const { entity } = req.params;
-  const payload = req.body;
+  const payload = req.body || {};
+  const r = req.user?.role;
+  const requesterId = req.user?.id;
+
+  // Validasi entity whitelist
+  const allowedEntities = new Set(['users','user','mahasiswa','alumni','mitra','lowongan','pengajuan_magang','tracer_study','tracer_studies','konten_karir']);
+  if (!allowedEntities.has(entity)) return res.status(400).json({ error: `Entity '${String(entity).slice(0,50)}' tidak didukung.` });
+
+  // Payload size guard (sudah 2mb di parser, tambah check field length)
+  if (JSON.stringify(payload).length > 1_500_000) return res.status(413).json({ error: 'Payload terlalu besar.' });
+
+  if (entity === 'users' || entity === 'user') {
+    if (r !== 'ADMIN') return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+  }
 
   try {
-      if (entity === 'users' || entity === 'user') {
-        // SECURITY: Backdoor admin creation closed — only users with ADMIN role
-        // in their JWT may create/update user accounts via this endpoint.
-        if (!req.user || req.user.role !== 'ADMIN') {
-          return res.status(403).json({ error: 'Forbidden: admin privileges required to sync user accounts.' });
-        }
-        if (!payload.password) {
-          return res.status(400).json({ success: false, message: 'Password wajib diisi saat membuat/update akun user.' });
-        }
-        let rawPassword = payload.password;
-        let hashedPassword = rawPassword;
-        if (!hashedPassword.startsWith('$2a$') && !hashedPassword.startsWith('$2b$')) {
-          hashedPassword = await bcrypt.hash(hashedPassword, 12);
-        }
-
-      const emailKey = (payload.email || '').toLowerCase();
-      const existingUser = await prisma.user.findFirst({
-        where: { OR: [{ id: payload.id }, { email: emailKey }] }
-      });
-
+    if (entity === 'users' || entity === 'user') {
+      // Zod validasi
+      const parsed = userSyncSchema.safeParse(payload);
+      if (!parsed.success) return res.status(400).json({ error: 'Invalid input', details: parsed.error.flatten() });
+      const p = parsed.data;
+      // Password wajib saat create; jika update tanpa password, pakai existing
+      let hashedPassword;
+      if (p.password) {
+        if (!isStrongPassword(p.password)) return res.status(400).json({ error: 'Password minimal 8 karakter, mengandung huruf besar, huruf kecil, dan angka.' });
+        hashedPassword = await bcrypt.hash(p.password, 10);
+      }
+      const emailKey = p.email;
+      const existingUser = await prisma.user.findFirst({ where: { OR: [{ id: p.id }, { email: emailKey }].filter(Boolean) } });
+      // Jika create tanpa password → tolak (jangan fallback 'password')
+      if (!existingUser && !hashedPassword) return res.status(400).json({ error: 'Password wajib diisi untuk user baru.' });
       const userWhere = existingUser ? { id: existingUser.id } : { email: emailKey };
-
-      const result = await prisma.user.upsert({
-        where: userWhere,
-        update: {
-          name: payload.name,
-          email: emailKey,
-          password: hashedPassword,
-          phone: payload.phone || null,
-          role: (payload.role || 'MAHASISWA').toUpperCase(),
-          status: (payload.status || 'PENDING').toUpperCase(),
-          photoUrl: payload.photoUrl || null
-        },
-        create: {
-          id: payload.id,
-          name: payload.name,
-          email: emailKey,
-          password: hashedPassword,
-          phone: payload.phone || null,
-          role: (payload.role || 'MAHASISWA').toUpperCase(),
-          status: (payload.status || 'PENDING').toUpperCase(),
-          photoUrl: payload.photoUrl || null
-        }
-      });
-      return res.json({ success: true, result });
+      const dataUpdate = { name: p.name, email: emailKey, phone: p.phone || null, role: (p.role || 'MAHASISWA').toUpperCase(), status: (p.status || 'PENDING').toUpperCase(), photoUrl: p.photoUrl || null };
+      if (hashedPassword) dataUpdate.password = hashedPassword;
+      const dataCreate = { id: p.id, name: p.name, email: emailKey, password: hashedPassword, phone: p.phone || null, role: (p.role || 'MAHASISWA').toUpperCase(), status: (p.status || 'PENDING').toUpperCase(), photoUrl: p.photoUrl || null };
+      const result = await prisma.user.upsert({ where: userWhere, update: dataUpdate, create: dataCreate });
+      const { password: _pw, ...userSafe } = result;
+      return res.json({ success: true, result: userSafe });
     }
 
     if (entity === 'mahasiswa') {
-      const existingMhs = await prisma.mahasiswa.findFirst({
-        where: { OR: [{ id: payload.id }, { nim: payload.nim }] }
-      });
+      if (r !== 'ADMIN' && (!payload.userId || payload.userId !== requesterId)) return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+      const existingMhs = await prisma.mahasiswa.findFirst({ where: { OR: [{ id: payload.id }, { nim: payload.nim }] } });
       const mhsWhere = existingMhs ? { id: existingMhs.id } : { id: payload.id };
-
       const result = await prisma.mahasiswa.upsert({
         where: mhsWhere,
-        update: {
-          nama: payload.nama,
-          email: payload.email,
-          phone: payload.phone || null,
-          programStudi: payload.programStudi,
-          fakultas: payload.fakultas,
-          angkatan: payload.angkatan,
-          semester: payload.semester || 1,
-          alamat: payload.alamat || null,
-          ipk: payload.ipk || null,
-          skills: payload.skills || []
-        },
-        create: {
-          id: payload.id,
-          userId: payload.userId,
-          nim: payload.nim,
-          nama: payload.nama,
-          email: payload.email,
-          phone: payload.phone || null,
-          programStudi: payload.programStudi,
-          fakultas: payload.fakultas,
-          angkatan: payload.angkatan,
-          semester: payload.semester || 1,
-          alamat: payload.alamat || null,
-          ipk: payload.ipk || null,
-          skills: payload.skills || []
-        }
+        update: { nama: String(payload.nama||'').slice(0,100), email: String(payload.email||'').slice(0,254), phone: payload.phone ? String(payload.phone).slice(0,20) : null, programStudi: String(payload.programStudi||'-').slice(0,100), fakultas: String(payload.fakultas||'-').slice(0,100), angkatan: String(payload.angkatan||'').slice(0,10), semester: Number.isFinite(payload.semester) ? Math.min(14, Math.max(1, Number(payload.semester))) : 1, alamat: payload.alamat ? String(payload.alamat).slice(0,300) : null, ipk: payload.ipk || null, skills: Array.isArray(payload.skills) ? payload.skills.slice(0,30) : [] },
+        create: { id: payload.id, userId: payload.userId, nim: String(payload.nim||'').slice(0,30), nama: String(payload.nama||'').slice(0,100), email: String(payload.email||'').slice(0,254), phone: payload.phone ? String(payload.phone).slice(0,20) : null, programStudi: String(payload.programStudi||'-').slice(0,100), fakultas: String(payload.fakultas||'-').slice(0,100), angkatan: String(payload.angkatan||'').slice(0,10), semester: Number.isFinite(payload.semester) ? Math.min(14, Math.max(1, Number(payload.semester))) : 1, alamat: payload.alamat ? String(payload.alamat).slice(0,300) : null, ipk: payload.ipk || null, skills: Array.isArray(payload.skills) ? payload.skills.slice(0,30) : [] }
       });
       return res.json({ success: true, result });
     }
 
     if (entity === 'alumni') {
-      const existingAlumni = await prisma.alumni.findFirst({
-        where: { OR: [{ id: payload.id }, { userId: payload.userId }] }
-      });
+      if (r !== 'ADMIN' && (!payload.userId || payload.userId !== requesterId)) return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+      const existingAlumni = await prisma.alumni.findFirst({ where: { OR: [{ id: payload.id }, { userId: payload.userId }] } });
       const alumniWhere = existingAlumni ? { id: existingAlumni.id } : { id: payload.id };
-
       const result = await prisma.alumni.upsert({
         where: alumniWhere,
-        update: {
-          nama: payload.nama,
-          email: payload.email,
-          programStudi: payload.programStudi,
-          fakultas: payload.fakultas,
-          tahunLulus: payload.tahunLulus,
-          statusPekerjaan: payload.statusPekerjaan,
-          instansiKerja: payload.instansiKerja || null,
-          jabatan: payload.jabatan || null
-        },
-        create: {
-          id: payload.id,
-          userId: payload.userId,
-          nim: payload.nim || null,
-          nama: payload.nama,
-          email: payload.email,
-          phone: payload.phone || null,
-          programStudi: payload.programStudi,
-          fakultas: payload.fakultas,
-          tahunLulus: payload.tahunLulus,
-          statusPekerjaan: payload.statusPekerjaan,
-          instansiKerja: payload.instansiKerja || null,
-          jabatan: payload.jabatan || null
-        }
+        update: { nama: String(payload.nama||'').slice(0,100), email: String(payload.email||'').slice(0,254), programStudi: String(payload.programStudi||'-').slice(0,100), fakultas: String(payload.fakultas||'-').slice(0,100), tahunLulus: String(payload.tahunLulus||'').slice(0,10), statusPekerjaan: String(payload.statusPekerjaan||'belum_bekerja').slice(0,50), instansiKerja: payload.instansiKerja ? String(payload.instansiKerja).slice(0,150) : null, jabatan: payload.jabatan ? String(payload.jabatan).slice(0,100) : null },
+        create: { id: payload.id, userId: payload.userId, nim: payload.nim ? String(payload.nim).slice(0,30) : null, nama: String(payload.nama||'').slice(0,100), email: String(payload.email||'').slice(0,254), phone: payload.phone ? String(payload.phone).slice(0,20) : null, programStudi: String(payload.programStudi||'-').slice(0,100), fakultas: String(payload.fakultas||'-').slice(0,100), tahunLulus: String(payload.tahunLulus||'').slice(0,10), statusPekerjaan: String(payload.statusPekerjaan||'belum_bekerja').slice(0,50), instansiKerja: payload.instansiKerja ? String(payload.instansiKerja).slice(0,150) : null, jabatan: payload.jabatan ? String(payload.jabatan).slice(0,100) : null }
       });
       return res.json({ success: true, result });
     }
 
     if (entity === 'mitra') {
-      const existingMitra = await prisma.mitra.findFirst({
-        where: { OR: [{ id: payload.id }, { userId: payload.userId }] }
-      });
+      if (r !== 'ADMIN' && (!payload.userId || payload.userId !== requesterId)) return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+      const existingMitra = await prisma.mitra.findFirst({ where: { OR: [{ id: payload.id }, { userId: payload.userId }] } });
       const mitraWhere = existingMitra ? { id: existingMitra.id } : { id: payload.id };
-
       const result = await prisma.mitra.upsert({
         where: mitraWhere,
-        update: {
-          namaInstansi: payload.namaInstansi,
-          bidangIndustri: payload.bidangIndustri || null,
-          alamat: payload.alamat || null,
-          kontakPerson: payload.kontakPerson,
-          email: payload.email,
-          phone: payload.phone || null,
-          website: payload.website || null,
-          statusKerjaSama: (payload.statusKerjaSama || 'PENDING').toUpperCase()
-        },
-        create: {
-          id: payload.id,
-          userId: payload.userId,
-          namaInstansi: payload.namaInstansi,
-          bidangIndustri: payload.bidangIndustri || null,
-          alamat: payload.alamat || null,
-          kontakPerson: payload.kontakPerson,
-          email: payload.email,
-          phone: payload.phone || null,
-          website: payload.website || null,
-          statusKerjaSama: (payload.statusKerjaSama || 'PENDING').toUpperCase()
-        }
+        update: { namaInstansi: String(payload.namaInstansi||'').slice(0,150), bidangIndustri: payload.bidangIndustri ? String(payload.bidangIndustri).slice(0,100) : null, alamat: payload.alamat ? String(payload.alamat).slice(0,300) : null, kontakPerson: String(payload.kontakPerson||'').slice(0,100), email: String(payload.email||'').slice(0,254), phone: payload.phone ? String(payload.phone).slice(0,20) : null, website: payload.website ? String(payload.website).slice(0,2048) : null, statusKerjaSama: (payload.statusKerjaSama || 'PENDING').toUpperCase().slice(0,20) },
+        create: { id: payload.id, userId: payload.userId, namaInstansi: String(payload.namaInstansi||'').slice(0,150), bidangIndustri: payload.bidangIndustri ? String(payload.bidangIndustri).slice(0,100) : null, alamat: payload.alamat ? String(payload.alamat).slice(0,300) : null, kontakPerson: String(payload.kontakPerson||'').slice(0,100), email: String(payload.email||'').slice(0,254), phone: payload.phone ? String(payload.phone).slice(0,20) : null, website: payload.website ? String(payload.website).slice(0,2048) : null, statusKerjaSama: (payload.statusKerjaSama || 'PENDING').toUpperCase().slice(0,20) }
       });
       return res.json({ success: true, result });
     }
 
     if (entity === 'lowongan') {
+      if (r !== 'ADMIN') {
+        if (r !== 'MITRA') return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+        const ownMitra = await prisma.mitra.findFirst({ where: { userId: requesterId } });
+        const ownMitraId = ownMitra ? ownMitra.id : null;
+        const claimsOwn = (payload.createdBy && payload.createdBy === requesterId) || (payload.mitraId && (payload.mitraId === ownMitraId || payload.mitraId === requesterId));
+        if (!claimsOwn) return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+        payload.createdBy = requesterId;
+        if (ownMitraId) payload.mitraId = ownMitraId;
+      }
       let validMitraId = null;
       if (payload.mitraId && payload.mitraId !== 'admin_cdc') {
-        const m = await prisma.mitra.findFirst({
-          where: { OR: [{ id: payload.mitraId }, { userId: payload.mitraId }] }
-        });
+        const m = await prisma.mitra.findFirst({ where: { OR: [{ id: payload.mitraId }, { userId: payload.mitraId }] } });
         if (m) validMitraId = m.id;
       }
-
-      const parsedDeadline = (payload.deadline && !isNaN(Date.parse(payload.deadline)))
-        ? new Date(payload.deadline)
-        : new Date();
-
+      const parsedDeadline = (payload.deadline && !isNaN(Date.parse(payload.deadline))) ? new Date(payload.deadline) : new Date();
       const result = await prisma.lowongan.upsert({
         where: { id: payload.id },
-        update: {
-          mitraId: validMitraId,
-          judul: payload.judul,
-          tipe: (payload.tipe || 'KERJA').toUpperCase(),
-          namaInstansi: payload.namaInstansi,
-          companyLogo: payload.companyLogo || null,
-          bannerImage: payload.bannerImage || null,
-          lokasi: payload.lokasi,
-          deskripsi: payload.deskripsi || null,
-          kualifikasi: Array.isArray(payload.kualifikasi) ? payload.kualifikasi : [],
-          gaji: payload.gaji || null,
-          benefit: Array.isArray(payload.benefit) ? payload.benefit : [],
-          deadline: parsedDeadline,
-          status: (payload.status || 'PUBLISHED').toUpperCase()
-        },
-        create: {
-          id: payload.id,
-          mitraId: validMitraId,
-          createdBy: payload.createdBy || 'usr_admin',
-          judul: payload.judul,
-          tipe: (payload.tipe || 'KERJA').toUpperCase(),
-          namaInstansi: payload.namaInstansi,
-          companyLogo: payload.companyLogo || null,
-          bannerImage: payload.bannerImage || null,
-          lokasi: payload.lokasi,
-          deskripsi: payload.deskripsi || null,
-          kualifikasi: Array.isArray(payload.kualifikasi) ? payload.kualifikasi : [],
-          gaji: payload.gaji || null,
-          benefit: Array.isArray(payload.benefit) ? payload.benefit : [],
-          deadline: parsedDeadline,
-          status: (payload.status || 'PUBLISHED').toUpperCase()
-        }
+        update: { mitraId: validMitraId, judul: String(payload.judul||'').slice(0,200), tipe: (payload.tipe || 'KERJA').toUpperCase().slice(0,20), namaInstansi: String(payload.namaInstansi||'').slice(0,150), companyLogo: payload.companyLogo ? String(payload.companyLogo).slice(0,2048) : null, bannerImage: payload.bannerImage ? String(payload.bannerImage).slice(0,2048) : null, lokasi: String(payload.lokasi||'').slice(0,150), deskripsi: payload.deskripsi ? String(payload.deskripsi).slice(0,10000) : null, kualifikasi: Array.isArray(payload.kualifikasi) ? payload.kualifikasi.slice(0,30) : [], gaji: payload.gaji ? String(payload.gaji).slice(0,100) : null, benefit: Array.isArray(payload.benefit) ? payload.benefit.slice(0,30) : [], deadline: parsedDeadline, status: (payload.status || 'PUBLISHED').toUpperCase().slice(0,20) },
+        create: { id: payload.id, mitraId: validMitraId, createdBy: payload.createdBy || 'usr_admin', judul: String(payload.judul||'').slice(0,200), tipe: (payload.tipe || 'KERJA').toUpperCase().slice(0,20), namaInstansi: String(payload.namaInstansi||'').slice(0,150), companyLogo: payload.companyLogo ? String(payload.companyLogo).slice(0,2048) : null, bannerImage: payload.bannerImage ? String(payload.bannerImage).slice(0,2048) : null, lokasi: String(payload.lokasi||'').slice(0,150), deskripsi: payload.deskripsi ? String(payload.deskripsi).slice(0,10000) : null, kualifikasi: Array.isArray(payload.kualifikasi) ? payload.kualifikasi.slice(0,30) : [], gaji: payload.gaji ? String(payload.gaji).slice(0,100) : null, benefit: Array.isArray(payload.benefit) ? payload.benefit.slice(0,30) : [], deadline: parsedDeadline, status: (payload.status || 'PUBLISHED').toUpperCase().slice(0,20) }
       });
       return res.json({ success: true, result });
     }
 
     if (entity === 'pengajuan_magang') {
+      if (r !== 'ADMIN') {
+        const ownMitra = r === 'MITRA' ? await prisma.mitra.findFirst({ where: { userId: requesterId } }) : null;
+        const ownMitraId = ownMitra ? ownMitra.id : null;
+        if (r === 'MITRA') {
+          if (!ownMitraId || (payload.mitraId && payload.mitraId !== ownMitraId)) {
+            let ok = false;
+            if (payload.lowonganId) {
+              const lw = await prisma.lowongan.findUnique({ where: { id: payload.lowonganId } });
+              if (lw && lw.mitraId === ownMitraId) ok = true;
+            }
+            if (!ok) return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+          }
+          if (ownMitraId) payload.mitraId = ownMitraId;
+        } else {
+          if (!payload.userId || payload.userId !== requesterId) return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+        }
+      }
       const result = await prisma.pengajuanMagang.upsert({
         where: { id: payload.id },
-        update: {
-          status: (payload.status || 'SUBMITTED').toUpperCase(),
-          catatanAdmin: payload.catatanAdmin || null,
-          interviewStatus: payload.interviewStatus || null
-        },
-        create: {
-          id: payload.id,
-          mahasiswaId: payload.mahasiswaId,
-          userId: payload.userId,
-          lowonganId: payload.lowonganId || null,
-          mitraId: payload.mitraId || null,
-          namaInstansi: payload.namaInstansi || null,
-          namaMahasiswa: payload.namaMahasiswa,
-          nim: payload.nim,
-          programStudi: payload.programStudi,
-          tujuanMagang: payload.tujuanMagang,
-          lokasiMagang: payload.lokasiMagang || null,
-          catatan: payload.catatan || null,
-          berkasUrl: payload.berkasUrl || null,
-          berkasNama: payload.berkasNama || null,
-          status: (payload.status || 'SUBMITTED').toUpperCase()
-        }
+        update: { status: (payload.status || 'SUBMITTED').toUpperCase().slice(0,30), catatanAdmin: payload.catatanAdmin ? String(payload.catatanAdmin).slice(0,1000) : null, interviewStatus: payload.interviewStatus ? String(payload.interviewStatus).slice(0,50) : null },
+        create: { id: payload.id, mahasiswaId: payload.mahasiswaId, userId: payload.userId, lowonganId: payload.lowonganId || null, mitraId: payload.mitraId || null, namaInstansi: payload.namaInstansi ? String(payload.namaInstansi).slice(0,150) : null, namaMahasiswa: String(payload.namaMahasiswa||'').slice(0,100), nim: String(payload.nim||'').slice(0,30), programStudi: String(payload.programStudi||'-').slice(0,100), tujuanMagang: String(payload.tujuanMagang||'').slice(0,500), lokasiMagang: payload.lokasiMagang ? String(payload.lokasiMagang).slice(0,150) : null, catatan: payload.catatan ? String(payload.catatan).slice(0,1000) : null, berkasUrl: payload.berkasUrl ? String(payload.berkasUrl).slice(0,2048) : null, berkasNama: payload.berkasNama ? String(payload.berkasNama).slice(0,200) : null, status: (payload.status || 'SUBMITTED').toUpperCase().slice(0,30) }
       });
       return res.json({ success: true, result });
     }
 
     if (entity === 'tracer_study' || entity === 'tracer_studies') {
+      if (r !== 'ADMIN' && (!payload.userId || payload.userId !== requesterId)) return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
       const result = await prisma.tracerStudy.upsert({
         where: { id: payload.id },
-        update: {
-          statusPekerjaan: payload.statusPekerjaan,
-          namaInstansi: payload.namaInstansi || null,
-          jabatan: payload.jabatan || null
-        },
-        create: {
-          id: payload.id,
-          mahasiswaId: payload.mahasiswaId || payload.userId,
-          userId: payload.userId,
-          nama: payload.nama,
-          programStudi: payload.programStudi,
-          tahunLulus: payload.tahunLulus,
-          statusPekerjaan: payload.statusPekerjaan,
-          masaTungguKerja: payload.masaTungguKerja || null,
-          namaInstansi: payload.namaInstansi || null,
-          jabatan: payload.jabatan || null,
-          saranUntukKampus: payload.saranUntukKampus || null
-        }
+        update: { statusPekerjaan: String(payload.statusPekerjaan||'').slice(0,50), namaInstansi: payload.namaInstansi ? String(payload.namaInstansi).slice(0,150) : null, jabatan: payload.jabatan ? String(payload.jabatan).slice(0,100) : null },
+        create: { id: payload.id, mahasiswaId: payload.mahasiswaId || payload.userId, userId: payload.userId, nama: String(payload.nama||'').slice(0,100), programStudi: String(payload.programStudi||'-').slice(0,100), tahunLulus: String(payload.tahunLulus||'').slice(0,10), statusPekerjaan: String(payload.statusPekerjaan||'').slice(0,50), masaTungguKerja: payload.masaTungguKerja ? String(payload.masaTungguKerja).slice(0,50) : null, namaInstansi: payload.namaInstansi ? String(payload.namaInstansi).slice(0,150) : null, jabatan: payload.jabatan ? String(payload.jabatan).slice(0,100) : null, saranUntukKampus: payload.saranUntukKampus ? String(payload.saranUntukKampus).slice(0,2000) : null }
       });
       return res.json({ success: true, result });
     }
 
     if (entity === 'konten_karir') {
+      if (r !== 'ADMIN' && r !== 'MITRA') return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+      if (r === 'MITRA' && payload.createdBy && payload.createdBy !== requesterId) return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+      if (r === 'MITRA' && !payload.createdBy) payload.createdBy = requesterId;
       const result = await prisma.kontenKarir.upsert({
         where: { id: payload.id },
-        update: {
-          judul: payload.judul,
-          body: payload.body || '',
-          penulis: payload.penulis || null,
-          status: payload.status || 'published',
-          isPinned: payload.isPinned || false
-        },
-        create: {
-          id: payload.id,
-          jenis: payload.jenis || 'berita',
-          judul: payload.judul,
-          body: payload.body || '',
-          penulis: payload.penulis || null,
-          status: payload.status || 'published',
-          isPinned: payload.isPinned || false
-        }
+        update: { judul: String(payload.judul||'').slice(0,200), body: payload.body ? String(payload.body).slice(0,20000) : '', penulis: payload.penulis ? String(payload.penulis).slice(0,100) : null, status: String(payload.status||'published').slice(0,20), isPinned: !!payload.isPinned },
+        create: { id: payload.id, jenis: String(payload.jenis||'berita').slice(0,20), judul: String(payload.judul||'').slice(0,200), body: payload.body ? String(payload.body).slice(0,20000) : '', penulis: payload.penulis ? String(payload.penulis).slice(0,100) : null, status: String(payload.status||'published').slice(0,20), isPinned: !!payload.isPinned }
       });
       return res.json({ success: true, result });
     }
 
-    res.json({ success: true, message: `Entity ${entity} processed` });
-      } catch (error) {
-        console.error(`[Express Sync Error] ${entity}:`, error);
-        res.status(500).json({ error: 'Gagal menyimpan data. Silakan coba lagi.' });
-      }
-    });
-
-// Whitelist tabel yang boleh di-delete via API (plural HTTP names -> Prisma model names)
-// SECURITY: Mapping ke model Prisma memastikan query selalu parameterized oleh ORM,
-// menghilangkan risk SQL injection sepenuhnya (tidak ada raw SQL).
-const ALLOWED_DELETE_TABLES = new Map([
-  ['users', 'user'],
-  ['mahasiswas', 'mahasiswa'],
-  ['alumnis', 'alumni'],
-  ['mitras', 'mitra'],
-  ['lowongans', 'lowongan'],
-  ['pengajuan_magangs', 'pengajuanMagang'],
-  ['tracer_studies', 'tracerStudy'],
-  ['konten_karirs', 'kontenKarir'],
-  ['beritas', 'berita'],
-  ['pengumumans', 'pengumuman'],
-  ['galeri_items', 'galeriItem'],
-  ['kalender_kegiatans', 'kalenderKegiatan'],
-  ['hero_slides', 'heroSlide'],
-  ['job_fair_events', 'jobFairEvent'],
-  ['job_fair_companies', 'jobFairCompany'],
-  ['campus_hirings', 'campusHiring'],
-  ['mou_stakeholders', 'mouStakeholder'],
-  ['surat_keputusans', 'suratKeputusan'],
-  ['laporan_kinerjas', 'laporanKinerja'],
-  ['anggota_tims', 'anggotaTim'],
-  ['social_media_items', 'socialMediaItem'],
-  ['survei_lulusans', 'surveiLulusan'],
-  ['mahasiswa_experiences', 'mahasiswaExperience'],
-  ['mahasiswa_certificates', 'mahasiswaCertificate'],
-  ['mahasiswa_qualifications', 'mahasiswaQualification'],
-  ['uploaded_documents', 'uploadedDocument'],
-  ['komentar_beritas', 'komentarBerita'],
-  ['konseling_configs', null], // no Prisma model - fallback handled below
-  ['visi_misi_configs', 'visiMisiConfig']
-]);
-
-// DELETE item dari tabel (hanya tabel yang diizinkan, via Prisma ORM - parameterized)
-app.delete('/api/:table/:id', async (req, res) => {
-  const { table, id } = req.params;
-  try {
-    const modelName = ALLOWED_DELETE_TABLES.get(table);
-    if (modelName === undefined) {
-      return res.status(400).json({ error: `Tabel '${table}' tidak diizinkan untuk DELETE.` });
-    }
-    if (!id || typeof id !== 'string' || id.trim().length === 0) {
-      return res.status(400).json({ error: 'ID wajib diisi.' });
-    }
-
-    if (modelName === null) {
-      // Tabel tanpa model Prisma (konseling_configs): tolak dengan aman
-      return res.status(400).json({ error: `Tabel '${table}' tidak mendukung operasi ini.` });
-    }
-
-    if (!prisma[modelName]) {
-      return res.status(500).json({ error: 'Model tidak tersedia di server.' });
-    }
-
-    // Parameterized delete via Prisma ORM - immune to SQL injection
-    const result = await prisma[modelName].deleteMany({
-      where: { id }
-    });
-
-    res.json({ success: true, id, deleted: result.count });
+    res.status(400).json({ error: `Entity '${String(entity).slice(0,50)}' tidak didukung.` });
   } catch (error) {
-    console.error('[Delete Error]:', error);
-    res.status(500).json({ error: 'Gagal menghapus data. Silakan coba lagi.' });
+    console.error(`[Express Sync Error] ${entity}:`, error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
+// ── DELETE — FIX CRITICAL SQLi: pakai Prisma delete (parameterized), bukan raw SQL ─
+app.delete('/api/:table/:id', authenticateToken, writeLimiter, async (req, res) => {
+  const { table } = req.params;
+  const id = String(req.params.id || '').trim();
+  try {
+    const model = TABLE_TO_MODEL[table];
+    if (!model || !prisma[model]) return res.status(400).json({ error: `Tabel '${String(table).slice(0,50)}' tidak diizinkan untuk DELETE.` });
+    if (!id || id.length === 0 || id.length > 100) return res.status(400).json({ error: 'ID tidak valid.' });
+    // ID format guard — tolak injection chars
+    if (!/^[\w\-\.]+$/.test(id)) return res.status(400).json({ error: 'ID tidak valid.' });
+    const r = req.user?.role;
+    const requesterId = req.user?.id;
+    const adminOnlyModels = new Set(['user','mahasiswa','alumni','surveiLulusan','berita','pengumuman','galeriItem','kalenderKegiatan','heroSlide','jobFairEvent','jobFairCompany','campusHiring','mouStakeholder','suratKeputusan','laporanKinerja','anggotaTim','socialMediaItem','konselingConfig','visiMisiConfig']);
+    const ownerModels = new Set(['mitra','lowongan','kontenKarir','pengajuanMagang','tracerStudy']);
+    if (adminOnlyModels.has(model) && r !== 'ADMIN') return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+    if (ownerModels.has(model) && r !== 'ADMIN') {
+      const rec = await prisma[model].findUnique({ where: { id } });
+      if (!rec) return res.status(404).json({ error: 'Data tidak ditemukan.' });
+      if (r === 'MITRA') {
+        const ownMitra = await prisma.mitra.findFirst({ where: { userId: requesterId } });
+        const ownMitraId = ownMitra ? ownMitra.id : null;
+        const owned = rec.createdBy === requesterId || rec.userId === requesterId || (ownMitraId && (rec.mitraId === ownMitraId || rec.mahasiswaId === ownMitraId));
+        if (!owned) return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+      } else if (rec.userId !== requesterId && rec.createdBy !== requesterId && rec.mahasiswaId !== requesterId) {
+        return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+      }
+    }
+    // SECURE: parameterized Prisma — tidak ada string interpolation SQL
+    await prisma[model].delete({ where: { id } });
+    res.json({ success: true, id });
+  } catch (error) {
+    // Prisma P2025 = record not found
+    if (error && error.code === 'P2025') return res.status(404).json({ error: 'Data tidak ditemukan.' });
+    console.error('[Express DELETE Error]:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 404 + generic error handler — jangan leak stack di prod
+app.use((req, res) => res.status(404).json({ error: 'Not found' }));
+app.use((err, req, res, _next) => {
+  console.error('[Unhandled Error]:', err);
+  res.status(err.status || 500).json({ error: isProd ? 'Internal server error' : (err.message || 'Internal server error') });
+});
+
 app.listen(PORT, () => {
-  console.log(`🚀 Express API Backend running on http://localhost:${PORT}`);
+  if (!isProd) console.log(`🚀 Express API Backend running on http://localhost:${PORT}`);
 });

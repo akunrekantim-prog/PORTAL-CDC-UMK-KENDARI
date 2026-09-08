@@ -11,6 +11,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import DOMPurify from 'isomorphic-dompurify';
 import { motion, AnimatePresence } from 'motion/react';
 import ChartArea from './ChartArea';
 import Dropdown from './Dropdown';
@@ -1252,7 +1253,13 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   useEffect(() => {
     if (editorOpen && beritaEditRef.current) {
       if (editId) {
-        beritaEditRef.current.innerHTML = eBody || '';
+        beritaEditRef.current.innerHTML = DOMPurify.sanitize(eBody || '', {
+          ALLOWED_TAGS: ['p','br','strong','em','u','s','sub','sup','mark','span','a','ul','ol','li','h1','h2','h3','h4','h5','h6','blockquote','hr','code','pre','img','figure','figcaption','div'],
+          ALLOWED_ATTR: ['href','target','rel','src','alt','title','class','style','id'],
+          ALLOW_DATA_ATTR: false,
+          FORBID_TAGS: ['script','style','iframe','object','embed','form','input','button','link','meta'],
+          FORBID_ATTR: ['onerror','onload','onclick','onmouseover','onfocus','onblur','oninput','onsubmit'],
+        });
       } else if (!eBody) {
         // Konten baru jika kosong
       }
@@ -1633,7 +1640,15 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       return;
     }
     const now = new Date().toISOString();
-    const finalBody = isWysiwyg ? sanitizedBody : eBody;
+    const finalBody = isWysiwyg
+      ? DOMPurify.sanitize(sanitizedBody, {
+          ALLOWED_TAGS: ['p','br','strong','em','u','s','sub','sup','mark','span','a','ul','ol','li','h1','h2','h3','h4','h5','h6','blockquote','hr','code','pre','img','figure','figcaption','div'],
+          ALLOWED_ATTR: ['href','target','rel','src','alt','title','class','style','id'],
+          ALLOW_DATA_ATTR: false,
+          FORBID_TAGS: ['script','style','iframe','object','embed','form','input','button','link','meta'],
+          FORBID_ATTR: ['onerror','onload','onclick','onmouseover','onfocus','onblur','oninput','onsubmit'],
+        })
+      : eBody;
     const base: KontenKarir = {
       id: editId || `kk_${Date.now()}`,
       jenis: eJenis,
@@ -1766,13 +1781,16 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   };
 
   const renderMedium = (raw: string) => {
-    // Jika isi sudah berupa HTML (berita yang diedit via WYSIWYG), render langsung.
+    // Jika isi sudah berupa HTML (berita yang diedit via WYSIWYG), sanitize ketat via DOMPurify.
     // Berita lama (markdown) tetap diparse seperti biasa.
     if (/<[a-z][\s\S]*>/i.test(raw)) {
-      const clean = raw
-        .replace(/<script[\s\S]*?<\/script>/gi, '')
-        .replace(/ on\w+="[^"]*"/gi, '')
-        .replace(/javascript:/gi, '');
+      const clean = DOMPurify.sanitize(raw, {
+        ALLOWED_TAGS: ['p','br','strong','em','u','s','sub','sup','mark','span','a','ul','ol','li','h1','h2','h3','h4','h5','h6','blockquote','hr','code','pre','img','figure','figcaption','div'],
+        ALLOWED_ATTR: ['href','target','rel','src','alt','title','class','style','id'],
+        ALLOW_DATA_ATTR: false,
+        FORBID_TAGS: ['script','style','iframe','object','embed','form','input','button','link','meta'],
+        FORBID_ATTR: ['onerror','onload','onclick','onmouseover','onfocus','onblur','oninput','onsubmit'],
+      });
       return <div className="prose-berita" dangerouslySetInnerHTML={{ __html: clean }} />;
     }
     const out: React.ReactNode[] = [];
@@ -1847,9 +1865,18 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   };
 
   // Konversi markdown sederhana -> HTML untuk init contentEditable saat edit berita lama.
+  // Output disanitasi DOMPurify — jangan pernah assign innerHTML mentah dari data tersimpan.
   function markdownToHtml(md: string): string {
     if (!md) return '';
-    if (/<[a-z][\s\S]*>/i.test(md)) return md; // sudah HTML
+    if (/<[a-z][\s\S]*>/i.test(md)) {
+      return DOMPurify.sanitize(md, {
+        ALLOWED_TAGS: ['p','br','strong','em','u','s','sub','sup','mark','span','a','ul','ol','li','h1','h2','h3','h4','h5','h6','blockquote','hr','code','pre','img','figure','figcaption','div'],
+        ALLOWED_ATTR: ['href','target','rel','src','alt','title','class','style','id'],
+        ALLOW_DATA_ATTR: false,
+        FORBID_TAGS: ['script','style','iframe','object','embed','form','input','button','link','meta'],
+        FORBID_ATTR: ['onerror','onload','onclick','onmouseover','onfocus','onblur','oninput','onsubmit'],
+      });
+    }
     const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     const inline = (s: string) =>
       esc(s)
@@ -2315,7 +2342,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                       <div>
                         <div className="text-3xl font-extrabold tracking-tight text-slate-900 tabular-nums">{s.value}</div>
                         <div className="text-xs font-extrabold text-slate-800 mt-1">{s.label}</div>
-                        <div className="text-[11px] text-slate-400 mt-0.5" dangerouslySetInnerHTML={{ __html: s.sub }} />
+                        <div className="text-[11px] text-slate-400 mt-0.5">{s.sub}</div>
                       </div>
                     </button>
                   ))}

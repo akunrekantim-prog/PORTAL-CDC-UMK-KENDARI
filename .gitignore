@@ -7,6 +7,9 @@ coverage/
 .env*
 !.env.example
 
+# Strix pentest artifacts (tool output, internal state)
+strix_runs/
+
 # Playwright
 test-results/
 playwright-report/
