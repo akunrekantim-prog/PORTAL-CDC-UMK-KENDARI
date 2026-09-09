@@ -159,6 +159,30 @@ export default function PrestasiDetailView({
     ? 'Admin Website'
     : prestasi.createdByName;
 
+  const targetTab = useMemo(() => {
+    const k = (prestasi.kategori || '').toLowerCase();
+    const sk = (prestasi.subKategori || '').toLowerCase();
+
+    if (k === 'olahraga' || sk === 'olahraga') return 'presentasi-olahraga';
+    if (k === 'seni' || sk === 'seni') return 'presentasi-seni';
+
+    const scope = k || 'internasional';
+    const sub = sk || 'akademik';
+    return `presentasi-${scope}-${sub}`;
+  }, [prestasi.kategori, prestasi.subKategori]);
+
+  const breadcrumbCategoryLabel = useMemo(() => {
+    const k = (prestasi.kategori || '').toLowerCase();
+    const sk = (prestasi.subKategori || '').toLowerCase();
+
+    if (k === 'olahraga' || sk === 'olahraga') return 'Prestasi Olahraga';
+    if (k === 'seni' || sk === 'seni') return 'Prestasi Seni';
+
+    const scopeUpper = (prestasi.kategori || 'internasional').toUpperCase();
+    const subDisplay = ({ akademik: 'Akademik', 'non-akademik': 'Non-Akademik' } as Record<string, string>)[sk] || 'Akademik';
+    return `Prestasi ${scopeUpper} (${subDisplay})`;
+  }, [prestasi.kategori, prestasi.subKategori]);
+
   const scopeDisplay = (prestasi.kategori || 'internasional').toUpperCase();
   const subCategoryDisplay = ({ akademik: 'Akademik', 'non-akademik': 'Non-Akademik', olahraga: 'Olahraga', seni: 'Seni' } as Record<string, string>)[(prestasi.subKategori || 'akademik').toLowerCase()] || 'Akademik';
 
@@ -174,7 +198,7 @@ export default function PrestasiDetailView({
 
       {/* 1. Global Header */}
       <Header
-        currentTab={`presentasi-${(prestasi.kategori || 'internasional').toLowerCase()}-${(prestasi.subKategori || 'akademik').toLowerCase()}`}
+        currentTab={targetTab}
         setTab={setTab || (() => {})}
         onNavigateToLogin={onNavigateToLogin || (() => {})}
         onNavigateToRegister={onNavigateToRegister}
@@ -250,9 +274,9 @@ export default function PrestasiDetailView({
                 <span>&gt;</span>
                 <span
                   className="hover:text-[#0077C6] cursor-pointer"
-                  onClick={() => setTab && setTab(`presentasi-${(prestasi.kategori || 'internasional').toLowerCase()}-${(prestasi.subKategori || 'akademik').toLowerCase()}`)}
+                  onClick={() => setTab && setTab(targetTab)}
                 >
-                  Prestasi {scopeDisplay} ({subCategoryDisplay})
+                  {breadcrumbCategoryLabel}
                 </span>
                 <span>&gt;</span>
                 <span className="text-[#0077C6] font-semibold line-clamp-1 max-w-md">{prestasi.judul}</span>

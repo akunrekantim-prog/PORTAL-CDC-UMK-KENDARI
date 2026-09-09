@@ -2120,19 +2120,40 @@ export default function PublicLayout({
 
         {/* ─── PRESTASI TAB PAGE ─────────────────────────────────── */}
         {currentTab.startsWith('presentasi') && (() => {
-          const currentScope = currentTab.includes('internasional')
-            ? 'internasional'
-            : currentTab.includes('nasional')
-              ? 'nasional'
-              : 'wilayah';
-          const currentKategori = currentTab.includes('non-akademik')
-            ? 'non-akademik'
-            : currentTab.includes('olahraga')
-              ? 'olahraga'
-              : currentTab.includes('seni')
-                ? 'seni'
-                : 'akademik';
-          const currentKategoriLabel = PRESTASI_SUB_LABELS[currentKategori] || 'Akademik';
+          const isOlahraga = currentTab === 'presentasi-olahraga';
+          const isSeni = currentTab === 'presentasi-seni';
+
+          let currentScope = '';
+          let currentKategori = '';
+          let currentKategoriLabel = '';
+          let pageTitle = '';
+          let subHeaderDesc = '';
+          let waReportMsg = '';
+
+          if (isOlahraga) {
+            pageTitle = 'Prestasi Olahraga';
+            subHeaderDesc = 'Menampilkan data prestasi mahasiswa peraih kejuaraan di bidang Olahraga. Klik kartu untuk melihat detail selengkapnya.';
+            waReportMsg = 'Halo Admin CDC UM Kendari, saya ingin melaporkan pencapaian prestasi mahasiswa di bidang Olahraga.';
+          } else if (isSeni) {
+            pageTitle = 'Prestasi Seni';
+            subHeaderDesc = 'Menampilkan data prestasi mahasiswa peraih kejuaraan di bidang Seni. Klik kartu untuk melihat detail selengkapnya.';
+            waReportMsg = 'Halo Admin CDC UM Kendari, saya ingin melaporkan pencapaian prestasi mahasiswa di bidang Seni.';
+          } else {
+            currentScope = currentTab.includes('internasional')
+              ? 'internasional'
+              : currentTab.includes('nasional')
+                ? 'nasional'
+                : 'wilayah';
+            currentKategori = currentTab.includes('non-akademik')
+              ? 'non-akademik'
+              : 'akademik';
+            currentKategoriLabel = PRESTASI_SUB_LABELS[currentKategori] || 'Akademik';
+            const scopeCapitalized = currentScope.charAt(0).toUpperCase() + currentScope.slice(1);
+
+            pageTitle = `Prestasi ${scopeCapitalized} (${currentKategoriLabel})`;
+            subHeaderDesc = `Menampilkan data prestasi mahasiswa peraih kejuaraan di tingkat ${currentScope} (${currentKategoriLabel}). Klik kartu untuk melihat detail selengkapnya.`;
+            waReportMsg = `Halo Admin CDC UM Kendari, saya ingin melaporkan pencapaian prestasi mahasiswa tingkat ${currentScope} (${currentKategoriLabel}).`;
+          }
 
           const allPresentasi = getFromDB<KontenKarir>('konten_karir').filter(
             (k) => k.jenis === 'presentasi' && k.status !== 'draft'
@@ -2140,6 +2161,13 @@ export default function PublicLayout({
           const publishedPresentasi = allPresentasi.filter((p) => {
             const itemKategori = (p.kategori || 'internasional').toLowerCase().trim();
             const itemSubKategori = (p.subKategori || 'akademik').toLowerCase().trim();
+
+            if (isOlahraga) {
+              return itemKategori === 'olahraga' || itemSubKategori === 'olahraga';
+            }
+            if (isSeni) {
+              return itemKategori === 'seni' || itemSubKategori === 'seni';
+            }
             return itemKategori === currentScope.toLowerCase() && itemSubKategori === currentKategori.toLowerCase();
           });
 
@@ -2162,8 +2190,6 @@ export default function PublicLayout({
             (prestasiPage - 1) * prestasiItemsPerPage,
             prestasiPage * prestasiItemsPerPage
           );
-
-          const pageTitle = `Prestasi ${currentScope.charAt(0).toUpperCase() + currentScope.slice(1)} (${currentKategoriLabel})`;
 
           return (
             <div className="bg-white min-h-screen font-sans text-slate-800 pb-20" id="tab-presentasi">
@@ -2203,7 +2229,7 @@ export default function PublicLayout({
                         Daftar Capaian Prestasi Unggulan
                       </h2>
                       <p className="text-slate-500 text-xs sm:text-sm mt-1">
-                        Menampilkan data prestasi mahasiswa peraih kejuaraan di tingkat {currentScope} ({currentKategoriLabel}). Klik kartu untuk melihat detail selengkapnya.
+                        {subHeaderDesc}
                       </p>
                     </div>
 

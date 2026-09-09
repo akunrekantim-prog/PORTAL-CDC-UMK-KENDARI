@@ -2618,3 +2618,30 @@ Apa yang dikerjakan IKHSAN:
 
 
 
+============================================================
+REKAP PROGRES — 09 September 2026 (Sesi: Restrukturisasi 5 Sub-Menu Utama Prestasi)
+Nama: Fachrul Alam Sanuddin
+============================================================
+
+Apa yang dikerjakan:
+
+1. Restrukturisasi Sub-Menu Utama Prestasi di Header (src/components/Header.tsx)
+   - Mengubah struktur dropdown menu Prestasi menjadi 5 sub-menu utama:
+     1. Internasional
+     2. Nasional
+     3. Wilayah
+     4. Olahraga (Langsung navigasi ke tab `presentasi-olahraga`, tanpa sub-menu)
+     5. Seni (Langsung navigasi ke tab `presentasi-seni`, tanpa sub-menu)
+   - Menyederhanakan sub-menu atom di bawah Internasional, Nasional, dan Wilayah sehingga hanya memuat opsi Akademik dan Non-Akademik.
+
+2. Penyesuaian Router & Filter Konten Publik (src/components/PublicLayout.tsx)
+   - Mengubah logika parsing `currentTab.startsWith('presentasi')` untuk menangani navigasi khusus `presentasi-olahraga` dan `presentasi-seni`.
+   - Menampilkan judul halaman "Prestasi Olahraga" dan "Prestasi Seni" dengan filter data otomatis untuk `kategori === 'olahraga' || subKategori === 'olahraga'` serta `kategori === 'seni' || subKategori === 'seni'`.
+   - Mengatur template pesan tombol pelaporan WhatsApp Admin agar sesuai dengan sub-menu yang sedang dibuka.
+
+3. Penyesuaian Detail View & Breadcrumbs (src/components/PrestasiDetailView.tsx)
+   - Memperbarui perhitungan `targetTab` dan `breadcrumbCategoryLabel` agar tombol kembali dan breadcrumb mengarah ke tab yang tepat (`presentasi-olahraga`, `presentasi-seni`, atau `presentasi-[scope]-[subKategori]`).
+
+4. Verifikasi & Pengujian
+   - TypeScript Typecheck (`tsc --noEmit`): Lolos 100% (0 Error).
+============================================================

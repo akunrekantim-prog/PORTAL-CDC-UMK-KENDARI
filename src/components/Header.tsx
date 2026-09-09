@@ -114,8 +114,6 @@ const NAV_ITEMS: NavItem[] = [
         children: [
           { label: 'Akademik', tab: 'presentasi-internasional-akademik' },
           { label: 'Non-Akademik', tab: 'presentasi-internasional-non-akademik' },
-          { label: 'Olahraga', tab: 'presentasi-internasional-olahraga' },
-          { label: 'Seni', tab: 'presentasi-internasional-seni' },
         ],
       },
       {
@@ -123,8 +121,6 @@ const NAV_ITEMS: NavItem[] = [
         children: [
           { label: 'Akademik', tab: 'presentasi-nasional-akademik' },
           { label: 'Non-Akademik', tab: 'presentasi-nasional-non-akademik' },
-          { label: 'Olahraga', tab: 'presentasi-nasional-olahraga' },
-          { label: 'Seni', tab: 'presentasi-nasional-seni' },
         ],
       },
       {
@@ -132,10 +128,10 @@ const NAV_ITEMS: NavItem[] = [
         children: [
           { label: 'Akademik', tab: 'presentasi-wilayah-akademik' },
           { label: 'Non-Akademik', tab: 'presentasi-wilayah-non-akademik' },
-          { label: 'Olahraga', tab: 'presentasi-wilayah-olahraga' },
-          { label: 'Seni', tab: 'presentasi-wilayah-seni' },
         ],
       },
+      { label: 'Olahraga', tab: 'presentasi-olahraga' },
+      { label: 'Seni', tab: 'presentasi-seni' },
     ],
   },
   {
