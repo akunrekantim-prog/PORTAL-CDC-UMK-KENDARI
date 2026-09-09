@@ -1,5 +1,5 @@
 import React from 'react';
-import DOMPurify from 'isomorphic-dompurify';
+import DOMPurify from 'isomorphic-dompurify'; // Sanitizes HTML for security
 
 /**
  * Membersihkan tag HTML & entity sehingga menghasilkan teks polos (plain text)

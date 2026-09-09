@@ -164,6 +164,7 @@ export interface Mitra {
   namaInstansi: string;
   bidangIndustri?: string;
   alamat?: string;
+  kota?: string;
   kontakPerson: string;
   email: string;
   phone?: string;

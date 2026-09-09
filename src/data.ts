@@ -2157,6 +2157,22 @@ export async function initializeDB(): Promise<void> {
         }
       });
     }
+
+    // Load persisted data from localStorage into MEMORY_DB so registered users & edits persist across refresh!
+    Object.keys(DEFAULT_SEEDS).forEach((key) => {
+      const storageKey = `cdc_umk_${key}`;
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            MEMORY_DB[key] = parsed;
+          }
+        } catch {
+          // keep default seed
+        }
+      }
+    });
   } finally {
     _dbInitialized = true;
     cleanupGoogleUsersEducation();
@@ -2222,12 +2238,34 @@ export function getFromDB<T>(key: DBKey): T[] {
   if (!_dbInitialized) {
     initializeDB();
   }
+  if (typeof window !== 'undefined' && window.localStorage) {
+    const storageKey = `cdc_umk_${key}`;
+    const saved = localStorage.getItem(storageKey);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > (MEMORY_DB[key]?.length || 0)) {
+          MEMORY_DB[key] = parsed;
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }
   return (MEMORY_DB[key] as T[]) || [];
 }
 
 // Simpan/Update item ke In-Memory DB & Sinkronisasi Langsung ke Supabase PostgreSQL
 export function saveToDB<T>(key: DBKey, data: T[]) {
   MEMORY_DB[key] = data;
+
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      localStorage.setItem(`cdc_umk_${key}`, JSON.stringify(data));
+    } catch {
+      // quota
+    }
+  }
 
   // Asynchronous Sync ke Supabase PostgreSQL Database API
   setTimeout(async () => {
@@ -2736,10 +2774,13 @@ export function toggleSaveJob(jobId: string, userId?: string): boolean {
 /* ─────────────────────────────────────────────────────────────────
    DATE FORMATTER HELPER
 ───────────────────────────────────────────────────────────────── */
-export function formatDateDisplay(dateStr?: string): string {
+export function formatDateDisplay(dateStr?: string | Date | null): string {
   if (!dateStr) return '';
-  if (/^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
-    const cleanDate = dateStr.split('T')[0];
+  const str = typeof dateStr === 'string'
+    ? dateStr
+    : (dateStr instanceof Date ? dateStr.toISOString() : String(dateStr));
+  if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
+    const cleanDate = str.split('T')[0];
     const [year, month, day] = cleanDate.split('-');
     const monthIdx = parseInt(month, 10) - 1;
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
@@ -2747,15 +2788,19 @@ export function formatDateDisplay(dateStr?: string): string {
       return `${parseInt(day, 10)} ${months[monthIdx]} ${year}`;
     }
   }
-  return dateStr;
+  return str;
 }
 
 /* ─────────────────────────────────────────────────────────────────
    DEADLINE CHECKER HELPER
 ───────────────────────────────────────────────────────────────── */
-export function isJobDeadlinePassed(deadlineStr?: string): boolean {
-  if (!deadlineStr || !deadlineStr.trim()) return false;
-  const str = deadlineStr.trim().toLowerCase();
+export function isJobDeadlinePassed(deadlineStr?: string | Date | null): boolean {
+  if (!deadlineStr) return false;
+  const rawStr = typeof deadlineStr === 'string'
+    ? deadlineStr
+    : (deadlineStr instanceof Date ? deadlineStr.toISOString() : String(deadlineStr));
+  if (!rawStr || !rawStr.trim()) return false;
+  const str = rawStr.trim().toLowerCase();
 
   if (str.includes('tutup') || str.includes('expired') || str.includes('selesai')) {
     return true;

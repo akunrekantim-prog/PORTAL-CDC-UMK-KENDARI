@@ -23,6 +23,9 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { registerToBackend } from '../services/dbService';
 import {
+  registerUser,
+  RegisterAlumniPayload,
+  RegisterMitraPayload,
   FAKULTAS_LIST,
   PRODI_MAP
 } from '../data';
@@ -225,17 +228,46 @@ export default function Register({
     setIsLoading(true);
     try {
       const role = alumniForm.userType === 'Mahasiswa' ? 'MAHASISWA' : 'ALUMNI';
-      const user = await registerToBackend({
-        name: alumniForm.name.trim(),
-        email: alumniForm.email.trim(),
-        password: alumniForm.password,
-        phone: alumniForm.phone.trim(),
-        role: role as any,
-        nim: alumniForm.nim.trim().toUpperCase(),
-        fakultas: alumniForm.fakultas,
-        programStudi: alumniForm.programStudi,
-        tahunLulus: alumniForm.tahunLulus
-      });
+      let user: any;
+      try {
+        user = await registerToBackend({
+          name: alumniForm.name.trim(),
+          email: alumniForm.email.trim(),
+          password: alumniForm.password,
+          phone: alumniForm.phone.trim(),
+          role: role as any,
+          nim: alumniForm.nim.trim().toUpperCase(),
+          fakultas: alumniForm.fakultas,
+          programStudi: alumniForm.programStudi,
+          tahunLulus: alumniForm.tahunLulus
+        });
+      } catch (backendErr: any) {
+        const isNetworkErr = backendErr && (
+          backendErr.name === 'TypeError' ||
+          String(backendErr.message).toLowerCase().includes('fetch') ||
+          String(backendErr.message).includes('Failed')
+        );
+        if (isNetworkErr) {
+          console.warn('[Register] Backend port 5000 tidak terhubung, beralih ke penyimpanan lokal browser.');
+          const payload: RegisterAlumniPayload = {
+            name: alumniForm.name.trim(),
+            nim: alumniForm.nim.trim().toUpperCase(),
+            email: alumniForm.email.trim(),
+            password: alumniForm.password,
+            phone: alumniForm.phone.trim(),
+            fakultas: alumniForm.fakultas,
+            programStudi: alumniForm.programStudi,
+            tahunLulus: alumniForm.tahunLulus,
+            userStatusType: alumniForm.userType,
+            statusPekerjaan: (alumniForm.userType === 'Mahasiswa'
+              ? 'mahasiswa_aktif'
+              : (alumniForm.statusPekerjaan || 'belum_bekerja')) as any
+          };
+          user = registerUser('alumni', payload);
+        } else {
+          throw backendErr;
+        }
+      }
 
       setSuccessUser(user);
       if (onRegisterSuccess) onRegisterSuccess(user);
@@ -253,20 +285,47 @@ export default function Register({
 
     setIsLoading(true);
     try {
-      const user = await registerToBackend({
-        name: mitraForm.kontakPerson.trim(),
-        email: mitraForm.email.trim(),
-        password: mitraForm.password,
-        phone: mitraForm.phone.trim(),
-        role: 'MITRA',
-        namaInstansi: mitraForm.namaInstansi.trim(),
-        kontakPerson: mitraForm.jabatanKontak
-          ? `${mitraForm.kontakPerson.trim()} (${mitraForm.jabatanKontak.trim()})`
-          : mitraForm.kontakPerson.trim(),
-        bidangIndustri: mitraForm.bidangIndustri,
-        alamat: mitraForm.alamat.trim(),
-        website: mitraForm.website.trim()
-      });
+      let user: any;
+      try {
+        user = await registerToBackend({
+          name: mitraForm.kontakPerson.trim(),
+          email: mitraForm.email.trim(),
+          password: mitraForm.password,
+          phone: mitraForm.phone.trim(),
+          role: 'MITRA',
+          namaInstansi: mitraForm.namaInstansi.trim(),
+          kontakPerson: mitraForm.jabatanKontak
+            ? `${mitraForm.kontakPerson.trim()} (${mitraForm.jabatanKontak.trim()})`
+            : mitraForm.kontakPerson.trim(),
+          bidangIndustri: mitraForm.bidangIndustri,
+          alamat: mitraForm.alamat.trim(),
+          website: mitraForm.website.trim()
+        });
+      } catch (backendErr: any) {
+        const isNetworkErr = backendErr && (
+          backendErr.name === 'TypeError' ||
+          String(backendErr.message).toLowerCase().includes('fetch') ||
+          String(backendErr.message).includes('Failed')
+        );
+        if (isNetworkErr) {
+          console.warn('[Register] Backend port 5000 tidak terhubung, beralih ke registrasi lokal browser.');
+          const payload: RegisterMitraPayload = {
+            namaInstansi: mitraForm.namaInstansi.trim(),
+            kontakPerson: mitraForm.jabatanKontak
+              ? `${mitraForm.kontakPerson.trim()} (${mitraForm.jabatanKontak.trim()})`
+              : mitraForm.kontakPerson.trim(),
+            email: mitraForm.email.trim(),
+            password: mitraForm.password,
+            phone: mitraForm.phone.trim(),
+            bidangIndustri: mitraForm.bidangIndustri,
+            alamat: mitraForm.alamat.trim(),
+            website: mitraForm.website.trim()
+          };
+          user = registerUser('mitra', payload);
+        } else {
+          throw backendErr;
+        }
+      }
 
       setSuccessUser(user);
       if (onRegisterSuccess) onRegisterSuccess(user);

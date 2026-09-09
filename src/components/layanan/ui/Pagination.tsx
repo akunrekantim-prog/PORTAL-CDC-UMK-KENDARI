@@ -34,13 +34,35 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
     'w-10 h-10 flex items-center justify-center text-sm font-bold border transition-colors cursor-pointer select-none';
   const boxStyle = '-ml-px first:ml-0';
 
+  const handlePageClick = (page: number) => {
+    if (page === currentPage) return;
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+    onPageChange(page);
+
+    const scrollToTopAction = (behavior: ScrollBehavior = 'smooth') => {
+      window.scrollTo({ top: 0, left: 0, behavior });
+      if (document.documentElement) document.documentElement.scrollTo({ top: 0, left: 0, behavior });
+      if (document.body) document.body.scrollTo({ top: 0, left: 0, behavior });
+    };
+
+    scrollToTopAction('smooth');
+    setTimeout(() => scrollToTopAction('smooth'), 60);
+    setTimeout(() => {
+      if (window.scrollY > 100) {
+        scrollToTopAction('auto');
+      }
+    }, 180);
+  };
+
   return (
-    <nav className="flex items-center justify-center pt-4" aria-label="Navigasi halaman">
+    <nav className="flex items-center justify-center pt-4" aria-label="Navigasi halaman" style={{ overflowAnchor: 'none' }}>
       <div className="flex items-stretch">
         {/* Tombol prev (Kiri) - Disembunyikan saat di Halaman 1 */}
         {currentPage > 1 && (
           <button
-            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+            onClick={() => handlePageClick(Math.max(1, currentPage - 1))}
             aria-label="Halaman sebelumnya"
             className={`${base} ${boxStyle} bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300`}
           >
@@ -59,7 +81,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
           ) : (
             <button
               key={p}
-              onClick={() => onPageChange(p)}
+              onClick={() => handlePageClick(p)}
               aria-current={p === currentPage ? 'page' : undefined}
               className={`${base} ${boxStyle} ${
                 p === currentPage
@@ -75,7 +97,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
         {/* Tombol next (Kanan) - Disembunyikan saat di Halaman Terakhir */}
         {currentPage < totalPages && (
           <button
-            onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+            onClick={() => handlePageClick(Math.min(totalPages, currentPage + 1))}
             aria-label="Halaman berikutnya"
             className={`${base} ${boxStyle} bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300`}
           >

@@ -203,7 +203,9 @@ export default function App() {
   };
 
   // Find detailed models
-  const selectedLowongan = allLowongan.find(l => l.id === viewingLowonganId);
+  const selectedLowongan =
+    allLowongan.find(l => l.id === viewingLowonganId) ||
+    (viewingLowonganId ? getFromDB<Lowongan>('lowongan').find(l => l.id === viewingLowonganId) : undefined);
   const selectedBerita = allBerita.find(b => b.slug === viewingBeritaSlug);
   const selectedProgram = allProgram.find(p => p.id === viewingProgramId) || allKonten.find(p => p.id === viewingProgramId) || (viewingProgramId ? {
     id: viewingProgramId,
@@ -286,34 +288,55 @@ export default function App() {
         )}
 
         {/* VIEW 2: JOB VACANCY PROFILE BLOCK */}
-        {currentView === 'public' && viewingLowonganId && selectedLowongan && (
-          <JobDetail
-            job={selectedLowongan}
-            onBack={() => setViewingLowonganId(null)}
-            onSelectJob={(id) => handleSelectLowongan(id)}
-            setTab={(tab) => {
-              setViewingLowonganId(null);
-              setPublicTab(tab);
-              reloadDatabase();
-            }}
-            onNavigateToLogin={handleNavigateToLogin}
-            onNavigateToRegister={handleNavigateToRegister}
-            isLoggedIn={false}
-            onApply={() => {
-              setViewingLowonganId(null);
-              setPublicTab('beranda');
-              handleNavigateToLogin();
-              reloadDatabase();
-            }}
-            onSelectBerita={(slug) => {
-              setViewingLowonganId(null);
-              handleSelectBerita(slug);
-            }}
-            onSelectProgram={(id) => {
-              setViewingLowonganId(null);
-              handleSelectProgram(id);
-            }}
-          />
+        {currentView === 'public' && viewingLowonganId && (
+          selectedLowongan ? (
+            <JobDetail
+              job={selectedLowongan}
+              onBack={() => setViewingLowonganId(null)}
+              onSelectJob={(id) => handleSelectLowongan(id)}
+              setTab={(tab) => {
+                setViewingLowonganId(null);
+                setPublicTab(tab);
+                reloadDatabase();
+              }}
+              onNavigateToLogin={handleNavigateToLogin}
+              onNavigateToRegister={handleNavigateToRegister}
+              isLoggedIn={false}
+              onApply={() => {
+                setViewingLowonganId(null);
+                setPublicTab('beranda');
+                handleNavigateToLogin();
+                reloadDatabase();
+              }}
+              onSelectBerita={(slug) => {
+                setViewingLowonganId(null);
+                handleSelectBerita(slug);
+              }}
+              onSelectProgram={(id) => {
+                setViewingLowonganId(null);
+                handleSelectProgram(id);
+              }}
+            />
+          ) : (
+            <div className="max-w-xl mx-auto px-4 py-20 text-center space-y-4">
+              <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mx-auto border border-amber-200">
+                <Briefcase className="w-8 h-8" />
+              </div>
+              <h2 className="text-xl font-extrabold text-slate-800">Lowongan Tidak Ditemukan</h2>
+              <p className="text-slate-600 text-sm">
+                Lowongan yang Anda pilih mungkin telah berakhir, dihapus, atau belum dipublikasikan.
+              </p>
+              <button
+                onClick={() => {
+                  setViewingLowonganId(null);
+                  setPublicTab('lowongan');
+                }}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0077C6] hover:bg-blue-700 text-white font-bold text-sm rounded-xl transition shadow-xs cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4" /> Kembali ke Daftar Lowongan
+              </button>
+            </div>
+          )
         )}
 
         {/* VIEW 3: NEWS ARTICLE BLOCK */}

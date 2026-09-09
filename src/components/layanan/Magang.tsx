@@ -20,11 +20,12 @@ export default function Magang({ lowongan = [], onSelectLowongan }: MagangProps)
   );
 
   const filteredLowongan = publishedMagang.filter(item => {
-    const q = searchQuery.toLowerCase();
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return true;
     return (
-      item.judul.toLowerCase().includes(q) ||
-      item.namaInstansi.toLowerCase().includes(q) ||
-      item.lokasi.toLowerCase().includes(q)
+      (item.judul || '').toLowerCase().includes(q) ||
+      (item.namaInstansi || '').toLowerCase().includes(q) ||
+      (item.lokasi || '').toLowerCase().includes(q)
     );
   });
 

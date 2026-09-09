@@ -29,10 +29,41 @@ import {
   MessageCircle,
   Send,
   Linkedin,
-  Copy
+  Copy,
+  FileText
 } from 'lucide-react';
 import { JobApplicationModal } from './JobApplicationModal';
 
+// Helper function to safely convert any input (array, JSON string, multiline string, undefined) to string[]
+const toCleanStringArray = (val: unknown): string[] => {
+  if (!val) return [];
+  if (Array.isArray(val)) {
+    return val
+      .map(item => (typeof item === 'string' ? item.trim() : String(item ?? '').trim()))
+      .filter(item => item.length > 0);
+  }
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (!trimmed) return [];
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) {
+          return parsed
+            .map(item => (typeof item === 'string' ? item.trim() : String(item ?? '').trim()))
+            .filter(item => item.length > 0);
+        }
+      } catch {
+        // Bukan valid JSON, lanjut ke newline split
+      }
+    }
+    return trimmed
+      .split('\n')
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
+  }
+  return [];
+};
 
 interface JobDetailProps {
   job: Lowongan;
@@ -71,24 +102,43 @@ export const JobDetail: React.FC<JobDetailProps> = ({
   const defaultPoster = 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=800&auto=format&fit=crop';
   const defaultLogo = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop';
 
-  // Determine cover banner image
-  const flyersList = (job.flyers && job.flyers.length > 0)
-    ? job.flyers
-    : [job.imageUrl || job.flyer || job.bannerImage || defaultPoster];
-  const coverImage = flyersList[0];
+  // Determine cover banner image safely
+  const getSafeFlyers = (): string[] => {
+    if (Array.isArray(job.flyers) && job.flyers.length > 0) {
+      const filtered = job.flyers.filter(Boolean);
+      if (filtered.length > 0) return filtered;
+    }
+    if (typeof job.flyers === 'string') {
+      const trimmed = (job.flyers as string).trim();
+      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed.filter(Boolean);
+        } catch {
+          // Ignore parse error
+        }
+      } else if (trimmed.length > 0) {
+        return [trimmed];
+      }
+    }
+    const fallback = job.imageUrl || job.flyer || job.bannerImage || defaultPoster;
+    return [fallback];
+  };
+
+  const flyersList = getSafeFlyers();
+  const coverImage = flyersList[0] || defaultPoster;
   const logoUrl = job.companyLogo || defaultLogo;
 
   // Active student user lookup
   const activeUserId = localStorage.getItem('cdc_session_id') || '';
-  const studentsList = getFromDB<Mahasiswa>('mahasiswa');
-  const activeStudent = studentsList.find(s => s.userId === activeUserId) || (activeUserId ? studentsList.find(s => s.userId === '2') : undefined);
+  const studentsList = getFromDB<Mahasiswa>('mahasiswa') || [];
+  const activeStudent = studentsList.find(s => s && s.userId === activeUserId) || (activeUserId ? studentsList.find(s => s && s.userId === '2') : undefined);
 
   // React States for Interactivity
   const [isSaved, setIsSaved] = useState<boolean>(() => {
     return getSavedJobIds(activeUserId || undefined).includes(job.id);
   });
   const [isApplyModalOpen, setIsApplyModalOpen] = useState<boolean>(false);
-
 
   // Toast Notification State
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -115,14 +165,17 @@ export const JobDetail: React.FC<JobDetailProps> = ({
     }
   };
 
-  // Fetch all jobs for "Postingan Terbaru" widget
-  const allLowongan = getFromDB<Lowongan>('lowongan');
+  // Fetch all jobs for "Postingan Terbaru" widget safely
+  const allLowongan = getFromDB<Lowongan>('lowongan') || [];
   const recentJobs = allLowongan
-    .filter(l => l.id !== job.id && l.status === 'published')
-    .filter(l =>
-      l.judul.toLowerCase().includes(sidebarSearch.toLowerCase()) ||
-      l.namaInstansi.toLowerCase().includes(sidebarSearch.toLowerCase())
-    )
+    .filter(l => l && l.id !== job.id && l.status === 'published')
+    .filter(l => {
+      const q = (sidebarSearch || '').toLowerCase().trim();
+      if (!q) return true;
+      const judul = (l.judul || '').toLowerCase();
+      const instansi = (l.namaInstansi || '').toLowerCase();
+      return judul.includes(q) || instansi.includes(q);
+    })
     .slice(0, 3);
 
   // Handlers
@@ -278,17 +331,25 @@ export const JobDetail: React.FC<JobDetailProps> = ({
 
                       <div className="flex items-center gap-1.5">
                         <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
-                        <span>{job.lokasi}</span>
+                        <span>{job.lokasi && job.lokasi.trim().length > 0 ? job.lokasi : 'Sesuai Penempatan / Tertera di Poster'}</span>
                       </div>
 
                       <div className="flex items-center gap-1.5 text-slate-500 font-medium">
                         <Clock className="w-4 h-4 text-slate-400 shrink-0" />
-                        <span>Diposting: <strong className="font-semibold text-slate-700">{job.createdAt ? job.createdAt.split('T')[0] : '2026-08-04'}</strong></span>
+                        <span>Diposting: <strong className="font-semibold text-slate-700">{
+                          job.createdAt ? formatDateDisplay(job.createdAt) : '2026-08-04'
+                        }</strong></span>
                       </div>
 
                       {job.sumber === 'admin' && (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-600 text-white">
                           <ShieldCheck className="w-3.5 h-3.5" /> by Admin Website
+                        </span>
+                      )}
+
+                      {(job.sumber === 'mitra' || (!job.sumber && Boolean(job.mitraId))) && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-600 text-white">
+                          <Building2 className="w-3.5 h-3.5" /> by Mitra Perusahaan
                         </span>
                       )}
                     </div>
@@ -331,68 +392,97 @@ export const JobDetail: React.FC<JobDetailProps> = ({
 
                 <div className="border-t border-slate-100 pt-4" />
 
-                {/* Section 1: Deskripsi Pekerjaan */}
-                {job.deskripsi && job.deskripsi.trim().length > 0 && (
-                  <div className="space-y-2">
-                    <h2 className="text-lg font-extrabold text-slate-900">Deskripsi Pekerjaan</h2>
-                    <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-line">
-                      {job.deskripsi}
-                    </p>
-                  </div>
-                )}
+                {(() => {
+                  const hasDeskripsi = Boolean(job.deskripsi && typeof job.deskripsi === 'string' && job.deskripsi.trim().length > 0);
+                  const listTanggungJawab = toCleanStringArray(job.tanggungJawab);
+                  const listKualifikasi = toCleanStringArray(job.kualifikasi);
+                  const listKeahlian = toCleanStringArray(job.keahlian);
+                  const listBenefit = toCleanStringArray(job.benefit);
+                  const hasAnyDetail = hasDeskripsi || listTanggungJawab.length > 0 || listKualifikasi.length > 0 || listKeahlian.length > 0 || listBenefit.length > 0;
 
-                {/* Section 2: Tanggung Jawab */}
-                {job.tanggungJawab && job.tanggungJawab.length > 0 && job.tanggungJawab.some(item => item && item.trim().length > 0) && (
-                  <div className="space-y-2 pt-2">
-                    <h2 className="text-lg font-extrabold text-slate-900">Tanggung Jawab Pekerjaan</h2>
-                    <ul className="space-y-1.5 text-slate-600 text-sm list-disc pl-5">
-                      {job.tanggungJawab.filter(item => item && item.trim().length > 0).map((item, idx) => (
-                        <li key={idx} className="leading-relaxed">{item}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                  if (!hasAnyDetail) {
+                    return (
+                      <div className="bg-slate-50/80 border border-slate-200/90 rounded-2xl p-6 text-center space-y-3">
+                        <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto border border-blue-100 shadow-2xs">
+                          <FileText className="w-6 h-6" />
+                        </div>
+                        <div className="space-y-1">
+                          <h3 className="font-extrabold text-slate-800 text-sm sm:text-base">Informasi &amp; Kualifikasi Resmi</h3>
+                          <p className="text-slate-600 text-xs sm:text-sm leading-relaxed max-w-lg mx-auto">
+                            Rincian kualifikasi, deskripsi, dan tata cara pendaftaran lengkap tertera pada poster / pamflet resmi di atas. Silakan klik poster untuk memperbesar atau klik tombol lamar untuk mengajukan berkas lamaran.
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  }
 
-                {/* Section 3: Persyaratan & Kualifikasi */}
-                {job.kualifikasi && job.kualifikasi.length > 0 && job.kualifikasi.some(item => item && item.trim().length > 0) && (
-                  <div className="space-y-2 pt-2">
-                    <h2 className="text-lg font-extrabold text-slate-900">Persyaratan &amp; Kualifikasi</h2>
-                    <ul className="space-y-1.5 text-slate-600 text-sm list-disc pl-5">
-                      {job.kualifikasi.filter(item => item && item.trim().length > 0).map((item, idx) => (
-                        <li key={idx} className="leading-relaxed">{item}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                  return (
+                    <>
+                      {/* Section 1: Deskripsi Pekerjaan */}
+                      {hasDeskripsi && (
+                        <div className="space-y-2">
+                          <h2 className="text-lg font-extrabold text-slate-900">Deskripsi Pekerjaan</h2>
+                          <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-line">
+                            {job.deskripsi}
+                          </p>
+                        </div>
+                      )}
 
-                {/* Section 4: Keahlian yang Dibutuhkan */}
-                {job.keahlian && job.keahlian.length > 0 && job.keahlian.some(tag => tag && tag.trim().length > 0) && (
-                  <div className="space-y-2 pt-2">
-                    <h2 className="text-lg font-extrabold text-slate-900">Keahlian yang Dibutuhkan</h2>
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      {job.keahlian.filter(tag => tag && tag.trim().length > 0).map((tag) => (
-                        <span
-                          key={tag}
-                          className="bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold px-3 py-1 rounded-full"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                      {/* Section 2: Tanggung Jawab */}
+                      {listTanggungJawab.length > 0 && (
+                        <div className="space-y-2 pt-2">
+                          <h2 className="text-lg font-extrabold text-slate-900">Tanggung Jawab Pekerjaan</h2>
+                          <ul className="space-y-1.5 text-slate-600 text-sm list-disc pl-5">
+                            {listTanggungJawab.map((item, idx) => (
+                              <li key={idx} className="leading-relaxed">{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
 
-                {/* Section 5: Benefit & Fasilitas Kompensasi */}
-                {job.benefit && job.benefit.length > 0 && job.benefit.some(item => item && item.trim().length > 0) && (
-                  <div className="space-y-2 pt-2">
-                    <h2 className="text-lg font-extrabold text-slate-900">Benefit &amp; Fasilitas Kompensasi</h2>
-                    <ul className="space-y-1.5 text-slate-600 text-sm list-disc pl-5">
-                      {job.benefit.filter(item => item && item.trim().length > 0).map((item, idx) => (
-                        <li key={idx} className="leading-relaxed">{item}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                      {/* Section 3: Persyaratan & Kualifikasi */}
+                      {listKualifikasi.length > 0 && (
+                        <div className="space-y-2 pt-2">
+                          <h2 className="text-lg font-extrabold text-slate-900">Persyaratan &amp; Kualifikasi</h2>
+                          <ul className="space-y-1.5 text-slate-600 text-sm list-disc pl-5">
+                            {listKualifikasi.map((item, idx) => (
+                              <li key={idx} className="leading-relaxed">{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* Section 4: Keahlian yang Dibutuhkan */}
+                      {listKeahlian.length > 0 && (
+                        <div className="space-y-2 pt-2">
+                          <h2 className="text-lg font-extrabold text-slate-900">Keahlian yang Dibutuhkan</h2>
+                          <div className="flex flex-wrap gap-2 pt-1">
+                            {listKeahlian.map((tag, idx) => (
+                              <span
+                                key={idx}
+                                className="bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold px-3 py-1 rounded-full"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Section 5: Benefit & Fasilitas Kompensasi */}
+                      {listBenefit.length > 0 && (
+                        <div className="space-y-2 pt-2">
+                          <h2 className="text-lg font-extrabold text-slate-900">Benefit &amp; Fasilitas Kompensasi</h2>
+                          <ul className="space-y-1.5 text-slate-600 text-sm list-disc pl-5">
+                            {listBenefit.map((item, idx) => (
+                              <li key={idx} className="leading-relaxed">{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
 
               </div>
 
@@ -433,10 +523,13 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                       <span className="text-slate-600">Kategori</span>
                     </div>
                     {(() => {
-                      const cats = (job.kategori || 'TI / Perangkat Lunak').split(',').map(c => c.trim()).filter(Boolean);
+                      const rawKategori = Array.isArray(job.kategori)
+                        ? (job.kategori as string[]).join(', ')
+                        : (typeof job.kategori === 'string' ? job.kategori : '');
+                      const cats = (rawKategori || 'TI / Perangkat Lunak').split(',').map(c => c.trim()).filter(Boolean);
                       const primary = cats[0] || 'TI / Perangkat Lunak';
                       const extra = cats.length - 1;
-                      const hasMultipleOrLong = extra > 0 || (job.kategori || '').length > 20;
+                      const hasMultipleOrLong = extra > 0 || rawKategori.length > 20;
 
                       return (
                         <div className="relative">
@@ -540,7 +633,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                       <span className="text-slate-600">Kuota</span>
                     </div>
                     <span className="font-extrabold text-slate-900 text-right min-w-0">
-                      {job.kuota ? `${job.kuota} Orang` : 'Terbuka'}
+                      {job.kuota && Number(job.kuota) > 0 ? `${job.kuota} Orang` : 'Terbuka / Sesuai Kebutuhan'}
                     </span>
                   </div>
 
@@ -663,7 +756,13 @@ export const JobDetail: React.FC<JobDetailProps> = ({
 
                 <div className="space-y-4">
                   {recentJobs.map((item) => {
-                    const itemPoster = item.flyer || item.imageUrl || (item.flyers && item.flyers.length > 0 ? item.flyers[0] : null) || item.bannerImage || item.companyLogo || defaultLogo;
+                    const itemPoster =
+                      item.flyer ||
+                      item.imageUrl ||
+                      (Array.isArray(item.flyers) && item.flyers.length > 0 ? item.flyers[0] : null) ||
+                      item.bannerImage ||
+                      item.companyLogo ||
+                      defaultLogo;
                     return (
                       <div
                         key={item.id}

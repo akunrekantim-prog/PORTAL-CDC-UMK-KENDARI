@@ -797,8 +797,8 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
     e.preventDefault();
     if (!mitraData) return;
 
-    if (!judul.trim() || !lokasi.trim() || !deadline) {
-      triggerToast('error', 'Semua bidang wajib (*) harus diisi.');
+    if (!judul.trim() || !deadline) {
+      triggerToast('error', 'Bidang Judul Posisi dan Batas Waktu (Tanggal) wajib diisi.');
       return;
     }
 
@@ -828,10 +828,10 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
       linkEksternal: (ctaEnabled && linkEksternal.trim()) ? linkEksternal.trim() : undefined,
       ctaEnabled: true,
       ctaLabel: (ctaEnabled && ctaLabel.trim()) ? ctaLabel.trim() : 'Lamar Pekerjaan',
-      lokasi: lokasi.trim(),
+      lokasi: lokasi.trim() || mitraData.kota || mitraData.alamat || 'Kendari',
       kategori: selectedKategori.join(', '),
       gaji: gaji.trim() || 'Kompetitif',
-      kuota: Number(kuota) || 1,
+      kuota: kuota ? (Number(kuota) || 1) : 1,
       deadline,
       deskripsi: deskripsi ? deskripsi.trim() : '',
       tanggungJawab: parseLines(tanggungJawab),
@@ -1631,6 +1631,14 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                         </div>
 
                         <form onSubmit={handleAddJobPosting} className="space-y-6 text-xs sm:text-sm">
+                          {/* Banner Petunjuk Input Mitra */}
+                          <div className="p-3.5 rounded-2xl bg-blue-50/80 border border-blue-200/80 flex items-start gap-2.5 text-xs text-blue-950">
+                            <Info className="w-4 h-4 text-[#0077C6] shrink-0 mt-0.5" />
+                            <p className="leading-relaxed">
+                              <strong>Ketentuan Input Mitra:</strong> Hanya <strong>Judul Posisi</strong> dan <strong>Batas Waktu Pendaftaran (Tanggal)</strong> yang wajib diisi. Kolom deskripsi, kualifikasi, tanggung jawab, benefit, kuota, dan lokasi bersifat opsional (informasi dapat merujuk langsung pada poster pamflet yang diunggah).
+                            </p>
+                          </div>
+
                           {/* 1. INFORMASI UTAMA */}
                           <div className="space-y-4">
                             <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider border-b border-slate-100 pb-2 flex items-center gap-2">
@@ -1651,7 +1659,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                               </div>
 
                               <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-slate-700">Tipe Lowongan *</label>
+                                <label className="text-xs font-bold text-slate-700">Tipe Lowongan</label>
                                 <Dropdown
                                   value={tipe}
                                   onChange={(v) => setTipe(v as any)}
@@ -1664,7 +1672,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                               </div>
 
                               <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-slate-700">Estimasi Gaji / Uang Saku</label>
+                                <label className="text-xs font-bold text-slate-700">Estimasi Gaji / Uang Saku (Opsional)</label>
                                 <input
                                   type="text"
                                   value={gaji}
@@ -1675,14 +1683,13 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                               </div>
 
                               <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-slate-700">Kuota Penerimaan (Orang) *</label>
+                                <label className="text-xs font-bold text-slate-700">Kuota Penerimaan (Orang) (Opsional)</label>
                                 <input
                                   type="number"
                                   min={1}
-                                  required
                                   value={kuota}
                                   onChange={(e) => setKuota(e.target.value)}
-                                  placeholder="3"
+                                  placeholder="3 (Opsional)"
                                   className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                                 />
                               </div>
@@ -1699,7 +1706,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                               </div>
 
                               <div className="space-y-1.5 sm:col-span-2">
-                                <label className="text-xs font-bold text-slate-700">Lokasi Penempatan Kerja / Magang *</label>
+                                <label className="text-xs font-bold text-slate-700">Lokasi Penempatan Kerja / Magang (Opsional)</label>
                                 <LocationPicker
                                   value={lokasi}
                                   onChange={(val) => setLokasi(val)}
@@ -1863,7 +1870,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
                             <div className="space-y-4">
                               <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-slate-700">Ringkasan Deskripsi Pekerjaan</label>
+                                <label className="text-xs font-bold text-slate-700">Ringkasan Deskripsi Pekerjaan (Opsional)</label>
                                 <textarea
                                   value={deskripsi}
                                   onChange={(e) => setDeskripsi(e.target.value)}
@@ -1875,7 +1882,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
 
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
-                                  <label className="text-xs font-bold text-slate-700">Tanggung Jawab (Satu baris per poin)</label>
+                                  <label className="text-xs font-bold text-slate-700">Tanggung Jawab (Satu baris per poin) (Opsional)</label>
                                   <textarea
                                     value={tanggungJawab}
                                     onChange={(e) => setTanggungJawab(e.target.value)}
@@ -1886,7 +1893,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                                 </div>
 
                                 <div className="space-y-1.5">
-                                  <label className="text-xs font-bold text-slate-700">Kualifikasi Persyaratan (Satu baris per poin)</label>
+                                  <label className="text-xs font-bold text-slate-700">Kualifikasi Persyaratan (Satu baris per poin) (Opsional)</label>
                                   <textarea
                                     value={kualifikasi}
                                     onChange={(e) => setKualifikasi(e.target.value)}
@@ -1897,7 +1904,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                                 </div>
 
                                 <div className="space-y-1.5">
-                                  <label className="text-xs font-bold text-slate-700">Skill &amp; Keahlian Teknis (Satu baris per poin)</label>
+                                  <label className="text-xs font-bold text-slate-700">Skill &amp; Keahlian Teknis (Satu baris per poin) (Opsional)</label>
                                   <textarea
                                     value={keahlian}
                                     onChange={(e) => setKeahlian(e.target.value)}
@@ -1908,7 +1915,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                                 </div>
 
                                 <div className="space-y-1.5">
-                                  <label className="text-xs font-bold text-slate-700">Benefit &amp; Fasilitas (Satu baris per poin)</label>
+                                  <label className="text-xs font-bold text-slate-700">Benefit &amp; Fasilitas (Satu baris per poin) (Opsional)</label>
                                   <textarea
                                     value={benefit}
                                     onChange={(e) => setBenefit(e.target.value)}
@@ -2137,7 +2144,12 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                         {sortedMyJobs.length > 0 && (
                           <div className="flex items-center justify-center gap-1.5 pt-4">
                             <button
-                              onClick={() => setJobCurrentPage(prev => Math.max(1, prev - 1))}
+                              onClick={() => {
+                                setJobCurrentPage(prev => Math.max(1, prev - 1));
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                                const el = document.getElementById('mtr-panel-lowongan');
+                                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                              }}
                               disabled={jobCurrentPage === 1}
                               className="px-3.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition shadow-2xs cursor-pointer"
                             >
@@ -2149,7 +2161,12 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                               return (
                                 <button
                                   key={pageNum}
-                                  onClick={() => setJobCurrentPage(pageNum)}
+                                  onClick={() => {
+                                    setJobCurrentPage(pageNum);
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    const el = document.getElementById('mtr-panel-lowongan');
+                                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                  }}
                                   className={`px-3.5 py-1.5 rounded-xl font-bold text-xs transition cursor-pointer ${isActive
                                     ? 'bg-[#1E3A8A] text-white shadow-xs'
                                     : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-2xs'
@@ -2161,7 +2178,12 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                             })}
 
                             <button
-                              onClick={() => setJobCurrentPage(prev => Math.min(totalJobPages, prev + 1))}
+                              onClick={() => {
+                                setJobCurrentPage(prev => Math.min(totalJobPages, prev + 1));
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                                const el = document.getElementById('mtr-panel-lowongan');
+                                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                              }}
                               disabled={jobCurrentPage === totalJobPages}
                               className="px-3.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition shadow-2xs cursor-pointer"
                             >

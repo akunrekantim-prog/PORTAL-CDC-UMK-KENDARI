@@ -366,4 +366,12 @@ ol.list-paren>li::before {
 
 .animate-fade-in {
   animation: fadeInOverlay 0.2s ease-out forwards;
+}
+
+/* Prevent mobile browser scroll anchoring locks on job cards and pagination */
+#job-info-trisakti-search-view,
+#tab-lowongan,
+#mahasiswa-dashboard,
+nav[aria-label="Navigasi halaman"] {
+  overflow-anchor: none !important;
 }

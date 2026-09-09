@@ -312,8 +312,59 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
   const displayedJobs = sortedJobs.slice(startIndex, startIndex + itemsPerPage);
   const endIndex = Math.min(startIndex + displayedJobs.length, totalJobs);
 
+  // Ref to detect first mount vs subsequent page changes
+  const isFirstMountPage = useRef(true);
+  useEffect(() => {
+    if (isFirstMountPage.current) {
+      isFirstMountPage.current = false;
+      return;
+    }
+
+    // 1. Blur any active button so mobile browsers do not anchor scroll to the bottom pagination button
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
+    const scrollToTopAction = (behavior: ScrollBehavior = 'smooth') => {
+      window.scrollTo({ top: 0, left: 0, behavior });
+      if (document.documentElement) {
+        document.documentElement.scrollTo({ top: 0, left: 0, behavior });
+      }
+      if (document.body) {
+        document.body.scrollTo({ top: 0, left: 0, behavior });
+      }
+      const targetEl =
+        document.getElementById('job-info-trisakti-search-view') ||
+        document.getElementById('mahasiswa-dashboard');
+      if (targetEl) {
+        targetEl.scrollIntoView({ behavior, block: 'start' });
+      }
+    };
+
+    // Immediate attempt
+    scrollToTopAction('smooth');
+
+    // Secondary attempt after React updates the DOM layout
+    const t1 = setTimeout(() => scrollToTopAction('smooth'), 60);
+
+    // Fail-safe tertiary check: if mobile browser aborted smooth scroll or stayed scrolled down, force auto scroll
+    const t2 = setTimeout(() => {
+      if (window.scrollY > 100) {
+        scrollToTopAction('auto');
+      }
+    }, 180);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [currentPage]);
+
   const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
+    if (page >= 1 && page <= totalPages && page !== currentPage) {
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
       setCurrentPage(page);
     }
   };
@@ -367,7 +418,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
 
   // MAIN SEARCH VIEW: WHITE SEARCH BAR + 1:1 REPLICA OF USER SEARCH JOB SCREENSHOT
   return (
-    <div className="space-y-6 animate-fadeIn font-sans bg-white" id="job-info-trisakti-search-view">
+    <div className="space-y-6 animate-fadeIn font-sans bg-white" id="job-info-trisakti-search-view" style={{ overflowAnchor: 'none' }}>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 space-y-5">
 
@@ -759,7 +810,7 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
 
         {/* PAGINATION */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-1.5 pt-6">
+          <div className="flex items-center justify-center gap-1.5 pt-6" style={{ overflowAnchor: 'none' }}>
             {currentPage > 1 && (
               <button
                 onClick={() => handlePageChange(currentPage - 1)}

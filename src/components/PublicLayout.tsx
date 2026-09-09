@@ -225,6 +225,46 @@ export default function PublicLayout({
     setJobInfoPage(1);
   }, [jobKeyword, selectedLocations, selectedSpecializations, jobSortOrder]);
 
+  // Auto-scroll ke atas saat pindah halaman lowongan di mobile
+  const isFirstMountJobPage = useRef(true);
+  useEffect(() => {
+    if (isFirstMountJobPage.current) {
+      isFirstMountJobPage.current = false;
+      return;
+    }
+
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
+    const scrollToTopAction = (behavior: ScrollBehavior = 'smooth') => {
+      window.scrollTo({ top: 0, left: 0, behavior });
+      if (document.documentElement) {
+        document.documentElement.scrollTo({ top: 0, left: 0, behavior });
+      }
+      if (document.body) {
+        document.body.scrollTo({ top: 0, left: 0, behavior });
+      }
+      const el = document.getElementById('tab-lowongan');
+      if (el) {
+        el.scrollIntoView({ behavior, block: 'start' });
+      }
+    };
+
+    scrollToTopAction('smooth');
+    const t1 = setTimeout(() => scrollToTopAction('smooth'), 60);
+    const t2 = setTimeout(() => {
+      if (window.scrollY > 100) {
+        scrollToTopAction('auto');
+      }
+    }, 180);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [jobInfoPage]);
+
   const toggleCheckboxOption = (setList: React.Dispatch<React.SetStateAction<string[]>>, val: string) => {
     setList(prev => prev.includes(val) ? prev.filter(item => item !== val) : [...prev, val]);
   };
@@ -1806,9 +1846,12 @@ export default function PublicLayout({
 
                 {/* PAGINATION (9 items per page) */}
                 {totalJobInfoPages > 1 && (
-                  <div className="flex items-center justify-center gap-1.5 pt-4">
+                  <div className="flex items-center justify-center gap-1.5 pt-4" style={{ overflowAnchor: 'none' }}>
                     <button
-                      onClick={() => setJobInfoPage(p => Math.max(1, p - 1))}
+                      onClick={() => {
+                        if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+                        setJobInfoPage(p => Math.max(1, p - 1));
+                      }}
                       disabled={jobInfoPage === 1}
                       className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
                     >
@@ -1818,7 +1861,10 @@ export default function PublicLayout({
                     {Array.from({ length: totalJobInfoPages }, (_, i) => i + 1).map(pageNum => (
                       <button
                         key={pageNum}
-                        onClick={() => setJobInfoPage(pageNum)}
+                        onClick={() => {
+                          if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+                          setJobInfoPage(pageNum);
+                        }}
                         className={`px-3.5 py-1.5 rounded-lg font-bold text-xs transition cursor-pointer ${pageNum === jobInfoPage
                           ? 'bg-[#1B365D] text-white shadow-xs'
                           : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
@@ -1829,7 +1875,10 @@ export default function PublicLayout({
                     ))}
 
                     <button
-                      onClick={() => setJobInfoPage(p => Math.min(totalJobInfoPages, p + 1))}
+                      onClick={() => {
+                        if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+                        setJobInfoPage(p => Math.min(totalJobInfoPages, p + 1));
+                      }}
                       disabled={jobInfoPage === totalJobInfoPages}
                       className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
                     >
