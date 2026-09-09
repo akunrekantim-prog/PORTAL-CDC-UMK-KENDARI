@@ -76,7 +76,7 @@ export default function CareerFair() {
     setTicketSuccess(true);
   };
 
-  // ===== HALAMAN DETAIL (ringkas: pamflet + judul + tombol daftar) =====
+  // ===== HALAMAN DETAIL (pamflet + judul + deskripsi) =====
   if (selectedFair) {
     return (
       <div id="layanan-career-fair-detail">
@@ -88,7 +88,13 @@ export default function CareerFair() {
           onBack={handleBackToList}
           metaItems={[]}
         >
-          {/* Detail ringkas: hanya pamflet & judul besar sesuai arahan PM */}
+          {selectedFair.deskripsi && (
+            <div className="prose prose-slate max-w-none text-slate-700 text-sm sm:text-base leading-relaxed space-y-6 pt-2">
+              <div className="space-y-4 text-slate-700 leading-relaxed font-normal whitespace-pre-line">
+                {selectedFair.deskripsi}
+              </div>
+            </div>
+          )}
         </ShareableDetailPage>
       </div>
     );

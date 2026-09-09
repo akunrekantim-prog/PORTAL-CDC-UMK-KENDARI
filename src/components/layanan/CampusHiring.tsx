@@ -93,7 +93,7 @@ export default function CampusHiring() {
     setRegSuccess(true);
   };
 
-  // ===== HALAMAN DETAIL (ringkas: pamflet + judul + tombol daftar) =====
+  // ===== HALAMAN DETAIL (pamflet + judul + deskripsi) =====
   if (selectedEvent) {
     return (
       <div id="layanan-campus-hiring-detail">
@@ -105,7 +105,13 @@ export default function CampusHiring() {
           onBack={handleBackToList}
           metaItems={[]}
         >
-          {/* Detail ringkas: hanya pamflet & judul besar sesuai arahan PM */}
+          {selectedEvent.deskripsi && (
+            <div className="prose prose-slate max-w-none text-slate-700 text-sm sm:text-base leading-relaxed space-y-6 pt-2">
+              <div className="space-y-4 text-slate-700 leading-relaxed font-normal whitespace-pre-line">
+                {selectedEvent.deskripsi}
+              </div>
+            </div>
+          )}
         </ShareableDetailPage>
       </div>
     );

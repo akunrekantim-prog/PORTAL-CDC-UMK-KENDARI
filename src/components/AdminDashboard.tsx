@@ -453,6 +453,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const [chLogoUrl, setChLogoUrl] = useState('');
   const [chBannerUrl, setChBannerUrl] = useState('');
   const [chPosterAspect, setChPosterAspect] = useState<'16:9' | '9:16'>('16:9');
+  const [chDeskripsi, setChDeskripsi] = useState('');
 
   // Form states Job Fair — permanen: hanya judul + poster
   const [jobFairItems, setJobFairItems] = useState<JobFairItem[]>(() => getJobFair());
@@ -461,6 +462,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const [jfJudul, setJfJudul] = useState('');
   const [jfBannerUrl, setJfBannerUrl] = useState('');
   const [jfPosterAspect, setJfPosterAspect] = useState<'16:9' | '9:16'>('16:9');
+  const [jfDeskripsi, setJfDeskripsi] = useState('');
 
   // Form states Kelola Konseling Karir
   const [konselingCfg, setKonselingCfg] = useState<KonselingConfig>(getKonselingConfig());
@@ -1615,12 +1617,11 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
           FORBID_ATTR: ['onerror','onload','onclick','onmouseover','onfocus','onblur','oninput','onsubmit'],
         })
       : eBody;
-    const isEventLayanan = eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar';
     const base: KontenKarir = {
       id: editId || `kk_${Date.now()}`,
       jenis: eJenis,
       judul: eJudul.trim(),
-      body: isEventLayanan ? '' : finalBody,
+      body: finalBody,
       penulis: eJenis === 'berita' ? (ePenulis.trim() || user.name) : undefined,
       namaInstansi: (eJenis === 'lowongan' || eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? (eNamaInstansi.trim() || 'CDC UM Kendari') : undefined,
       tipe: eJenis === 'lowongan' ? eTipe : undefined,
@@ -1873,12 +1874,14 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       setChLogoUrl(item.logoPerusahaan || '');
       setChBannerUrl(item.bannerUrl || '');
       setChPosterAspect(item.posterAspect || '16:9');
+      setChDeskripsi(item.deskripsi || '');
     } else {
       setEditChId(null);
       setChJudul('');
       setChLogoUrl('');
       setChBannerUrl('');
       setChPosterAspect('16:9');
+      setChDeskripsi('');
     }
     setShowChForm(true);
     setKontenSub('pembuatan');
@@ -1903,7 +1906,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
             ...item,
             judul: finalJudul,
             bannerUrl: posterUrl,
-            posterAspect: chPosterAspect
+            posterAspect: chPosterAspect,
+            deskripsi: chDeskripsi.trim() || undefined
           }
           : item
       );
@@ -1919,6 +1923,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
         tipe: 'on-campus',
         persyaratan: [],
         posisiBuka: [],
+        deskripsi: chDeskripsi.trim() || undefined,
         status: 'buka',
         createdAt: now
       };
@@ -1968,11 +1973,13 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       setJfJudul(item.judul);
       setJfBannerUrl(item.bannerUrl || '');
       setJfPosterAspect(item.posterAspect || '16:9');
+      setJfDeskripsi(item.deskripsi || '');
     } else {
       setEditJfId(null);
       setJfJudul('');
       setJfBannerUrl('');
       setJfPosterAspect('16:9');
+      setJfDeskripsi('');
     }
     setShowJfForm(true);
     setKontenSub('pembuatan');
@@ -1996,7 +2003,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
             ...item,
             judul: finalJudul,
             bannerUrl: jfBannerUrl.trim(),
-            posterAspect: jfPosterAspect
+            posterAspect: jfPosterAspect,
+            deskripsi: jfDeskripsi.trim() || undefined
           }
           : item
       );
@@ -2011,6 +2019,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
         lokasi: 'Auditorium Utama UM Kendari',
         htm: 'Gratis Khusus Mahasiswa & Alumni UM Kendari',
         perusahaanPeserta: [],
+        deskripsi: jfDeskripsi.trim() || undefined,
         status: 'buka',
         createdAt: now
       };
@@ -3138,6 +3147,17 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                           </div>
                         </div>
 
+                        <div className="space-y-1.5 md:col-span-2">
+                          <label className="text-xs font-bold text-slate-700">Deskripsi Event <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                          <textarea
+                            value={jfDeskripsi}
+                            onChange={(e) => setJfDeskripsi(e.target.value)}
+                            rows={3}
+                            placeholder="Penjelasan deskripsi pameran bursa kerja..."
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                          />
+                        </div>
+
                       </div>
 
                       <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
@@ -3236,6 +3256,17 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                               <span>9:16 (Portrait / Pamflet Berdiri)</span>
                             </button>
                           </div>
+                        </div>
+
+                        <div className="space-y-1.5 md:col-span-2">
+                          <label className="text-xs font-bold text-slate-700">Deskripsi Ringkas & Syarat Rekrutmen <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                          <textarea
+                            value={chDeskripsi}
+                            onChange={(e) => setChDeskripsi(e.target.value)}
+                            rows={3}
+                            placeholder="Persyaratan peserta, kualifikasi jurusan, berkas yang wajib dibawa..."
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                          />
                         </div>
 
                       </div>
@@ -3631,7 +3662,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                       </div>
                     )}
 
-                    {eJenis === 'program' || eJenis === 'presentasi' ? (
+                    {eJenis === 'program' || eJenis === 'presentasi' || eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar' ? (
                       <div className="space-y-2">
                         <label className="text-xs font-medium text-slate-500">
                           Deskripsi &amp; Detail Kegiatan / Pokok Materi (opsional)
@@ -6792,12 +6823,14 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                   setChLogoUrl(item.logoPerusahaan || '');
                   setChBannerUrl(item.bannerUrl || '');
                   setChPosterAspect(item.posterAspect || '16:9');
+                  setChDeskripsi(item.deskripsi || '');
                 } else {
                   setEditChId(null);
                   setChJudul('');
                   setChLogoUrl('');
                   setChBannerUrl('');
                   setChPosterAspect('16:9');
+                  setChDeskripsi('');
                 }
                 setShowChForm(true);
               };
@@ -6821,7 +6854,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                         ...item,
                         judul: finalJudul,
                         bannerUrl: posterUrl,
-                        posterAspect: chPosterAspect
+                        posterAspect: chPosterAspect,
+                        deskripsi: chDeskripsi.trim() || undefined
                       }
                       : item
                   );
@@ -6837,6 +6871,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                     tipe: 'on-campus',
                     persyaratan: [],
                     posisiBuka: [],
+                    deskripsi: chDeskripsi.trim() || undefined,
                     status: 'buka',
                     createdAt: now
                   };
@@ -6970,6 +7005,17 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                           </div>
                         </div>
 
+                        <div className="space-y-1.5 md:col-span-2">
+                          <label className="text-xs font-bold text-slate-700">Deskripsi Singkat Event <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                          <textarea
+                            value={chDeskripsi}
+                            onChange={(e) => setChDeskripsi(e.target.value)}
+                            rows={3}
+                            placeholder="Penjelasan singkat alur seleksi & rekrutmen..."
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                          />
+                        </div>
+
                       </div>
 
                       <div className="flex justify-end gap-2 pt-2">
@@ -7058,11 +7104,13 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                   setJfJudul(item.judul);
                   setJfBannerUrl(item.bannerUrl || '');
                   setJfPosterAspect(item.posterAspect || '16:9');
+                  setJfDeskripsi(item.deskripsi || '');
                 } else {
                   setEditJfId(null);
                   setJfJudul('');
                   setJfBannerUrl('');
                   setJfPosterAspect('16:9');
+                  setJfDeskripsi('');
                 }
                 setShowJfForm(true);
               };
@@ -7085,7 +7133,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                         ...item,
                         judul: finalJudul,
                         bannerUrl: jfBannerUrl.trim(),
-                        posterAspect: jfPosterAspect
+                        posterAspect: jfPosterAspect,
+                        deskripsi: jfDeskripsi.trim() || undefined
                       }
                       : item
                   );
@@ -7100,6 +7149,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                     lokasi: 'Auditorium Utama UM Kendari',
                     htm: 'Gratis Khusus Mahasiswa & Alumni UM Kendari',
                     perusahaanPeserta: [],
+                    deskripsi: jfDeskripsi.trim() || undefined,
                     status: 'buka',
                     createdAt: now
                   };
@@ -7231,6 +7281,17 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                               <span>9:16 (Portrait / Pamflet Berdiri)</span>
                             </button>
                           </div>
+                        </div>
+
+                        <div className="space-y-1.5 md:col-span-2">
+                          <label className="text-xs font-bold text-slate-700">Deskripsi Event <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                          <textarea
+                            value={jfDeskripsi}
+                            onChange={(e) => setJfDeskripsi(e.target.value)}
+                            rows={3}
+                            placeholder="Penjelasan deskripsi pameran bursa kerja..."
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                          />
                         </div>
 
                       </div>
