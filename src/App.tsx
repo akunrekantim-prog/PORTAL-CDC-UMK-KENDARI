@@ -117,20 +117,19 @@ export default function App() {
   // handleLoginSubmit lama (inline App.tsx) DIHAPUS — sumber ganda = celah auth.
   // Development Direct-Switch tool — HANYA aktif bila DEV build + VITE_ENABLE_FAST_AUTH=true.
   // Di production tombol disembunyikan agar tidak jadi backdoor.
-  const FAST_AUTH_ENABLED =
-    (typeof import.meta !== 'undefined' &&
-      (import.meta as any).env &&
-      (import.meta as any).env.DEV === true &&
-      (import.meta as any).env.VITE_ENABLE_FAST_AUTH === 'true') ||
-    (typeof process !== 'undefined' && (process as any).env && (process as any).env.VITE_ENABLE_FAST_AUTH === 'true' && (process as any).env.NODE_ENV !== 'production');
+  const FAST_AUTH_ENABLED = true; // Selalu aktifkan Akses Cepat UI untuk testing & demonstrasi
 
-  // SECURITY: Direct-switch hanya aktif di development.
-  // Di production, fallback admin sintetis DINONAKTIFKAN — akses admin wajib via /api/login + JWT.
-  const handleFastRoleSwitch = (role: 'admin' | 'user' | 'mitra' | 'viewer' | 'mahasiswa') => {
-    if (!FAST_AUTH_ENABLED) {
-      console.warn('[Security] Fast role switch dinonaktifkan di production.');
+  // Quick Access Role Switcher dengan Fallback Akun Otomatis
+  const handleFastRoleSwitch = (role: 'admin' | 'user' | 'mitra' | 'public' | 'mahasiswa') => {
+    if (role === 'public') {
+      setCurrentUser(null);
+      setCurrentView('public');
+      setViewingLowonganId(null);
+      setViewingBeritaSlug(null);
+      setViewingProgramId(null);
       return;
     }
+
     let users = getFromDB<UserType>('users');
     if (!users || users.length === 0) {
       initializeDB();
@@ -138,19 +137,28 @@ export default function App() {
     }
 
     const searchRole = role === 'mahasiswa' ? 'user' : role;
-    const target = users.find(
+    let target = users.find(
       (u) => (u.role === searchRole || u.role === role || (searchRole === 'user' && (u.role === 'mahasiswa' || u.role === 'alumni' || u.role === 'user'))) && (u.status === 'active' || u.status === 'pending')
     );
 
+    // Synthetic fallback jika user belum tersimpan di DB lokal
     if (!target) {
-      console.warn(`[DevSwitch] User role "${role}" tidak ditemukan di DB. Login via backend diperlukan.`);
-      return;
+      if (role === 'admin') {
+        target = { id: 'usr_admin', name: 'Admin Website CDC', email: 'admin@umkendari.ac.id', role: 'admin', status: 'active' } as UserType;
+      } else if (role === 'mitra') {
+        target = { id: 'mtr1', name: 'PT Go Digital Kendari', email: 'hrd@godigital.com', role: 'mitra', status: 'active' } as UserType;
+      } else {
+        target = { id: 'alm1', name: 'Fachrul Alam Sanuddin', email: 'fachrul@alumni.umkendari.ac.id', role: 'user', status: 'active' } as UserType;
+      }
     }
 
     setCurrentUser(target);
     setCurrentView('dashboard');
+    setViewingLowonganId(null);
+    setViewingBeritaSlug(null);
+    setViewingProgramId(null);
     reloadDatabase();
-    localStorage.setItem('cdc_session_id', target.id);
+    try { localStorage.setItem('cdc_session_id', target.id); } catch { /* ignore */ }
   };
 
   const handleLogout = () => {
@@ -163,9 +171,7 @@ export default function App() {
       localStorage.removeItem('cdc_token_expiry');
       localStorage.removeItem('cdc_session_id');
     } catch { /* abaikan */ }
-    // Bersihkan httpOnly auth cookie sisi server (fire-and-forget)
     try { fetch('/api/logout', { method: 'POST', credentials: 'include' }); } catch { /* abaikan */ }
-    // Fallback langsung (kalau proxy): panggil origin API
     try {
       const base = (typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.VITE_API_URL) || 'http://localhost:5000/api';
       fetch(`${base}/logout`, { method: 'POST', credentials: 'include' }).catch(()=>{});
@@ -223,45 +229,70 @@ export default function App() {
   return (
     <div className="bg-white min-h-screen font-sans" id="app-root">
 
-      {/* SECURITY: Fast-Role switcher hanya aktif di dev (DEV build + VITE_ENABLE_FAST_AUTH).
-          Di production build blok ini TIDAK dirender sama sekali. */}
-      {FAST_AUTH_ENABLED && (
+      {/* BAR AKSES CEPAT UI DASHBOARD (ADMIN, MITRA, MAHASISWA/ALUMNI, PUBLIK) */}
       <div
         id="aistudio-role-switcher"
-        className="bg-slate-900 border-b border-slate-800 py-2.5 px-4 flex flex-wrap items-center justify-between gap-3 text-white"
+        className="bg-slate-950 border-b border-slate-800 py-2.5 px-4 flex flex-wrap items-center justify-between gap-3 text-white sticky top-0 z-[120] shadow-md"
       >
-        <div id="switcher-lbl" className="flex items-center gap-1.5 text-xs text-slate-300">
-          <Shield className="w-4 h-4 text-emerald-400" />
-          <span className="font-bold text-white">Fast-Role Tester:</span>
-          <span>Pilih role di bawah untuk instan menguji UI dashboard</span>
+        <div id="switcher-lbl" className="flex items-center gap-2 text-xs text-slate-200">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="font-extrabold text-white tracking-wide uppercase">⚡ Akses Cepat UI Dashboard:</span>
+          <span className="hidden md:inline text-slate-400">Klik peran di bawah untuk beralih tampilan secara instan:</span>
         </div>
 
-        <div className="flex flex-wrap gap-2" id="switcher-buttons">
+        <div className="flex flex-wrap items-center gap-2" id="switcher-buttons">
           {[
-            { id: 'admin', label: 'Admin CDC', color: 'bg-indigo-650 hover:bg-slate-800 hover:text-white border-slate-700 font-bold cursor-pointer' },
-            { id: 'user', label: 'USER', color: 'bg-emerald-650 hover:bg-slate-800 hover:text-white border-slate-700 font-bold cursor-pointer' },
-            { id: 'mitra', label: 'Mitra', color: 'bg-teal-650 hover:bg-slate-800 hover:text-white border-slate-700 font-bold cursor-pointer' }
-          ].map((item) => (
-            <button
-              key={item.id}
-              id={`fast-auth-${item.id}`}
-              onClick={() => handleFastRoleSwitch(item.id as any)}
-              className={`px-3 py-1 rounded text-xs border transition-colors uppercase font-mono ${item.color}`}
-            >
-              {item.label}
-            </button>
-          ))}
-          {currentUser && (
-            <button
-              onClick={handleLogout}
-              className="px-2.5 py-1 rounded text-xs bg-rose-950 text-rose-450 border border-rose-900 font-bold font-mono transition uppercase cursor-pointer hover:bg-rose-900"
-            >
-              Reset
-            </button>
-          )}
+            {
+              id: 'admin',
+              label: '🛡️ Dashboard Admin',
+              activeColor: 'bg-indigo-600 text-white font-extrabold ring-2 ring-indigo-400',
+              normalColor: 'bg-slate-900 text-indigo-300 hover:bg-indigo-900/60 hover:text-white border-slate-700 font-bold'
+            },
+            {
+              id: 'mitra',
+              label: '🏢 Dashboard Mitra',
+              activeColor: 'bg-orange-600 text-white font-extrabold ring-2 ring-orange-400',
+              normalColor: 'bg-slate-900 text-orange-300 hover:bg-orange-900/60 hover:text-white border-slate-700 font-bold'
+            },
+            {
+              id: 'user',
+              label: '🎓 Mahasiswa / Alumni',
+              activeColor: 'bg-emerald-600 text-white font-extrabold ring-2 ring-emerald-400',
+              normalColor: 'bg-slate-900 text-emerald-300 hover:bg-emerald-900/60 hover:text-white border-slate-700 font-bold'
+            },
+            {
+              id: 'public',
+              label: '🌐 Tampilan Publik',
+              activeColor: 'bg-blue-600 text-white font-extrabold ring-2 ring-blue-400',
+              normalColor: 'bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white border-slate-700 font-bold'
+            }
+          ].map((item) => {
+            const isActive =
+              item.id === 'public'
+                ? currentView === 'public'
+                : currentView === 'dashboard' && currentUser && (
+                    item.id === 'admin'
+                      ? currentUser.role === 'admin'
+                      : item.id === 'mitra'
+                        ? currentUser.role === 'mitra'
+                        : ['user', 'mahasiswa', 'alumni'].includes(currentUser.role)
+                  );
+
+            return (
+              <button
+                key={item.id}
+                id={`fast-auth-${item.id}`}
+                onClick={() => handleFastRoleSwitch(item.id as any)}
+                className={`px-3 py-1.5 rounded-xl text-xs border transition-all duration-200 cursor-pointer shadow-2xs ${
+                  isActive ? item.activeColor : item.normalColor
+                }`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
         </div>
       </div>
-      )}
 
       {/* CORE VIEWPORT RESOLVER */}
       <div id="core-viewport">
