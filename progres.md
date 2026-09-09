@@ -2573,3 +2573,48 @@ Apa yang dikerjakan IKHSAN:
    - Vite Production Build (npx vite build): berhasil ditransformasikan dan dibuild sempurna (2131 modules, built in ~6.8s).
 ============================================================
 
+
+============================================================
+REKAP PROGRES — 09 September 2026 (Sesi: Optimasi Form Lowongan, Fix Blank Screen, Auto-Scroll Mobile & Detail Pelamar Mitra)
+Nama: IKHSAN
+============================================================
+
+Apa yang dikerjakan IKHSAN:
+
+1. Formulir Posting Lowongan Mitra Lebih Fleksibel (src/components/MitraDashboard.tsx)
+   - Mengubah kolom formulir Bagian 4 (Deskripsi Pekerjaan, Tanggung Jawab, Kualifikasi & Persyaratan, Keahlian yang Dibutuhkan, dan Benefit) menjadi bersifat opsional (`(Opsional)`).
+   - Menetapkan aturan validasi bahwa Mitra hanya diwajibkan mengisi Judul Posisi dan Batas Waktu (Tanggal / Deadline).
+   - Memberikan fallback cerdas pada kolom lokasi ke alamat instansi mitra apabila tidak diisi secara manual.
+
+2. Solusi Pendaftaran & Login Mitra (src/components/Register.tsx, Login.tsx, data.ts, types.ts)
+   - Mengatasi kendala "Failed to fetch" saat registrasi akun Mitra ketika backend offline/timeout dengan mekanisme failover lokal otomatis (saveToDB & insertToDB) sehingga akun mitra langsung tersimpan aktif dan dapat login seketika.
+   - Menambahkan deteksi dan perbaikan otomatis typo role pengguna (misal role 'mltra' otomatis dinormalisasi menjadi 'mitra').
+   - Menambahkan penanganan case-insensitive (lowercase) pada email dan pencarian akun mitra.
+   - Menambahkan field opsional `kota?: string;` pada interface `Mitra` di `src/types.ts`.
+
+3. Auto Scroll-to-Top pada Paginasi Lowongan Mobile (src/components/PublicLayout.tsx, Pagination.tsx, src/index.css)
+   - Memperbaiki pengalaman pengguna saat berpindah halaman lowongan di layar mobile/smartphone agar layar otomatis bergulir kembali ke atas daftar lowongan (`#tab-lowongan`), bukan tertahan di bagian bawah.
+   - Menambahkan aturan CSS `overflow-anchor: none !important;` pada view pencarian agar browser mobile tidak mengunci posisi scroll di area footer.
+
+4. Perbaikan Total Masalah Layar Putih / Blank Screen saat Klik Lowongan (src/components/JobDetail.tsx, App.tsx, data.ts, ErrorBoundary.tsx, main.tsx)
+   - Mengimpor komponen `FileText` dari 'lucide-react' di `JobDetail.tsx` yang sebelumnya memicu runtime error `ReferenceError: FileText is not defined` saat lowongan tanpa deskripsi dibuka.
+   - Membuat fungsi helper `toCleanStringArray` untuk menormalisasi data `tanggungJawab`, `kualifikasi`, `keahlian`, dan `benefit` baik dari Array, teks multi-baris (`\n`), maupun format JSON string, mengeliminasi error fatal `TypeError: .some is not a function`.
+   - Mengamankan pencarian lowongan terbaru (`recentJobs`) dengan pemeriksaan null-safety pada judul dan nama instansi.
+   - Memperbarui fungsi `formatDateDisplay` dan `isJobDeadlinePassed` di `src/data.ts` agar aman menerima tipe Date maupun string null/undefined.
+   - Memperbaiki mekanisme resolusi lowongan di `src/App.tsx` dengan fallback ke database lokal serta tampilan ramah "Lowongan Tidak Ditemukan" lengkap dengan tombol kembali jika ID tidak valid, mencegah tampilan kosong putih.
+   - Membuat komponen `ErrorBoundary.tsx` dan membungkus `<App />` di `src/main.tsx` sebagai jaring pengaman global agar error tak terduga tidak pernah lagi membuat aplikasi unmount menjadi layar putih.
+   - Mengamankan filter pencarian magang di `src/components/layanan/Magang.tsx`.
+
+5. Optimasi Tampilan Modal Detail Pelamar di Dashboard Mitra (src/components/MitraDashboard.tsx)
+   - Jika pelamar belum mengisi riwayat Pendidikan, Keahlian & Skill, Pengalaman, dan Sertifikat, seluruh 4 kotak kosong ("Belum ada riwayat...") otomatis dihilangkan (`return null`).
+   - Tampilan modal pelamar langsung mengalir dari Catatan Evaluasi Internal langsung menuju pratinjau Dokumen Curriculum Vitae (CV).
+   - Jika pelamar hanya mengisi sebagian data, hanya kartu yang memiliki data yang dirender secara dinamis dan rapi tanpa menyisakan kotak kosong.
+
+6. Verifikasi & Pengujian
+   - TypeScript Typecheck (`npm run lint` / `tsc --noEmit`): lolos 100% tanpa error (Exit code: 0).
+   - Vite Production Build (`npm run build`): sukses terkompilasi sempurna (2135 modules, built in ~4.7s).
+   - Commit & push sebelumnya (`defc1c5` - "update lowongan") telah berhasil terunggah ke branch `main`.
+============================================================
+
+
+

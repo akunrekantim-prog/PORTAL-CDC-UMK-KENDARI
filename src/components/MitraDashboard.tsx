@@ -3140,86 +3140,95 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                     ? applicantProfile.certificates
                     : [];
 
+                const validQualifications = qualifications.filter(q => q && (q.institution?.trim() || q.level?.trim()));
+                const hasPendidikan = validQualifications.length > 0 || Boolean(ipkDisplay && String(ipkDisplay).trim());
+
+                const validSkills = (Array.isArray(skillsList) ? skillsList : []).filter(s => s && String(s).trim());
+                const hasSkills = validSkills.length > 0;
+
+                const validExperiences = (Array.isArray(experiencesList) ? experiencesList : []).filter(e => e && (e.position?.trim() || e.company?.trim()));
+                const hasExperiences = validExperiences.length > 0;
+
+                const validCertificates = (Array.isArray(certificatesList) ? certificatesList : []).filter(c => c && c.name?.trim());
+                const hasCertificates = validCertificates.length > 0;
+
+                const hasAnyProfileInfo = hasPendidikan || hasSkills || hasExperiences || hasCertificates;
+
+                // Jika pelamar belum mengisi pendidikan, skill, pengalaman, dan sertifikat, hilangkan seksi ini agar langsung ke CV
+                if (!hasAnyProfileInfo) {
+                  return null;
+                }
+
                 return (
                   <div className="space-y-5">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 space-y-2.5">
-                        <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
-                          <GraduationCap className="w-4 h-4 text-emerald-600" /> PENDIDIKAN
-                        </h4>
-                        <div className="space-y-1.5 text-xs">
-                          {qualifications.length === 0 ? (
-                            <p className="text-xs text-slate-500 italic">Belum ada riwayat pendidikan.</p>
-                          ) : (
-                            qualifications.map((q, idx) => (
+                      {hasPendidikan && (
+                        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 space-y-2.5">
+                          <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                            <GraduationCap className="w-4 h-4 text-emerald-600" /> PENDIDIKAN
+                          </h4>
+                          <div className="space-y-1.5 text-xs">
+                            {validQualifications.map((q, idx) => (
                               <div key={q.id || idx} className="border-b border-slate-100 last:border-0 pb-1.5 last:pb-0">
                                 <div className="font-bold text-slate-900">{q.institution}</div>
-                                <div className="text-slate-600 font-medium">{q.level} ({q.year})</div>
+                                <div className="text-slate-600 font-medium">{q.level} {q.year ? `(${q.year})` : ''}</div>
                                 {q.ipk && (
                                   <div className="text-emerald-700 font-mono font-bold text-[11px] mt-0.5">
                                     IPK: {q.ipk}
                                   </div>
                                 )}
                               </div>
-                            ))
-                          )}
-                          {qualifications.length > 0 && ipkDisplay && !qualifications.some(q => q.ipk) && (
-                            <div className="text-slate-500 text-[11px] font-mono pt-1">
-                              IPK: <span className="font-bold text-emerald-600">{ipkDisplay}</span>
-                            </div>
-                          )}
+                            ))}
+                            {ipkDisplay && !validQualifications.some(q => q.ipk) && (
+                              <div className="text-slate-500 text-[11px] font-mono pt-1">
+                                IPK: <span className="font-bold text-emerald-600">{ipkDisplay}</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
+                      )}
 
-                      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 space-y-2.5">
-                        <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
-                          <Code className="w-4 h-4 text-indigo-600" /> KEAHLIAN &amp; SKILL
-                        </h4>
-                        <div className="flex flex-wrap gap-1.5 pt-0.5">
-                          {skillsList.length === 0 ? (
-                            <p className="text-xs text-slate-500 italic">Belum ada keahlian yang dicantumkan.</p>
-                          ) : (
-                            skillsList.map((sk, idx) => (
+                      {hasSkills && (
+                        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 space-y-2.5">
+                          <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                            <Code className="w-4 h-4 text-indigo-600" /> KEAHLIAN &amp; SKILL
+                          </h4>
+                          <div className="flex flex-wrap gap-1.5 pt-0.5">
+                            {validSkills.map((sk, idx) => (
                               <span key={idx} className="px-2.5 py-1 bg-slate-100 text-slate-700 font-bold rounded-lg text-[11px] border border-slate-200">
                                 {sk}
                               </span>
-                            ))
-                          )}
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    </div>
+                      )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 space-y-2">
-                        <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
-                          <Briefcase className="w-4 h-4 text-amber-600" /> PENGALAMAN
-                        </h4>
-                        {experiencesList.length === 0 ? (
-                          <p className="text-xs text-slate-500 italic">Belum ada riwayat pengalaman.</p>
-                        ) : (
+                      {hasExperiences && (
+                        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 space-y-2">
+                          <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                            <Briefcase className="w-4 h-4 text-amber-600" /> PENGALAMAN
+                          </h4>
                           <ul className="space-y-2 text-xs text-slate-700 font-medium">
-                            {experiencesList.map((exp, idx) => (
+                            {validExperiences.map((exp, idx) => (
                               <li key={exp.id || idx} className="bg-slate-50 p-2.5 rounded-xl border border-slate-200/60">
                                 <div className="font-extrabold text-slate-900">{exp.position}</div>
-                                <div className="text-emerald-700 font-semibold text-[11px]">{exp.company} ({exp.period})</div>
+                                <div className="text-emerald-700 font-semibold text-[11px]">{exp.company} {exp.period ? `(${exp.period})` : ''}</div>
                                 {exp.description && exp.description !== '-' && (
                                   <div className="text-slate-500 text-[11px] mt-1 leading-snug">{exp.description}</div>
                                 )}
                               </li>
                             ))}
                           </ul>
-                        )}
-                      </div>
+                        </div>
+                      )}
 
-                      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 space-y-2">
-                        <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
-                          <Award className="w-4 h-4 text-rose-600" /> SERTIFIKAT
-                        </h4>
-                        {certificatesList.length === 0 ? (
-                          <p className="text-xs text-slate-500 italic">Belum ada sertifikat tercantum.</p>
-                        ) : (
+                      {hasCertificates && (
+                        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 space-y-2">
+                          <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                            <Award className="w-4 h-4 text-rose-600" /> SERTIFIKAT
+                          </h4>
                           <ul className="space-y-2 text-xs text-slate-700 font-medium">
-                            {certificatesList.map((cert, idx) => (
+                            {validCertificates.map((cert, idx) => (
                               <li key={cert.id || idx} className="bg-slate-50 p-2.5 rounded-xl border border-slate-200/60">
                                 <div className="font-extrabold text-slate-900">{cert.name}</div>
                                 <div className="text-rose-700 font-semibold text-[11px]">
@@ -3228,8 +3237,8 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
                               </li>
                             ))}
                           </ul>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
