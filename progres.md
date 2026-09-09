@@ -6,6 +6,26 @@ Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 
 ---
 
+## Tanggal: 10 September 2026
+**Oleh: ARYA APRIAWAN**
+**Fokus Pekerjaan:** Samakan card layout + halaman detail Layanan (Workshop/Softskill/Seminar) dengan Campus Hiring, dan rapikan bar role-switcher agar tidak AI slop.
+
+### Ringkasan Perubahan
+1. **Card Layanan (`src/components/layanan/ui/EventCardLayout.tsx`):** isi kartu disederhanakan jadi poster 16:9 + judul besar saja (hapus footer tanggal & "by Admin Website"), samakan pola Campus Hiring (`object-top`, `line-clamp-3`, `text-lg`). Hapus import `Calendar` & helper `formatDateIndo` yang tak terpakai.
+2. **Detail Layanan (`src/components/layanan/EventDetailView.tsx`):** refactor total ke `ShareableDetailPage` — hapus panel Status Event, Kuota Peserta, Penyelenggara, Pembicara/Narasumber, Lokasi Kegiatan, tombol Daftar Kegiatan, lalu hapus juga blok deskripsi sehingga detail kini hanya pamflet + judul besar seperti Campus Hiring.
+3. **Bar role-switcher (`src/App.tsx` `#aistudio-role-switcher`):** ubah tampilan saja tanpa ubah fungsi/ketetapan menu — dari bar hitam neon + emoji menjadi bar putih bersih gaya segmented control (`bg-slate-100`), label "Pratinjau peran / Beralih tampilan tanpa login ulang", tombol aktif biru navy `bg-[#1E3A8A]`, id & handler `handleFastRoleSwitch` tetap sama.
+
+### File Diubah
+- **[MODIFY]** `src/components/layanan/ui/EventCardLayout.tsx`
+- **[MODIFY]** `src/components/layanan/EventDetailView.tsx`
+- **[MODIFY]** `src/App.tsx`
+- **[MODIFY]** `progres.md` (entri ini)
+
+### Verifikasi
+- ✅ `npm run lint` (`tsc --noEmit`) — 0 error
+
+---
+
 ## Tanggal: 7 September 2026
 **Oleh: ARYA APRIAWAN**
 **Fokus Pekerjaan:** Hardening total API backend (eksekusi 13 temuan SECURITY_AUDIT_REPORT) — CRITICAL SQLi DELETE, JWT secret enforcement, httpOnly cookie, CSP ketat, body-limit 2MB, validasi Zod, sanitasi DOMPurify frontend, hapus default password.

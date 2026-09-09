@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Calendar, Filter, X } from 'lucide-react';
+import { Search, Filter, X } from 'lucide-react';
 import { EventLayananItem, KontenKarir } from '../../../types';
 import EventDetailView from '../EventDetailView';
 import { useLayanan } from '../LayananContainer';
@@ -333,20 +333,6 @@ export default function EventCardLayout({
 
 
 
-  const formatDateIndo = (dateStr: string) => {
-    if (!dateStr) return '';
-    try {
-      const date = new Date(dateStr);
-      return new Intl.DateTimeFormat('id-ID', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-      }).format(date);
-    } catch {
-      return dateStr;
-    }
-  };
-
   return (
     <div className="w-full space-y-8" id="event-card-layout-root">
       {/* Penjelasan Sub-Menu (flat, tanpa wadah) */}
@@ -401,34 +387,21 @@ export default function EventCardLayout({
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSelectEvent(item); } }}
               className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md hover:border-slate-300 transition-all flex flex-col h-full cursor-pointer"
             >
-              {/* Thumbnail Header Poster / Image */}
-              <div className="relative aspect-[16/9] bg-slate-100 overflow-hidden border-b border-slate-100">
+              {/* Thumbnail / Poster (Selalu 16:9 di tampilan daftar, tampil penuh di detail saat diklik) */}
+              <div className="relative overflow-hidden border-b border-slate-100 bg-slate-950 flex items-center justify-center aspect-[16/9]">
                 <img
                   src={item.image}
                   alt={item.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
                   loading="lazy"
                 />
               </div>
 
-              {/* Card Body */}
-              <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                <div className="space-y-2">
-                  <h3 className="font-bold text-slate-900 text-base line-clamp-2 leading-snug group-hover:text-[#0077C6] transition-colors">
-                    {item.title}
-                  </h3>
-                </div>
-
-                {/* Metadata Footer: Tanggal di kiri & By Admin Website di kanan */}
-                <div className="pt-3 border-t border-slate-100 text-xs text-slate-500 flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5 text-slate-600 font-medium">
-                    <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                    <span>{formatDateIndo(item.date)}</span>
-                  </div>
-                  <span className="text-slate-400 font-medium whitespace-nowrap">
-                    by Admin Website
-                  </span>
-                </div>
+              {/* Card Body — cukup judul besar saja seperti Campus Hiring */}
+              <div className="p-5 flex-1">
+                <h3 className="font-bold text-slate-900 text-lg line-clamp-3 leading-snug group-hover:text-[#0077C6] transition-colors">
+                  {item.title}
+                </h3>
               </div>
             </motion.div>
           ))}

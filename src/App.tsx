@@ -232,39 +232,40 @@ export default function App() {
       {/* BAR AKSES CEPAT UI DASHBOARD (ADMIN, MITRA, MAHASISWA/ALUMNI, PUBLIK) */}
       <div
         id="aistudio-role-switcher"
-        className="bg-slate-950 border-b border-slate-800 py-2.5 px-4 flex flex-wrap items-center justify-between gap-3 text-white sticky top-0 z-[120] shadow-md"
+        className="bg-white border-b border-slate-200 sticky top-0 z-[120]"
       >
-        <div id="switcher-lbl" className="flex items-center gap-2 text-xs text-slate-200">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="font-extrabold text-white tracking-wide uppercase">⚡ Akses Cepat UI Dashboard:</span>
-          <span className="hidden md:inline text-slate-400">Klik peran di bawah untuk beralih tampilan secara instan:</span>
+        <div className="max-w-7xl mx-auto px-4 py-2 flex flex-wrap items-center justify-between gap-2">
+        <div id="switcher-lbl" className="flex items-center gap-2 text-xs text-slate-500">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Pratinjau peran</span>
+          <span className="hidden md:inline text-slate-300">/</span>
+          <span className="hidden md:inline text-slate-400">Beralih tampilan tanpa login ulang</span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2" id="switcher-buttons">
+        <div className="flex flex-wrap items-center gap-1 bg-slate-100 rounded-lg p-1" id="switcher-buttons">
           {[
             {
               id: 'admin',
-              label: '🛡️ Dashboard Admin',
-              activeColor: 'bg-indigo-600 text-white font-extrabold ring-2 ring-indigo-400',
-              normalColor: 'bg-slate-900 text-indigo-300 hover:bg-indigo-900/60 hover:text-white border-slate-700 font-bold'
+              label: 'Dashboard Admin',
+              activeColor: 'bg-[#1E3A8A] text-white shadow-sm font-semibold',
+              normalColor: 'text-slate-500 hover:text-slate-900 font-medium'
             },
             {
               id: 'mitra',
-              label: '🏢 Dashboard Mitra',
-              activeColor: 'bg-orange-600 text-white font-extrabold ring-2 ring-orange-400',
-              normalColor: 'bg-slate-900 text-orange-300 hover:bg-orange-900/60 hover:text-white border-slate-700 font-bold'
+              label: 'Dashboard Mitra',
+              activeColor: 'bg-[#1E3A8A] text-white shadow-sm font-semibold',
+              normalColor: 'text-slate-500 hover:text-slate-900 font-medium'
             },
             {
               id: 'user',
-              label: '🎓 Mahasiswa / Alumni',
-              activeColor: 'bg-emerald-600 text-white font-extrabold ring-2 ring-emerald-400',
-              normalColor: 'bg-slate-900 text-emerald-300 hover:bg-emerald-900/60 hover:text-white border-slate-700 font-bold'
+              label: 'Mahasiswa / Alumni',
+              activeColor: 'bg-[#1E3A8A] text-white shadow-sm font-semibold',
+              normalColor: 'text-slate-500 hover:text-slate-900 font-medium'
             },
             {
               id: 'public',
-              label: '🌐 Tampilan Publik',
-              activeColor: 'bg-blue-600 text-white font-extrabold ring-2 ring-blue-400',
-              normalColor: 'bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white border-slate-700 font-bold'
+              label: 'Tampilan Publik',
+              activeColor: 'bg-[#1E3A8A] text-white shadow-sm font-semibold',
+              normalColor: 'text-slate-500 hover:text-slate-900 font-medium'
             }
           ].map((item) => {
             const isActive =
@@ -283,7 +284,7 @@ export default function App() {
                 key={item.id}
                 id={`fast-auth-${item.id}`}
                 onClick={() => handleFastRoleSwitch(item.id as any)}
-                className={`px-3 py-1.5 rounded-xl text-xs border transition-all duration-200 cursor-pointer shadow-2xs ${
+                className={`px-3 py-1.5 rounded-md text-xs transition-colors cursor-pointer ${
                   isActive ? item.activeColor : item.normalColor
                 }`}
               >
@@ -291,6 +292,7 @@ export default function App() {
               </button>
             );
           })}
+        </div>
         </div>
       </div>
 
