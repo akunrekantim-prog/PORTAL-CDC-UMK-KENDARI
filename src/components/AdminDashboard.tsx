@@ -967,7 +967,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const [eLinkDaftar, setELinkDaftar] = useState('');
   const [eStatusEvent, setEStatusEvent] = useState<'buka' | 'segera' | 'selesai'>('buka');
   // Field khusus Presentasi (konversi dari Prestasi)
-  const [eSubKategori, setESubKategori] = useState<'akademik' | 'non-akademik' | 'olahraga' | 'seni'>('akademik');
+  const [eSubKategori, setESubKategori] = useState<'akademik' | 'non-akademik'>('akademik');
   const [eNamaMahasiswa, setENamaMahasiswa] = useState('');
   const [eProdi, setEProdi] = useState('');
   const [eTahunPres, setETahunPres] = useState(new Date().getFullYear().toString());
@@ -1187,7 +1187,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       setELinkCta(item.linkCta || '');
       setEStatus(item.status);
       setETanggal(item.tanggal || '');
-      setESubKategori(item.subKategori || 'akademik');
+      setESubKategori(item.subKategori === 'non-akademik' ? 'non-akademik' : 'akademik');
       setENamaMahasiswa(item.namaMahasiswa || '');
       setEProdi(item.prodi || '');
       setETahunPres(item.tahun || new Date().getFullYear().toString());
@@ -3582,9 +3582,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                             <label className="text-xs font-medium text-slate-500">Kategori *</label>
                             <Dropdown value={eSubKategori} onChange={(v) => setESubKategori(v as any)} className="w-full" options={[
                               { value: 'akademik', label: 'Akademik' },
-                              { value: 'non-akademik', label: 'Non-Akademik' },
-                              { value: 'olahraga', label: 'Olahraga' },
-                              { value: 'seni', label: 'Seni' }
+                              { value: 'non-akademik', label: 'Non-Akademik' }
                             ]} />
                           </div>
                           <div className="space-y-1.5">

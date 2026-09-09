@@ -130,8 +130,6 @@ const NAV_ITEMS: NavItem[] = [
           { label: 'Non-Akademik', tab: 'presentasi-wilayah-non-akademik' },
         ],
       },
-      { label: 'Olahraga', tab: 'presentasi-olahraga' },
-      { label: 'Seni', tab: 'presentasi-seni' },
     ],
   },
   {

@@ -53,8 +53,6 @@ import { stripHtmlTags } from '../markdown';
 const PRESTASI_SUB_LABELS: Record<string, string> = {
   akademik: 'Akademik',
   'non-akademik': 'Non-Akademik',
-  olahraga: 'Olahraga',
-  seni: 'Seni',
 };
 
 interface PublicLayoutProps {
@@ -2120,40 +2118,20 @@ export default function PublicLayout({
 
         {/* ─── PRESTASI TAB PAGE ─────────────────────────────────── */}
         {currentTab.startsWith('presentasi') && (() => {
-          const isOlahraga = currentTab === 'presentasi-olahraga';
-          const isSeni = currentTab === 'presentasi-seni';
+          const currentScope = currentTab.includes('internasional')
+            ? 'internasional'
+            : currentTab.includes('nasional')
+              ? 'nasional'
+              : 'wilayah';
+          const currentKategori = currentTab.includes('non-akademik')
+            ? 'non-akademik'
+            : 'akademik';
+          const currentKategoriLabel = PRESTASI_SUB_LABELS[currentKategori] || 'Akademik';
+          const scopeCapitalized = currentScope.charAt(0).toUpperCase() + currentScope.slice(1);
 
-          let currentScope = '';
-          let currentKategori = '';
-          let currentKategoriLabel = '';
-          let pageTitle = '';
-          let subHeaderDesc = '';
-          let waReportMsg = '';
-
-          if (isOlahraga) {
-            pageTitle = 'Prestasi Olahraga';
-            subHeaderDesc = 'Menampilkan data prestasi mahasiswa peraih kejuaraan di bidang Olahraga. Klik kartu untuk melihat detail selengkapnya.';
-            waReportMsg = 'Halo Admin CDC UM Kendari, saya ingin melaporkan pencapaian prestasi mahasiswa di bidang Olahraga.';
-          } else if (isSeni) {
-            pageTitle = 'Prestasi Seni';
-            subHeaderDesc = 'Menampilkan data prestasi mahasiswa peraih kejuaraan di bidang Seni. Klik kartu untuk melihat detail selengkapnya.';
-            waReportMsg = 'Halo Admin CDC UM Kendari, saya ingin melaporkan pencapaian prestasi mahasiswa di bidang Seni.';
-          } else {
-            currentScope = currentTab.includes('internasional')
-              ? 'internasional'
-              : currentTab.includes('nasional')
-                ? 'nasional'
-                : 'wilayah';
-            currentKategori = currentTab.includes('non-akademik')
-              ? 'non-akademik'
-              : 'akademik';
-            currentKategoriLabel = PRESTASI_SUB_LABELS[currentKategori] || 'Akademik';
-            const scopeCapitalized = currentScope.charAt(0).toUpperCase() + currentScope.slice(1);
-
-            pageTitle = `Prestasi ${scopeCapitalized} (${currentKategoriLabel})`;
-            subHeaderDesc = `Menampilkan data prestasi mahasiswa peraih kejuaraan di tingkat ${currentScope} (${currentKategoriLabel}). Klik kartu untuk melihat detail selengkapnya.`;
-            waReportMsg = `Halo Admin CDC UM Kendari, saya ingin melaporkan pencapaian prestasi mahasiswa tingkat ${currentScope} (${currentKategoriLabel}).`;
-          }
+          const pageTitle = `Prestasi ${scopeCapitalized} (${currentKategoriLabel})`;
+          const subHeaderDesc = `Menampilkan data prestasi mahasiswa peraih kejuaraan di tingkat ${currentScope} (${currentKategoriLabel}). Klik kartu untuk melihat detail selengkapnya.`;
+          const waReportMsg = `Halo Admin CDC UM Kendari, saya ingin melaporkan pencapaian prestasi mahasiswa tingkat ${currentScope} (${currentKategoriLabel}).`;
 
           const allPresentasi = getFromDB<KontenKarir>('konten_karir').filter(
             (k) => k.jenis === 'presentasi' && k.status !== 'draft'
@@ -2162,12 +2140,6 @@ export default function PublicLayout({
             const itemKategori = (p.kategori || 'internasional').toLowerCase().trim();
             const itemSubKategori = (p.subKategori || 'akademik').toLowerCase().trim();
 
-            if (isOlahraga) {
-              return itemKategori === 'olahraga' || itemSubKategori === 'olahraga';
-            }
-            if (isSeni) {
-              return itemKategori === 'seni' || itemSubKategori === 'seni';
-            }
             return itemKategori === currentScope.toLowerCase() && itemSubKategori === currentKategori.toLowerCase();
           });
 

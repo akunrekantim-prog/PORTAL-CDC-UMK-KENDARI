@@ -163,20 +163,13 @@ export default function PrestasiDetailView({
     const k = (prestasi.kategori || '').toLowerCase();
     const sk = (prestasi.subKategori || '').toLowerCase();
 
-    if (k === 'olahraga' || sk === 'olahraga') return 'presentasi-olahraga';
-    if (k === 'seni' || sk === 'seni') return 'presentasi-seni';
-
     const scope = k || 'internasional';
     const sub = sk || 'akademik';
     return `presentasi-${scope}-${sub}`;
   }, [prestasi.kategori, prestasi.subKategori]);
 
   const breadcrumbCategoryLabel = useMemo(() => {
-    const k = (prestasi.kategori || '').toLowerCase();
     const sk = (prestasi.subKategori || '').toLowerCase();
-
-    if (k === 'olahraga' || sk === 'olahraga') return 'Prestasi Olahraga';
-    if (k === 'seni' || sk === 'seni') return 'Prestasi Seni';
 
     const scopeUpper = (prestasi.kategori || 'internasional').toUpperCase();
     const subDisplay = ({ akademik: 'Akademik', 'non-akademik': 'Non-Akademik' } as Record<string, string>)[sk] || 'Akademik';
@@ -184,7 +177,7 @@ export default function PrestasiDetailView({
   }, [prestasi.kategori, prestasi.subKategori]);
 
   const scopeDisplay = (prestasi.kategori || 'internasional').toUpperCase();
-  const subCategoryDisplay = ({ akademik: 'Akademik', 'non-akademik': 'Non-Akademik', olahraga: 'Olahraga', seni: 'Seni' } as Record<string, string>)[(prestasi.subKategori || 'akademik').toLowerCase()] || 'Akademik';
+  const subCategoryDisplay = ({ akademik: 'Akademik', 'non-akademik': 'Non-Akademik' } as Record<string, string>)[(prestasi.subKategori || 'akademik').toLowerCase()] || 'Akademik';
 
   return (
     <div className="bg-white min-h-screen flex flex-col font-sans text-slate-800" id="prestasi-detail-page">
