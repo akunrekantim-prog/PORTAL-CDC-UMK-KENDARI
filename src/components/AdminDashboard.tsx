@@ -445,43 +445,22 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const [slideAlt, setSlideAlt] = useState('');
   const [slideIsActive, setSlideIsActive] = useState(true);
 
-  // Form states Campus Hiring
+  // Form states Campus Hiring — permanen: hanya judul + poster
   const [campusHiringItems, setCampusHiringItems] = useState<CampusHiringItem[]>(() => getCampusHiring());
   const [showChForm, setShowChForm] = useState(false);
   const [editChId, setEditChId] = useState<string | null>(null);
   const [chJudul, setChJudul] = useState('');
-  const [chPerusahaan, setChPerusahaan] = useState('');
   const [chLogoUrl, setChLogoUrl] = useState('');
   const [chBannerUrl, setChBannerUrl] = useState('');
   const [chPosterAspect, setChPosterAspect] = useState<'16:9' | '9:16'>('16:9');
-  const [chTanggal, setChTanggal] = useState('');
-  const [chWaktu, setChWaktu] = useState('08:30 - 15:00 WITA');
-  const [chLokasi, setChLokasi] = useState('Aula Gedung Rektorat Lt. 2 UM Kendari');
-  const [chTipe, setChTipe] = useState<'on-campus' | 'virtual'>('on-campus');
-  const [chLinkVirtual, setChLinkVirtual] = useState('');
-  const [chLinkDaftar, setChLinkDaftar] = useState('');
-  const [chPosisiStr, setChPosisiStr] = useState('');
-  const [chSyaratStr, setChSyaratStr] = useState('');
-  const [chKuota, setChKuota] = useState('100');
-  const [chDeskripsi, setChDeskripsi] = useState('');
-  const [chStatus, setChStatus] = useState<'buka' | 'proses' | 'selesai'>('buka');
 
-  // Form states Job Fair
+  // Form states Job Fair — permanen: hanya judul + poster
   const [jobFairItems, setJobFairItems] = useState<JobFairItem[]>(() => getJobFair());
   const [showJfForm, setShowJfForm] = useState(false);
   const [editJfId, setEditJfId] = useState<string | null>(null);
   const [jfJudul, setJfJudul] = useState('');
-  const [jfTagline, setJfTagline] = useState('');
   const [jfBannerUrl, setJfBannerUrl] = useState('');
   const [jfPosterAspect, setJfPosterAspect] = useState<'16:9' | '9:16'>('16:9');
-  const [jfTglMulai, setJfTglMulai] = useState('');
-  const [jfTglSelesai, setJfTglSelesai] = useState('');
-  const [jfWaktu, setJfWaktu] = useState('08:00 - 16:00 WITA');
-  const [jfLokasi, setJfLokasi] = useState('Auditorium Utama UM Kendari');
-  const [jfHtm, setJfHtm] = useState('Gratis Khusus Mahasiswa & Alumni UM Kendari');
-  const [jfDeskripsi, setJfDeskripsi] = useState('');
-  const [jfPerusahaanStr, setJfPerusahaanStr] = useState('');
-  const [jfStatus, setJfStatus] = useState<'buka' | 'berlangsung' | 'selesai'>('buka');
 
   // Form states Kelola Konseling Karir
   const [konselingCfg, setKonselingCfg] = useState<KonselingConfig>(getKonselingConfig());
@@ -1208,13 +1187,6 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       setELinkCta(item.linkCta || '');
       setEStatus(item.status);
       setETanggal(item.tanggal || '');
-      setEWaktu(item.waktu || '');
-      setELokasiEvent(item.lokasiEvent || '');
-      setEPembicara(item.pembicara || '');
-      setEKuotaEvent(item.kuotaEvent != null ? String(item.kuotaEvent) : '');
-      setETerdaftar(item.terdaftar != null ? String(item.terdaftar) : '');
-      setELinkDaftar(item.linkDaftar || '');
-      setEStatusEvent(item.statusEvent || 'buka');
       setESubKategori(item.subKategori || 'akademik');
       setENamaMahasiswa(item.namaMahasiswa || '');
       setEProdi(item.prodi || '');
@@ -1232,12 +1204,6 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       setELinkLamar(''); setEKategori((jenis || 'berita') === 'presentasi' ? 'internasional' : ''); setEScope('LOKAL');
       setEGaji(''); setEKuota(''); setEDeadline(''); setELinkCta(''); setEStatus('published');
       setETanggal('');
-      setEWaktu((jenis === 'workshop' || jenis === 'softskill' || jenis === 'seminar') ? '09:00 - 15:00 WITA' : '');
-      setELokasiEvent((jenis === 'workshop' || jenis === 'softskill' || jenis === 'seminar') ? 'Aula Gedung Rektorat UM Kendari' : '');
-      setEPembicara('');
-      setEKuotaEvent((jenis === 'workshop' || jenis === 'softskill' || jenis === 'seminar') ? '100' : '');
-      setETerdaftar((jenis === 'workshop' || jenis === 'softskill' || jenis === 'seminar') ? '0' : '');
-      setELinkDaftar(''); setEStatusEvent('buka');
       setESubKategori('akademik'); setENamaMahasiswa(''); setEProdi('');
       setETahunPres(new Date().getFullYear().toString()); setEPeringkat('Juara 1'); setETerverifikasi(true);
       setEIsPinned(false);
@@ -1649,11 +1615,12 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
           FORBID_ATTR: ['onerror','onload','onclick','onmouseover','onfocus','onblur','oninput','onsubmit'],
         })
       : eBody;
+    const isEventLayanan = eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar';
     const base: KontenKarir = {
       id: editId || `kk_${Date.now()}`,
       jenis: eJenis,
       judul: eJudul.trim(),
-      body: finalBody,
+      body: isEventLayanan ? '' : finalBody,
       penulis: eJenis === 'berita' ? (ePenulis.trim() || user.name) : undefined,
       namaInstansi: (eJenis === 'lowongan' || eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? (eNamaInstansi.trim() || 'CDC UM Kendari') : undefined,
       tipe: eJenis === 'lowongan' ? eTipe : undefined,
@@ -1662,7 +1629,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       gaji: eJenis === 'lowongan' ? eGaji.trim() : undefined,
       kuota: eJenis === 'lowongan' && eKuota ? Number(eKuota) : undefined,
       deadline: eJenis === 'lowongan' ? eDeadline : undefined,
-      linkCta: (eJenis === 'program' || eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? (eLinkCta.trim() || eLinkDaftar.trim() || undefined) : undefined,
+      linkCta: eJenis === 'program' ? (eLinkCta.trim() || undefined) : undefined,
       thumbnail: THUMB_REQUIRED[eJenis] ? eThumbnail : undefined,
       scope: eJenis === 'berita' ? eScope : undefined,
       // Field khusus Presentasi
@@ -1677,15 +1644,15 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       updatedAt: now,
       createdBy: 'usr_admin',
       createdByName: 'Admin Website',
-      // Field khusus event layanan (workshop / softskill / seminar)
+      // Field khusus event layanan (workshop / softskill / seminar) — permanen: hanya tanggal, sisanya dihapus
       tanggal: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? eTanggal : undefined,
-      waktu: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? (eWaktu.trim() || '09:00 - 15:00 WITA') : undefined,
-      lokasiEvent: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? (eLokasiEvent.trim() || 'Aula Gedung Rektorat UM Kendari') : undefined,
-      pembicara: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? ePembicara.trim() : undefined,
-      kuotaEvent: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') && eKuotaEvent ? Number(eKuotaEvent) : undefined,
-      terdaftar: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') && eTerdaftar ? Number(eTerdaftar) : undefined,
-      linkDaftar: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? eLinkDaftar.trim() : undefined,
-      statusEvent: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? eStatusEvent : undefined,
+      waktu: undefined,
+      lokasiEvent: undefined,
+      pembicara: undefined,
+      kuotaEvent: undefined,
+      terdaftar: undefined,
+      linkDaftar: undefined,
+      statusEvent: undefined,
       isPinned: eIsPinned,
       showOnHome: eJenis === 'presentasi' ? eShowOnHome : undefined,
       layoutType: eJenis === 'program' ? eLayoutType : undefined
@@ -1903,39 +1870,15 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
     if (item) {
       setEditChId(item.id);
       setChJudul(item.judul);
-      setChPerusahaan(item.namaPerusahaan);
       setChLogoUrl(item.logoPerusahaan || '');
       setChBannerUrl(item.bannerUrl || '');
       setChPosterAspect(item.posterAspect || '16:9');
-      setChTanggal(item.tanggal || '');
-      setChWaktu(item.waktu || '08:30 - 15:00 WITA');
-      setChLokasi(item.lokasi || 'Aula Gedung Rektorat Lt. 2 UM Kendari');
-      setChTipe(item.tipe || 'on-campus');
-      setChLinkVirtual(item.linkVirtual || '');
-      setChLinkDaftar(item.linkVirtual || '');
-      setChPosisiStr((item.posisiBuka || []).join(', '));
-      setChSyaratStr((item.persyaratan || []).join('\n'));
-      setChKuota(String(item.kuota || 100));
-      setChDeskripsi(item.deskripsi || '');
-      setChStatus(item.status || 'buka');
     } else {
       setEditChId(null);
       setChJudul('');
-      setChPerusahaan('');
       setChLogoUrl('');
       setChBannerUrl('');
       setChPosterAspect('16:9');
-      setChTanggal('');
-      setChWaktu('08:30 - 15:00 WITA');
-      setChLokasi('Aula Gedung Rektorat Lt. 2 UM Kendari');
-      setChTipe('on-campus');
-      setChLinkVirtual('');
-      setChLinkDaftar('');
-      setChPosisiStr('');
-      setChSyaratStr('');
-      setChKuota('100');
-      setChDeskripsi('');
-      setChStatus('buka');
     }
     setShowChForm(true);
     setKontenSub('pembuatan');
@@ -1951,13 +1894,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
 
     let currentList = getCampusHiring();
     const now = new Date().toISOString();
-    const posArray = chPosisiStr.split(',').map((s) => s.trim()).filter(Boolean);
-    const reqArray = chSyaratStr.split('\n').map((s) => s.trim()).filter(Boolean);
-    const finalLink = chLinkDaftar.trim() || chLinkVirtual.trim() || undefined;
-
     const finalJudul = chJudul.trim() || 'Agenda Campus Hiring CDC UM Kendari';
-    const finalPerusahaan = chPerusahaan.trim() || 'Mitra Perusahaan CDC';
-    const finalTanggal = chTanggal.trim() || formatTanggal(now);
 
     if (editChId) {
       currentList = currentList.map((item) =>
@@ -1965,20 +1902,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
           ? {
             ...item,
             judul: finalJudul,
-            namaPerusahaan: finalPerusahaan,
-            logoPerusahaan: chLogoUrl.trim() || undefined,
             bannerUrl: posterUrl,
-            posterAspect: chPosterAspect,
-            tanggal: finalTanggal,
-            waktu: chWaktu.trim() || '08:30 - 15:00 WITA',
-            lokasi: chLokasi.trim() || 'Aula Gedung Rektorat Lt. 2 UM Kendari',
-            tipe: chTipe,
-            linkVirtual: finalLink,
-            posisiBuka: posArray,
-            persyaratan: reqArray,
-            kuota: Number(chKuota) || 100,
-            deskripsi: chDeskripsi.trim() || undefined,
-            status: chStatus
+            posterAspect: chPosterAspect
           }
           : item
       );
@@ -1986,21 +1911,15 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       const newItem: CampusHiringItem = {
         id: `ch_${Date.now()}`,
         judul: finalJudul,
-        namaPerusahaan: finalPerusahaan,
-        logoPerusahaan: chLogoUrl.trim() || undefined,
+        namaPerusahaan: 'Mitra Perusahaan CDC',
         bannerUrl: posterUrl,
         posterAspect: chPosterAspect,
-        tanggal: finalTanggal,
-        waktu: chWaktu.trim() || '08:30 - 15:00 WITA',
-        lokasi: chLokasi.trim() || 'Aula Gedung Rektorat Lt. 2 UM Kendari',
-        tipe: chTipe,
-        linkVirtual: finalLink,
-        posisiBuka: posArray,
-        persyaratan: reqArray,
-        kuota: Number(chKuota) || 100,
-        terdaftarCount: 0,
-        deskripsi: chDeskripsi.trim() || undefined,
-        status: chStatus,
+        tanggal: formatTanggal(now),
+        lokasi: 'Aula Gedung Rektorat Lt. 2 UM Kendari',
+        tipe: 'on-campus',
+        persyaratan: [],
+        posisiBuka: [],
+        status: 'buka',
         createdAt: now
       };
       currentList.unshift(newItem);
@@ -2047,31 +1966,13 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
     if (item) {
       setEditJfId(item.id);
       setJfJudul(item.judul);
-      setJfTagline(item.tagline || '');
       setJfBannerUrl(item.bannerUrl || '');
       setJfPosterAspect(item.posterAspect || '16:9');
-      setJfTglMulai(item.tanggalMulai || '');
-      setJfTglSelesai(item.tanggalSelesai || '');
-      setJfWaktu(item.waktu || '08:00 - 16:00 WITA');
-      setJfLokasi(item.lokasi || 'Auditorium Utama UM Kendari');
-      setJfHtm(item.htm || 'Gratis Khusus Mahasiswa & Alumni UM Kendari');
-      setJfDeskripsi(item.deskripsi || '');
-      setJfPerusahaanStr((item.perusahaanPeserta || []).map((c) => c.nama).join(', '));
-      setJfStatus(item.status || 'buka');
     } else {
       setEditJfId(null);
       setJfJudul('');
-      setJfTagline('');
       setJfBannerUrl('');
       setJfPosterAspect('16:9');
-      setJfTglMulai('');
-      setJfTglSelesai('');
-      setJfWaktu('08:00 - 16:00 WITA');
-      setJfLokasi('Auditorium Utama UM Kendari');
-      setJfHtm('Gratis Khusus Mahasiswa & Alumni UM Kendari');
-      setJfDeskripsi('');
-      setJfPerusahaanStr('');
-      setJfStatus('buka');
     }
     setShowJfForm(true);
     setKontenSub('pembuatan');
@@ -2086,13 +1987,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
 
     let currentList = getJobFair();
     const now = new Date().toISOString();
-    const compList = jfPerusahaanStr.split(',').map((s, idx) => ({
-      id: `p_${idx}_${Date.now()}`,
-      nama: s.trim()
-    })).filter((c) => c.nama.length > 0);
-
     const finalJudul = jfJudul.trim() || 'Job Fair & Career Expo CDC UM Kendari';
-    const finalTglMulai = jfTglMulai.trim() || formatTanggal(now);
 
     if (editJfId) {
       currentList = currentList.map((item) =>
@@ -2100,17 +1995,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
           ? {
             ...item,
             judul: finalJudul,
-            tagline: jfTagline.trim() || undefined,
             bannerUrl: jfBannerUrl.trim(),
-            posterAspect: jfPosterAspect,
-            tanggalMulai: finalTglMulai,
-            tanggalSelesai: jfTglSelesai.trim() || finalTglMulai,
-            waktu: jfWaktu.trim() || '08:00 - 16:00 WITA',
-            lokasi: jfLokasi.trim() || 'Auditorium Utama UM Kendari',
-            htm: jfHtm.trim() || 'Gratis Khusus Mahasiswa & Alumni UM Kendari',
-            perusahaanPeserta: compList.length > 0 ? compList : item.perusahaanPeserta,
-            deskripsi: jfDeskripsi.trim() || undefined,
-            status: jfStatus
+            posterAspect: jfPosterAspect
           }
           : item
       );
@@ -2118,17 +2004,14 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       const newItem: JobFairItem = {
         id: `jf_${Date.now()}`,
         judul: finalJudul,
-        tagline: jfTagline.trim() || undefined,
         bannerUrl: jfBannerUrl.trim(),
         posterAspect: jfPosterAspect,
-        tanggalMulai: finalTglMulai,
-        tanggalSelesai: jfTglSelesai.trim() || finalTglMulai,
-        waktu: jfWaktu.trim() || '08:00 - 16:00 WITA',
-        lokasi: jfLokasi.trim() || 'Auditorium Utama UM Kendari',
-        htm: jfHtm.trim() || 'Gratis Khusus Mahasiswa & Alumni UM Kendari',
-        perusahaanPeserta: compList,
-        deskripsi: jfDeskripsi.trim() || undefined,
-        status: jfStatus,
+        tanggalMulai: formatTanggal(now),
+        tanggalSelesai: formatTanggal(now),
+        lokasi: 'Auditorium Utama UM Kendari',
+        htm: 'Gratis Khusus Mahasiswa & Alumni UM Kendari',
+        perusahaanPeserta: [],
+        status: 'buka',
         createdAt: now
       };
       currentList.unshift(newItem);
@@ -3204,70 +3087,6 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                           />
                         </div>
 
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Tagline / Sub-Judul Event <span className="text-slate-400 font-normal">(Opsional)</span></label>
-                          <input
-                            type="text"
-                            value={jfTagline}
-                            onChange={(e) => setJfTagline(e.target.value)}
-                            placeholder="misal: Langkah Awal Karir Impianmu Dimulai dari Sini!"
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">HTM / Tiket Masuk <span className="text-slate-400 font-normal">(Opsional)</span></label>
-                          <input
-                            type="text"
-                            value={jfHtm}
-                            onChange={(e) => setJfHtm(e.target.value)}
-                            placeholder="Gratis Khusus Mahasiswa & Alumni UM Kendari"
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Tanggal Mulai Event <span className="text-slate-400 font-normal">(Opsional)</span></label>
-                          <input
-                            type="date"
-                            value={jfTglMulai}
-                            onChange={(e) => setJfTglMulai(e.target.value)}
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Tanggal Selesai Event <span className="text-slate-400 font-normal">(Opsional)</span></label>
-                          <input
-                            type="date"
-                            value={jfTglSelesai}
-                            onChange={(e) => setJfTglSelesai(e.target.value)}
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5 md:col-span-2">
-                          <label className="text-xs font-bold text-slate-700">Lokasi / Venue Event <span className="text-slate-400 font-normal">(Opsional)</span></label>
-                          <input
-                            type="text"
-                            value={jfLokasi}
-                            onChange={(e) => setJfLokasi(e.target.value)}
-                            placeholder="Auditorium Utama & Lapangan Indoor UM Kendari"
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5 md:col-span-2">
-                          <label className="text-xs font-bold text-slate-700">Daftar Perusahaan Peserta (Dipisah Koma) <span className="text-slate-400 font-normal">(Opsional)</span></label>
-                          <input
-                            type="text"
-                            value={jfPerusahaanStr}
-                            onChange={(e) => setJfPerusahaanStr(e.target.value)}
-                            placeholder="PT Bank BCA, PT Indofood, PT Telkom Indonesia, PT Vale Indonesia, PT Astra International"
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
-                          />
-                        </div>
-
                         <div className="space-y-1.5 md:col-span-2">
                           <label className="text-xs font-bold text-slate-700">Banner / Poster Utama Event * <span className="text-emerald-600 font-bold">(Wajib)</span></label>
                           <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
@@ -3319,16 +3138,6 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                           </div>
                         </div>
 
-                        <div className="space-y-1.5 md:col-span-2">
-                          <label className="text-xs font-bold text-slate-700">Deskripsi Event</label>
-                          <textarea
-                            value={jfDeskripsi}
-                            onChange={(e) => setJfDeskripsi(e.target.value)}
-                            rows={3}
-                            placeholder="Penjelasan deskripsi pameran bursa kerja..."
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
-                          />
-                        </div>
                       </div>
 
                       <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
@@ -3374,39 +3183,6 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                             value={chJudul}
                             onChange={(e) => setChJudul(e.target.value)}
                             placeholder="misal: On-Campus Recruitment PT Bank Central Asia Tbk 2026"
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Nama Perusahaan Mitra <span className="text-slate-400 font-normal">(Opsional)</span></label>
-                          <input
-                            type="text"
-                            value={chPerusahaan}
-                            onChange={(e) => setChPerusahaan(e.target.value)}
-                            placeholder="misal: PT Indofood Sukses Makmur Tbk"
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Tanggal &amp; Waktu Rekrutmen <span className="text-slate-400 font-normal">(Opsional)</span></label>
-                          <input
-                            type="text"
-                            value={chTanggal}
-                            onChange={(e) => setChTanggal(e.target.value)}
-                            placeholder="misal: Senin, 20 Oktober 2026 (09:00 - 15:00 WITA)"
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5 md:col-span-2">
-                          <label className="text-xs font-bold text-slate-700">Lokasi / Ruangan Tes <span className="text-slate-400 font-normal">(Opsional)</span></label>
-                          <input
-                            type="text"
-                            value={chLokasi}
-                            onChange={(e) => setChLokasi(e.target.value)}
-                            placeholder="misal: Aula Utama Gedung Rektorat Lt. 3 UM Kendari"
                             className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
                           />
                         </div>
@@ -3462,27 +3238,6 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                           </div>
                         </div>
 
-                        <div className="space-y-1.5 md:col-span-2">
-                          <label className="text-xs font-bold text-slate-700">Link Pendaftaran / Formulir (CTA)</label>
-                          <input
-                            type="text"
-                            value={chLinkDaftar}
-                            onChange={(e) => setChLinkDaftar(e.target.value)}
-                            placeholder="https://forms.gle/... atau https://..."
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5 md:col-span-2">
-                          <label className="text-xs font-bold text-slate-700">Deskripsi Ringkas & Syarat Rekrutmen</label>
-                          <textarea
-                            value={chDeskripsi}
-                            onChange={(e) => setChDeskripsi(e.target.value)}
-                            rows={3}
-                            placeholder="Persyaratan peserta, kualifikasi jurusan, berkas yang wajib dibawa..."
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                          />
-                        </div>
                       </div>
 
                       <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
@@ -3794,62 +3549,13 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                         <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-100 bg-slate-50/60 p-4 rounded-2xl">
                           <div className="sm:col-span-2 text-xs font-bold text-blue-700 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-200 pb-2">
                             <GraduationCap className="w-4 h-4 text-blue-600" />
-                            Detail & Parameter Kegiatan Event ({JENIS_LABEL[eJenis]})
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-slate-700">Penyelenggara / Pengorganisir *</label>
-                            <input value={eNamaInstansi} onChange={(e) => setENamaInstansi(e.target.value)} placeholder="CDC UM Kendari & Digital Creative Studio" className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white" />
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-slate-700">Narasumber / Pembicara</label>
-                            <input value={ePembicara} onChange={(e) => setEPembicara(e.target.value)} placeholder="Ahmad Fauzi, S.Kom. (Senior Product Designer)" className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white" />
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-slate-700">Tanggal Pelaksanaan *</label>
-                            <input value={eTanggal} onChange={(e) => setETanggal(e.target.value)} type="date" required className={`w-full px-3 py-2 rounded-xl border text-sm bg-white ${!eTanggal ? 'border-rose-300 bg-rose-50/40 focus:border-rose-400 focus:ring-2 focus:ring-rose-200' : 'border-slate-300'}`} />
-                            {!eTanggal && <p className="text-[11px] text-rose-500 font-medium">Wajib diisi — pilih tanggal kegiatan.</p>}
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-slate-700">Waktu Pelaksanaan</label>
-                            <input value={eWaktu} onChange={(e) => setEWaktu(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white" placeholder="09:00 - 15:00 WITA" />
+                            Tanggal Kegiatan ({JENIS_LABEL[eJenis]})
                           </div>
 
                           <div className="space-y-1.5 sm:col-span-2">
-                            <label className="text-xs font-medium text-slate-700">Lokasi Pelaksanaan Kegiatan</label>
-                            <input value={eLokasiEvent} onChange={(e) => setELokasiEvent(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white" placeholder="Lab Komputer Gd. Rektorat Lt. 3 UMK / Online Zoom" />
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-slate-700">Kuota Peserta (Orang)</label>
-                            <input value={eKuotaEvent} onChange={(e) => setEKuotaEvent(e.target.value)} type="number" min="1" className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white" placeholder="50" />
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-slate-700">Jumlah Terdaftar</label>
-                            <input value={eTerdaftar} onChange={(e) => setETerdaftar(e.target.value)} type="number" min="0" className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white" placeholder="0" />
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-slate-700">Status Pendaftaran Event</label>
-                            <Dropdown
-                              value={eStatusEvent}
-                              onChange={(v) => setEStatusEvent(v as any)}
-                              className="w-full"
-                              options={[
-                                { value: 'buka', label: 'Pendaftaran Dibuka' },
-                                { value: 'segera', label: 'Segera Dibuka' },
-                                { value: 'selesai', label: 'Kegiatan Selesai' }
-                              ]}
-                            />
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-slate-700">Link Form Pendaftaran Eksternal (URL)</label>
-                            <input value={eLinkDaftar} onChange={(e) => setELinkDaftar(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white" placeholder="https://bit.ly/form-pendaftaran-workshop" />
+                            <label className="text-xs font-medium text-slate-700">Tanggal Pelaksanaan *</label>
+                            <input value={eTanggal} onChange={(e) => setETanggal(e.target.value)} type="date" required className={`w-full px-3 py-2 rounded-xl border text-sm bg-white ${!eTanggal ? 'border-rose-300 bg-rose-50/40 focus:border-rose-400 focus:ring-2 focus:ring-rose-200' : 'border-slate-300'}`} />
+                            {!eTanggal && <p className="text-[11px] text-rose-500 font-medium">Wajib diisi — pilih tanggal kegiatan.</p>}
                           </div>
                         </div>
                       )}
@@ -3927,7 +3633,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                       </div>
                     )}
 
-                    {eJenis === 'program' || eJenis === 'presentasi' || eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar' ? (
+                    {eJenis === 'program' || eJenis === 'presentasi' ? (
                       <div className="space-y-2">
                         <label className="text-xs font-medium text-slate-500">
                           Deskripsi &amp; Detail Kegiatan / Pokok Materi (opsional)
@@ -3941,8 +3647,6 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                           placeholder={
                             eJenis === 'presentasi'
                               ? "Tulis deskripsi singkat capaian presentasi ini..."
-                              : (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar')
-                              ? "Tuliskan deskripsi lengkap kegiatan, pokok materi pembelajaran, dan instruksi bagi peserta..."
                               : "Tulis detail program & pengumuman di sini (opsional). Kosongkan jika klik kartu langsung diarahkan ke link di atas."
                           }
                         />
@@ -7087,37 +6791,15 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                 if (item) {
                   setEditChId(item.id);
                   setChJudul(item.judul);
-                  setChPerusahaan(item.namaPerusahaan);
                   setChLogoUrl(item.logoPerusahaan || '');
                   setChBannerUrl(item.bannerUrl || '');
                   setChPosterAspect(item.posterAspect || '16:9');
-                  setChTanggal(item.tanggal || '');
-                  setChWaktu(item.waktu || '08:30 - 15:00 WITA');
-                  setChLokasi(item.lokasi || 'Aula Gedung Rektorat Lt. 2 UM Kendari');
-                  setChTipe(item.tipe || 'on-campus');
-                  setChLinkVirtual(item.linkVirtual || '');
-                  setChPosisiStr((item.posisiBuka || []).join(', '));
-                  setChSyaratStr((item.persyaratan || []).join('\n'));
-                  setChKuota(String(item.kuota || 100));
-                  setChDeskripsi(item.deskripsi || '');
-                  setChStatus(item.status || 'buka');
                 } else {
                   setEditChId(null);
                   setChJudul('');
-                  setChPerusahaan('');
                   setChLogoUrl('');
                   setChBannerUrl('');
                   setChPosterAspect('16:9');
-                  setChTanggal('');
-                  setChWaktu('08:30 - 15:00 WITA');
-                  setChLokasi('Aula Gedung Rektorat Lt. 2 UM Kendari');
-                  setChTipe('on-campus');
-                  setChLinkVirtual('');
-                  setChPosisiStr('');
-                  setChSyaratStr('');
-                  setChKuota('100');
-                  setChDeskripsi('');
-                  setChStatus('buka');
                 }
                 setShowChForm(true);
               };
@@ -7132,13 +6814,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
 
                 let currentList = getCampusHiring();
                 const now = new Date().toISOString();
-                const posArray = chPosisiStr.split(',').map((s) => s.trim()).filter(Boolean);
-                const reqArray = chSyaratStr.split('\n').map((s) => s.trim()).filter(Boolean);
-                const finalLink = (chLinkDaftar || '').trim() || chLinkVirtual.trim() || undefined;
-
                 const finalJudul = chJudul.trim() || 'Agenda Campus Hiring CDC UM Kendari';
-                const finalPerusahaan = chPerusahaan.trim() || 'Mitra Perusahaan CDC';
-                const finalTanggal = chTanggal.trim() || formatTanggal(now);
 
                 if (editChId) {
                   currentList = currentList.map((item) =>
@@ -7146,20 +6822,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                       ? {
                         ...item,
                         judul: finalJudul,
-                        namaPerusahaan: finalPerusahaan,
-                        logoPerusahaan: chLogoUrl.trim() || undefined,
                         bannerUrl: posterUrl,
-                        posterAspect: chPosterAspect,
-                        tanggal: finalTanggal,
-                        waktu: chWaktu.trim() || '08:30 - 15:00 WITA',
-                        lokasi: chLokasi.trim() || 'Aula Gedung Rektorat Lt. 2 UM Kendari',
-                        tipe: chTipe,
-                        linkVirtual: finalLink,
-                        posisiBuka: posArray,
-                        persyaratan: reqArray,
-                        kuota: Number(chKuota) || 100,
-                        deskripsi: chDeskripsi.trim() || undefined,
-                        status: chStatus
+                        posterAspect: chPosterAspect
                       }
                       : item
                   );
@@ -7167,21 +6831,15 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                   const newItem: CampusHiringItem = {
                     id: `ch_${Date.now()}`,
                     judul: finalJudul,
-                    namaPerusahaan: finalPerusahaan,
-                    logoPerusahaan: chLogoUrl.trim() || undefined,
+                    namaPerusahaan: 'Mitra Perusahaan CDC',
                     bannerUrl: posterUrl,
                     posterAspect: chPosterAspect,
-                    tanggal: finalTanggal,
-                    waktu: chWaktu.trim() || '08:30 - 15:00 WITA',
-                    lokasi: chLokasi.trim() || 'Aula Gedung Rektorat Lt. 2 UM Kendari',
-                    tipe: chTipe,
-                    linkVirtual: finalLink,
-                    posisiBuka: posArray,
-                    persyaratan: reqArray,
-                    kuota: Number(chKuota) || 100,
-                    terdaftarCount: 0,
-                    deskripsi: chDeskripsi.trim() || undefined,
-                    status: chStatus,
+                    tanggal: formatTanggal(now),
+                    lokasi: 'Aula Gedung Rektorat Lt. 2 UM Kendari',
+                    tipe: 'on-campus',
+                    persyaratan: [],
+                    posisiBuka: [],
+                    status: 'buka',
                     createdAt: now
                   };
                   currentList.unshift(newItem);
@@ -7263,120 +6921,6 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                           />
                         </div>
 
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Nama Perusahaan Mitra <span className="text-slate-400 font-normal">(Opsional)</span></label>
-                          <input
-                            type="text"
-                            value={chPerusahaan}
-                            onChange={(e) => setChPerusahaan(e.target.value)}
-                            placeholder="misal: PT Indofood Sukses Makmur Tbk"
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Tipe Pelaksanaan <span className="text-slate-400 font-normal">(Opsional)</span></label>
-                          <select
-                            value={chTipe}
-                            onChange={(e) => setChTipe(e.target.value as 'on-campus' | 'virtual')}
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                          >
-                            <option value="on-campus">On-Campus (Wawancara Langsung di Kampus)</option>
-                            <option value="virtual">Virtual Recruitment (Daring via Zoom/Meet)</option>
-                          </select>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Tanggal Pelaksanaan <span className="text-slate-400 font-normal">(Opsional)</span></label>
-                          <input
-                            type="date"
-                            value={chTanggal}
-                            onChange={(e) => setChTanggal(e.target.value)}
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Jam / Waktu Pelaksanaan <span className="text-slate-400 font-normal">(Opsional)</span></label>
-                          <input
-                            type="text"
-                            value={chWaktu}
-                            onChange={(e) => setChWaktu(e.target.value)}
-                            placeholder="misal: 08:30 - 15:00 WITA"
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5 md:col-span-2">
-                          <label className="text-xs font-bold text-slate-700">Lokasi / Venue Pelaksanaan <span className="text-slate-400 font-normal">(Opsional)</span></label>
-                          <input
-                            type="text"
-                            value={chLokasi}
-                            onChange={(e) => setChLokasi(e.target.value)}
-                            placeholder="misal: Aula Rektorat Lt. 2 Universitas Muhammadiyah Kendari"
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                          />
-                        </div>
-
-                        {chTipe === 'virtual' && (
-                          <div className="space-y-1.5 md:col-span-2">
-                            <label className="text-xs font-bold text-slate-700">Link Zoom / Google Meet (Virtual)</label>
-                            <input
-                              type="url"
-                              value={chLinkVirtual}
-                              onChange={(e) => setChLinkVirtual(e.target.value)}
-                              placeholder="https://zoom.us/j/..."
-                              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                            />
-                          </div>
-                        )}
-
-                        <div className="space-y-1.5 md:col-span-2">
-                          <label className="text-xs font-bold text-slate-700">Posisi Lowongan Dibuka (Dipisah Koma)</label>
-                          <input
-                            type="text"
-                            value={chPosisiStr}
-                            onChange={(e) => setChPosisiStr(e.target.value)}
-                            placeholder="misal: Management Trainee, Customer Service, Field Officer"
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5 md:col-span-2">
-                          <label className="text-xs font-bold text-slate-700">Persyaratan &amp; Berkas (Satu per baris Enter)</label>
-                          <textarea
-                            value={chSyaratStr}
-                            onChange={(e) => setChSyaratStr(e.target.value)}
-                            rows={4}
-                            placeholder={'Lulusan S1/D3 Semua Jurusan (IPK Min 3.00)\nMembawa CV Terbaru & Pasfoto 4x6\nFormat berpakaian rapi kemeja formal'}
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Kuota Kursi Peserta</label>
-                          <input
-                            type="number"
-                            value={chKuota}
-                            onChange={(e) => setChKuota(e.target.value)}
-                            placeholder="100"
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Status Agenda</label>
-                          <select
-                            value={chStatus}
-                            onChange={(e) => setChStatus(e.target.value as 'buka' | 'proses' | 'selesai')}
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                          >
-                            <option value="buka">Pendaftaran Dibuka</option>
-                            <option value="proses">Seleksi Berlangsung</option>
-                            <option value="selesai">Selesai</option>
-                          </select>
-                        </div>
-
                         <div className="space-y-1.5 md:col-span-2">
                           <label className="text-xs font-bold text-slate-700">Banner / Poster Promo * <span className="text-blue-600 font-bold">(Wajib)</span></label>
                           <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
@@ -7428,16 +6972,6 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                           </div>
                         </div>
 
-                        <div className="space-y-1.5 md:col-span-2">
-                          <label className="text-xs font-bold text-slate-700">Deskripsi Singkat Event</label>
-                          <textarea
-                            value={chDeskripsi}
-                            onChange={(e) => setChDeskripsi(e.target.value)}
-                            rows={3}
-                            placeholder="Penjelasan singkat alur seleksi & rekrutmen..."
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                          />
-                        </div>
                       </div>
 
                       <div className="flex justify-end gap-2 pt-2">
@@ -7524,31 +7058,13 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                 if (item) {
                   setEditJfId(item.id);
                   setJfJudul(item.judul);
-                  setJfTagline(item.tagline || '');
                   setJfBannerUrl(item.bannerUrl || '');
                   setJfPosterAspect(item.posterAspect || '16:9');
-                  setJfTglMulai(item.tanggalMulai || '');
-                  setJfTglSelesai(item.tanggalSelesai || '');
-                  setJfWaktu(item.waktu || '08:00 - 16:00 WITA');
-                  setJfLokasi(item.lokasi || 'Auditorium Utama UM Kendari');
-                  setJfHtm(item.htm || 'Gratis Khusus Mahasiswa & Alumni UM Kendari');
-                  setJfDeskripsi(item.deskripsi || '');
-                  setJfPerusahaanStr((item.perusahaanPeserta || []).map((c) => c.nama).join(', '));
-                  setJfStatus(item.status || 'buka');
                 } else {
                   setEditJfId(null);
                   setJfJudul('');
-                  setJfTagline('');
                   setJfBannerUrl('');
                   setJfPosterAspect('16:9');
-                  setJfTglMulai('');
-                  setJfTglSelesai('');
-                  setJfWaktu('08:00 - 16:00 WITA');
-                  setJfLokasi('Auditorium Utama UM Kendari');
-                  setJfHtm('Gratis Khusus Mahasiswa & Alumni UM Kendari');
-                  setJfDeskripsi('');
-                  setJfPerusahaanStr('');
-                  setJfStatus('buka');
                 }
                 setShowJfForm(true);
               };
@@ -7562,13 +7078,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
 
                 let currentList = getJobFair();
                 const now = new Date().toISOString();
-                const compList = jfPerusahaanStr.split(',').map((s, idx) => ({
-                  id: `p_${idx}_${Date.now()}`,
-                  nama: s.trim()
-                })).filter((c) => c.nama.length > 0);
-
                 const finalJudul = jfJudul.trim() || 'Job Fair & Career Expo CDC UM Kendari';
-                const finalTglMulai = jfTglMulai.trim() || formatTanggal(now);
 
                 if (editJfId) {
                   currentList = currentList.map((item) =>
@@ -7576,17 +7086,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                       ? {
                         ...item,
                         judul: finalJudul,
-                        tagline: jfTagline.trim() || undefined,
                         bannerUrl: jfBannerUrl.trim(),
-                        posterAspect: jfPosterAspect,
-                        tanggalMulai: finalTglMulai,
-                        tanggalSelesai: jfTglSelesai.trim() || finalTglMulai,
-                        waktu: jfWaktu.trim() || '08:00 - 16:00 WITA',
-                        lokasi: jfLokasi.trim() || 'Auditorium Utama UM Kendari',
-                        htm: jfHtm.trim() || 'Gratis Khusus Mahasiswa & Alumni UM Kendari',
-                        perusahaanPeserta: compList.length > 0 ? compList : item.perusahaanPeserta,
-                        deskripsi: jfDeskripsi.trim() || undefined,
-                        status: jfStatus
+                        posterAspect: jfPosterAspect
                       }
                       : item
                   );
@@ -7594,17 +7095,14 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                   const newItem: JobFairItem = {
                     id: `jf_${Date.now()}`,
                     judul: finalJudul,
-                    tagline: jfTagline.trim() || undefined,
                     bannerUrl: jfBannerUrl.trim(),
                     posterAspect: jfPosterAspect,
-                    tanggalMulai: finalTglMulai,
-                    tanggalSelesai: jfTglSelesai.trim() || finalTglMulai,
-                    waktu: jfWaktu.trim() || '08:00 - 16:00 WITA',
-                    lokasi: jfLokasi.trim() || 'Auditorium Utama UM Kendari',
-                    htm: jfHtm.trim() || 'Gratis Khusus Mahasiswa & Alumni UM Kendari',
-                    perusahaanPeserta: compList,
-                    deskripsi: jfDeskripsi.trim() || undefined,
-                    status: jfStatus,
+                    tanggalMulai: formatTanggal(now),
+                    tanggalSelesai: formatTanggal(now),
+                    lokasi: 'Auditorium Utama UM Kendari',
+                    htm: 'Gratis Khusus Mahasiswa & Alumni UM Kendari',
+                    perusahaanPeserta: [],
+                    status: 'buka',
                     createdAt: now
                   };
                   currentList.unshift(newItem);
@@ -7686,70 +7184,6 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                           />
                         </div>
 
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Tagline / Sub-Judul Event <span className="text-slate-400 font-normal">(Opsional)</span></label>
-                          <input
-                            type="text"
-                            value={jfTagline}
-                            onChange={(e) => setJfTagline(e.target.value)}
-                            placeholder="misal: Langkah Awal Karir Impianmu Dimulai dari Sini!"
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">HTM / Tiket Masuk <span className="text-slate-400 font-normal">(Opsional)</span></label>
-                          <input
-                            type="text"
-                            value={jfHtm}
-                            onChange={(e) => setJfHtm(e.target.value)}
-                            placeholder="Gratis Khusus Mahasiswa & Alumni UM Kendari"
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Tanggal Mulai Event <span className="text-slate-400 font-normal">(Opsional)</span></label>
-                          <input
-                            type="date"
-                            value={jfTglMulai}
-                            onChange={(e) => setJfTglMulai(e.target.value)}
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700">Tanggal Selesai Event <span className="text-slate-400 font-normal">(Opsional)</span></label>
-                          <input
-                            type="date"
-                            value={jfTglSelesai}
-                            onChange={(e) => setJfTglSelesai(e.target.value)}
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5 md:col-span-2">
-                          <label className="text-xs font-bold text-slate-700">Lokasi / Venue Event <span className="text-slate-400 font-normal">(Opsional)</span></label>
-                          <input
-                            type="text"
-                            value={jfLokasi}
-                            onChange={(e) => setJfLokasi(e.target.value)}
-                            placeholder="Auditorium Utama & Lapangan Indoor UM Kendari"
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5 md:col-span-2">
-                          <label className="text-xs font-bold text-slate-700">Daftar Perusahaan Peserta (Dipisah Koma) <span className="text-slate-400 font-normal">(Opsional)</span></label>
-                          <input
-                            type="text"
-                            value={jfPerusahaanStr}
-                            onChange={(e) => setJfPerusahaanStr(e.target.value)}
-                            placeholder="PT Bank BCA, PT Indofood, PT Telkom Indonesia, PT Vale Indonesia, PT Astra International"
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
-                          />
-                        </div>
-
                         <div className="space-y-1.5 md:col-span-2">
                           <label className="text-xs font-bold text-slate-700">Banner / Poster Utama Event * <span className="text-emerald-600 font-bold">(Wajib)</span></label>
                           <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
@@ -7801,16 +7235,6 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                           </div>
                         </div>
 
-                        <div className="space-y-1.5 md:col-span-2">
-                          <label className="text-xs font-bold text-slate-700">Deskripsi Event</label>
-                          <textarea
-                            value={jfDeskripsi}
-                            onChange={(e) => setJfDeskripsi(e.target.value)}
-                            rows={3}
-                            placeholder="Penjelasan deskripsi pameran bursa kerja..."
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
-                          />
-                        </div>
                       </div>
 
                       <div className="flex justify-end gap-2 pt-2">
