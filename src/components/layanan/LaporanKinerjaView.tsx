@@ -50,6 +50,51 @@ export default function LaporanKinerjaView({ setTab }: LaporanKinerjaViewProps) 
     }
   }, []);
 
+  // Listen to storage changes from other tabs (e.g. admin saving data)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'cdc_umk_laporan_kinerja' && e.newValue) {
+        try {
+          const updatedList = JSON.parse(e.newValue) as LaporanKinerja[];
+          if (Array.isArray(updatedList)) {
+            setItems(updatedList);
+            // Update active item: prefer featured, then first pdf
+            const featured = updatedList.find((sk) => sk.isFeatured) || updatedList.find((sk) => sk.tipe === 'pdf') || updatedList[0];
+            if (featured) {
+              setActiveItem(featured);
+            } else {
+              setActiveItem(null);
+            }
+          }
+        } catch {
+          // ignore parse errors
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  // Same-tab refresh: when user switches back to this tab (e.g., after saving from admin view)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        const list = getFromDB<LaporanKinerja>('laporan_kinerja');
+        setItems(list);
+        const featured = list.find((sk) => sk.isFeatured) || list.find((sk) => sk.tipe === 'pdf') || list[0];
+        setActiveItem(featured || null);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, []);
+
   // Group items by category
   const categories = Array.from(new Set(items.map((i) => i.kategori)));
 
