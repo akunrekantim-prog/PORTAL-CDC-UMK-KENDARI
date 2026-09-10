@@ -1593,18 +1593,24 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
 
     const isBodyRequired = eJenis === 'berita';
     if (isBodyRequired && !hasContent) {
-      setSaveError('Isi konten berita wajib diisi.');
-      triggerToast('error', 'Judul dan isi berita wajib diisi.');
+      setSaveError('Isi konten berita wajib diisi. Tambahkan teks atau gambar di editor di atas.');
+      triggerToast('error', 'Berita harus memiliki isi konten (teks atau gambar).');
       return;
     }
     if (THUMB_REQUIRED[eJenis] && !eThumbnail) {
-      setSaveError(`Thumbnail / Poster wajib diunggah untuk ${JENIS_LABEL[eJenis]}.`);
-      triggerToast('error', `Thumbnail / Poster wajib untuk ${JENIS_LABEL[eJenis]}.`);
+      setSaveError(`Thumbnail / Poster wajib diunggah untuk ${JENIS_LABEL[eJenis]}. Gunakan panel upload gambar di atas.`);
+      triggerToast('error', `${JENIS_LABEL[eJenis]} wajib upload thumbnail. ` + (eJenis === 'berita' ? 'Tanpa thumbnail, berita tidak akan muncul di beranda.' : ''));
       return;
     }
     if ((eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') && !eTanggal) {
       setSaveError('Tanggal Pelaksanaan wajib diisi untuk konten event layanan. Klik ikon kalender dan pilih tanggal.');
       triggerToast('error', 'Tanggal Pelaksanaan wajib diisi untuk konten event layanan.');
+      return;
+    }
+    // Validasi tambahan: judul tidak boleh kosong (sudah di baris 1577, tapi beri pesan lebih jelas)
+    if (!eJudul.trim()) {
+      setSaveError('Judul konten wajib diisi.');
+      triggerToast('error', 'Judul konten tidak boleh kosong.');
       return;
     }
     const now = new Date().toISOString();
@@ -1676,6 +1682,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
     }
     setSaveError(null);
     setEditorOpen(false);
+    setKontenSub('riwayat');
     setKontenJenisBaru(null);
     reloadAll();
     if (onReloadData) onReloadData();
@@ -3649,16 +3656,42 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                     {/* Thumbnail */}
                     {THUMB_REQUIRED[eJenis] && (
                       <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-slate-500">
-                          {eJenis === 'program' ? 'Thumbnail / Poster (wajib — header kartu)' : (eJenis === 'lowongan' ? '(Poster 9:16 wajib)' : '(16:9 wajib)')}
+                        <label className="text-xs font-bold text-rose-700">
+                          Thumbnail / Poster <span className="text-rose-600">*WAJIB</span>
+                          {eJenis === 'berita' && (
+                            <span className="text-slate-500 font-normal ml-1.5">— poster 16:9 berita (tampil di card beranda)</span>
+                          )}
+                          {eJenis === 'program' && (
+                            <span className="text-slate-500 font-normal ml-1.5">— header kartu program (wajib ditampilkan)</span>
+                          )}
+                          {eJenis === 'lowongan' && (
+                            <span className="text-slate-500 font-normal ml-1.5">— poster 9:16 lowongan (tampil di card info karir)</span>
+                          )}
+                          {eJenis !== 'berita' && eJenis !== 'program' && eJenis !== 'lowongan' && (
+                            <span className="text-slate-500 font-normal ml-1.5">— poster kegiatan event (wajib)</span>
+                          )}
                         </label>
                         <div className="flex items-center gap-3">
                           <label className="cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1.5">
                             <ImageIcon className="w-4 h-4" /> Upload Gambar
                             <input type="file" accept="image/*" className="hidden" onChange={handleThumbChange} />
                           </label>
-                          {eThumbnail && <img src={eThumbnail} alt="" className={`w-16 object-cover rounded-lg ${eJenis === 'lowongan' ? 'h-24' : 'h-10'}`} />}
+                          {eThumbnail ? (
+                            <img src={eThumbnail} alt="" className={`w-16 object-cover rounded-lg ${eJenis === 'lowongan' ? 'h-24' : 'h-10'}`} />
+                          ) : (
+                            <div className="w-16 h-10 bg-slate-100 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 text-xs font-medium">
+                              Kosong
+                            </div>
+                          )}
+                          <span className="text-[10px] text-slate-400 italic">
+                            {eJenis === 'berita' ? 'Recomendasikan: 1200x675px (16:9)' :
+                             eJenis === 'lowongan' ? 'Recomendasikan: 450x800px (9:16)' :
+                             'Gambar kartu beranda'}
+                          </span>
                         </div>
+                        {!eThumbnail && (
+                          <p className="text-[10px] text-rose-500 font-medium mt-0.5">Thumbnail wajib diunggah sebelum disimpan.</p>
+                        )}
                       </div>
                     )}
 
@@ -3847,7 +3880,12 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                       <div className="flex items-center gap-4 flex-wrap">
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-bold text-slate-600">Status:</span>
-                          <Dropdown value={eStatus} onChange={(v) => setEStatus(v as any)} size="sm" className="w-full" options={[{ value: 'draft', label: 'Draft' }, { value: 'published', label: 'Published' }]} />
+                          <Dropdown value={eStatus} onChange={(v) => setEStatus(v as any)} size="sm" className="w-32" options={[{ value: 'draft', label: 'Draft' }, { value: 'published', label: 'Published' }]} />
+                          {eJenis === 'berita' && (
+                            <span className="text-[10px] text-slate-400 italic">
+                              Published = tampil di Beranda
+                            </span>
+                          )}
                         </div>
                         {eJenis !== 'lowongan' && (
                           <label className="flex items-center gap-2 cursor-pointer select-none text-xs font-bold text-slate-700 bg-slate-100 hover:bg-amber-50 px-3 py-1.5 rounded-lg border border-slate-200 transition">
