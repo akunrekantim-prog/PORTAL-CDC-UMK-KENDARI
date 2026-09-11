@@ -234,7 +234,7 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
               >
                 <span>Lamaran Saya</span>
                 {interviewAlertCount > 0 && (
-                  <span className="bg-amber-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full">
+                  <span className="bg-amber-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
                     {interviewAlertCount}
                   </span>
                 )}
@@ -348,7 +348,7 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
                   Lamaran Saya
                 </span>
                 {interviewAlertCount > 0 && (
-                  <span className="bg-amber-500 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full mr-2">
+                  <span className="bg-amber-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full mr-2">
                     {interviewAlertCount}
                   </span>
                 )}

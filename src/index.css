@@ -77,7 +77,11 @@
 
 @layer base {
   body {
-    @apply antialiased select-none bg-white text-slate-800;
+    @apply antialiased bg-white text-slate-800 selection:bg-blue-100 selection:text-blue-900;
+  }
+
+  button, [role="button"] {
+    @apply select-none;
   }
 }
 
@@ -346,6 +350,7 @@ ol.list-paren>li::before {
   from {
     transform: translateX(100%);
   }
+
   to {
     transform: translateX(0);
   }
@@ -355,6 +360,7 @@ ol.list-paren>li::before {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -374,4 +380,4 @@ ol.list-paren>li::before {
 #mahasiswa-dashboard,
 nav[aria-label="Navigasi halaman"] {
   overflow-anchor: none !important;
-}
+}

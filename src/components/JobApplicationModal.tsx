@@ -122,8 +122,8 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-white max-w-lg w-full rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl overflow-hidden animate-fadeIn my-4 sm:my-8">
+    <div className="fixed inset-0 z-[150] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+      <div className="bg-white max-w-lg w-full rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl overflow-hidden animate-fadeIn my-auto">
         
         {/* Modal Header */}
         <div className="bg-[#1B365D] text-white p-4 sm:p-6 relative">
@@ -134,7 +134,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
             <X className="w-5 h-5" />
           </button>
           
-          <span className="text-emerald-400 font-extrabold text-[10px] uppercase tracking-wider block mb-1">
+          <span className={`font-semibold text-xs tracking-wider block mb-1 ${submitSuccess ? 'text-emerald-300' : 'text-blue-200'}`}>
             {submitSuccess ? '✓ Bukti Pengajuan Lamaran' : 'Portal Karir CDC UM Kendari'}
           </span>
           <h3 className="text-lg sm:text-xl font-extrabold text-white leading-tight">
@@ -195,7 +195,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
               </div>
               <div className="flex items-center justify-between pt-0.5">
                 <span className="text-slate-500 font-medium">Status:</span>
-                <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-extrabold px-2.5 py-0.5 rounded-full text-[11px]">
+                <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-semibold px-2.5 py-1 rounded-full text-xs">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Menunggu Review HRD
                 </span>
               </div>
@@ -238,7 +238,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
             {/* Info Banner */}
             <div className="bg-blue-50 border border-blue-200/80 rounded-xl sm:rounded-2xl p-3 sm:p-3.5 flex items-start gap-2.5 text-xs text-blue-900 font-medium">
               <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-              <div className="leading-relaxed text-[11px] sm:text-xs">
+              <div className="leading-relaxed text-xs">
                 <strong>Informasi Pengiriman Data:</strong> Data <em>Pendidikan, Pengalaman, Skill, dan Sertifikat</em> Anda di menu <strong>Profil Saya</strong> akan dilampirkan secara otomatis ke Mitra Industri.
               </div>
             </div>
@@ -283,7 +283,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
 
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-700">
-                Upload Berkas CV / Portofolio (PDF/Gambar) <span className="text-rose-500 font-extrabold">* Wajib</span>
+                Upload Berkas CV / Portofolio (PDF/Gambar) <span className="text-rose-500 font-semibold text-xs">* Wajib</span>
               </label>
               <div className={`border-2 border-dashed rounded-xl sm:rounded-2xl p-3.5 sm:p-4 text-center cursor-pointer bg-slate-50 transition relative ${
                 fileError ? 'border-rose-400 bg-rose-50/50' : 'border-slate-200 hover:border-[#0077C6]'
@@ -298,7 +298,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
                 <span className={`text-xs font-bold block truncate px-2 ${fileError ? 'text-rose-600' : 'text-[#0077C6]'}`}>
                   {uploadedFileName ? uploadedFileName : 'Klik untuk unggah berkas CV (PDF / Gambar)'}
                 </span>
-                <span className="text-[10px] text-slate-400 mt-0.5 block">Format PDF / PNG / JPG • Maksimal 1 MB</span>
+                <span className="text-xs text-slate-400 mt-0.5 block">Format PDF / PNG / JPG • Maksimal 1 MB</span>
               </div>
               {fileError && (
                 <p className="text-[11px] font-bold text-rose-600 mt-1 flex items-center gap-1">

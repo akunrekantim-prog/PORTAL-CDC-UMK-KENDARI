@@ -747,8 +747,8 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
             {/* Tentang Saya (Bio Card) */}
             <div id="section-aboutMe" className="pt-3 border-t border-slate-100 mt-3 space-y-1.5 bg-slate-50/80 p-4 rounded-2xl border border-slate-200/80 scroll-mt-24">
               <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-                <span className="uppercase tracking-wider text-xs text-[#0077C6] font-bold flex items-center gap-1.5">
-                  <UserIcon className="w-3.5 h-3.5 text-[#0077C6]" /> TENTANG SAYA
+                <span className="text-xs text-[#0077C6] font-semibold flex items-center gap-1.5">
+                  <UserIcon className="w-3.5 h-3.5 text-[#0077C6]" /> Tentang Saya
                 </span>
                 {editingSection === 'aboutMe' ? (
                   <button
@@ -903,7 +903,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">SKOR KELENGKAPAN PROFIL</h4>
+                      <h4 className="text-xs font-bold text-slate-900">Skor Kelengkapan Profil</h4>
                       <span className="text-xs text-slate-500 font-medium">({completedCount}/{checklistItems.length} Lengkap)</span>
                     </div>
                     <p className="text-xs text-slate-500 font-normal mt-0.5">Profil yang terisi lengkap memaksimalkan peluang lolos seleksi berkas Mitra UMK</p>
@@ -967,7 +967,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     )}
                     <span>{item.label}</span>
                     {!item.isCompleted && (
-                      <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-amber-100/80 text-amber-800 ml-0.5">
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-amber-100/90 text-amber-800 ml-0.5">
                         + Lengkapi
                       </span>
                     )}
@@ -1126,34 +1126,34 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs"
                   >
                     <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
-                      <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">NAMA LENGKAP</div>
+                      <div className="text-xs font-semibold text-slate-500">Nama Lengkap</div>
                       <div className="font-bold text-slate-900 text-sm truncate">{`${firstName} ${lastName}`.trim() || 'Belum Diisi'}</div>
                     </div>
 
                     {userStatusType === 'Mahasiswa' && (
                       <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
-                        <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">NIM (NOMOR INDUK MAHASISWA)</div>
+                        <div className="text-xs font-semibold text-slate-500">NIM (Nomor Induk Mahasiswa)</div>
                         <div className="font-bold text-slate-900 text-sm">{nim || 'Belum Diisi'}</div>
                       </div>
                     )}
 
                     <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
-                      <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">EMAIL</div>
+                      <div className="text-xs font-semibold text-slate-500">Email</div>
                       <div className="font-bold text-slate-900 text-sm truncate">{email || user.email}</div>
                     </div>
 
                     <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
-                      <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">NO. TELEPON / WHATSAPP</div>
+                      <div className="text-xs font-semibold text-slate-500">No. Telepon / WhatsApp</div>
                       <div className="font-bold text-slate-900 text-sm">{mobile || 'Belum Diisi'}</div>
                     </div>
 
                     <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
-                      <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">JENIS KELAMIN</div>
+                      <div className="text-xs font-semibold text-slate-500">Jenis Kelamin</div>
                       <div className="font-bold text-slate-900 text-sm">{gender === 'Male' ? 'Laki-Laki' : gender === 'Female' ? 'Perempuan' : (gender || 'Belum Diisi')}</div>
                     </div>
 
                     <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
-                      <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">KEWARGANEGARAAN</div>
+                      <div className="text-xs font-semibold text-slate-500">Kewarganegaraan</div>
                       <div className="font-bold text-slate-900 text-sm">{nationality || 'Indonesian'}</div>
                     </div>
                   </motion.div>
@@ -1387,35 +1387,35 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     ) : (
                       <div className="space-y-3">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 py-2 border-b border-slate-100 text-xs">
-                          <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">UNIVERSITY</div>
+                          <div className="text-xs font-semibold text-slate-500">Perguruan Tinggi</div>
                           <div className="md:col-span-2 font-bold text-slate-900 text-sm">
                             {qualifications[0]?.institution || university || 'Universitas Muhammadiyah Kendari'}
                           </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 py-2 border-b border-slate-100 text-xs">
-                          <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">QUALIFICATION</div>
+                          <div className="text-xs font-semibold text-slate-500">Jenjang Pendidikan</div>
                           <div className="md:col-span-2 font-bold text-slate-900 text-sm">
                             {qualifications[0]?.level?.includes('-') ? qualifications[0]?.level.split('-')[0].trim() : (qualifications[0]?.level || newLevel || 'S1')}
                           </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 py-2 border-b border-slate-100 text-xs">
-                          <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">FIELD OF STUDY</div>
+                          <div className="text-xs font-semibold text-slate-500">Program Studi</div>
                           <div className="md:col-span-2 font-bold text-slate-900 text-sm">
                             {qualifications[0]?.level?.includes('-') ? qualifications[0]?.level.split('-').slice(1).join('-').trim() : (newFieldOfStudy || '-')}
                           </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 py-2 border-b border-slate-100 text-xs">
-                          <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">ADMISSION DATE</div>
+                          <div className="text-xs font-semibold text-slate-500">Tahun Masuk</div>
                           <div className="md:col-span-2 font-bold text-slate-900 text-sm">
                             {newAdmissionMonth ? `${newAdmissionMonth} ` : ''}{newAdmissionYear || '-'}
                           </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 py-2 border-b border-slate-100 text-xs">
-                          <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">GRADUATION DATE</div>
+                          <div className="text-xs font-semibold text-slate-500">Tahun Kelulusan</div>
                           <div className="md:col-span-2 font-bold text-slate-900 text-sm">
                             {qualifications[0]?.year || (isStillStudying ? `Sedang Berjalan (Estimasi ${newGraduationYear || '2028'})` : (newGraduationYear || '-'))}
                           </div>
@@ -1423,7 +1423,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
 
                         {qualifications[0]?.ipk && (
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 py-2 text-xs">
-                            <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">IPK / NILAI AKHIR</div>
+                            <div className="text-xs font-semibold text-slate-500">IPK / Nilai Akhir</div>
                             <div className="md:col-span-2 font-bold text-emerald-700 text-sm">
                               {qualifications[0]?.ipk}
                             </div>
@@ -1499,7 +1499,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
 
                     {/* Rekomendasi / Saran Cepat */}
                     <div className="space-y-2 pt-1">
-                      <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                      <div className="text-xs font-semibold text-slate-500">
                         Saran Keahlian Populer (Klik untuk tambah):
                       </div>
                       <div className="flex flex-wrap gap-1.5">
@@ -1637,7 +1637,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     className="space-y-5"
                   >
                     <form onSubmit={handleAddExperience} className="space-y-4 text-xs bg-slate-50/80 p-4.5 rounded-2xl border border-slate-200">
-                      <div className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">
+                      <div className="text-xs font-semibold text-slate-800 mb-1">
                         Formulir Tambah Pengalaman Baru
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -1820,7 +1820,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     className="space-y-5"
                   >
                     <form onSubmit={handleAddCertificate} className="space-y-4 text-xs bg-slate-50/80 p-4.5 rounded-2xl border border-slate-200">
-                      <div className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">
+                      <div className="text-xs font-semibold text-slate-800 mb-1">
                         Formulir Tambah Sertifikat Baru
                       </div>
                       <div>
@@ -1980,7 +1980,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     className="space-y-4"
                   >
                     <form onSubmit={handleAddLanguage} className="space-y-4 text-xs bg-slate-50/80 p-4.5 rounded-2xl border border-slate-200">
-                      <div className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">
+                      <div className="text-xs font-semibold text-slate-800 mb-1">
                         Formulir Tambah Bahasa
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -2199,22 +2199,22 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs"
                   >
                     <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1">
-                      <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">JENIS KESEMPATAN</div>
+                      <div className="text-xs font-semibold text-slate-500">Jenis Kesempatan</div>
                       <div className="font-bold text-slate-900 text-sm">{opportunityType || 'Belum Diisi'}</div>
                     </div>
 
                     <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1">
-                      <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">TANGGAL SIAP KERJA</div>
+                      <div className="text-xs font-semibold text-slate-500">Tanggal Siap Kerja</div>
                       <div className="font-bold text-slate-900 text-sm">{opportunityStartDate || 'Belum Diisi'}</div>
                     </div>
 
                     <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1">
-                      <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">INDUSTRI YANG DIMINATI</div>
+                      <div className="text-xs font-semibold text-slate-500">Industri yang Diminati</div>
                       <div className="font-bold text-slate-900 text-sm">{industries || 'Belum Diisi'}</div>
                     </div>
 
                     <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1">
-                      <div className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">LOKASI KERJA IMPIAN</div>
+                      <div className="text-xs font-semibold text-slate-500">Lokasi Kerja Impian</div>
                       <div className="font-bold text-slate-900 text-sm">{locations || 'Belum Diisi'}</div>
                     </div>
                   </motion.div>

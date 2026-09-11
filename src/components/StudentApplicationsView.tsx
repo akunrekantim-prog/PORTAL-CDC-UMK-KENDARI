@@ -34,7 +34,7 @@ interface StudentApplicationsViewProps {
 }
 
 const formatDateDisplay = (dateStr?: string) => {
-  if (!dateStr) return '10 Agustus 2026';
+  if (!dateStr) return '-';
   if (dateStr.includes('Agustus') || dateStr.includes('Januari') || dateStr.includes('Februari')) return dateStr;
   try {
     const d = new Date(dateStr);
@@ -72,8 +72,8 @@ const getStatusBadge = (status?: string) => {
     case 'interview':
       return {
         label: 'Interview',
-        color: 'bg-purple-50 text-purple-700 border-purple-200',
-        dotColor: 'bg-purple-500',
+        color: 'bg-orange-50 text-orange-700 border-orange-200',
+        dotColor: 'bg-orange-500',
         icon: Video
       };
     case 'seleksi_administrasi':
@@ -294,44 +294,44 @@ export const StudentApplicationsView: React.FC<StudentApplicationsViewProps> = (
         </div>
 
         {/* KARTU STATISTIK SAYA */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
-          <div className="bg-slate-50 p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200/80 flex items-center gap-2 sm:gap-3">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
+          <div className="bg-slate-50/80 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200/80 flex items-center gap-3 transition-colors hover:bg-slate-100/60">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
               <Briefcase className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div className="min-w-0">
-              <div className="text-slate-400 font-bold text-[9px] sm:text-[10px] uppercase tracking-wider truncate">Total</div>
-              <div className="text-base sm:text-xl font-black text-slate-900 leading-tight">{statTotal}</div>
+              <div className="text-xs font-medium text-slate-500 truncate">Total Lamaran</div>
+              <div className="text-lg sm:text-2xl font-bold text-slate-900 leading-tight mt-0.5">{statTotal}</div>
             </div>
           </div>
 
-          <div className="bg-amber-50/60 p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border border-amber-200/80 flex items-center gap-2 sm:gap-3">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0">
+          <div className="bg-slate-50/80 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200/80 flex items-center gap-3 transition-colors hover:bg-slate-100/60">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0">
               <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div className="min-w-0">
-              <div className="text-amber-700/70 font-bold text-[9px] sm:text-[10px] uppercase tracking-wider truncate">Review</div>
-              <div className="text-base sm:text-xl font-black text-amber-900 leading-tight">{statReview}</div>
+              <div className="text-xs font-medium text-slate-500 truncate">Dalam Review</div>
+              <div className="text-lg sm:text-2xl font-bold text-slate-900 leading-tight mt-0.5">{statReview}</div>
             </div>
           </div>
 
-          <div className="bg-purple-50/60 p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border border-purple-200/80 flex items-center gap-2 sm:gap-3">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0">
+          <div className="bg-slate-50/80 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200/80 flex items-center gap-3 transition-colors hover:bg-slate-100/60">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-orange-500/10 text-orange-600 flex items-center justify-center shrink-0">
               <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div className="min-w-0">
-              <div className="text-purple-700/70 font-bold text-[9px] sm:text-[10px] uppercase tracking-wider truncate">Interview</div>
-              <div className="text-base sm:text-xl font-black text-purple-900 leading-tight">{statInterview}</div>
+              <div className="text-xs font-medium text-slate-500 truncate">Interview</div>
+              <div className="text-lg sm:text-2xl font-bold text-slate-900 leading-tight mt-0.5">{statInterview}</div>
             </div>
           </div>
 
-          <div className="bg-emerald-50/60 p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border border-emerald-200/80 flex items-center gap-2 sm:gap-3">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+          <div className="bg-slate-50/80 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200/80 flex items-center gap-3 transition-colors hover:bg-slate-100/60">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
               <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div className="min-w-0">
-              <div className="text-emerald-700/70 font-bold text-[9px] sm:text-[10px] uppercase tracking-wider truncate">Diterima</div>
-              <div className="text-base sm:text-xl font-black text-emerald-900 leading-tight">{statAccepted}</div>
+              <div className="text-xs font-medium text-slate-500 truncate">Diterima</div>
+              <div className="text-lg sm:text-2xl font-bold text-slate-900 leading-tight mt-0.5">{statAccepted}</div>
             </div>
           </div>
         </div>
@@ -341,9 +341,9 @@ export const StudentApplicationsView: React.FC<StudentApplicationsViewProps> = (
       {activeInterviewApps.length > 0 && (
         <div className="space-y-3 sm:space-y-4">
           <div className="flex items-center gap-2">
-            <Video className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 shrink-0" />
-            <h3 className="text-sm sm:text-lg font-extrabold text-slate-900 tracking-tight">
-              Undangan Wawancara / Interview Aktif ({activeInterviewApps.length})
+            <Video className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600 shrink-0" />
+            <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
+              Undangan Wawancara Aktif ({activeInterviewApps.length})
             </h3>
           </div>
 
@@ -355,48 +355,48 @@ export const StudentApplicationsView: React.FC<StudentApplicationsViewProps> = (
               return (
                 <div
                   key={appl.id}
-                  className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border-2 border-purple-200 shadow-xs space-y-4 animate-fadeIn"
+                  className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-orange-200 bg-orange-50/15 shadow-xs space-y-4 animate-fadeIn"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 shrink-0">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-orange-100/80 border border-orange-200/60 flex items-center justify-center text-orange-600 shrink-0">
                         <Video className="w-5 h-5 sm:w-6 sm:h-6" />
                       </div>
                       <div className="min-w-0">
-                        <span className="text-purple-600 font-extrabold text-[9px] sm:text-[10px] uppercase tracking-wider block mb-0.5">
-                          JADWAL WAWANCARA RESMI MITRA
+                        <span className="text-xs font-semibold text-orange-700 bg-orange-100/70 px-2 py-0.5 rounded-md inline-block mb-1">
+                          Undangan Wawancara
                         </span>
-                        <h4 className="text-base sm:text-xl font-extrabold text-slate-900 leading-snug truncate">
+                        <h4 className="text-base sm:text-lg font-bold text-slate-900 leading-snug truncate">
                           {appl.tujuanMagang}
                         </h4>
                         <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium mt-0.5">
                           <Building2 className="w-3.5 h-3.5 text-[#0077C6] shrink-0" />
-                          <span className="font-bold text-slate-700 truncate">{companyName}</span>
+                          <span className="font-semibold text-slate-700 truncate">{companyName}</span>
                         </div>
                       </div>
                     </div>
-                    <span className="px-3 py-1 rounded-full bg-purple-50 border border-purple-200 text-purple-700 text-[11px] sm:text-xs font-extrabold tracking-wider uppercase w-fit self-start sm:self-auto">
-                      Status: INTERVIEW
+                    <span className="px-3 py-1 rounded-full bg-orange-100/80 text-orange-800 text-xs font-semibold w-fit self-start sm:self-auto">
+                      Tahap Wawancara
                     </span>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-4 text-xs">
                     <div className="bg-slate-50 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-100 space-y-1">
-                      <div className="flex items-center gap-1.5 text-slate-500 font-bold text-[11px]">
+                      <div className="flex items-center gap-1.5 text-slate-500 font-semibold text-xs">
                         <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                        <span>Tanggal &amp; Waktu Interview</span>
+                        <span>Jadwal Wawancara</span>
                       </div>
-                      <div className="font-extrabold text-slate-900 text-sm sm:text-base font-mono">
-                        {formatDateDisplay(appl.interviewDate || '2026-08-15')} • {appl.interviewTime || '10:00 WITA'}
+                      <div className="font-bold text-slate-900 text-sm">
+                        {appl.interviewDate ? formatDateDisplay(appl.interviewDate) : 'Menunggu jadwal resmi'} • {appl.interviewTime || '10:00 WITA'}
                       </div>
                     </div>
 
                     <div className="bg-slate-50 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-100 space-y-1">
-                      <div className="flex items-center gap-1.5 text-slate-500 font-bold text-[11px]">
+                      <div className="flex items-center gap-1.5 text-slate-500 font-semibold text-xs">
                         {appl.interviewMethod === 'online' ? <Video className="w-3.5 h-3.5 text-slate-400" /> : <MapPin className="w-3.5 h-3.5 text-slate-400" />}
-                        <span>Metode &amp; Akses</span>
+                        <span>Lokasi / Media Pertemuan</span>
                       </div>
-                      <div className="font-bold text-slate-900 text-xs sm:text-sm truncate">
+                      <div className="font-semibold text-slate-900 text-xs sm:text-sm truncate">
                         {appl.interviewMethod === 'online' ? (
                           appl.interviewLink ? (
                             <a
@@ -405,21 +405,21 @@ export const StudentApplicationsView: React.FC<StudentApplicationsViewProps> = (
                               rel="noopener noreferrer"
                               className="text-[#0077C6] hover:underline inline-flex items-center gap-1 font-semibold"
                             >
-                              Buka Link Interview <ExternalLink className="w-3.5 h-3.5" />
+                              Buka Tautan Interview <ExternalLink className="w-3.5 h-3.5" />
                             </a>
                           ) : (
-                            'Online (Video Conference)'
+                            'Online (Tautan akan dikirim oleh tim HRD)'
                           )
                         ) : (
-                          appl.interviewLocation || 'Kantor Perusahaan HRD (Offline)'
+                          appl.interviewLocation || 'Kantor Mitra (Offline)'
                         )}
                       </div>
                     </div>
                   </div>
 
                   {appl.interviewNote && (
-                    <div className="bg-purple-50/50 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-purple-100 text-xs text-purple-900 font-medium leading-relaxed">
-                      <span className="font-bold text-purple-950 block mb-0.5 uppercase tracking-wider text-[9px] sm:text-[10px]">Catatan &amp; Instruksi HRD:</span>
+                    <div className="bg-orange-50/70 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-orange-100 text-xs text-orange-950 leading-relaxed">
+                      <span className="font-semibold text-orange-900 block mb-1 text-xs">Instruksi &amp; Catatan dari Mitra:</span>
                       &quot;{appl.interviewNote}&quot;
                     </div>
                   )}
@@ -539,50 +539,50 @@ export const StudentApplicationsView: React.FC<StudentApplicationsViewProps> = (
                   key={appl.id}
                   className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border border-slate-200/90 shadow-2xs hover:border-[#0077C6]/40 hover:shadow-xs transition-all space-y-3"
                 >
-                  <div className="space-y-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-                      <span className="font-bold text-orange-600 uppercase tracking-wide truncate max-w-[200px] sm:max-w-none">
+                  <div className="space-y-1.5 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      <span className="font-semibold text-[#0077C6] truncate max-w-[220px] sm:max-w-none">
                         {companyName}
                       </span>
                       <span className="text-slate-300">•</span>
-                      <span className="text-slate-400 font-mono text-[10px] sm:text-[11px]">
+                      <span className="text-slate-500 text-xs">
                         Diajukan: {formatDateDisplay(appl.createdAt || appl.tanggalMulai)}
                       </span>
                     </div>
 
-                    <h4 className="text-sm sm:text-base font-extrabold text-slate-900 leading-snug">
+                    <h4 className="text-base font-bold text-slate-900 leading-snug">
                       {appl.tujuanMagang}
                     </h4>
 
-                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[11px] sm:text-xs text-slate-500">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-slate-500 pt-0.5">
                       {appl.lokasiMagang && (
                         <span className="flex items-center gap-1 text-slate-600">
-                          <MapPin className="w-3 h-3 text-slate-400 shrink-0" /> {appl.lokasiMagang}
+                          <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {appl.lokasiMagang}
                         </span>
                       )}
                       {appl.berkasNama && (
-                        <span className="flex items-center gap-1 text-slate-600 truncate max-w-[200px] sm:max-w-none">
-                          <FileText className="w-3 h-3 text-[#0077C6] shrink-0" /> {appl.berkasNama}
+                        <span className="flex items-center gap-1 text-slate-600 truncate max-w-[220px] sm:max-w-none">
+                          <FileText className="w-3.5 h-3.5 text-[#0077C6] shrink-0" /> {appl.berkasNama}
                         </span>
                       )}
                     </div>
                   </div>
 
-                  {/* Card Actions Footer - Responsive Wrap for mobile */}
+                  {/* Card Actions Footer */}
                   <div className="flex flex-wrap items-center justify-between gap-2 pt-2.5 border-t border-slate-100">
-                    <span className={`px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-extrabold border shadow-2xs flex items-center gap-1.5 ${badge.color}`}>
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border flex items-center gap-1.5 ${badge.color}`}>
                       <span className={`w-1.5 h-1.5 rounded-full ${badge.dotColor}`} />
                       <span>{badge.label}</span>
                     </span>
 
-                    <div className="flex items-center gap-1.5 ml-auto">
+                    <div className="flex items-center gap-2 ml-auto">
                       <button
                         type="button"
                         onClick={() => setSelectedDetailModal(appl)}
-                        className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-lg text-[11px] font-bold transition flex items-center gap-1 cursor-pointer"
+                        className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer"
                         title="Lihat Detail Lamaran"
                       >
-                        <Eye className="w-3 h-3 text-slate-500" />
+                        <Eye className="w-3.5 h-3.5 text-slate-500" />
                         <span>Detail</span>
                       </button>
 
@@ -590,11 +590,11 @@ export const StudentApplicationsView: React.FC<StudentApplicationsViewProps> = (
                         <button
                           type="button"
                           onClick={() => onSelectJob(matchingJob)}
-                          className="bg-blue-50 hover:bg-blue-100 text-[#0077C6] border border-blue-200 px-2.5 py-1 rounded-lg text-[11px] font-bold transition flex items-center gap-1 cursor-pointer"
+                          className="bg-blue-50 hover:bg-blue-100 text-[#0077C6] border border-blue-200/80 px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer"
                           title="Buka Halaman Lowongan Ini"
                         >
-                          <ExternalLink className="w-3 h-3" />
-                          <span>Lowongan</span>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          <span>Lihat Lowongan</span>
                         </button>
                       )}
                     </div>
