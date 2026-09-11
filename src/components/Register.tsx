@@ -72,7 +72,7 @@ export default function Register({
   onRegisterSuccess,
   onLoginSuccess
 }: RegisterProps) {
-  const [isEnteringForm, setIsEnteringForm] = useState(false);
+  const [isEnteringForm, setIsEnteringForm] = useState(true);
   const [activeTab, setActiveTab] = useState<'alumni' | 'perusahaan'>(initialTab);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -110,6 +110,7 @@ export default function Register({
   // Sync state if initialTab changes
   useEffect(() => {
     setActiveTab(initialTab);
+    setIsEnteringForm(true);
     setErrorMsg('');
     setSuccessUser(null);
   }, [initialTab]);
@@ -465,7 +466,7 @@ export default function Register({
                   <GoogleLogo className="w-5 h-5" />
                 )}
                 <span className="text-sm sm:text-base font-bold text-slate-900">
-                  {isGoogleLoading ? 'Menghubungkan ke Google...' : 'Log In with Google'}
+                  {isGoogleLoading ? 'Menghubungkan ke Google...' : 'Sign Up with Google'}
                 </span>
               </button>
 
@@ -629,12 +630,12 @@ export default function Register({
                 {/* Title & Subtitle */}
                 <div className="space-y-1">
                   <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                    {activeTab === 'alumni' ? 'Daftar Akun' : 'Registrasi Mitra Perusahaan'}
+                    {activeTab === 'alumni' ? 'Daftar Akun Mahasiswa / Alumni' : 'Registrasi Mitra Perusahaan'}
                   </h1>
                   <p className="text-sm text-slate-500">
                     {activeTab === 'alumni'
                       ? 'Lengkapi data berikut untuk membuat akun Portal CDC Universitas Muhammadiyah Kendari.'
-                      : 'Daftarkan akun perusahaan, instansi, atau recruiter Anda untuk mempublikasikan informasi lowongan kerja dan menemukan talenta lulusan terbaik.'}
+                      : 'Daftarkan akun perusahaan, instansi, atau recruiter Anda untuk mempublikasikan lowongan kerja dan menemukan talenta lulusan terbaik.'}
                   </p>
                 </div>
 
@@ -930,7 +931,7 @@ export default function Register({
                           <GoogleLogo className="w-5 h-5" />
                         )}
                         <span className="text-sm sm:text-base font-bold text-slate-900">
-                          {isGoogleLoading ? 'Menghubungkan ke Google...' : 'Log In with Google'}
+                          {isGoogleLoading ? 'Menghubungkan ke Google...' : 'Sign Up with Google'}
                         </span>
                       </button>
 
@@ -1183,33 +1184,6 @@ export default function Register({
                           )}
                         </button>
                       </div>
-
-                      {/* Divider: or */}
-                      <div className="relative flex items-center justify-center py-1">
-                        <div className="border-t border-slate-200 w-full"></div>
-                        <span className="bg-white px-3 text-xs text-slate-400 font-medium lowercase">
-                          or
-                        </span>
-                        <div className="border-t border-slate-200 w-full"></div>
-                      </div>
-
-                      {/* Google Sign-In Button (CDC UI Style) */}
-                      <button
-                        type="button"
-                        onClick={handleGoogleLogin}
-                        disabled={isGoogleLoading}
-                        className="w-full bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 font-bold py-3 px-4 rounded-xl border border-slate-900 transition duration-150 flex items-center justify-center gap-3 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99] disabled:opacity-60"
-                        id="register-mitra-google-btn"
-                      >
-                        {isGoogleLoading ? (
-                          <Loader2 className="w-5 h-5 animate-spin text-slate-700" />
-                        ) : (
-                          <GoogleLogo className="w-5 h-5" />
-                        )}
-                        <span className="text-sm sm:text-base font-bold text-slate-900">
-                          {isGoogleLoading ? 'Menghubungkan ke Google...' : 'Log In with Google'}
-                        </span>
-                      </button>
 
                       {/* Under-Card Link */}
                       <div className="pt-2 text-center text-xs text-slate-600">

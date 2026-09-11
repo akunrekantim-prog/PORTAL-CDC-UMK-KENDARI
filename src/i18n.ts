@@ -42,7 +42,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'nav.seni': 'Seni',
     'nav.register': 'Register',
     'nav.registeralumni': 'Register Mahasiswa / Alumni',
-    'nav.registermitra': 'Register Perusahaan / Mitra',
+    'nav.registermitra': 'Register Mitra',
     'nav.jobinfo': 'Job Info',
     'nav.lowonganterbaru': 'Lowongan Terbaru',
     'nav.login': 'Masuk Portal',

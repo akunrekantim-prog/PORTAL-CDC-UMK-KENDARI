@@ -337,69 +337,6 @@ export default function Login({
                 <span>Masuk dengan Akun Mitra</span>
               </button>
 
-              {/* Divider: or */}
-              <div className="relative flex items-center justify-center py-1">
-                <div className="border-t border-slate-200 w-full"></div>
-                <span className="bg-white px-3 text-xs text-slate-400 font-medium lowercase">
-                  or
-                </span>
-                <div className="border-t border-slate-200 w-full"></div>
-              </div>
-
-              {/* Google Sign-In Button (Direct Official Popup) */}
-              <button
-                type="button"
-                onClick={handleGoogleLogin}
-                disabled={isGoogleLoading}
-                className="w-full bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 font-bold py-3.5 px-4 rounded-xl border border-slate-900 transition duration-150 flex items-center justify-center gap-3 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99] disabled:opacity-60"
-                id="login-hero-google-btn"
-              >
-                {isGoogleLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin text-slate-700" />
-                ) : (
-                  <GoogleLogo className="w-5 h-5" />
-                )}
-                <span className="text-sm sm:text-base font-bold text-slate-900">
-                  {isGoogleLoading ? 'Menghubungkan ke Google...' : 'Log In with Google'}
-                </span>
-              </button>
-
-              {/* Divider: ATAU */}
-              <div className="relative flex items-center justify-center py-1">
-                <div className="border-t border-slate-200 w-full"></div>
-                <span className="bg-white px-3 text-xs text-slate-400 font-bold uppercase tracking-wider">
-                  ATAU
-                </span>
-                <div className="border-t border-slate-200 w-full"></div>
-              </div>
-
-              {/* Alternative Action: Lupa Kata Sandi */}
-              <div>
-                <button
-                  type="button"
-                  onClick={() => setShowForgotModal(true)}
-                  className="w-full py-3.5 px-4 rounded-2xl text-xs sm:text-sm font-semibold text-slate-700 bg-[#F5F1EB] hover:bg-[#EAE5DE] border border-slate-200/60 transition cursor-pointer flex items-center justify-center"
-                  id="login-hero-forgot-btn"
-                >
-                  <span>Lupa Kata Sandi</span>
-                </button>
-              </div>
-
-              {/* Under-Action Registration Links */}
-              <div className="pt-4 text-center text-xs text-slate-600 space-y-2 border-t border-slate-100">
-                <div>
-                  Belum memiliki akun?{' '}
-                  <button
-                    type="button"
-                    onClick={() => onNavigateToRegister('alumni')}
-                    className="font-bold text-[#0077C6] hover:text-[#005FA0] hover:underline cursor-pointer"
-                    id="login-hero-register-btn"
-                  >
-                    Daftar Sekarang
-                  </button>
-                </div>
-              </div>
-
             </div>
           ) : (
             /* ─────────────────────────────────────────────────────────────
@@ -421,11 +358,10 @@ export default function Login({
                 />
                 <label
                   htmlFor="login-input-email"
-                  className={`pointer-events-none absolute left-4 transition-all duration-150 origin-left select-none ${
-                    email
-                      ? 'top-1.5 text-[11px] font-medium text-slate-500'
-                      : 'top-3.5 text-sm text-slate-400 peer-focus:top-1.5 peer-focus:text-[11px] peer-focus:text-[#0077C6] peer-focus:font-medium'
-                  }`}
+                  className={`pointer-events-none absolute left-4 transition-all duration-150 origin-left select-none ${email
+                    ? 'top-1.5 text-[11px] font-medium text-slate-500'
+                    : 'top-3.5 text-sm text-slate-400 peer-focus:top-1.5 peer-focus:text-[11px] peer-focus:text-[#0077C6] peer-focus:font-medium'
+                    }`}
                 >
                   {selectedRole === 'mitra' ? 'Email Resmi Instansi / Perusahaan' : 'Alamat Email Mahasiswa / Alumni'}
                 </label>
@@ -444,11 +380,10 @@ export default function Login({
                 />
                 <label
                   htmlFor="login-input-password"
-                  className={`pointer-events-none absolute left-4 transition-all duration-150 origin-left select-none ${
-                    password
-                      ? 'top-1.5 text-[11px] font-medium text-slate-500'
-                      : 'top-3.5 text-sm text-slate-400 peer-focus:top-1.5 peer-focus:text-[11px] peer-focus:text-[#0077C6] peer-focus:font-medium'
-                  }`}
+                  className={`pointer-events-none absolute left-4 transition-all duration-150 origin-left select-none ${password
+                    ? 'top-1.5 text-[11px] font-medium text-slate-500'
+                    : 'top-3.5 text-sm text-slate-400 peer-focus:top-1.5 peer-focus:text-[11px] peer-focus:text-[#0077C6] peer-focus:font-medium'
+                    }`}
                 >
                   Kata Sandi
                 </label>
@@ -467,11 +402,10 @@ export default function Login({
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className={`w-full text-white font-bold py-3.5 px-6 rounded-xl text-sm transition duration-150 shadow-md hover:shadow-lg flex items-center justify-center cursor-pointer ${
-                    selectedRole === 'mitra'
-                      ? 'bg-[#1B365D] hover:bg-[#142845] active:bg-[#0E1D33]'
-                      : 'bg-[#0077C6] hover:bg-[#005FA0] active:bg-[#004C80]'
-                  }`}
+                  className={`w-full text-white font-bold py-3.5 px-6 rounded-xl text-sm transition duration-150 shadow-md hover:shadow-lg flex items-center justify-center cursor-pointer ${selectedRole === 'mitra'
+                    ? 'bg-[#1B365D] hover:bg-[#142845] active:bg-[#0E1D33]'
+                    : 'bg-[#0077C6] hover:bg-[#005FA0] active:bg-[#004C80]'
+                    }`}
                   id="login-submit-button"
                 >
                   {isLoading ? (
@@ -486,32 +420,35 @@ export default function Login({
                 </button>
               </div>
 
-              {/* Divider: or */}
-              <div className="relative flex items-center justify-center py-1">
-                <div className="border-t border-slate-200 w-full"></div>
-                <span className="bg-white px-3 text-xs text-slate-400 font-medium lowercase">
-                  or
-                </span>
-                <div className="border-t border-slate-200 w-full"></div>
-              </div>
+              {/* Google Sign-In Button (Only for Mahasiswa / Alumni) */}
+              {selectedRole !== 'mitra' && (
+                <>
+                  <div className="relative flex items-center justify-center py-1">
+                    <div className="border-t border-slate-200 w-full"></div>
+                    <span className="bg-white px-3 text-xs text-slate-400 font-medium lowercase">
+                      or
+                    </span>
+                    <div className="border-t border-slate-200 w-full"></div>
+                  </div>
 
-              {/* Google Sign-In Button (Direct Official Popup) */}
-              <button
-                type="button"
-                onClick={handleGoogleLogin}
-                disabled={isGoogleLoading}
-                className="w-full bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 font-bold py-3 px-4 rounded-xl border border-slate-900 transition duration-150 flex items-center justify-center gap-3 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99] disabled:opacity-60"
-                id="login-form-google-btn"
-              >
-                {isGoogleLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin text-slate-700" />
-                ) : (
-                  <GoogleLogo className="w-5 h-5" />
-                )}
-                <span className="text-sm sm:text-base font-bold text-slate-900">
-                  {isGoogleLoading ? 'Menghubungkan ke Google...' : 'Log In with Google'}
-                </span>
-              </button>
+                  <button
+                    type="button"
+                    onClick={handleGoogleLogin}
+                    disabled={isGoogleLoading}
+                    className="w-full bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 font-bold py-3 px-4 rounded-xl border border-slate-900 transition duration-150 flex items-center justify-center gap-3 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99] disabled:opacity-60"
+                    id="login-form-google-btn"
+                  >
+                    {isGoogleLoading ? (
+                      <Loader2 className="w-5 h-5 animate-spin text-slate-700" />
+                    ) : (
+                      <GoogleLogo className="w-5 h-5" />
+                    )}
+                    <span className="text-sm sm:text-base font-bold text-slate-900">
+                      {isGoogleLoading ? 'Menghubungkan ke Google...' : 'Log In with Google'}
+                    </span>
+                  </button>
+                </>
+              )}
 
               {/* Divider: ATAU */}
               <div className="relative flex items-center justify-center py-1">
