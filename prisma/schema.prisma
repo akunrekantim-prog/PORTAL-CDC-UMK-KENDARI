@@ -88,6 +88,15 @@ model User {
   alumni    Alumni?
   mitra     Mitra?
 
+  // Index ini dibuat langsung di DB (SQL manual) dan tidak pernah masuk schema,
+  // sehingga `prisma migrate diff` mendeteksinya sebagai drift dan berpotensi
+  // menghapusnya saat migrasi ke server kampus.
+  // `map` memakai nama index yang SUDAH ADA; tanpa itu Prisma akan membuat index
+  // baru bernama users_email_idx dan meninggalkan yang lama sebagai duplikat.
+  @@index([email], map: "idx_users_email")
+  @@index([role], map: "idx_users_role")
+  @@index([status], map: "idx_users_status")
+
   @@map("users")
 }
 
@@ -120,6 +129,12 @@ model Mahasiswa {
   qualifications MahasiswaQualification[]
   documents      UploadedDocument[]
 
+  // Lihat catatan di model User: index ini sudah ada di DB, di-pin dengan `map`
+  // agar tidak dianggap drift dan tidak terhapus saat migrasi.
+  @@index([angkatan], map: "idx_mahasiswas_angkatan")
+  @@index([nim], map: "idx_mahasiswas_nim")
+  @@index([programStudi], map: "idx_mahasiswas_prodi")
+
   @@map("mahasiswas")
 }
 
@@ -140,6 +155,12 @@ model Alumni {
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
   surveiLulusans  SurveiLulusan[]
+
+  // Lihat catatan di model User: index ini sudah ada di DB, di-pin dengan `map`
+  // agar tidak dianggap drift dan tidak terhapus saat migrasi.
+  @@index([programStudi], map: "idx_alumnis_prodi")
+  @@index([statusPekerjaan], map: "idx_alumnis_status_pekerjaan")
+  @@index([tahunLulus], map: "idx_alumnis_tahun_lulus")
 
   @@map("alumnis")
 }
@@ -200,6 +221,15 @@ model Lowongan {
 
   pengajuan PengajuanMagang[]
 
+  // Lihat catatan di model User: index ini sudah ada di DB, di-pin dengan `map`
+  // agar tidak dianggap drift dan tidak terhapus saat migrasi.
+  // sort: Desc WAJIB dipertahankan — lihat catatan di model Berita.
+  @@index([createdAt(sort: Desc)], map: "idx_lowongans_created_at")
+  @@index([deadline], map: "idx_lowongans_deadline")
+  @@index([mitraId], map: "idx_lowongans_mitra")
+  @@index([status], map: "idx_lowongans_status")
+  @@index([tipe], map: "idx_lowongans_tipe")
+
   @@map("lowongans")
 }
 
@@ -232,6 +262,13 @@ model PengajuanMagang {
   interviewLocation String?
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
+
+  // Lihat catatan di model User: index ini sudah ada di DB, di-pin dengan `map`
+  // agar tidak dianggap drift dan tidak terhapus saat migrasi.
+  // Ketiga index ini penting untuk performa dashboard mahasiswa & mitra.
+  @@index([lowonganId], map: "idx_pengajuan_lowongan")
+  @@index([mahasiswaId], map: "idx_pengajuan_mahasiswa")
+  @@index([status], map: "idx_pengajuan_status")
 
   @@map("pengajuan_magangs")
 }
@@ -368,6 +405,14 @@ model Berita {
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   komentarBerita KomentarBerita[]
+
+  // Lihat catatan di model User: index ini sudah ada di DB, di-pin dengan `map`
+  // agar tidak dianggap drift dan tidak terhapus saat migrasi.
+  // sort: Desc WAJIB dipertahankan — index asli dibuat dengan "createdAt" DESC
+  // untuk mempercepat query "terbaru dulu". Tanpa sort, Prisma akan
+  // DROP + CREATE ulang sebagai ASC dan urutannya berubah.
+  @@index([createdAt(sort: Desc)], map: "idx_beritas_created_at")
+  @@index([status], map: "idx_beritas_status")
 
   @@map("beritas")
 }

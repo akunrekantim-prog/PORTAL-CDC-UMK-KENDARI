@@ -3,7 +3,7 @@
 
 Dokumen ini menjelaskan **satu per satu seluruh tabel** di database Supabase PostgreSQL, **fungsinya**, **kolom kunci**, **relasi ke tabel lain**, **siapa yang mengaksesnya**, dan **alur data** dari frontend → backend → database.
 
-Sumber skema: `prisma/schema.prisma` (model) + `supabase/migrations/001_create_all_tables.sql` (DDL) + `supabase/migrations/002_seed_data.sql` (data awal).
+Sumber skema: `prisma/schema.prisma` (satu-satunya sumber kebenaran) + `prisma/migrations/0_init/migration.sql` (baseline DDL). File SQL lama ada di `docs/arsip-supabase/` sebagai arsip historis.
 
 ---
 

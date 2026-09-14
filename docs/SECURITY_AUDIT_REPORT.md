@@ -74,7 +74,7 @@
 ---
 
 ### 🟡 3. [MEDIUM] Kebijakan Supabase Row Level Security (RLS) Terlalu Terbuka
-- **Lokasi:** `supabase/migrations/001_create_all_tables.sql:843-946`
+- **Lokasi:** `docs/arsip-supabase/001_create_all_tables.sql:843-946` (dulu `supabase/migrations/`)
 - **Temuan:**
   Kebijakan RLS untuk Service Role dibuat dengan:
   ```sql

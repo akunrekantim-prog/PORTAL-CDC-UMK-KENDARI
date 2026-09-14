@@ -30,7 +30,11 @@ services:
       - "5433:5432"       # Map ke port 5433 agar tidak bentrok dengan PostgreSQL lokal
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./supabase/migrations:/docker-entrypoint-initdb.d:ro   # Auto-run SQL saat pertama kali
+      # File DDL/seed lama dipindahkan ke docs/arsip-supabase/ (historis).
+      # Mount ini mengarah ke folder itu agar container dev tetap terinisialisasi.
+      # Catatan: folder ini TIDAK lagi menjadi sumber kebenaran skema — yang berlaku
+      # adalah prisma/schema.prisma + prisma/migrations/.
+      - ./docs/arsip-supabase:/docker-entrypoint-initdb.d:ro   # Auto-run SQL saat pertama kali
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U cdcadmin -d portal_cdc"]
       interval: 10s
