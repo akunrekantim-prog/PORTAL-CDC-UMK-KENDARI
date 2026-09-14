@@ -6,6 +6,36 @@ Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 
 ---
 
+## Tanggal: 15 September 2026
+**Oleh: ARYA APRIAWAN**
+**Fokus Pekerjaan:** Penyelarasan tampilan detail Internship / Magang (`Magang.tsx`) menggunakan layout editorial `ShareableDetailPage` seperti Campus Hiring dengan tetap mempertahankan seluruh konsep & data lowongan magang.
+
+### Ringkasan Perubahan
+1. **Tampilan Detail Editorial Bergaya Campus Hiring (`src/components/layanan/Magang.tsx`):**
+   - Mengganti alur klik card lowongan magang yang sebelumnya membuka layout 2-kolom `JobDetail` global menjadi tampilan detail in-place menggunakan `ShareableDetailPage`.
+   - Mengintegrasikan navigasi kembali `< Kembali ke Internship / Magang` dan breadcrumb `Portal CDC UM Kendari > Internship / Magang > [Judul Magang]`.
+   - Menambahkan floating share sidebar kiri (Facebook, X/Twitter, WhatsApp, Telegram, LinkedIn) dan bottom share bar di bagian bawah artikel.
+   - Menampilkan judul besar tebal (H1), metadata strip berikon emas (Instansi, Lokasi, Batas Pendaftaran, `Oleh: Admin Website`), serta cover poster/banner proporsional.
+   - Sinkronisasi dengan `LayananContainer` via `useLayanan().setIsDetailActive` sehingga header luar disembunyikan otomatis saat membuka detail artikel.
+
+2. **Mempertahankan Seluruh Konsep & Data Magang:**
+   - **Ringkasan Program Magang (Grid Card 5 Kolom)**: Jenis Pekerjaan (Magang), Kategori, Gaji / Uang Saku, Kuota Peserta, dan Batas Waktu Pendaftaran.
+   - **Aksi Pendaftaran & Simpan**: Tombol utama "Lamar Posisi Magang" yang terintegrasi dengan modal pendaftaran resmi `JobApplicationModal` (unggah CV/portofolio) dan tombol "Simpan Lowongan" (tersinkron ke akun mahasiswa).
+   - **Deskripsi Pekerjaan**: Penjelasan lengkap deskripsi magang.
+   - **Persyaratan & Kualifikasi**: Daftar kualifikasi pelamar dengan ikon checklist hijau rapi.
+   - **Keahlian yang Dibutuhkan**: Badges keahlian (skills tags) yang dibutuhkan.
+   - **Benefit & Fasilitas Kompensasi**: Daftar keuntungan magang (uang saku, sertifikat resmi CDC, pengalaman audit/lapangan, dll.).
+   - **CTA Banner Bawah**: Ajakan lamaran cepat sebelum batas akhir pendaftaran.
+
+### File Diubah
+- **[MODIFY]** `src/components/layanan/Magang.tsx`
+- **[MODIFY]** `progres.md` (entri ini)
+
+### Verifikasi
+- ✅ `npx tsc --noEmit` — 0 error
+
+---
+
 ## Tanggal: 10 September 2026
 **Oleh: ARYA APRIAWAN**
 **Fokus Pekerjaan:** Samakan card layout + halaman detail Layanan (Workshop/Softskill/Seminar) dengan Campus Hiring, dan rapikan bar role-switcher agar tidak AI slop.

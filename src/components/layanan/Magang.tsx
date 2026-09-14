@@ -1,25 +1,152 @@
-import React, { useState } from 'react';
-import { Search, Info, Building2, Clock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import {
+  Search,
+  Info,
+  Building2,
+  Clock,
+  MapPin,
+  Briefcase,
+  Layers,
+  Banknote,
+  Users,
+  Calendar,
+  Bookmark,
+  Send,
+  CheckCircle2,
+  Check,
+  Award
+} from 'lucide-react';
 import { Lowongan } from '../../types';
-import { sortJobsByNewest, formatDateDisplay } from '../../data';
+import {
+  sortJobsByNewest,
+  formatDateDisplay,
+  applyForJob,
+  getSavedJobIds,
+  toggleSaveJob,
+  isJobDeadlinePassed
+} from '../../data';
 import Pagination from './ui/Pagination';
+import ShareableDetailPage from './ui/ShareableDetailPage';
+import { useLayanan } from './LayananContainer';
+import { JobApplicationModal } from '../JobApplicationModal';
 
 interface MagangProps {
   lowongan?: Lowongan[];
   onSelectLowongan?: (id: string) => void;
 }
 
+// Helper to safely parse strings / arrays
+const toCleanStringArray = (val: unknown): string[] => {
+  if (!val) return [];
+  if (Array.isArray(val)) {
+    return val
+      .map((item) => (typeof item === 'string' ? item.trim() : String(item ?? '').trim()))
+      .filter((item) => item.length > 0);
+  }
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (!trimmed) return [];
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) {
+          return parsed
+            .map((item) => (typeof item === 'string' ? item.trim() : String(item ?? '').trim()))
+            .filter((item) => item.length > 0);
+        }
+      } catch {
+        // Fallback to newline split
+      }
+    }
+    return trimmed
+      .split('\n')
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+  }
+  return [];
+};
+
+const DEFAULT_POSTER =
+  'https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=1200&auto=format&fit=crop';
+
 export default function Magang({ lowongan = [], onSelectLowongan }: MagangProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedMagang, setSelectedMagang] = useState<Lowongan | null>(null);
+  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const { setIsDetailActive } = useLayanan();
   const itemsPerPage = 6;
+
+  // Active student user lookup for saved jobs
+  const activeUserId = typeof window !== 'undefined' ? localStorage.getItem('cdc_session_id') || '' : '';
+  const [savedJobIds, setSavedJobIds] = useState<string[]>(() => getSavedJobIds(activeUserId || undefined));
+
+  // Sinkronkan status detail ke LayananContainer agar header disembunyikan persis Campus Hiring
+  useEffect(() => {
+    setIsDetailActive(selectedMagang !== null);
+  }, [selectedMagang, setIsDetailActive]);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3500);
+  };
+
+  const handleOpenDetail = (item: Lowongan) => {
+    setSelectedMagang(item);
+    window.scrollTo(0, 0);
+  };
+
+  const handleBackToList = () => {
+    setSelectedMagang(null);
+    window.scrollTo(0, 0);
+  };
+
+  const handleToggleSave = (jobId: string) => {
+    const isNowSaved = toggleSaveJob(jobId, activeUserId || undefined);
+    setSavedJobIds(getSavedJobIds(activeUserId || undefined));
+    if (isNowSaved) {
+      showToast('Lowongan magang berhasil disimpan ke daftar favorit.');
+    } else {
+      showToast('Lowongan magang dihapus dari daftar simpanan.');
+    }
+  };
+
+  const handleApplySubmit = (formData: any) => {
+    if (!selectedMagang) return;
+    applyForJob(selectedMagang.id, {
+      ...formData,
+      userId: activeUserId || 'guest',
+      namaMahasiswa: formData.applicantName || 'Mahasiswa UMK'
+    });
+    showToast('Lamaran magang berhasil dikirim!');
+  };
+
+  // Safe poster banner
+  const getBannerImage = (item: Lowongan): string => {
+    if (item.bannerImage) return item.bannerImage;
+    if (item.imageUrl) return item.imageUrl;
+    if (item.flyer) return item.flyer;
+    const flyers = item.flyers as unknown;
+    if (Array.isArray(flyers) && flyers.length > 0 && flyers[0]) return flyers[0];
+    if (typeof flyers === 'string' && flyers.trim()) {
+      try {
+        const parsed = JSON.parse(flyers);
+        if (Array.isArray(parsed) && parsed[0]) return parsed[0];
+      } catch {
+        return flyers;
+      }
+    }
+    return DEFAULT_POSTER;
+  };
 
   // Filter published magang lowongan
   const publishedMagang = sortJobsByNewest(
-    lowongan.filter(l => l.status === 'published' && l.tipe === 'magang')
+    lowongan.filter((l) => l.status === 'published' && l.tipe === 'magang')
   );
 
-  const filteredLowongan = publishedMagang.filter(item => {
+  const filteredLowongan = publishedMagang.filter((item) => {
     const q = searchQuery.toLowerCase().trim();
     if (!q) return true;
     return (
@@ -41,6 +168,253 @@ export default function Magang({ lowongan = [], onSelectLowongan }: MagangProps)
     }
   };
 
+  // ===== TAMPILAN DETAIL EDITORIAL BERGAYA CAMPUS HIRING =====
+  if (selectedMagang) {
+    const isDeadlinePassed = isJobDeadlinePassed(selectedMagang.deadline);
+    const isSaved = savedJobIds.includes(selectedMagang.id);
+    const rawPersyaratan = (selectedMagang as any).persyaratan;
+    const requirements = [
+      ...(rawPersyaratan ? toCleanStringArray(rawPersyaratan) : []),
+      ...toCleanStringArray(selectedMagang.kualifikasi)
+    ];
+    const skills = toCleanStringArray(selectedMagang.keahlian);
+    const benefits = toCleanStringArray(selectedMagang.benefit);
+
+    return (
+      <div id="layanan-magang-detail" className="relative">
+        {/* Toast Notification */}
+        {toastMsg && (
+          <div className="fixed top-24 right-5 z-50 bg-[#1E3A8A] text-white px-5 py-3 rounded-2xl shadow-xl border border-blue-800 flex items-center gap-3 animate-fadeIn text-xs sm:text-sm font-semibold max-w-md">
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+            <span>{toastMsg}</span>
+          </div>
+        )}
+
+        <ShareableDetailPage
+          title={selectedMagang.judul}
+          categoryLabel="Internship / Magang"
+          imageUrl={getBannerImage(selectedMagang)}
+          posterAspect={(selectedMagang as any).posterAspect || '16:9'}
+          onBack={handleBackToList}
+          metaItems={[
+            <span key="instansi" className="font-semibold text-slate-800">
+              {selectedMagang.namaInstansi}
+            </span>,
+            ...(selectedMagang.lokasi
+              ? [<span key="lokasi">{selectedMagang.lokasi}</span>]
+              : []),
+            ...(selectedMagang.deadline
+              ? [<span key="deadline">Batas: {formatDateDisplay(selectedMagang.deadline)}</span>]
+              : [])
+          ]}
+        >
+          <div className="space-y-8 pt-2">
+            {/* 1. RINGKASAN PROGRAM MAGANG (Highlight Card Grid) */}
+            <div className="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-5 sm:p-6 shadow-2xs">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
+                <Briefcase className="w-4 h-4 text-[#0077C6]" />
+                Ringkasan Program Magang
+              </h3>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                {/* Jenis Pekerjaan */}
+                <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-2xs space-y-1">
+                  <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
+                    <Briefcase className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                    <span>Jenis Pekerjaan</span>
+                  </div>
+                  <div className="font-bold text-slate-900 text-sm">Magang</div>
+                </div>
+
+                {/* Kategori */}
+                <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-2xs space-y-1">
+                  <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
+                    <Layers className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                    <span>Kategori</span>
+                  </div>
+                  <div className="font-bold text-slate-900 text-sm truncate" title={selectedMagang.kategori || 'Umum'}>
+                    {selectedMagang.kategori || 'Umum'}
+                  </div>
+                </div>
+
+                {/* Gaji / Uang Saku */}
+                <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-2xs space-y-1">
+                  <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
+                    <Banknote className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>Gaji / Uang Saku</span>
+                  </div>
+                  <div className="font-bold text-slate-900 text-sm">
+                    {selectedMagang.gaji || 'Uang Saku'}
+                  </div>
+                </div>
+
+                {/* Kuota */}
+                <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-2xs space-y-1">
+                  <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
+                    <Users className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                    <span>Kuota</span>
+                  </div>
+                  <div className="font-bold text-slate-900 text-sm">
+                    {selectedMagang.kuota ? `${selectedMagang.kuota} Orang` : 'Terbuka'}
+                  </div>
+                </div>
+
+                {/* Batas Waktu */}
+                <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-2xs space-y-1 col-span-2 sm:col-span-1">
+                  <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
+                    <Calendar className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                    <span>Batas Waktu</span>
+                  </div>
+                  <div className={`font-bold text-sm ${isDeadlinePassed ? 'text-rose-600' : 'text-slate-900'}`}>
+                    {selectedMagang.deadline ? formatDateDisplay(selectedMagang.deadline) : 'Terbuka'}
+                  </div>
+                </div>
+              </div>
+
+              {/* ACTION BUTTONS (LAMAR & SIMPAN) */}
+              <div className="mt-6 pt-5 border-t border-slate-200/70 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setIsApplyModalOpen(true)}
+                    disabled={isDeadlinePassed}
+                    className={`inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm text-white shadow-md transition-all ${
+                      isDeadlinePassed
+                        ? 'bg-slate-400 cursor-not-allowed opacity-75'
+                        : 'bg-[#0077C6] hover:bg-[#005fa0] active:scale-98 cursor-pointer'
+                    }`}
+                  >
+                    <Send className="w-4 h-4" />
+                    <span>{isDeadlinePassed ? 'Pendaftaran Ditutup' : 'Lamar Posisi Magang'}</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleToggleSave(selectedMagang.id)}
+                    className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm border transition-all cursor-pointer ${
+                      isSaved
+                        ? 'bg-amber-50 text-amber-700 border-amber-300 hover:bg-amber-100'
+                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-amber-500 text-amber-500' : 'text-slate-500'}`} />
+                    <span>{isSaved ? 'Tersimpan' : 'Simpan Lowongan'}</span>
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+                  <Building2 className="w-4 h-4 text-slate-400" />
+                  <span>{selectedMagang.namaInstansi}</span>
+                  {selectedMagang.lokasi && <span>• {selectedMagang.lokasi}</span>}
+                </div>
+              </div>
+            </div>
+
+            {/* 2. DESKRIPSI PROGRAM MAGANG */}
+            {selectedMagang.deskripsi && (
+              <div className="space-y-3">
+                <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">
+                  Deskripsi Pekerjaan
+                </h3>
+                <div className="text-slate-700 leading-relaxed text-sm sm:text-base whitespace-pre-line">
+                  {selectedMagang.deskripsi}
+                </div>
+              </div>
+            )}
+
+            {/* 3. PERSYARATAN & KUALIFIKASI */}
+            {requirements.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">
+                  Persyaratan &amp; Kualifikasi
+                </h3>
+                <ul className="space-y-2.5">
+                  {requirements.map((req, idx) => (
+                    <li key={idx} className="flex items-start gap-2.5 text-slate-700 text-sm sm:text-base leading-snug">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
+                      <span>{req}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 4. KEAHLIAN YANG DIBUTUHKAN */}
+            {skills.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">
+                  Keahlian yang Dibutuhkan
+                </h3>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {skills.map((skill, idx) => (
+                    <span
+                      key={idx}
+                      className="px-3.5 py-1.5 rounded-xl bg-slate-100 text-slate-800 text-xs sm:text-sm font-semibold border border-slate-200/80"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 5. BENEFIT & FASILITAS KOMPENSASI */}
+            {benefits.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">
+                  Benefit &amp; Fasilitas Kompensasi
+                </h3>
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {benefits.map((benefit, idx) => (
+                    <li
+                      key={idx}
+                      className="flex items-center gap-2.5 p-3 rounded-xl bg-emerald-50/60 border border-emerald-100 text-emerald-900 text-sm font-medium"
+                    >
+                      <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>{benefit}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 6. CTA BANNER BAWAH */}
+            <div className="p-6 rounded-2xl bg-gradient-to-r from-blue-900 to-indigo-900 text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-md">
+              <div className="space-y-1 text-center sm:text-left">
+                <h4 className="font-bold text-base sm:text-lg">
+                  Tertarik Magang di {selectedMagang.namaInstansi}?
+                </h4>
+                <p className="text-blue-200 text-xs sm:text-sm max-w-xl">
+                  Segera siapkan CV &amp; portofolio Anda, kemudian ajukan lamaran sebelum batas waktu{' '}
+                  {selectedMagang.deadline ? formatDateDisplay(selectedMagang.deadline) : 'berakhir'}.
+                </p>
+              </div>
+
+              <button
+                onClick={() => setIsApplyModalOpen(true)}
+                disabled={isDeadlinePassed}
+                className={`px-6 py-3 rounded-xl font-extrabold text-sm shadow-md transition-all shrink-0 cursor-pointer ${
+                  isDeadlinePassed
+                    ? 'bg-slate-600 text-slate-300 cursor-not-allowed'
+                    : 'bg-white text-blue-900 hover:bg-blue-50 active:scale-95'
+                }`}
+              >
+                {isDeadlinePassed ? 'Ditutup' : 'Lamar Sekarang'}
+              </button>
+            </div>
+          </div>
+        </ShareableDetailPage>
+
+        {/* Modal Lamaran Magang Resmi */}
+        <JobApplicationModal
+          job={selectedMagang}
+          isOpen={isApplyModalOpen}
+          onClose={() => setIsApplyModalOpen(false)}
+          onSubmit={handleApplySubmit}
+        />
+      </div>
+    );
+  }
+
+  // ===== DAFTAR CARD (LIST MAGANG) =====
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8" id="layanan-magang">
       {/* Title & Subtitle */}
@@ -60,7 +434,7 @@ export default function Magang({ lowongan = [], onSelectLowongan }: MagangProps)
           <input
             type="text"
             value={searchQuery}
-            onChange={e => {
+            onChange={(e) => {
               setSearchQuery(e.target.value);
               setCurrentPage(1);
             }}
@@ -81,10 +455,18 @@ export default function Magang({ lowongan = [], onSelectLowongan }: MagangProps)
         /* 3-Column Card Grid */
         <div className="space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {paginatedLowongan.map(item => (
+            {paginatedLowongan.map((item) => (
               <div
                 key={item.id}
-                onClick={() => onSelectLowongan && onSelectLowongan(item.id)}
+                role="button"
+                tabIndex={0}
+                onClick={() => handleOpenDetail(item)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleOpenDetail(item);
+                  }
+                }}
                 className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group"
               >
                 <div>
@@ -102,7 +484,9 @@ export default function Magang({ lowongan = [], onSelectLowongan }: MagangProps)
                     ) : (
                       <div className="flex flex-col items-center justify-center text-slate-300 space-y-1">
                         <Building2 className="w-10 h-10 text-slate-400" />
-                        <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">{item.namaInstansi}</span>
+                        <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">
+                          {item.namaInstansi}
+                        </span>
                       </div>
                     )}
                   </div>
