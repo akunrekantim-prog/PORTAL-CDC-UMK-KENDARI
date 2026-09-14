@@ -52,6 +52,14 @@ async function checkField(
     });
     const lr = await call('/login', { method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password: 'E2eTest123!' }) });
+    if (lr.status === 429) {
+      console.log('\n  >>> RATE LIMIT (HTTP 429) — bukan bug kode.');
+      console.log('  >>> Login dibatasi 5 percobaan / 15 menit. Restart server untuk reset,');
+      console.log('  >>> lalu ulangi test ini.\n');
+      await prisma.user.deleteMany({ where: { id: U } });
+      await prisma.$disconnect();
+      process.exit(2);
+    }
     if (lr.status !== 200) throw new Error(`login gagal HTTP ${lr.status}`);
     const auth = { 'Content-Type': 'application/json', Authorization: `Bearer ${lr.body.token}` };
 

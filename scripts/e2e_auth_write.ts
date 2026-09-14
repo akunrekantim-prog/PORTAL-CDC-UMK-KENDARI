@@ -22,6 +22,20 @@ let pass = 0, fail = 0;
 const ok = (label: string, extra = '') => { pass++; console.log(`  [PASS] ${label}${extra ? ' — ' + extra : ''}`); };
 const no = (label: string, extra = '') => { fail++; console.log(`  [FAIL] ${label}${extra ? ' — ' + extra : ''}`); };
 
+/**
+ * Peringatan rate limit: login dibatasi 5 percobaan / 15 menit (server.js).
+ * Kalau script ini dijalankan berkali-kali, percobaan ke-6+ akan dijawab 429 —
+ * itu BUKAN kegagalan kode, hanya limit. Restart server untuk mereset (limiter
+ * memakai store in-memory). Deteksi di bawah mencegah salah diagnosis.
+ */
+function bail429(status: number) {
+  if (status !== 429) return false;
+  console.log('\n  >>> RATE LIMIT (HTTP 429) — bukan bug kode.');
+  console.log('  >>> Login dibatasi 5 percobaan / 15 menit. Restart server untuk reset:');
+  console.log('  >>>   stop proses di port 5000, lalu `npm start` lagi, lalu ulangi test ini.\n');
+  return true;
+}
+
 async function call(path: string, opts: RequestInit = {}) {
   const res = await fetch(`${BASE}${path}`, opts);
   let body: any = null;
@@ -41,6 +55,7 @@ async function call(path: string, opts: RequestInit = {}) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: NAME, email: EMAIL, password: PASSWORD, role: 'MAHASISWA', phone: '081200000000' })
     });
+    if (bail429(reg.status)) { await prisma.user.deleteMany({ where: { email: EMAIL } }); process.exit(2); }
     if (reg.status === 201 && reg.body?.success) {
       ok('register', `HTTP 201, user id = ${reg.body.user?.id}`);
       created.userId = reg.body.user.id;
@@ -54,6 +69,7 @@ async function call(path: string, opts: RequestInit = {}) {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: EMAIL, password: PASSWORD })
     });
+    if (bail429(early.status)) { await prisma.user.deleteMany({ where: { email: EMAIL } }); process.exit(2); }
     early.status === 403
       ? ok('login akun PENDING ditolak', `HTTP 403 — ${early.body?.message}`)
       : no('login akun PENDING seharusnya 403', `dapat HTTP ${early.status}`);
@@ -68,6 +84,7 @@ async function call(path: string, opts: RequestInit = {}) {
       body: JSON.stringify({ email: EMAIL, password: PASSWORD })
     });
     let token = '';
+    if (bail429(login.status)) { await prisma.user.deleteMany({ where: { email: EMAIL } }); process.exit(2); }
     if (login.status === 200 && login.body?.success && login.body?.token) {
       token = login.body.token;
       ok('login berhasil', `role = ${login.body.user?.role}, token ${token.length} char`);
