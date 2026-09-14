@@ -14,9 +14,6 @@ import {
 import {
   initializeDB,
   getFromDB,
-  saveToDB,
-  insertToDB,
-  updateInDB,
   sortJobsByNewest
 } from './data';
 import EventDetailView from './components/layanan/EventDetailView';

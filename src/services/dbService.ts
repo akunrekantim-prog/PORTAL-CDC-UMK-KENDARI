@@ -206,84 +206,117 @@ export async function fetchInitialDatabaseFromSupabase(): Promise<Record<string,
   }
 }
 
-async function sendSyncRequest(entity: string, payload: any): Promise<boolean> {
-  try {
-    const headers = authHeaders();
-    if (!headers.Authorization) {
-      console.warn(`[API Sync Skip] ${entity}: belum login, perubahan hanya tersimpan lokal.`);
-      return false;
-    }
-    const response = await fetch(`${API_BASE_URL}/sync/${entity}`, {
-      method: 'POST',
-      credentials: 'include',
-      headers,
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
-      console.warn(`[API Sync Warning] ${entity} status:`, response.status);
-      return false;
-    }
-    const data = await response.json();
-    console.log(`✅ [Supabase API Sync] ${entity} tersimpan ke Supabase PostgreSQL:`, data);
-    return true;
-  } catch (err) {
-    console.warn(`[API Sync Exception] ${entity}:`, err);
-    return false;
+async function sendSyncRequest(entity: string, payload: any): Promise<any> {
+  const headers = authHeaders();
+  if (!headers.Authorization) {
+    throw new Error('Belum login. Silakan login ulang agar data tersimpan ke Supabase.');
   }
+  const response = await fetch(`${API_BASE_URL}/sync/${entity}`, {
+    method: 'POST',
+    credentials: 'include',
+    headers,
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || (data as any).success === false) {
+    throw new Error((data as any).error || (data as any).message || `Gagal menyimpan ${entity} ke Supabase (status ${response.status}).`);
+  }
+  console.log(`✅ [Supabase API Sync] ${entity} tersimpan ke Supabase PostgreSQL:`, data);
+  return (data as any).result ?? data;
 }
 
 export async function deleteFromSupabase(table: string, id: string): Promise<boolean> {
-  try {
-    const headers = authHeaders();
-    if (!headers.Authorization) {
-      console.warn(`[API Delete Skip] ${table}/${id}: belum login, hapus hanya lokal.`);
-      return false;
-    }
-    const response = await fetch(`${API_BASE_URL}/${table}/${id}`, {
-      method: 'DELETE',
-      credentials: 'include',
-      headers
-    });
-    if (!response.ok) return false;
-    console.log(`✅ [Supabase API Delete] Item ${id} dihapus dari tabel ${table}`);
-    return true;
-  } catch (err) {
-    console.warn(`[Supabase Delete Exception] ${table}:`, err);
-    return false;
+  const headers = authHeaders();
+  if (!headers.Authorization) {
+    throw new Error('Belum login. Hapus dibatalkan agar data tidak hanya hilang lokal.');
   }
+  const response = await fetch(`${API_BASE_URL}/${table}/${id}`, {
+    method: 'DELETE',
+    credentials: 'include',
+    headers
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error((data as any).error || `Gagal menghapus ${table}/${id} di Supabase (status ${response.status}).`);
+  }
+  console.log(`✅ [Supabase API Delete] Item ${id} dihapus dari tabel ${table}`);
+  return true;
 }
 
-export async function syncUserToSupabase(user: User): Promise<boolean> {
+export async function syncUserToSupabase(user: User): Promise<any> {
   return sendSyncRequest('users', user);
 }
 
-export async function syncMahasiswaToSupabase(mhs: Mahasiswa): Promise<boolean> {
+export async function syncMahasiswaToSupabase(mhs: Mahasiswa): Promise<any> {
   return sendSyncRequest('mahasiswa', mhs);
 }
 
-export async function syncAlumniToSupabase(alm: Alumni): Promise<boolean> {
+export async function syncAlumniToSupabase(alm: Alumni): Promise<any> {
   return sendSyncRequest('alumni', alm);
 }
 
-export async function syncMitraToSupabase(mitra: Mitra): Promise<boolean> {
+export async function syncMitraToSupabase(mitra: Mitra): Promise<any> {
   return sendSyncRequest('mitra', mitra);
 }
 
-export async function syncLowonganToSupabase(low: Lowongan): Promise<boolean> {
+export async function syncLowonganToSupabase(low: Lowongan): Promise<any> {
   return sendSyncRequest('lowongan', low);
 }
 
-export async function syncPengajuanToSupabase(p: PengajuanMagang): Promise<boolean> {
+export async function syncPengajuanToSupabase(p: PengajuanMagang): Promise<any> {
   return sendSyncRequest('pengajuan_magang', p);
 }
 
-export async function syncTracerStudyToSupabase(t: TracerStudy): Promise<boolean> {
+export async function syncTracerStudyToSupabase(t: TracerStudy): Promise<any> {
   return sendSyncRequest('tracer_study', t);
 }
 
-export async function syncKontenKarirToSupabase(k: KontenKarir): Promise<boolean> {
+export async function syncKontenKarirToSupabase(k: KontenKarir): Promise<any> {
   return sendSyncRequest('konten_karir', k);
+}
+
+export async function syncBeritaToSupabase(b: any): Promise<any> {
+  return sendSyncRequest('berita', b);
+}
+
+export async function syncPengumumanToSupabase(p: any): Promise<any> {
+  return sendSyncRequest('pengumuman', p);
+}
+
+export async function syncSurveiLulusanToSupabase(s: any): Promise<any> {
+  return sendSyncRequest('survei_lulusan', s);
+}
+
+export async function syncSuratKeputusanToSupabase(sk: any): Promise<any> {
+  return sendSyncRequest('surat_keputusan', sk);
+}
+
+export async function syncKalenderKegiatanToSupabase(k: any): Promise<any> {
+  return sendSyncRequest('kalender_kegiatan', k);
+}
+
+export async function syncLaporanKinerjaToSupabase(l: any): Promise<any> {
+  return sendSyncRequest('laporan_kinerja', l);
+}
+
+export async function syncMouStakeholderToSupabase(m: any): Promise<any> {
+  return sendSyncRequest('mou_stakeholder', m);
+}
+
+export async function syncGaleriItemToSupabase(g: any): Promise<any> {
+  return sendSyncRequest('galeri_items', g);
+}
+
+export async function syncSocialMediaToSupabase(s: any): Promise<any> {
+  return sendSyncRequest('social_media', s);
+}
+
+export async function syncKomentarBeritaToSupabase(k: any): Promise<any> {
+  return sendSyncRequest('komentar_berita', k);
+}
+
+export async function syncUploadedDocumentToSupabase(d: any): Promise<any> {
+  return sendSyncRequest('uploaded_documents', d);
 }
 
 export async function logoutFromBackend(): Promise<void> {

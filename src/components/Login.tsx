@@ -145,7 +145,7 @@ export default function Login({
 
           const updatedMatched = { ...matched, lastLoginAt: new Date().toISOString() };
           const updatedUsers = users.map((u) => (u.id === matched.id ? updatedMatched : u));
-          saveToDB('users', updatedUsers);
+          await saveToDB('users', updatedUsers);
           localStorage.setItem('cdc_session_id', matched.id);
           localStorage.setItem('cdc_auth_token', `local_token_${matched.id}`);
           user = updatedMatched;

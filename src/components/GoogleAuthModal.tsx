@@ -96,7 +96,7 @@ export default function GoogleAuthModal({
                 });
                 const profile = await res.json();
                 if (profile && profile.email) {
-                  const { user } = loginOrRegisterWithGoogle({
+                  const { user } = await loginOrRegisterWithGoogle({
                     name: profile.name || profile.email.split('@')[0],
                     email: profile.email,
                     photoUrl: profile.picture
@@ -139,7 +139,7 @@ export default function GoogleAuthModal({
     await new Promise(r => setTimeout(r, 650));
 
     try {
-      const { user } = loginOrRegisterWithGoogle({
+      const { user } = await loginOrRegisterWithGoogle({
         name: account.name,
         email: account.email,
         photoUrl: account.photoUrl

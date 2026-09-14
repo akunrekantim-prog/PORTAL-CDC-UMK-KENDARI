@@ -839,10 +839,14 @@ export const JobDetail: React.FC<JobDetailProps> = ({
           isOpen={isApplyModalOpen}
           job={job}
           onClose={resetModal}
-          onSubmit={(data) => {
-            applyForJob(activeUserId, job, data);
-            window.dispatchEvent(new Event('storage'));
-            triggerToast(`Lamaran untuk ${job.judul} di ${job.namaInstansi} berhasil terkirim ke Mitra!`);
+          onSubmit={async (data) => {
+            try {
+              await applyForJob(activeUserId, job, data);
+              window.dispatchEvent(new Event('storage'));
+              triggerToast(`Lamaran untuk ${job.judul} di ${job.namaInstansi} berhasil terkirim ke Mitra!`);
+            } catch (err: any) {
+              triggerToast(err?.message || 'Gagal mengirim lamaran. Silakan coba lagi.');
+            }
           }}
         />
       )}

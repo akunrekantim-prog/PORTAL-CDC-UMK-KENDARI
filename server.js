@@ -193,7 +193,10 @@ app.get('/api/all-data', authenticateToken, apiLimiter, async (req, res) => {
     const visi_misi_configs = await prisma.visiMisiConfig.findMany();
     const anggota_tims = await prisma.anggotaTim.findMany({ orderBy: { urutan: 'asc' } });
     const social_media_items = await prisma.socialMediaItem.findMany();
-    res.json({ users, mahasiswa, alumni, mitra, lowongan, pengajuan_magang, tracer_studies, konten_karir, berita, pengumuman, surat_keputusan, kalender_kegiatan, laporan_kinerja, mou_stakeholder, galeri_items, hero_slides, visi_misi_configs, anggota_tims, social_media_items });
+    const survei_lulusan = await prisma.surveiLulusan.findMany({ orderBy: { submittedAt: 'desc' } });
+    const komentar_berita = await prisma.komentarBerita.findMany({ orderBy: { createdAt: 'desc' } });
+    const uploaded_documents = await prisma.uploadedDocument.findMany({ orderBy: { createdAt: 'desc' } });
+    res.json({ users, mahasiswa, alumni, mitra, lowongan, pengajuan_magang, tracer_studies, konten_karir, berita, pengumuman, surat_keputusan, kalender_kegiatan, laporan_kinerja, mou_stakeholder, galeri_items, hero_slides, visi_misi_configs, anggota_tims, social_media_items, survei_lulusan, komentar_berita, uploaded_documents });
   } catch (error) {
     console.error('[Express API /all-data Error]:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -362,8 +365,8 @@ app.post('/api/sync/:entity', authenticateToken, writeLimiter, async (req, res) 
   const r = req.user?.role;
   const requesterId = req.user?.id;
 
-  // Validasi entity whitelist
-  const allowedEntities = new Set(['users','user','mahasiswa','alumni','mitra','lowongan','pengajuan_magang','tracer_study','tracer_studies','konten_karir']);
+  // Validasi entity whitelist — 21 entity (10 lama + 11 tambahan 100% Supabase)
+  const allowedEntities = new Set(['users','user','mahasiswa','alumni','mitra','lowongan','pengajuan_magang','tracer_study','tracer_studies','konten_karir','berita','pengumuman','survei_lulusan','survei_lulusans','surat_keputusan','kalender_kegiatan','laporan_kinerja','mou_stakeholder','galeri_items','galeri_item','social_media','social_media_items','komentar_berita','komentar_beritas','uploaded_documents']);
   if (!allowedEntities.has(entity)) return res.status(400).json({ error: `Entity '${String(entity).slice(0,50)}' tidak didukung.` });
 
   // Payload size guard (sudah 2mb di parser, tambah check field length)
@@ -502,6 +505,157 @@ app.post('/api/sync/:entity', authenticateToken, writeLimiter, async (req, res) 
         where: { id: payload.id },
         update: { judul: String(payload.judul||'').slice(0,200), body: payload.body ? String(payload.body).slice(0,20000) : '', penulis: payload.penulis ? String(payload.penulis).slice(0,100) : null, status: String(payload.status||'published').slice(0,20), isPinned: !!payload.isPinned },
         create: { id: payload.id, jenis: String(payload.jenis||'berita').slice(0,20), judul: String(payload.judul||'').slice(0,200), body: payload.body ? String(payload.body).slice(0,20000) : '', penulis: payload.penulis ? String(payload.penulis).slice(0,100) : null, status: String(payload.status||'published').slice(0,20), isPinned: !!payload.isPinned }
+      });
+      return res.json({ success: true, result });
+    }
+
+    if (entity === 'berita') {
+      if (r !== 'ADMIN') return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+      const slugVal = String(payload.slug || payload.id || '').slice(0, 220);
+      const data = { judul: String(payload.judul || payload.title || '').slice(0, 500), slug: slugVal || undefined, body: payload.body || payload.content ? String(payload.body || payload.content).slice(0, 20000) : '', thumbnail: payload.thumbnail || payload.coverImageUrl ? String(payload.thumbnail || payload.coverImageUrl).slice(0, 2048) : null, penulis: payload.penulis ? String(payload.penulis).slice(0, 100) : null, status: String(payload.status || 'published').slice(0, 20), isPinned: !!payload.isPinned };
+      let result;
+      if (payload.id) {
+        result = await prisma.berita.upsert({ where: { id: payload.id }, update: data, create: { id: payload.id, ...data } });
+      } else if (slugVal) {
+        result = await prisma.berita.upsert({ where: { slug: slugVal }, update: data, create: data });
+      } else {
+        result = await prisma.berita.create({ data });
+      }
+      return res.json({ success: true, result });
+    }
+
+    if (entity === 'pengumuman') {
+      if (r !== 'ADMIN') return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+      const result = await prisma.pengumuman.upsert({
+        where: { id: payload.id },
+        update: { judul: String(payload.judul || payload.title || '').slice(0, 500), body: payload.body || payload.content ? String(payload.body || payload.content).slice(0, 20000) : '', thumbnail: payload.thumbnail || payload.posterUrl ? String(payload.thumbnail || payload.posterUrl).slice(0, 2048) : null, isPinned: !!(payload.isPinned || payload.isImportant), status: String(payload.status || 'published').slice(0, 20) },
+        create: { id: payload.id, judul: String(payload.judul || payload.title || '').slice(0, 500), body: payload.body || payload.content ? String(payload.body || payload.content).slice(0, 20000) : '', thumbnail: payload.thumbnail || payload.posterUrl ? String(payload.thumbnail || payload.posterUrl).slice(0, 2048) : null, isPinned: !!(payload.isPinned || payload.isImportant), status: String(payload.status || 'published').slice(0, 20) }
+      });
+      return res.json({ success: true, result });
+    }
+
+    if (entity === 'survei_lulusan' || entity === 'survei_lulusans') {
+      let mitraIdVal = payload.mitraId || null;
+      const ownMitraRec = r === 'MITRA' ? await prisma.mitra.findFirst({ where: { userId: requesterId } }) : null;
+      if (r === 'MITRA' && ownMitraRec) mitraIdVal = ownMitraRec.id;
+      if (r !== 'ADMIN' && r !== 'MITRA') return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+      if (!mitraIdVal) return res.status(400).json({ error: 'mitraId wajib diisi dan harus terdaftar di tabel mitra.' });
+      const mitraExists = await prisma.mitra.findUnique({ where: { id: mitraIdVal } });
+      if (!mitraExists) return res.status(400).json({ error: 'mitraId tidak ditemukan di database.' });
+      const clampScore = (v) => Number.isFinite(Number(v)) ? Math.min(100, Math.max(1, Number(v))) : 1;
+      let alumniIdVal = payload.alumniId || null;
+      if (alumniIdVal) {
+        const alExists = await prisma.alumni.findUnique({ where: { id: alumniIdVal } });
+        if (!alExists) alumniIdVal = null;
+      }
+      const result = await prisma.surveiLulusan.upsert({
+        where: { id: payload.id },
+        update: { namaInstansi: String(payload.namaInstansi || mitraExists.namaInstansi || '').slice(0, 150), kualitasLulusan: clampScore(payload.kualitasLulusan), kemampuanTeknis: clampScore(payload.kemampuanTeknis), kemampuanKomunikasi: clampScore(payload.kemampuanKomunikasi), etikaKerja: clampScore(payload.etikaKerja), kemampuanKerjaTim: clampScore(payload.kemampuanKerjaTim), saran: payload.saran ? String(payload.saran).slice(0, 2000) : null },
+        create: { id: payload.id, mitraId: mitraIdVal, namaInstansi: String(payload.namaInstansi || mitraExists.namaInstansi || '').slice(0, 150), alumniId: alumniIdVal, kualitasLulusan: clampScore(payload.kualitasLulusan), kemampuanTeknis: clampScore(payload.kemampuanTeknis), kemampuanKomunikasi: clampScore(payload.kemampuanKomunikasi), etikaKerja: clampScore(payload.etikaKerja), kemampuanKerjaTim: clampScore(payload.kemampuanKerjaTim), saran: payload.saran ? String(payload.saran).slice(0, 2000) : null }
+      });
+      return res.json({ success: true, result });
+    }
+
+    if (entity === 'surat_keputusan') {
+      if (r !== 'ADMIN') return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+      const tgl = (payload.tanggal || payload.createdAt) && !isNaN(Date.parse(payload.tanggal || payload.createdAt)) ? new Date(payload.tanggal || payload.createdAt) : new Date();
+      const result = await prisma.suratKeputusan.upsert({
+        where: { id: payload.id },
+        update: { judul: String(payload.judul || '').slice(0, 500), fileUrl: payload.fileUrl || payload.pdfUrl || payload.linkUrl ? String(payload.fileUrl || payload.pdfUrl || payload.linkUrl).slice(0, 2048) : null, kategori: payload.kategori ? String(payload.kategori).slice(0, 100) : null, tanggal: tgl },
+        create: { id: payload.id, nomor: payload.nomor ? String(payload.nomor).slice(0, 100) : `SK-${String(payload.id).slice(0, 50)}`, judul: String(payload.judul || '').slice(0, 500), tanggal: tgl, fileUrl: payload.fileUrl || payload.pdfUrl || payload.linkUrl ? String(payload.fileUrl || payload.pdfUrl || payload.linkUrl).slice(0, 2048) : null, kategori: payload.kategori ? String(payload.kategori).slice(0, 100) : null }
+      });
+      return res.json({ success: true, result });
+    }
+
+    if (entity === 'kalender_kegiatan') {
+      if (r !== 'ADMIN') return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+      const tglMulai = (payload.tanggalMulai || payload.createdAt) && !isNaN(Date.parse(payload.tanggalMulai || payload.createdAt)) ? new Date(payload.tanggalMulai || payload.createdAt) : new Date();
+      const result = await prisma.kalenderKegiatan.upsert({
+        where: { id: payload.id },
+        update: { judul: String(payload.judul || '').slice(0, 500), deskripsi: payload.deskripsi ? String(payload.deskripsi).slice(0, 5000) : null, tanggalMulai: tglMulai, lokasi: payload.lokasi ? String(payload.lokasi).slice(0, 200) : null, kategori: payload.kategori ? String(payload.kategori).slice(0, 100) : null },
+        create: { id: payload.id, judul: String(payload.judul || '').slice(0, 500), deskripsi: payload.deskripsi ? String(payload.deskripsi).slice(0, 5000) : null, tanggalMulai: tglMulai, lokasi: payload.lokasi ? String(payload.lokasi).slice(0, 200) : null, kategori: payload.kategori ? String(payload.kategori).slice(0, 100) : null }
+      });
+      return res.json({ success: true, result });
+    }
+
+    if (entity === 'laporan_kinerja') {
+      if (r !== 'ADMIN') return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+      const tahunVal = Number.isFinite(Number(payload.tahun)) ? Number(payload.tahun) : new Date(payload.createdAt || Date.now()).getFullYear();
+      const result = await prisma.laporanKinerja.upsert({
+        where: { id: payload.id },
+        update: { judul: String(payload.judul || '').slice(0, 500), tahun: tahunVal, periode: payload.periode || payload.kategori ? String(payload.periode || payload.kategori).slice(0, 100) : null, fileUrl: payload.fileUrl || payload.pdfUrl || payload.linkUrl ? String(payload.fileUrl || payload.pdfUrl || payload.linkUrl).slice(0, 2048) : null, deskripsi: payload.deskripsi ? String(payload.deskripsi).slice(0, 5000) : null },
+        create: { id: payload.id, judul: String(payload.judul || '').slice(0, 500), tahun: tahunVal, periode: payload.periode || payload.kategori ? String(payload.periode || payload.kategori).slice(0, 100) : null, fileUrl: payload.fileUrl || payload.pdfUrl || payload.linkUrl ? String(payload.fileUrl || payload.pdfUrl || payload.linkUrl).slice(0, 2048) : null, deskripsi: payload.deskripsi ? String(payload.deskripsi).slice(0, 5000) : null }
+      });
+      return res.json({ success: true, result });
+    }
+
+    if (entity === 'mou_stakeholder') {
+      if (r !== 'ADMIN') return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+      const tglMou = (payload.tanggalMou || payload.createdAt) && !isNaN(Date.parse(payload.tanggalMou || payload.createdAt)) ? new Date(payload.tanggalMou || payload.createdAt) : null;
+      const result = await prisma.mouStakeholder.upsert({
+        where: { id: payload.id },
+        update: { namaInstansi: String(payload.namaInstansi || payload.judul || '').slice(0, 150), logoUrl: payload.logoUrl || payload.posterUrl ? String(payload.logoUrl || payload.posterUrl).slice(0, 2048) : null, jenisMou: payload.jenisMou || payload.kategori ? String(payload.jenisMou || payload.kategori).slice(0, 100) : null, tanggalMou: tglMou, status: String(payload.status || 'aktif').slice(0, 20) },
+        create: { id: payload.id, namaInstansi: String(payload.namaInstansi || payload.judul || '').slice(0, 150), logoUrl: payload.logoUrl || payload.posterUrl ? String(payload.logoUrl || payload.posterUrl).slice(0, 2048) : null, jenisMou: payload.jenisMou || payload.kategori ? String(payload.jenisMou || payload.kategori).slice(0, 100) : null, tanggalMou: tglMou, status: String(payload.status || 'aktif').slice(0, 20) }
+      });
+      return res.json({ success: true, result });
+    }
+
+    if (entity === 'galeri_items' || entity === 'galeri_item') {
+      if (r !== 'ADMIN') return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+      const imgUrl = payload.imageUrl || payload.posterUrl || payload.pdfUrl || payload.youtubeUrl ? String(payload.imageUrl || payload.posterUrl || payload.pdfUrl || payload.youtubeUrl).slice(0, 2048) : 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=800&auto=format&fit=crop';
+      const result = await prisma.galeriItem.upsert({
+        where: { id: payload.id },
+        update: { judul: String(payload.judul || '').slice(0, 500), imageUrl: imgUrl, kategori: payload.kategori || payload.kategoriSection ? String(payload.kategori || payload.kategoriSection).slice(0, 100) : null, deskripsi: payload.deskripsi ? String(payload.deskripsi).slice(0, 5000) : null },
+        create: { id: payload.id, judul: String(payload.judul || '').slice(0, 500), imageUrl: imgUrl, kategori: payload.kategori || payload.kategoriSection ? String(payload.kategori || payload.kategoriSection).slice(0, 100) : null, deskripsi: payload.deskripsi ? String(payload.deskripsi).slice(0, 5000) : null }
+      });
+      return res.json({ success: true, result });
+    }
+
+    if (entity === 'social_media' || entity === 'social_media_items') {
+      if (r !== 'ADMIN') return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+      const result = await prisma.socialMediaItem.upsert({
+        where: { id: payload.id },
+        update: { platform: String(payload.platform || 'website').slice(0, 50), url: String(payload.url || '').slice(0, 2048), icon: payload.icon || payload.hoverColor ? String(payload.icon || payload.hoverColor).slice(0, 200) : null, isActive: payload.isActive !== false },
+        create: { id: payload.id, platform: String(payload.platform || 'website').slice(0, 50), url: String(payload.url || '').slice(0, 2048), icon: payload.icon || payload.hoverColor ? String(payload.icon || payload.hoverColor).slice(0, 200) : null, isActive: payload.isActive !== false }
+      });
+      return res.json({ success: true, result });
+    }
+
+    if (entity === 'komentar_berita' || entity === 'komentar_beritas') {
+      // Komentar boleh dari user login mana pun; moderasi status hanya ADMIN
+      const slugRef = String(payload.beritaSlug || payload.beritaId || '');
+      let beritaIdVal = payload.beritaId || null;
+      if (!beritaIdVal && slugRef) {
+        const unwrapped = slugRef.startsWith('kk-') ? slugRef.slice(3) : slugRef;
+        const found = await prisma.berita.findFirst({ where: { OR: [{ id: slugRef }, { id: unwrapped }, { slug: slugRef }] } });
+        if (found) beritaIdVal = found.id;
+      }
+      if (!beritaIdVal) return res.status(400).json({ error: 'Berita tujuan tidak ditemukan. Komentar dibatalkan.' });
+      if (payload.status && r !== 'ADMIN') return res.status(403).json({ error: 'Hanya administrator yang boleh mengubah status komentar.' });
+      const result = await prisma.komentarBerita.upsert({
+        where: { id: payload.id },
+        update: { nama: String(payload.nama || '').slice(0, 100), email: payload.email ? String(payload.email).slice(0, 254) : null, konten: String(payload.konten || payload.komentar || '').slice(0, 5000), status: payload.status ? String(payload.status).toUpperCase().slice(0, 20) : 'PENDING' },
+        create: { id: payload.id, beritaId: beritaIdVal, userId: payload.userId || requesterId || null, nama: String(payload.nama || '').slice(0, 100), email: payload.email ? String(payload.email).slice(0, 254) : null, konten: String(payload.konten || payload.komentar || '').slice(0, 5000), status: payload.status ? String(payload.status).toUpperCase().slice(0, 20) : 'PENDING' }
+      });
+      return res.json({ success: true, result });
+    }
+
+    if (entity === 'uploaded_documents') {
+      const ownerId = payload.ownerUserId || payload.userId || requesterId;
+      if (r !== 'ADMIN' && (!ownerId || ownerId !== requesterId)) return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+      let mhsIdVal = payload.mahasiswaId || null;
+      if (!mhsIdVal && ownerId) {
+        const mhsFound = await prisma.mahasiswa.findFirst({ where: { userId: ownerId } });
+        if (mhsFound) mhsIdVal = mhsFound.id;
+      }
+      if (mhsIdVal) {
+        const mhsExists = await prisma.mahasiswa.findUnique({ where: { id: mhsIdVal } });
+        if (!mhsExists) mhsIdVal = null;
+      }
+      const result = await prisma.uploadedDocument.upsert({
+        where: { id: payload.id },
+        update: { fileName: String(payload.fileName || payload.name || '').slice(0, 255), fileUrl: String(payload.fileUrl || '').slice(0, 2048), fileType: String(payload.fileType || payload.mimeType || 'application/octet-stream').slice(0, 100), fileSize: Number.isFinite(Number(payload.fileSize || payload.sizeBytes)) ? Number(payload.fileSize || payload.sizeBytes) : null, category: payload.category || payload.type ? String(payload.category || payload.type).slice(0, 50) : 'cv' },
+        create: { id: payload.id, userId: ownerId, mahasiswaId: mhsIdVal, fileName: String(payload.fileName || payload.name || '').slice(0, 255), fileUrl: String(payload.fileUrl || '').slice(0, 2048), fileType: String(payload.fileType || payload.mimeType || 'application/octet-stream').slice(0, 100), fileSize: Number.isFinite(Number(payload.fileSize || payload.sizeBytes)) ? Number(payload.fileSize || payload.sizeBytes) : null, category: payload.category || payload.type ? String(payload.category || payload.type).slice(0, 50) : 'cv' }
       });
       return res.json({ success: true, result });
     }

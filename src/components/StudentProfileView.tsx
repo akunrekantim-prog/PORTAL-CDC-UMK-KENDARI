@@ -174,12 +174,16 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
         return;
       }
       const reader = new FileReader();
-      reader.onloadend = () => {
+      reader.onloadend = async () => {
         if (typeof reader.result === 'string') {
           const base64Photo = reader.result; // Base64 data URL
           setAvatarUrl(base64Photo);
-          updateUserProfile(user.id, { photoUrl: base64Photo });
-          triggerToast('Foto profil dari berkas lokal berhasil diunggah (Base64)!');
+          try {
+            await updateUserProfile(user.id, { photoUrl: base64Photo });
+            triggerToast('Foto profil dari berkas lokal berhasil diunggah (Base64)!');
+          } catch (err: any) {
+            triggerToast(err?.message || 'Gagal mengunggah foto profil. Silakan coba lagi.');
+          }
           if (onProfileUpdated) onProfileUpdated();
         }
       };
@@ -300,8 +304,9 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
     setTimeout(() => setToastMsg(null), 3000);
   };
 
-  const saveProfileData = (partial: Partial<Mahasiswa>) => {
-    const updated = updateUserProfile(user.id, {
+  const saveProfileData = async (partial: Partial<Mahasiswa>) => {
+    try {
+      const updated = await updateUserProfile(user.id, {
       nama: partial.nama !== undefined ? partial.nama : `${firstName} ${lastName}`.trim(),
       nim: partial.nim !== undefined ? partial.nim : nim,
       email: partial.email !== undefined ? partial.email : email,
@@ -325,9 +330,13 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
     });
     if (onProfileUpdated) onProfileUpdated();
     return updated;
+    } catch (err: any) {
+      triggerToast(err?.message || 'Gagal menyimpan profil. Silakan coba lagi.');
+      return null;
+    }
   };
 
-  const handleSaveProfileSection = (e: React.FormEvent) => {
+  const handleSaveProfileSection = async (e: React.FormEvent) => {
     e.preventDefault();
     const updatedProfile: Partial<Mahasiswa> = {
       nama: `${firstName} ${lastName}`.trim(),
@@ -349,7 +358,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
       university
     };
 
-    saveProfileData(updatedProfile);
+    await saveProfileData(updatedProfile);
     setEditingSection(null);
     triggerToast('Profil berhasil diperbarui!');
   };

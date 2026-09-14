@@ -592,7 +592,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
   const [internalNoteInput, setInternalNoteInput] = useState<string>('');
 
   // Load specific Partner record
-  const loadMitraData = () => {
+  const loadMitraData = async () => {
     const list = getFromDB<Mitra>('mitra');
     let mit = list.find(m => m.userId === user.id);
 
@@ -609,7 +609,11 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
         website: '',
         statusKerjaSama: 'aktif'
       };
-      insertToDB<Mitra>('mitra', newMit);
+      try {
+        await insertToDB<Mitra>('mitra', newMit);
+      } catch (err: any) {
+        triggerToast('error', 'Gagal menyimpan data mitra baru: ' + (err?.message || err));
+      }
       mit = newMit;
     }
 
@@ -681,7 +685,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
   };
 
   // Profile Save
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!mitraData) return;
 
@@ -700,20 +704,25 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
       website: website.trim()
     };
 
-    updateInDB<Mitra>('mitra', updatedMitra);
-    setMitraData(updatedMitra);
+    try {
+      await updateInDB<Mitra>('mitra', updatedMitra);
+      setMitraData(updatedMitra);
 
-    const allJobs = getFromDB<Lowongan>('lowongan');
-    const recalculatedJobs = allJobs.map(j => {
-      if (j.mitraId === mitraData.id) {
-        return { ...j, namaInstansi: namaInstansi.trim() };
-      }
-      return j;
-    });
-    saveToDB('lowongan', recalculatedJobs);
+      const allJobs = getFromDB<Lowongan>('lowongan');
+      const recalculatedJobs = allJobs.map(j => {
+        if (j.mitraId === mitraData.id) {
+          return { ...j, namaInstansi: namaInstansi.trim() };
+        }
+        return j;
+      });
+      await saveToDB('lowongan', recalculatedJobs);
 
-    triggerToast('success', 'Profil instansi mitra berhasil diperbarui.');
-    triggerAlert('success', 'Profil Berhasil Disimpan', 'Identitas dan informasi profil instansi mitra berhasil diperbarui dan disimpan ke sistem.');
+      triggerToast('success', 'Profil instansi mitra berhasil diperbarui.');
+      triggerAlert('success', 'Profil Berhasil Disimpan', 'Identitas dan informasi profil instansi mitra berhasil diperbarui dan disimpan ke sistem.');
+    } catch (err: any) {
+      triggerToast('error', 'Gagal menyimpan profil: ' + (err?.message || err));
+      triggerAlert('error', 'Gagal Menyimpan Profil', err?.message || 'Terjadi kesalahan saat menyimpan ke database.');
+    }
   };
 
   // Upload Logo Perusahaan
@@ -795,7 +804,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
   };
 
   // Add / Update Job Posting
-  const handleAddJobPosting = (e: React.FormEvent) => {
+  const handleAddJobPosting = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!mitraData) return;
 
@@ -844,39 +853,51 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
       createdAt: existingJob?.createdAt || new Date().toISOString()
     };
 
-    if (editingJobId) {
-      updateInDB<Lowongan>('lowongan', newJob);
-      triggerToast('success', 'Lowongan pekerjaan berhasil diperbarui.');
-    } else {
-      insertToDB<Lowongan>('lowongan', newJob);
-      triggerToast('success', 'Lowongan baru berhasil diposting aktif.');
-    }
+    try {
+      if (editingJobId) {
+        await updateInDB<Lowongan>('lowongan', newJob);
+        triggerToast('success', 'Lowongan pekerjaan berhasil diperbarui.');
+      } else {
+        await insertToDB<Lowongan>('lowongan', newJob);
+        triggerToast('success', 'Lowongan baru berhasil diposting aktif.');
+      }
 
-    resetJobForm();
-    loadMitraData();
-    if (onReloadData) onReloadData();
+      resetJobForm();
+      await loadMitraData();
+      if (onReloadData) onReloadData();
+    } catch (err: any) {
+      triggerToast('error', 'Gagal menyimpan lowongan: ' + (err?.message || err));
+    }
   };
 
   // Change job status draft/closed
-  const handleToggleJobStatus = (jobId: string, currentStatus: any) => {
+  const handleToggleJobStatus = async (jobId: string, currentStatus: any) => {
     const allJobs = getFromDB<Lowongan>('lowongan');
     const target = allJobs.find(j => j.id === jobId);
     if (target) {
       target.status = currentStatus === 'published' ? 'closed' : 'published';
-      updateInDB<Lowongan>('lowongan', target);
-      loadMitraData();
-      if (onReloadData) onReloadData();
-      triggerToast('success', `Status lowongan diubah menjadi ${target.status === 'published' ? 'Aktif' : 'Tutup'}.`);
+      try {
+        await updateInDB<Lowongan>('lowongan', target);
+        await loadMitraData();
+        if (onReloadData) onReloadData();
+        triggerToast('success', `Status lowongan diubah menjadi ${target.status === 'published' ? 'Aktif' : 'Tutup'}.`);
+      } catch (err: any) {
+        triggerToast('error', 'Gagal mengubah status lowongan: ' + (err?.message || err));
+      }
     }
   };
 
   // Delete Job Posting safely (via in-app confirm modal)
-  const handleDeleteJob = (jobId: string) => {
-    deleteInDB('lowongan', jobId);
-    loadMitraData();
-    if (onReloadData) onReloadData();
-    setDeleteJobTarget(null);
-    triggerToast('success', 'Lowongan berhasil dihapus.');
+  const handleDeleteJob = async (jobId: string) => {
+    try {
+      await deleteInDB('lowongan', jobId);
+      await loadMitraData();
+      if (onReloadData) onReloadData();
+      setDeleteJobTarget(null);
+      triggerToast('success', 'Lowongan berhasil dihapus.');
+    } catch (err: any) {
+      triggerToast('error', 'Gagal menghapus lowongan: ' + (err?.message || err));
+    }
   };
 
   // Helper to get or construct real applicant selection history logs
@@ -931,7 +952,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
   };
 
   // Handle Candidate Status Transition
-  const handleUpdateApplicantStatus = (applId: string, decision: string, customMessage?: string) => {
+  const handleUpdateApplicantStatus = async (applId: string, decision: string, customMessage?: string) => {
     const allAppls = getFromDB<PengajuanMagang>('pengajuan_magang');
     const target = allAppls.find(a => a.id === applId);
     if (target) {
@@ -953,20 +974,25 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
       target.riwayatSeleksi = [...existingHistory, newLog];
       target.catatanAdmin = `Diproses oleh HRD Mitra (${mitraData?.namaInstansi}) : status ${decision}`;
 
-      updateInDB<PengajuanMagang>('pengajuan_magang', target);
-      loadMitraData();
-      if (onReloadData) onReloadData();
-      const toastType = (decision === 'rejected' || decision === 'ditolak') ? 'error' : 'success';
-      triggerToast(toastType, customMessage || `Status pelamar berhasil diperbarui menjadi ${decision.toUpperCase()}.`);
+      try {
+        await updateInDB<PengajuanMagang>('pengajuan_magang', target);
+        await loadMitraData();
+        if (onReloadData) onReloadData();
+        const toastType = (decision === 'rejected' || decision === 'ditolak') ? 'error' : 'success';
+        triggerToast(toastType, customMessage || `Status pelamar berhasil diperbarui menjadi ${decision.toUpperCase()}.`);
 
-      if (decision === 'accepted' || decision === 'diterima') {
-        triggerAlert('success', 'Pelamar Berhasil Diterima!', customMessage || `Pelamar ${target.namaMahasiswa} telah berhasil DITERIMA untuk posisi ${target.tujuanMagang}.`);
-      } else if (decision === 'rejected' || decision === 'ditolak') {
-        triggerAlert('error', 'Pelamar Ditolak', customMessage || `Pelamar ${target.namaMahasiswa} telah DITOLAK.`);
-      } else if (decision === 'seleksi_administrasi') {
-        triggerAlert('success', 'Status Diperbarui', `Status pelamar ${target.namaMahasiswa} berhasil diubah ke tahap Seleksi Administrasi.`);
-      } else if (decision === 'interview') {
-        triggerAlert('success', 'Lolos ke Interview', `Pelamar ${target.namaMahasiswa} berhasil diloloskan ke tahap interview.`);
+        if (decision === 'accepted' || decision === 'diterima') {
+          triggerAlert('success', 'Pelamar Berhasil Diterima!', customMessage || `Pelamar ${target.namaMahasiswa} telah berhasil DITERIMA untuk posisi ${target.tujuanMagang}.`);
+        } else if (decision === 'rejected' || decision === 'ditolak') {
+          triggerAlert('error', 'Pelamar Ditolak', customMessage || `Pelamar ${target.namaMahasiswa} telah DITOLAK.`);
+        } else if (decision === 'seleksi_administrasi') {
+          triggerAlert('success', 'Status Diperbarui', `Status pelamar ${target.namaMahasiswa} berhasil diubah ke tahap Seleksi Administrasi.`);
+        } else if (decision === 'interview') {
+          triggerAlert('success', 'Lolos ke Interview', `Pelamar ${target.namaMahasiswa} berhasil diloloskan ke tahap interview.`);
+        }
+      } catch (err: any) {
+        triggerToast('error', 'Gagal memperbarui status pelamar: ' + (err?.message || err));
+        triggerAlert('error', 'Gagal', err?.message || 'Gagal menyimpan status ke database.');
       }
     } else {
       triggerToast('error', 'Data pelamar tidak ditemukan.');
@@ -986,7 +1012,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
   };
 
   // Submit & Save Interview Schedule
-  const handleSaveInterviewSchedule = (e: React.FormEvent) => {
+  const handleSaveInterviewSchedule = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!schedulingApplicant) return;
 
@@ -1011,13 +1037,20 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
       target.interviewNote = interviewNote;
       target.riwayatSeleksi = [...existingHistory, newLog];
 
-      updateInDB<PengajuanMagang>('pengajuan_magang', target);
-      loadMitraData();
-      if (onReloadData) onReloadData();
-      setSchedulingApplicant(null);
-      setSelectedApplicantDoc(null);
-      triggerToast('success', `Jadwal interview untuk ${target.namaMahasiswa} berhasil disimpan.`);
-      triggerAlert('success', 'Jadwal Interview Tersimpan!', `Jadwal interview untuk ${target.namaMahasiswa} berhasil disimpan dan status diubah ke INTERVIEW.`);
+      try {
+        await updateInDB<PengajuanMagang>('pengajuan_magang', target);
+        await loadMitraData();
+        if (onReloadData) onReloadData();
+        setSchedulingApplicant(null);
+        setSelectedApplicantDoc(null);
+        triggerToast('success', `Jadwal interview untuk ${target.namaMahasiswa} berhasil disimpan.`);
+        triggerAlert('success', 'Jadwal Interview Tersimpan!', `Jadwal interview untuk ${target.namaMahasiswa} berhasil disimpan dan status diubah ke INTERVIEW.`);
+      } catch (err: any) {
+        triggerToast('error', 'Gagal menyimpan jadwal interview: ' + (err?.message || err));
+        triggerAlert('error', 'Gagal', err?.message || 'Gagal menyimpan jadwal ke database.');
+      }
+    } else {
+      triggerToast('error', 'Data pelamar tidak ditemukan.');
     }
   };
 
@@ -1028,15 +1061,19 @@ export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDa
   };
 
   // Save Internal Note for Applicant
-  const handleSaveInternalNote = (applicantId: string) => {
+  const handleSaveInternalNote = async (applicantId: string) => {
     const allAppls = getFromDB<PengajuanMagang>('pengajuan_magang');
     const target = allAppls.find(a => a.id === applicantId);
     if (target) {
       target.catatanAdmin = internalNoteInput;
-      updateInDB<PengajuanMagang>('pengajuan_magang', target);
-      loadMitraData();
-      if (onReloadData) onReloadData();
-      triggerToast('success', 'Catatan internal seleksi berhasil disimpan.');
+      try {
+        await updateInDB<PengajuanMagang>('pengajuan_magang', target);
+        await loadMitraData();
+        if (onReloadData) onReloadData();
+        triggerToast('success', 'Catatan internal seleksi berhasil disimpan.');
+      } catch (err: any) {
+        triggerToast('error', 'Gagal menyimpan catatan: ' + (err?.message || err));
+      }
     } else {
       triggerToast('error', 'Data pelamar tidak ditemukan.');
     }

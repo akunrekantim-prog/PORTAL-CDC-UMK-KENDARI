@@ -49,8 +49,44 @@ import {
   syncLowonganToSupabase,
   syncPengajuanToSupabase,
   syncTracerStudyToSupabase,
-  syncKontenKarirToSupabase
+  syncKontenKarirToSupabase,
+  syncBeritaToSupabase,
+  syncPengumumanToSupabase,
+  syncSurveiLulusanToSupabase,
+  syncSuratKeputusanToSupabase,
+  syncKalenderKegiatanToSupabase,
+  syncLaporanKinerjaToSupabase,
+  syncMouStakeholderToSupabase,
+  syncGaleriItemToSupabase,
+  syncSocialMediaToSupabase,
+  syncKomentarBeritaToSupabase,
+  syncUploadedDocumentToSupabase
 } from './services/dbService';
+
+/* ── Supabase-first write map: setiap DBKey wajib punya jalur sync.
+   Tidak ada key yang jatuh ke "tulis lokal saja". ── */
+const SYNC_MAP: Record<string, (item: any) => Promise<any>> = {
+  users: syncUserToSupabase,
+  mahasiswa: syncMahasiswaToSupabase,
+  alumni: syncAlumniToSupabase,
+  mitra: syncMitraToSupabase,
+  lowongan: syncLowonganToSupabase,
+  pengajuan_magang: syncPengajuanToSupabase,
+  tracer_studies: syncTracerStudyToSupabase,
+  tracer_study: syncTracerStudyToSupabase,
+  konten_karir: syncKontenKarirToSupabase,
+  berita: syncBeritaToSupabase,
+  pengumuman: syncPengumumanToSupabase,
+  survei_lulusan: syncSurveiLulusanToSupabase,
+  surat_keputusan: syncSuratKeputusanToSupabase,
+  kalender_kegiatan: syncKalenderKegiatanToSupabase,
+  laporan_kinerja: syncLaporanKinerjaToSupabase,
+  mou_stakeholder: syncMouStakeholderToSupabase,
+  galeri_items: syncGaleriItemToSupabase,
+  social_media: syncSocialMediaToSupabase,
+  komentar_berita: syncKomentarBeritaToSupabase,
+  uploaded_documents: syncUploadedDocumentToSupabase
+};
 
 // Daftar Fakultas Resmi Universitas Muhammadiyah Kendari (UM Kendari)
 export const FAKULTAS_LIST: string[] = [
@@ -2115,9 +2151,9 @@ const DEFAULT_SEEDS = {
 const MEMORY_DB: Record<string, any[]> = { ...DEFAULT_SEEDS };
 let _dbInitialized = false;
 
-// Async initializer: boot publik (tanpa login) + full dataset (kalau ada token).
-// Urutan: /public-data dulu agar beranda selalu live → /all-data kalau ada token.
-// Fallback seed lokal HANYA jika backend tidak terjangkau (network error), TANPA menimpa kolom yang sudah live.
+// Async initializer: Supabase-first. Full dataset (/all-data, butuh token) →
+// fallback konten publik (/public-data, tanpa login). Backend mati = MEMORY_DB
+// kosong + warn, TANPA seed lokal menimpa data live.
 export async function initializeDB(): Promise<void> {
   try {
     const liveData = await fetchInitialDatabaseFromSupabase();
@@ -2138,49 +2174,19 @@ export async function initializeDB(): Promise<void> {
         }
       });
       console.log('⚡ [Portal Data Engine] Konten publik live dari Supabase PostgreSQL (mode tamu).');
+    } else {
+      console.warn('[DB Init] Backend tidak terjangkau — MEMORY_DB kosong, UI tampil tanpa data seed lokal.');
     }
   } catch (err) {
-    console.warn('[DB Init Exception] Falling back to localStorage:', err);
-    // Fallback: gunakan localStorage dengan versioning
-    const CURRENT_SEED_VERSION = 'v17_magang_dummy_7';
-    if (localStorage.getItem('cdc_seed_version') !== CURRENT_SEED_VERSION) {
-      Object.entries(DEFAULT_SEEDS).forEach(([key, val]) => {
-        const storageKey = `cdc_umk_${key}`;
-        localStorage.setItem(storageKey, JSON.stringify(val));
-      });
-      localStorage.setItem('cdc_seed_version', CURRENT_SEED_VERSION);
-    } else {
-      Object.entries(DEFAULT_SEEDS).forEach(([key, val]) => {
-        const storageKey = `cdc_umk_${key}`;
-        if (!localStorage.getItem(storageKey)) {
-          localStorage.setItem(storageKey, JSON.stringify(val));
-        }
-      });
-    }
-
-    // Load persisted data from localStorage into MEMORY_DB so registered users & edits persist across refresh!
-    Object.keys(DEFAULT_SEEDS).forEach((key) => {
-      const storageKey = `cdc_umk_${key}`;
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            MEMORY_DB[key] = parsed;
-          }
-        } catch {
-          // keep default seed
-        }
-      }
-    });
+    console.warn('[DB Init Exception] Backend tidak terjangkau, tanpa fallback seed lokal:', err);
   } finally {
     _dbInitialized = true;
-    cleanupGoogleUsersEducation();
+    await cleanupGoogleUsersEducation();
   }
 }
 
 // Auto cleanup helper for Google users to ensure clean slate if no NIM has been registered
-export function cleanupGoogleUsersEducation() {
+export async function cleanupGoogleUsersEducation(): Promise<void> {
   try {
     const users = (MEMORY_DB['users'] as User[]) || [];
     const students = (MEMORY_DB['mahasiswa'] as Mahasiswa[]) || [];
@@ -2189,8 +2195,8 @@ export function cleanupGoogleUsersEducation() {
     students.forEach(st => {
       const u = users.find(usr => usr.id === st.userId);
       const isGoogle = u && (
-        u.password === 'google_authenticated' || 
-        u.id.startsWith('usr_google_') || 
+        u.password === 'google_authenticated' ||
+        u.id.startsWith('usr_google_') ||
         u.email.toLowerCase().includes('akunrekantim')
       );
       if (isGoogle && !st.nim) {
@@ -2209,7 +2215,7 @@ export function cleanupGoogleUsersEducation() {
     });
 
     if (changed) {
-      saveToDB('mahasiswa', students);
+      await saveToDB('mahasiswa', students);
     }
   } catch (e) {
     // silent
@@ -2233,110 +2239,63 @@ export async function refreshLiveDatabase(): Promise<boolean> {
   }
 }
 
-// Fetch item dari In-Memory DB
+// Fetch item dari In-Memory DB (HANYA baca MEMORY_DB — tanpa intip localStorage
+// agar data live Supabase tidak tertimpa data lokal basi).
 export function getFromDB<T>(key: DBKey): T[] {
   if (!_dbInitialized) {
     initializeDB();
   }
-  if (typeof window !== 'undefined' && window.localStorage) {
-    const storageKey = `cdc_umk_${key}`;
-    const saved = localStorage.getItem(storageKey);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > (MEMORY_DB[key]?.length || 0)) {
-          MEMORY_DB[key] = parsed;
-        }
-      } catch {
-        // ignore
-      }
-    }
-  }
   return (MEMORY_DB[key] as T[]) || [];
 }
 
-// Simpan/Update item ke In-Memory DB & Sinkronisasi Langsung ke Supabase PostgreSQL
-export function saveToDB<T>(key: DBKey, data: T[]) {
-  MEMORY_DB[key] = data;
-
-  if (typeof window !== 'undefined' && window.localStorage) {
-    try {
-      localStorage.setItem(`cdc_umk_${key}`, JSON.stringify(data));
-    } catch {
-      // quota
-    }
+// Supabase-first: tulis ke Supabase dulu per item, baru update MEMORY_DB + cache.
+// Gagal = throw ke UI. Tidak ada lagi setTimeout fire-and-forget.
+export async function saveToDB<T>(key: DBKey, data: T[]): Promise<void> {
+  const syncFn = SYNC_MAP[key];
+  if (!syncFn) throw new Error(`Tidak ada jalur sync Supabase untuk '${key}'. Tambahkan dulu di SYNC_MAP + server.js.`);
+  const saved: T[] = [];
+  for (const item of data as any[]) {
+    const row = await syncFn(item);
+    saved.push((row ?? item) as T);
   }
-
-  // Asynchronous Sync ke Supabase PostgreSQL Database API
-  setTimeout(async () => {
-    try {
-      if (key === 'users' && Array.isArray(data)) {
-        for (const item of data as any[]) {
-          await syncUserToSupabase(item);
-        }
-      } else if (key === 'mahasiswa' && Array.isArray(data)) {
-        for (const item of data as any[]) {
-          await syncMahasiswaToSupabase(item);
-        }
-      } else if (key === 'alumni' && Array.isArray(data)) {
-        for (const item of data as any[]) {
-          await syncAlumniToSupabase(item);
-        }
-      } else if (key === 'mitra' && Array.isArray(data)) {
-        for (const item of data as any[]) {
-          await syncMitraToSupabase(item);
-        }
-      } else if (key === 'lowongan' && Array.isArray(data)) {
-        for (const item of data as any[]) {
-          await syncLowonganToSupabase(item);
-        }
-      } else if (key === 'pengajuan_magang' && Array.isArray(data)) {
-        for (const item of data as any[]) {
-          await syncPengajuanToSupabase(item);
-        }
-      } else if ((key === ('tracer_study' as any) || key === 'tracer_studies') && Array.isArray(data)) {
-        for (const item of data as any[]) {
-          await syncTracerStudyToSupabase(item);
-        }
-      } else if (key === 'konten_karir' && Array.isArray(data)) {
-        for (const item of data as any[]) {
-          await syncKontenKarirToSupabase(item);
-        }
-      }
-    } catch (e) {
-      console.warn('[Sync Error]', key, e);
-    }
-  }, 0);
+  MEMORY_DB[key] = saved;
+  try {
+    localStorage.setItem(`cdc_umk_${key}`, JSON.stringify(saved));
+  } catch { /* quota — abaikan, cache saja */ }
 }
 
 // Helper to push new item at top
-export function insertToDB<T extends { id: string }>(key: DBKey, item: T): T {
+export async function insertToDB<T extends { id: string }>(key: DBKey, item: T): Promise<T> {
   const current = getFromDB<T>(key);
-  current.unshift(item);
-  saveToDB(key, current);
-  return item;
+  const syncFn = SYNC_MAP[key];
+  if (!syncFn) throw new Error(`Tidak ada jalur sync Supabase untuk '${key}'.`);
+  const row = await syncFn(item);
+  const finalItem = (row ?? item) as T;
+  MEMORY_DB[key] = [finalItem, ...current];
+  try { localStorage.setItem(`cdc_umk_${key}`, JSON.stringify(MEMORY_DB[key])); } catch {}
+  return finalItem;
 }
 
 // Helper to update item
-export function updateInDB<T extends { id: string }>(key: DBKey, item: T): T {
+export async function updateInDB<T extends { id: string }>(key: DBKey, item: T): Promise<T> {
+  const syncFn = SYNC_MAP[key];
+  if (!syncFn) throw new Error(`Tidak ada jalur sync Supabase untuk '${key}'.`);
+  const row = await syncFn(item);
+  const finalItem = (row ?? item) as T;
   const current = getFromDB<T>(key);
-  const index = current.findIndex(i => i.id === item.id);
-  if (index !== -1) {
-    current[index] = item;
-  } else {
-    current.push(item);
-  }
-  saveToDB(key, current);
-  return item;
+  const index = current.findIndex(i => i.id === finalItem.id);
+  if (index !== -1) current[index] = finalItem;
+  else current.push(finalItem);
+  MEMORY_DB[key] = [...current];
+  try { localStorage.setItem(`cdc_umk_${key}`, JSON.stringify(MEMORY_DB[key])); } catch {}
+  return finalItem;
 }
 
 // Helper to delete item
-export function deleteInDB<T extends { id: string }>(key: DBKey, id: string) {
-  const current = getFromDB<T>(key);
-  const filtered = current.filter(i => i.id !== id);
-  MEMORY_DB[key] = filtered;
-  saveToDB(key, filtered);
-  deleteFromSupabase(key, id);
+export async function deleteInDB<T extends { id: string }>(key: DBKey, id: string): Promise<void> {
+  await deleteFromSupabase(key, id);
+  MEMORY_DB[key] = getFromDB<T>(key).filter(i => i.id !== id);
+  try { localStorage.setItem(`cdc_umk_${key}`, JSON.stringify(MEMORY_DB[key])); } catch {}
 }
 
 /* ─────────────────────────────────────────────────────────────────
@@ -2366,10 +2325,10 @@ export interface RegisterMitraPayload {
   website?: string;
 }
 
-export function registerUser(
+export async function registerUser(
   role: 'alumni' | 'mitra',
   payload: RegisterAlumniPayload | RegisterMitraPayload
-): User {
+): Promise<User> {
   const users = getFromDB<User>('users');
 
   // Check if email already exists
@@ -2411,7 +2370,7 @@ export function registerUser(
     createdAt: now
   };
 
-  insertToDB<User>('users', newUser);
+  await insertToDB<User>('users', newUser);
 
   if (role === 'alumni') {
     const almPayload = payload as RegisterAlumniPayload;
@@ -2427,7 +2386,7 @@ export function registerUser(
       tahunLulus: almPayload.tahunLulus,
       statusPekerjaan: almPayload.statusPekerjaan || (almPayload.userStatusType === 'Mahasiswa' ? 'mahasiswa_aktif' : 'belum_bekerja')
     };
-    insertToDB<Alumni>('alumni', newAlumni);
+    await insertToDB<Alumni>('alumni', newAlumni);
 
     // Create fresh clean Mahasiswa profile with reset/empty resume fields for self-configuration
     const newMahasiswa: Mahasiswa = {
@@ -2460,7 +2419,7 @@ export function registerUser(
       qualifications: [],
       languages: []
     };
-    insertToDB<Mahasiswa>('mahasiswa', newMahasiswa);
+    await insertToDB<Mahasiswa>('mahasiswa', newMahasiswa);
 
     // Initialize clean empty bookmarks for new user
     try {
@@ -2482,7 +2441,7 @@ export function registerUser(
       website: mtrPayload.website || '',
       statusKerjaSama: 'aktif'
     };
-    insertToDB<Mitra>('mitra', newMitra);
+    await insertToDB<Mitra>('mitra', newMitra);
   }
 
   return newUser;
@@ -2491,11 +2450,11 @@ export function registerUser(
 /**
  * Autentikasi langsung dengan Akun Google (Login / Auto-Register)
  */
-export function loginOrRegisterWithGoogle(googleAccount: {
+export async function loginOrRegisterWithGoogle(googleAccount: {
   name: string;
   email: string;
   photoUrl?: string;
-}): { user: User; isNew: boolean } {
+}): Promise<{ user: User; isNew: boolean }> {
   const users = getFromDB<User>('users');
   const existingUser = users.find(
     u => u.email.toLowerCase() === googleAccount.email.trim().toLowerCase()
@@ -2510,7 +2469,7 @@ export function loginOrRegisterWithGoogle(googleAccount: {
       photoUrl: googleAccount.photoUrl || existingUser.photoUrl
     };
     const updatedUsers = users.map(u => (u.id === existingUser.id ? updatedUser : u));
-    saveToDB('users', updatedUsers);
+    await saveToDB('users', updatedUsers);
 
     // Reset dummy education on Google user if it was auto-generated
     const students = getFromDB<Mahasiswa>('mahasiswa');
@@ -2521,7 +2480,7 @@ export function loginOrRegisterWithGoogle(googleAccount: {
       student.programStudi = '';
       student.angkatan = '';
       student.graduationYear = '';
-      saveToDB('mahasiswa', students);
+      await saveToDB('mahasiswa', students);
     }
 
     if (typeof localStorage !== 'undefined') {
@@ -2547,7 +2506,7 @@ export function loginOrRegisterWithGoogle(googleAccount: {
     createdAt: now,
     lastLoginAt: now
   };
-  insertToDB<User>('users', newUser);
+  await insertToDB<User>('users', newUser);
 
   // Auto-generate clean, uninitialized Alumni & Mahasiswa profile
   const newAlumni: Alumni = {
@@ -2562,7 +2521,7 @@ export function loginOrRegisterWithGoogle(googleAccount: {
     tahunLulus: '',
     statusPekerjaan: 'mahasiswa_aktif'
   };
-  insertToDB<Alumni>('alumni', newAlumni);
+  await insertToDB<Alumni>('alumni', newAlumni);
 
   const newMahasiswa: Mahasiswa = {
     id: `mhs_${userId}`,
@@ -2594,7 +2553,7 @@ export function loginOrRegisterWithGoogle(googleAccount: {
     qualifications: [],
     languages: []
   };
-  insertToDB<Mahasiswa>('mahasiswa', newMahasiswa);
+  await insertToDB<Mahasiswa>('mahasiswa', newMahasiswa);
 
   if (typeof localStorage !== 'undefined') {
     localStorage.setItem('cdc_session_id', newUser.id);
@@ -2605,14 +2564,14 @@ export function loginOrRegisterWithGoogle(googleAccount: {
   return { user: newUser, isNew: true };
 }
 
-export function updateUserProfile(userId: string, profileData: Partial<Mahasiswa>) {
+export async function updateUserProfile(userId: string, profileData: Partial<Mahasiswa>): Promise<Mahasiswa> {
   const students = getFromDB<Mahasiswa>('mahasiswa');
   let student = students.find(s => s.userId === userId);
   let updatedStudent: Mahasiswa;
 
   if (student) {
     updatedStudent = { ...student, ...profileData };
-    updateInDB<Mahasiswa>('mahasiswa', updatedStudent);
+    await updateInDB<Mahasiswa>('mahasiswa', updatedStudent);
   } else {
     // If no existing record, create one
     const newStudent: Mahasiswa = {
@@ -2628,7 +2587,7 @@ export function updateUserProfile(userId: string, profileData: Partial<Mahasiswa
       semester: profileData.semester || 1,
       ...profileData
     };
-    insertToDB<Mahasiswa>('mahasiswa', newStudent);
+    await insertToDB<Mahasiswa>('mahasiswa', newStudent);
     updatedStudent = newStudent;
   }
 
@@ -2642,13 +2601,13 @@ export function updateUserProfile(userId: string, profileData: Partial<Mahasiswa
       email: profileData.email || userObj.email,
       photoUrl: profileData.photoUrl || userObj.photoUrl
     };
-    updateInDB<User>('users', updatedUser);
+    await updateInDB<User>('users', updatedUser);
   }
 
   return updatedStudent;
 }
 
-export function applyForJob(userId: string, job: Lowongan, extraData?: any) {
+export async function applyForJob(userId: string, job: Lowongan, extraData?: any): Promise<PengajuanMagang> {
   if (isJobDeadlinePassed(job.deadline)) {
     throw new Error('Pendaftaran untuk lowongan ini telah ditutup karena telah melewati batas waktu (deadline).');
   }
@@ -2692,7 +2651,7 @@ export function applyForJob(userId: string, job: Lowongan, extraData?: any) {
     qualifications: student?.qualifications || []
   };
 
-  insertToDB<PengajuanMagang>('pengajuan_magang', newPengajuan);
+  await insertToDB<PengajuanMagang>('pengajuan_magang', newPengajuan);
   return newPengajuan;
 }
 
@@ -2710,21 +2669,21 @@ export function getApprovedKomentarBerita(slug: string): KomentarBerita[] {
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
 }
 
-export function insertKomentarBerita(item: KomentarBerita): KomentarBerita {
+export async function insertKomentarBerita(item: KomentarBerita): Promise<KomentarBerita> {
   return insertToDB<KomentarBerita>('komentar_berita', item);
 }
 
-export function updateKomentarBeritaStatus(id: string, status: StatusKomentar): KomentarBerita | null {
+export async function updateKomentarBeritaStatus(id: string, status: StatusKomentar): Promise<KomentarBerita | null> {
   const all = getKomentarBerita();
   const idx = all.findIndex(k => k.id === id);
   if (idx === -1) return null;
   const updated = { ...all[idx], status };
-  updateInDB<KomentarBerita>('komentar_berita', updated);
+  await updateInDB<KomentarBerita>('komentar_berita', updated);
   return updated;
 }
 
-export function deleteKomentarBerita(id: string): void {
-  deleteInDB<KomentarBerita>('komentar_berita', id);
+export async function deleteKomentarBerita(id: string): Promise<void> {
+  await deleteInDB<KomentarBerita>('komentar_berita', id);
 }
 
 /* ─────────────────────────────────────────────────────────────────

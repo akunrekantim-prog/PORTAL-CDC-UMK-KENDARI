@@ -106,10 +106,10 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
     setTimeout(() => setToastMsg(null), 3500);
   };
 
-  const handleApplySubmit = (data: any) => {
+  const handleApplySubmit = async (data: any) => {
     if (applyingJob) {
       try {
-        applyForJob(user.id, applyingJob, data);
+        await applyForJob(user.id, applyingJob, data);
         window.dispatchEvent(new Event('storage'));
         triggerToast(`Lamaran untuk ${applyingJob.judul} di ${applyingJob.namaInstansi} berhasil terkirim ke Mitra!`);
       } catch (err: any) {
@@ -129,7 +129,7 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
   );
   const interviewAlertCount = myApplications.filter(a => (a.status || '').toLowerCase() === 'interview').length;
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     const updatedProfile: Partial<Mahasiswa> = {
       nama: `${firstName} ${lastName}`.trim(),
@@ -143,9 +143,13 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan }: Maha
       preferredStartDate
     };
 
-    const updated = updateUserProfile(user.id, updatedProfile);
-    setMahasiswaData(updated);
-    triggerToast('Profile updated successfully!');
+    try {
+      const updated = await updateUserProfile(user.id, updatedProfile);
+      setMahasiswaData(updated);
+      triggerToast('Profile updated successfully!');
+    } catch (err: any) {
+      triggerToast(err?.message || 'Gagal menyimpan profil. Silakan coba lagi.');
+    }
   };
 
   // Calculate profile completion

@@ -171,7 +171,7 @@ export default function BeritaDetailView({
     shareToLinkedIn(getShareOpts(), (msg) => showToast(msg));
   };
 
-  const handleSubmitComment = (e: React.FormEvent) => {
+  const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputKomentar.trim() || !inputNama.trim() || !inputEmail.trim()) {
       showToast('Mohon lengkapi Ruas yang Wajib Ditandai (*) terlebih dahulu.');
@@ -180,16 +180,21 @@ export default function BeritaDetailView({
 
     // Simpan ke DB dengan status PENDING — baru tayang setelah admin menyetujui.
     const newId = `kmt_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-    insertKomentarBerita({
-      id: newId,
-      beritaSlug: berita.slug,
-      beritaJudul: berita.title,
-      nama: inputNama.trim(),
-      email: inputEmail.trim(),
-      komentar: inputKomentar.trim(),
-      createdAt: new Date().toISOString(),
-      status: 'pending'
-    });
+    try {
+      await insertKomentarBerita({
+        id: newId,
+        beritaSlug: berita.slug,
+        beritaJudul: berita.title,
+        nama: inputNama.trim(),
+        email: inputEmail.trim(),
+        komentar: inputKomentar.trim(),
+        createdAt: new Date().toISOString(),
+        status: 'pending'
+      });
+    } catch (err: any) {
+      showToast(err?.message || 'Gagal mengirim komentar. Silakan coba lagi.');
+      return;
+    }
 
     // Soft-notice di sesi ini: user lihat sendiri bahwa komentarnya menunggu moderasi.
     setMyPendingIds(prev => [newId, ...prev]);

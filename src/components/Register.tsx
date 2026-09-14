@@ -23,9 +23,6 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { registerToBackend } from '../services/dbService';
 import {
-  registerUser,
-  RegisterAlumniPayload,
-  RegisterMitraPayload,
   FAKULTAS_LIST,
   PRODI_MAP
 } from '../data';
@@ -229,6 +226,8 @@ export default function Register({
     setIsLoading(true);
     try {
       const role = alumniForm.userType === 'Mahasiswa' ? 'MAHASISWA' : 'ALUMNI';
+      // 100% Supabase: register wajib lewat backend. Backend mati = gagal jujur,
+      // TANPA fallback lokal agar tidak ada akun hantu yang tidak ada di Supabase.
       let user: any;
       try {
         user = await registerToBackend({
@@ -243,31 +242,7 @@ export default function Register({
           tahunLulus: alumniForm.tahunLulus
         });
       } catch (backendErr: any) {
-        const isNetworkErr = backendErr && (
-          backendErr.name === 'TypeError' ||
-          String(backendErr.message).toLowerCase().includes('fetch') ||
-          String(backendErr.message).includes('Failed')
-        );
-        if (isNetworkErr) {
-          console.warn('[Register] Backend port 5000 tidak terhubung, beralih ke penyimpanan lokal browser.');
-          const payload: RegisterAlumniPayload = {
-            name: alumniForm.name.trim(),
-            nim: alumniForm.nim.trim().toUpperCase(),
-            email: alumniForm.email.trim(),
-            password: alumniForm.password,
-            phone: alumniForm.phone.trim(),
-            fakultas: alumniForm.fakultas,
-            programStudi: alumniForm.programStudi,
-            tahunLulus: alumniForm.tahunLulus,
-            userStatusType: alumniForm.userType,
-            statusPekerjaan: (alumniForm.userType === 'Mahasiswa'
-              ? 'mahasiswa_aktif'
-              : (alumniForm.statusPekerjaan || 'belum_bekerja')) as any
-          };
-          user = registerUser('alumni', payload);
-        } else {
-          throw backendErr;
-        }
+        throw new Error(backendErr?.message || 'Pendaftaran gagal. Backend tidak terjangkau — data TIDAK disimpan lokal.');
       }
 
       setSuccessUser(user);
@@ -286,6 +261,7 @@ export default function Register({
 
     setIsLoading(true);
     try {
+      // 100% Supabase: register wajib lewat backend, tanpa fallback lokal.
       let user: any;
       try {
         user = await registerToBackend({
@@ -303,29 +279,7 @@ export default function Register({
           website: mitraForm.website.trim()
         });
       } catch (backendErr: any) {
-        const isNetworkErr = backendErr && (
-          backendErr.name === 'TypeError' ||
-          String(backendErr.message).toLowerCase().includes('fetch') ||
-          String(backendErr.message).includes('Failed')
-        );
-        if (isNetworkErr) {
-          console.warn('[Register] Backend port 5000 tidak terhubung, beralih ke registrasi lokal browser.');
-          const payload: RegisterMitraPayload = {
-            namaInstansi: mitraForm.namaInstansi.trim(),
-            kontakPerson: mitraForm.jabatanKontak
-              ? `${mitraForm.kontakPerson.trim()} (${mitraForm.jabatanKontak.trim()})`
-              : mitraForm.kontakPerson.trim(),
-            email: mitraForm.email.trim(),
-            password: mitraForm.password,
-            phone: mitraForm.phone.trim(),
-            bidangIndustri: mitraForm.bidangIndustri,
-            alamat: mitraForm.alamat.trim(),
-            website: mitraForm.website.trim()
-          };
-          user = registerUser('mitra', payload);
-        } else {
-          throw backendErr;
-        }
+        throw new Error(backendErr?.message || 'Pendaftaran gagal. Backend tidak terjangkau — data TIDAK disimpan lokal.');
       }
 
       setSuccessUser(user);

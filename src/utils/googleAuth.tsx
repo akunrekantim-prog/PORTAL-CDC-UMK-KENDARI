@@ -78,7 +78,7 @@ export function promptGoogleLogin({
             });
             const profile = await res.json();
             if (profile && profile.email) {
-              const { user } = loginOrRegisterWithGoogle({
+              const { user } = await loginOrRegisterWithGoogle({
                 name: profile.name || profile.email.split('@')[0],
                 email: profile.email,
                 photoUrl: profile.picture
