@@ -216,6 +216,33 @@ WHERE schemaname='public' AND indexname LIKE 'idx_%' ORDER BY tablename, indexna
 > npx prisma migrate resolve --applied 0_init
 > ```
 
+> ⚠️ **CHECK constraint TIDAK dikelola Prisma — jangan sampai hilang.**
+> Prisma tidak bisa mengekspresikan `CHECK` di `schema.prisma`, dan
+> `prisma migrate diff` **mengabaikannya** (melaporkan "empty migration" walau
+> constraint ada di DB). Karena itu **22 CHECK** ditempel manual di akhir
+> `prisma/migrations/0_init/migration.sql`, dengan sumber kebenaran di
+> `docs/arsip-supabase/005_add_checks.sql`.
+>
+> Kalau baseline di-generate ulang (`migrate diff --from-empty`), blok CHECK itu
+> **akan hilang** dan database kampus kehilangan seluruh validasi (status/enum,
+> rentang skor survei 1..5, kategori dokumen, metode interview). Setelah
+> regenerate, **tempel ulang** blok dari `005_add_checks.sql`.
+>
+> Verifikasi setelah migrasi (harus **22**, tanpa duplikat):
+> ```bash
+> psql "$DATABASE_URL" -c "
+> SELECT count(*) FROM pg_constraint c
+>   JOIN pg_class r ON r.oid=c.conrelid
+>   JOIN pg_namespace n ON n.oid=r.relnamespace
+>  WHERE n.nspname='public' AND c.contype='c';"
+> ```
+>
+> **Jebakan case-sensitif:** nama constraint asli memakai camelCase
+> (`alumnis_statusPekerjaan_check`), tapi PostgreSQL menurunkan identifier tanpa
+> kutip menjadi lowercase. `DROP CONSTRAINT IF EXISTS` dengan nama camelCase
+> TIDAK cocok dan menghasilkan **constraint duplikat**. `005_add_checks.sql`
+> sudah menangani ini lewat perbandingan `lower(...) = lower(...)`.
+
 ---
 
 ## 7. Build & Konfigurasi Environment
@@ -226,6 +253,19 @@ npm ci
 npm run build          # menghasilkan dist/
 ```
 
+> ⚠️ **JEBAKAN ENV — `.env.production` TIDAK dibaca backend.**
+> `server.js` memanggil `dotenv.config()` tanpa argumen, jadi ia **hanya** membaca
+> `.env`. File `.env.production` hanya dipakai **Vite saat `npm run build`**
+> (untuk variabel `VITE_*`). Kalau nilai produksi ditaruh di `.env.production`,
+> backend tidak akan melihatnya dan diam-diam memakai default `development`.
+>
+> Jadi di server kampus: taruh konfigurasi backend di **`.env`** (atau set sebagai
+> environment variable dari proses manager / systemd).
+>
+> Verifikasi setelah start: `curl -s localhost:5000/api/health` harus
+> `{"status":"ok",...}`. Kalau `server.js` menolak start karena `JWT_SECRET`,
+> berarti `.env` belum terbaca — itu pengaman yang disengaja.
+
 Buat `.env` di server kampus:
 
 ```bash
@@ -233,8 +273,8 @@ NODE_ENV=production
 PORT=5000
 
 # Database lokal kampus
-DATABASE_URL="postgresql://portal_cdc:<PASSWORD>@localhost:5432/portal_cdc"
-DIRECT_URL="postgresql://portal_cdc:<PASSWORD>@localhost:5432/portal_cdc"
+DATABASE_URL="postgresql://portal_cdc:***@localhost:5432/portal_cdc"
+DIRECT_URL="postgresql://portal_cdc:***@localhost:5432/portal_cdc"
 
 # WAJIB BARU — jangan pakai yang dari Supabase/Vercel.
 # Generate: node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
@@ -409,3 +449,37 @@ tetap `/api`, berpindah antar backend cukup mengubah konfigurasi nginx — **tan
 3. **`lowongans` kosong** (0 baris) sementara UI menampilkan 7 lowongan contoh dari
    `DEFAULT_SEEDS` karena `src/data.ts` hanya menimpa data live bila `length > 0`.
    Perlu diputuskan: seed ulang atau perbaiki agar data kosong tidak ditutupi dummy.
+
+---
+
+## 13. Catatan Perawatan (WAJIB dibaca sebelum menambah field)
+
+### Menambah field ke `schema.prisma` → update juga `SYNC_FIELDS` di `server.js`
+
+`/api/sync/:entity` memakai **allowlist** `SYNC_FIELDS` (162 field, 16 entity).
+Field yang tidak ada di allowlist **tidak akan tersimpan** — tapi API tetap
+membalas `200 {success:true}`.
+
+Ini pernah terjadi: **40 field di 8 entity hilang senyap** (aboutMe mahasiswa,
+isPinned lowongan, viewCount berita, seluruh field interview pengajuan magang).
+Tidak ada error, tidak ada log — hanya data yang tidak muncul.
+
+**Sekarang sudah ada pengamannya:** respons sync menyertakan `ignoredFields` bila
+ada field yang dikirim tapi tidak dikenal. Kalau `ignoredFields` muncul, berarti
+`SYNC_FIELDS` perlu diperbarui.
+
+Alur yang benar saat menambah field:
+1. Tambahkan field ke model di `prisma/schema.prisma`
+2. Tambahkan juga ke `SYNC_FIELDS` di `server.js` (pilih tipe: `string`, `text`,
+   `number`, `boolean`, `stringArr`, `date`)
+3. Kalau field itu non-nullable, tambahkan default-nya di `createDefaults()`
+   — **hanya untuk CREATE**, jangan di jalur UPDATE (lihat komentar di fungsi itu)
+4. Jalankan regression guard:
+   ```bash
+   npx tsx scripts/e2e_sync_fields.ts    # harus 53 PASS / 0 FAIL
+   ```
+
+> **Jangan** menaruh nilai default langsung ke objek `data`. Kalau `data` selalu
+> diisi default, UPDATE akan mereset field yang tidak dikirim — misalnya lowongan
+> `CLOSED` kembali `PUBLISHED`, pengajuan `DITERIMA` kembali `SUBMITTED`.
+> Ini sempat terjadi (15 tempat) dan sudah diperbaiki lewat `createDefaults()`.
