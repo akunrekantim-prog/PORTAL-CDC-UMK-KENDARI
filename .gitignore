@@ -6,7 +6,7 @@ coverage/
 *.log
 .env*
 !.env.example
-
+.bak/
 # Strix pentest artifacts (tool output, internal state)
 strix_runs/
 
