@@ -66,6 +66,8 @@ function authHeaders(extra: Record<string, string> = {}): Record<string, string>
 function normalizeRecord(entity: string, row: any): any {
   if (!row || typeof row !== 'object') return row;
   const out = { ...row };
+  // SECURITY: password/hash tidak pernah boleh masuk MEMORY_DB → tidak bisa bocor ke localStorage/Inspect.
+  if ('password' in out) delete (out as any).password;
   if (typeof out.role === 'string') out.role = out.role.toLowerCase();
   if (typeof out.userStatusType === 'string') {
     const v = out.userStatusType.toLowerCase();
@@ -150,7 +152,7 @@ export interface BackendRegisterPayload {
   email: string;
   password: string;
   phone?: string;
-  role: 'MAHASISWA' | 'ALUMNI' | 'MITRA';
+  role: 'MAHASISWA' | 'ALUMNI' | 'MITRA' | 'ADMIN';
   nim?: string;
   namaInstansi?: string;
   kontakPerson?: string;

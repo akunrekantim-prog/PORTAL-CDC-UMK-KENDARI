@@ -115,7 +115,14 @@ export default function App() {
     setAllKonten(getFromDB<KontenKarir>('konten_karir'));
   };
 
-  const FAST_AUTH_ENABLED = true;
+  // Login resmi lewat komponen Login (POST /api/login backend, bcrypt + JWT).
+  // handleLoginSubmit lama (inline App.tsx) DIHAPUS — sumber ganda = celah auth.
+  // SECURITY: role-switcher TANPA login hanya boleh aktif di DEV eksplisit.
+  // Production bundle: tombol disembunyikan DAN handler no-op agar tidak jadi backdoor.
+  const FAST_AUTH_ENABLED =
+    typeof import.meta !== 'undefined' &&
+    (import.meta as any).env?.DEV === true &&
+    (import.meta as any).env?.VITE_ENABLE_FAST_AUTH === 'true';
 
   // Sync URL Path to state
   useEffect(() => {
@@ -228,8 +235,9 @@ export default function App() {
     }
   }, [location.pathname]);
 
-  // Role Switcher
+  // Quick Access Role Switcher — DEV ONLY, tanpa synthetic fallback user.
   const handleFastRoleSwitch = (role: 'admin' | 'user' | 'mitra' | 'public' | 'mahasiswa', shouldNavigate = true) => {
+    if (!FAST_AUTH_ENABLED) return;
     if (role === 'public') {
       setCurrentUser(null);
       setCurrentView('public');
@@ -253,14 +261,10 @@ export default function App() {
       (u) => (u.role === searchRole || u.role === role || (searchRole === 'user' && (u.role === 'mahasiswa' || u.role === 'alumni' || u.role === 'user'))) && (u.status === 'active' || u.status === 'pending')
     );
 
+    // SECURITY: tidak ada synthetic fallback user.
+    // Tanpa user asli di DB lokal = tolak, jangan buat sesi admin/mitra palsu.
     if (!target) {
-      if (role === 'admin') {
-        target = { id: 'usr_admin', name: 'Admin Website CDC', email: 'admin@umkendari.ac.id', role: 'admin', status: 'active' } as UserType;
-      } else if (role === 'mitra') {
-        target = { id: 'mtr1', name: 'PT Go Digital Kendari', email: 'hrd@godigital.com', role: 'mitra', status: 'active' } as UserType;
-      } else {
-        target = { id: 'alm1', name: 'Fachrul Alam Sanuddin', email: 'fachrul@alumni.umkendari.ac.id', role: 'user', status: 'active' } as UserType;
-      }
+      return;
     }
 
     setCurrentUser(target);
@@ -363,12 +367,13 @@ export default function App() {
   return (
     <div className="bg-white min-h-screen font-sans" id="app-root">
 
-      {/* BAR AKSES CEPAT UI DASHBOARD (HANYA UNTUK DEVELOPMENT / PENGUJIAN) */}
-      {import.meta.env.DEV && (
-        <div
-          id="aistudio-role-switcher"
-          className="bg-white border-b border-slate-200 relative z-20"
-        >
+      {/* BAR AKSES CEPAT UI DASHBOARD — DEV ONLY (FAST_AUTH_ENABLED).
+          Tidak dirender di production agar tidak bisa inspect/click-jack ke dashboard. */}
+      {FAST_AUTH_ENABLED && (
+      <div
+        id="aistudio-role-switcher"
+        className="bg-white border-b border-slate-200 sticky top-0 z-[120]"
+      >
         <div className="max-w-7xl mx-auto px-4 py-2 flex flex-wrap items-center justify-between gap-2">
         <div id="switcher-lbl" className="flex items-center gap-2 text-xs text-slate-500">
           <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Pratinjau peran</span>

@@ -174,7 +174,7 @@ Authenticate user with email and password.
 ```json
 {
   "email": "admin@umkendari.ac.id",
-  "password": "admin123!"
+  "password": "<password-admin>"
 }
 ```
 
@@ -799,7 +799,7 @@ curl http://localhost:5000/api/health
 # Login
 curl -X POST http://localhost:5000/api/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@umkendari.ac.id","password":"admin123!"}'
+  -d '{"email":"admin@umkendari.ac.id","password":"<password-admin>"}'
 ```
 
 ---
@@ -904,8 +904,8 @@ Expected response:
 ## 🔗 Related Documentation
 
 - [DATABASE_SETUP.md](./DATABASE_SETUP.md) - Database schema & migrations
-- [SECURITY_AUDIT_REPORT.md](../SECURITY_AUDIT_REPORT.md) - Security audit results
-- [SEED_PASSWORDS_README.md](../SEED_PASSWORDS_README.md) - Password management
+- [SECURITY_AUDIT_REPORT.md](SECURITY_AUDIT_REPORT.md) - Security audit results
+- [SEED_PASSWORDS_README.md](SEED_PASSWORDS_README.md) - Password management
 - [.env.example](../.env.example) - Environment variables template
 
 ---

@@ -556,13 +556,13 @@ This will:
 10. ✅ Insert mou_stakeholder (MoU records)
 11. ✅ Insert galeri_items (gallery photos)
 
-**Default Seed Accounts:**
-| Email | Password (dev) | Role | Status |
-|-------|----------------|------|--------|
-| admin@umkendari.ac.id | admin123! | ADMIN | ACTIVE |
-| mhs@umkendari.ac.id | mahasiswa123! | MAHASISWA | ACTIVE |
-| alumni@umkendari.ac.id | alumni123! | ALUMNI | ACTIVE |
-| mitra@umkendari.ac.id | mitra123! | MITRA | ACTIVE |
+**Default Seed Accounts (password via env, TIDAK ditulis di repo):**
+| Email | Password | Role | Status |
+|-------|----------|------|--------|
+| admin@umkendari.ac.id | via `SEED_ADMIN_PASSWORD` | ADMIN | ACTIVE |
+| mhs@umkendari.ac.id | via `SEED_MAHASISWA_PASSWORD` | MAHASISWA | ACTIVE |
+| alumni@umkendari.ac.id | via `SEED_ALUMNI_PASSWORD` | ALUMNI | ACTIVE |
+| mitra@umkendari.ac.id | via `SEED_MITRA_PASSWORD` | MITRA | ACTIVE |
 
 ⚠️ **SECURITY:** Change these passwords immediately after deployment!
 
@@ -705,8 +705,8 @@ JWT_SECRET="<generated-secret>"
 ## 🔗 Related Documentation
 
 - [BACKEND_ARCHITECTURE.md](./BACKEND_ARCHITECTURE.md) - Backend technical details
-- [SECURITY_AUDIT_REPORT.md](../SECURITY_AUDIT_REPORT.md) - Security audit results
-- [SEED_PASSWORDS_README.md](../SEED_PASSWORDS_README.md) - Password management guide
+- [SECURITY_AUDIT_REPORT.md](SECURITY_AUDIT_REPORT.md) - Security audit results
+- [SEED_PASSWORDS_README.md](SEED_PASSWORDS_README.md) - Password management guide
 - [.env.example](../.env.example) - Environment variables template
 
 ---

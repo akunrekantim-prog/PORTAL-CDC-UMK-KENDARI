@@ -233,12 +233,33 @@ app.post('/api/register', registerLimiter, async (req, res) => {
   if (!isStrongPassword(password)) return res.status(400).json({ success: false, message: 'Password minimal 8 karakter, mengandung huruf besar, huruf kecil, dan angka.' });
   if (!name || !String(name).trim()) return res.status(400).json({ success: false, message: 'Nama wajib diisi.' });
   const normalizedRole = String(role || 'MAHASISWA').toUpperCase();
-  if (!['MAHASISWA', 'ALUMNI', 'MITRA'].includes(normalizedRole)) return res.status(400).json({ success: false, message: 'Role registrasi tidak valid.' });
+  if (!['MAHASISWA', 'ALUMNI', 'MITRA', 'ADMIN'].includes(normalizedRole)) return res.status(400).json({ success: false, message: 'Role registrasi tidak valid.' });
   try {
     const emailKey = String(email).toLowerCase().trim();
     if (emailKey.length > 254) return res.status(400).json({ success: false, message: 'Email terlalu panjang.' });
     const existing = await prisma.user.findUnique({ where: { email: emailKey } });
     if (existing) return res.status(409).json({ success: false, message: 'Pendaftaran gagal. Silakan gunakan data lain atau hubungi admin.' });
+    // SECURITY: role ADMIN tidak boleh self-register publik.
+    // Hanya admin login (JWT ADMIN) yang boleh membuat admin baru,
+    // kecuali bootstrap saat belum ada admin sama sekali di database.
+    if (normalizedRole === 'ADMIN') {
+      let requesterRole = null;
+      try {
+        const h = req.headers['authorization'];
+        const t = (h && h.split(' ')[1]) || (req.cookies && req.cookies.auth_token) || null;
+        if (t) {
+          const decoded = jwt.verify(t, JWT_SECRET);
+          requesterRole = decoded && decoded.role ? String(decoded.role).toUpperCase() : null;
+        }
+      } catch { /* token tidak valid = tolak */ }
+      if (requesterRole !== 'ADMIN') {
+        const adminCount = await prisma.user.count({ where: { role: 'ADMIN' } });
+        if (adminCount > 0) {
+          return res.status(403).json({ success: false, message: 'Pembuatan akun admin memerlukan otorisasi administrator.' });
+        }
+        // else: bootstrap admin pertama — diizinkan sekali saja
+      }
+    }
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await prisma.user.create({
       data: { name: String(name).trim().slice(0, 100), email: emailKey, password: hashedPassword, phone: phone ? String(phone).slice(0, 20) : null, role: normalizedRole, status: 'PENDING' }

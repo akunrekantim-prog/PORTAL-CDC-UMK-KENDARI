@@ -76,6 +76,7 @@ import {
   saveStatistikConfig,
   trackAndGetVisitorCount
 } from '../data';
+import { registerToBackend } from '../services/dbService';
 import {
   LayoutDashboard,
   FileText,
@@ -165,8 +166,6 @@ interface AdminDashboardProps {
   user: UserType;
   onLogout: () => void;
   onReloadData?: () => void;
-  activeTab?: AdminTab;
-  onTabChange?: (tab: AdminTab) => void;
 }
 
 type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin' | 'keanggotaan' | 'visi-misi' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'media-sosial' | 'komentar' | 'konseling' | 'hero-slider' | 'campus-hiring' | 'job-fair' | 'statistik-beranda';
@@ -289,12 +288,12 @@ async function compressImageAdaptive(file: File): Promise<string> {
 // hapus draft (konten belum dipublikasikan) tertua satu per satu dulu sebelum
 // benar-benar gagal. Mengembalikan 'pruned' = jumlah draft yang dibuang.
 async function saveKontenKarirWithQuota(item: KontenKarir, isEdit: boolean): Promise<number> {
-  const tryWrite = async () => {
-    if (isEdit) await updateInDB<KontenKarir>('konten_karir', item);
-    else await insertToDB<KontenKarir>('konten_karir', item);
+  const tryWrite = () => {
+    if (isEdit) updateInDB<KontenKarir>('konten_karir', item);
+    else insertToDB<KontenKarir>('konten_karir', item);
   };
   try {
-    await tryWrite();
+    tryWrite();
     return 0;
   } catch (err: any) {
     if (err && err.name === 'QuotaExceededError') {
@@ -302,7 +301,13 @@ async function saveKontenKarirWithQuota(item: KontenKarir, isEdit: boolean): Pro
       const drafts = all
         .filter((k) => k.status !== 'published')
         .sort((a, b) => +new Date(a.createdAt) - +new Date(b.createdAt));
-      throw err; // Supabase-first: gagal = throw, tanpa prune lokal → biarkan caller tampilkan pesan
+      let pruned = 0;
+      for (const d of drafts) {
+        deleteInDB('konten_karir', d.id);
+        pruned++;
+        try { tryWrite(); return pruned; } catch { /* coba lagi dengan draft lebih sedikit */ }
+      }
+      throw err; // masih penuh → biarkan caller tampilkan pesan
     }
     throw err;
   }
@@ -310,71 +315,34 @@ async function saveKontenKarirWithQuota(item: KontenKarir, isEdit: boolean): Pro
 
 // Sama seperti di atas tapi untuk tabel 'lowongan' (poster/flyer cukup besar).
 async function saveLowonganWithQuota(item: Lowongan, isEdit: boolean): Promise<number> {
-  const tryWrite = async () => {
-    if (isEdit) await updateInDB<Lowongan>('lowongan', item);
-    else await insertToDB<Lowongan>('lowongan', item);
+  const tryWrite = () => {
+    if (isEdit) updateInDB<Lowongan>('lowongan', item);
+    else insertToDB<Lowongan>('lowongan', item);
   };
   try {
-    await tryWrite();
+    tryWrite();
     return 0;
   } catch (err: any) {
     if (err && err.name === 'QuotaExceededError') {
       const all = getFromDB<Lowongan>('lowongan');
       const oldest = [...all].sort((a, b) => +new Date(a.createdAt) - +new Date(b.createdAt));
-      throw err; // Supabase-first: gagal = throw
+      let pruned = 0;
+      for (const d of oldest) {
+        deleteInDB('lowongan', d.id);
+        pruned++;
+        try { tryWrite(); return pruned; } catch { /* coba lagi */ }
+      }
+      throw err;
     }
     throw err;
   }
 }
 
-const VALID_ADMIN_TABS: AdminTab[] = [
-  'ringkasan', 'konten', 'mitra', 'admin', 'keanggotaan', 'visi-misi',
-  'sk-cdc', 'kalender', 'laporan', 'mou', 'galeri', 'media-sosial',
-  'komentar', 'konseling', 'hero-slider', 'campus-hiring', 'job-fair', 'statistik-beranda'
-];
-
-const ALIAS_MAP: Record<string, { tab: AdminTab; sub?: string }> = {
-  'mitra-approval': { tab: 'mitra', sub: 'approval' },
-  'mitra-list': { tab: 'mitra', sub: 'list' },
-  'konten-riwayat': { tab: 'konten', sub: 'riwayat' },
-  'konten-buat': { tab: 'konten', sub: 'pembuatan' }
-};
-
-export default function AdminDashboard({ user, onLogout, onReloadData, activeTab: activeTabProp, onTabChange }: AdminDashboardProps) {
-  const resolveTabInfo = (rawTab?: string): { tab: AdminTab; sub?: string } => {
-    if (!rawTab) return { tab: 'ringkasan' };
-    if (ALIAS_MAP[rawTab]) return ALIAS_MAP[rawTab];
-    if (VALID_ADMIN_TABS.includes(rawTab as AdminTab)) return { tab: rawTab as AdminTab };
-    return { tab: 'ringkasan' };
-  };
-
-  const [activeTab, setActiveTabInternal] = useState<AdminTab>(() => resolveTabInfo(activeTabProp).tab);
+export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDashboardProps) {
+  const [activeTab, setActiveTab] = useState<AdminTab>('ringkasan');
   const [kontenSub, setKontenSub] = useState<KontenSubTab>('riwayat');
-  const [mitraSub, setMitraSub] = useState<MitraSubTab>('approval');
-
-  const setActiveTab = (tab: AdminTab, sub?: string) => {
-    setActiveTabInternal(tab);
-    if (sub && tab === 'mitra') setMitraSub(sub as MitraSubTab);
-    if (sub && tab === 'konten') setKontenSub(sub as KontenSubTab);
-    if (onTabChange) {
-      const urlTab = sub ? `${tab}-${sub}` : tab;
-      onTabChange(urlTab as any);
-    }
-  };
-
-  useEffect(() => {
-    const info = resolveTabInfo(activeTabProp);
-    if (info.tab !== activeTab) {
-      setActiveTabInternal(info.tab);
-    }
-    if (info.sub && info.tab === 'mitra') {
-      setMitraSub(info.sub as MitraSubTab);
-    } else if (info.sub && info.tab === 'konten') {
-      setKontenSub(info.sub as KontenSubTab);
-    }
-  }, [activeTabProp]);
-
   const [selectedCategory, setSelectedCategory] = useState<JenisKonten | null>(null);
+  const [mitraSub, setMitraSub] = useState<MitraSubTab>('approval');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCmdPaletteOpen, setIsCmdPaletteOpen] = useState(false);
   const [cmdSearchQuery, setCmdSearchQuery] = useState('');
@@ -641,7 +609,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
         });
       }
 
-      await saveToDB('pengumuman', updatedList);
+      saveToDB('pengumuman', updatedList);
       reloadAll();
       if (onReloadData) onReloadData();
       triggerToast('success', 'Pengumuman Penting Beranda berhasil disimpan!');
@@ -733,8 +701,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
     {
       group: 'MANAJEMEN MITRA',
       items: [
-        { id: 'mitra-approval' as any, label: 'Approval Mitra Baru', icon: <Clock className="w-4 h-4" /> },
-        { id: 'mitra-list' as any, label: 'Daftar Mitra Terdaftar', icon: <Building2 className="w-4 h-4" /> }
+        { id: 'mitra', label: 'Approval & List Mitra', icon: <Building2 className="w-4 h-4" /> }
       ]
     },
     {
@@ -757,7 +724,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
         { id: 'laporan', label: 'Laporan Kinerja', icon: <FileText className="w-4 h-4" /> },
         { id: 'mou', label: 'MOU Stakeholder', icon: <FileText className="w-4 h-4" /> },
         { id: 'galeri', label: 'Galeri Kegiatan', icon: <Film className="w-4 h-4" /> },
-        { id: 'konseling', label: 'Bimbingan & Konseling', icon: <HeartHandshake className="w-4 h-4" /> }
+        { id: 'konseling', label: 'Bimbingan & Konseling', icon: <HeartHandshake className="w-4 h-4" /> },
+        { id: 'admin', label: 'Kelola Admin', icon: <UserCog className="w-4 h-4" /> }
       ]
     }
   ];
@@ -765,39 +733,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
   /* =========================================================
    *  DASHBOARD AWAL
    * =======================================================*/
-  const normalizeMitraStatus = (status?: string): 'aktif' | 'nonaktif' | 'pending' => {
-    if (!status) return 'pending';
-    const s = String(status).toLowerCase();
-    if (s === 'aktif' || s === 'active' || s === 'approved') return 'aktif';
-    if (s === 'nonaktif' || s === 'inactive' || s === 'rejected' || s === 'disabled') return 'nonaktif';
-    return 'pending';
-  };
-
-  // Kombinasikan data dari tabel 'mitra' dengan fallback akun 'users' yang ber-role 'mitra'
-  const allMitraCombined: Mitra[] = (() => {
-    const existingUserIds = new Set(mitra.map((m) => m.userId));
-    const fallbackUsers: Mitra[] = allUsers
-      .filter((u) => (u.role === 'mitra' || (u as any).role === 'MITRA') && !existingUserIds.has(u.id))
-      .map((u: any) => ({
-        id: `mitra_${u.id}`,
-        userId: u.id,
-        namaInstansi: u.namaInstansi || u.name,
-        kontakPerson: u.kontakPerson || u.name,
-        email: u.email,
-        phone: u.phone || '',
-        bidangIndustri: u.bidangIndustri || 'Industri / Perusahaan',
-        alamat: u.alamat || '',
-        website: u.website || '',
-        statusKerjaSama: normalizeMitraStatus(u.status)
-      }));
-    const directMitra = mitra.map((m) => ({
-      ...m,
-      statusKerjaSama: normalizeMitraStatus(m.statusKerjaSama)
-    }));
-    return [...directMitra, ...fallbackUsers];
-  })();
-
-  const pendingMitra = allMitraCombined.filter((m) => m.statusKerjaSama === 'pending');
+  const pendingMitra = mitra.filter((m) => m.statusKerjaSama === 'pending');
   const totalMenunggu = pendingMitra.length;
   const pendingKomentarCount = komentarList.filter((k) => k.status === 'pending').length;
 
@@ -805,7 +741,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
   const aktivitas = [
     ...lowongan.map((l) => ({ date: l.createdAt, text: `Lowongan baru dipublikasikan: ${l.judul}` })),
     ...konten.map((k) => ({ date: k.createdAt, text: `Konten ${JENIS_LABEL[k.jenis]} dibuat: ${k.judul}` })),
-    ...allMitraCombined.map((m) => {
+    ...mitra.map((m) => {
       const u = allUsers.find((usr) => usr.id === m.userId);
       return { date: u?.createdAt || new Date().toISOString(), text: `Mitra terdaftar: ${m.namaInstansi}` };
     })
@@ -813,7 +749,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 8);
 
-  const topMitra = [...allMitraCombined]
+  const topMitra = [...mitra]
     .map((m) => ({
       m,
       count: lowongan.filter(
@@ -871,90 +807,64 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
   const [mitraQuery, setMitraQuery] = useState('');
   const [mitraStatusFilter, setMitraStatusFilter] = useState<'Semua' | 'aktif' | 'nonaktif' | 'pending'>('Semua');
 
-  const handleApproveMitra = async (m: Mitra, note: string) => {
-    const existingInMitra = mitra.some((x) => x.id === m.id || x.userId === m.userId);
-    const updated: Mitra = { ...m, statusKerjaSama: 'aktif' as const };
-    if (existingInMitra) {
-      await updateInDB<Mitra>('mitra', updated);
-    } else {
-      await insertToDB<Mitra>('mitra', updated);
-    }
+  const handleApproveMitra = (m: Mitra, note: string) => {
+    const updated = { ...m, statusKerjaSama: 'aktif' as const };
+    updateInDB<Mitra>('mitra', updated);
     // juga aktifkan user-nya
     const users = getFromDB<UserType>('users');
-    const u = users.find((x) => x.id === m.userId || x.email.toLowerCase() === (m.email || '').toLowerCase());
+    const u = users.find((x) => x.id === m.userId);
     if (u) {
       const u2 = { ...u, status: 'active' as const };
-      await updateInDB<UserType>('users', u2);
+      updateInDB<UserType>('users', u2);
     }
     setApprovalNote('');
-    setSelectedMitra(null);
+    setSelectedMitra(updated);
     reloadAll();
     triggerToast('success', `Mitra "${m.namaInstansi}" disetujui.${note ? ' Catatan: ' + note : ''}`);
   };
 
-  const handleRejectMitra = async (m: Mitra, note: string) => {
-    const existingInMitra = mitra.some((x) => x.id === m.id || x.userId === m.userId);
-    const updated: Mitra = { ...m, statusKerjaSama: 'nonaktif' as const };
-    if (existingInMitra) {
-      await updateInDB<Mitra>('mitra', updated);
-    } else {
-      await insertToDB<Mitra>('mitra', updated);
-    }
+  const handleRejectMitra = (m: Mitra, note: string) => {
+    const updated = { ...m, statusKerjaSama: 'nonaktif' as const };
+    updateInDB<Mitra>('mitra', updated);
     const users = getFromDB<UserType>('users');
-    const u = users.find((x) => x.id === m.userId || x.email.toLowerCase() === (m.email || '').toLowerCase());
+    const u = users.find((x) => x.id === m.userId);
     if (u) {
       const u2 = { ...u, status: 'rejected' as const };
-      await updateInDB<UserType>('users', u2);
+      updateInDB<UserType>('users', u2);
     }
     setApprovalNote('');
-    setSelectedMitra(null);
+    setSelectedMitra(updated);
     reloadAll();
     triggerToast('error', `Mitra "${m.namaInstansi}" ditolak.${note ? ' Catatan: ' + note : ''}`);
   };
 
-  const handleBanMitra = async (m: Mitra) => {
+  const handleBanMitra = (m: Mitra) => {
     const next = m.statusKerjaSama === 'aktif' ? 'nonaktif' : 'aktif';
-    const existingInMitra = mitra.some((x) => x.id === m.id || x.userId === m.userId);
     const updated = { ...m, statusKerjaSama: next as any };
-    if (existingInMitra) {
-      await updateInDB<Mitra>('mitra', updated);
-    } else {
-      await insertToDB<Mitra>('mitra', updated);
-    }
+    updateInDB<Mitra>('mitra', updated);
     const users = getFromDB<UserType>('users');
     const u = users.find((x) => x.id === m.userId || x.email.toLowerCase() === (m.email || '').toLowerCase());
     if (u) {
-      await updateInDB<UserType>('users', { ...u, status: next === 'aktif' ? 'active' : 'inactive' });
+      updateInDB<UserType>('users', { ...u, status: next === 'aktif' ? 'active' : 'inactive' });
     }
     setSelectedMitra(updated);
     reloadAll();
     triggerToast('success', `Status mitra "${m.namaInstansi}" -> ${next}.`);
   };
 
-  const handleDeleteMitra = async (m: Mitra) => {
+  const handleDeleteMitra = (m: Mitra) => {
     if (confirm(`Hapus mitra "${m.namaInstansi}" secara permanen?`)) {
-      await deleteInDB('mitra', m.id);
-      const users = getFromDB<UserType>('users');
-      const u = users.find((x) => x.id === m.userId || x.email.toLowerCase() === (m.email || '').toLowerCase());
-      if (u) {
-        await deleteInDB('users', u.id);
-      }
+      deleteInDB('mitra', m.id);
       setSelectedMitra(null);
       reloadAll();
       triggerToast('success', 'Mitra dihapus.');
     }
   };
 
-  const filteredMitra = allMitraCombined.filter((m) => {
+  const filteredMitra = mitra.filter((m) => {
     const q = mitraQuery.trim().toLowerCase();
-    const matchQ =
-      !q ||
-      (m.namaInstansi || '').toLowerCase().includes(q) ||
-      (m.email || '').toLowerCase().includes(q) ||
-      (m.kontakPerson || '').toLowerCase().includes(q) ||
-      (m.bidangIndustri || '').toLowerCase().includes(q);
-    const mStatus = normalizeMitraStatus(m.statusKerjaSama);
-    const matchS = mitraStatusFilter === 'Semua' || mStatus === mitraStatusFilter;
+    const matchQ = !q || m.namaInstansi.toLowerCase().includes(q) || (m.email || '').toLowerCase().includes(q);
+    const matchS = mitraStatusFilter === 'Semua' || m.statusKerjaSama === mitraStatusFilter;
     return matchQ && matchS;
   });
 
@@ -968,70 +878,65 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
   const [aPass, setAPass] = useState('');
   const [aEmailError, setAEmailError] = useState('');
 
-  const handleAddAdmin = async (e: React.FormEvent) => {
+  const handleAddAdmin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!aName.trim() || !aEmail.trim()) {
+    if (!aName || !aEmail) {
       triggerToast('error', 'Nama dan email wajib diisi.');
       return;
     }
-    const finalPassword = aPass.trim() || 'Admin123!';
-    // Validasi kekuatan password di sisi frontend (sama dengan server: min 8, huruf besar, kecil, angka)
-    const isStrong = finalPassword.length >= 8
-      && /[A-Z]/.test(finalPassword)
-      && /[a-z]/.test(finalPassword)
-      && /[0-9]/.test(finalPassword);
-    if (!isStrong) {
-      triggerToast('error', 'Password minimal 8 karakter dan harus mengandung huruf besar, huruf kecil, serta angka. Contoh: Admin123!');
+    if (!aPass || aPass.length < 8 || !/[A-Z]/.test(aPass) || !/[a-z]/.test(aPass) || !/[0-9]/.test(aPass)) {
+      triggerToast('error', 'Password wajib min. 8 karakter, mengandung huruf besar, huruf kecil, dan angka.');
       return;
     }
-    const existing = getFromDB<UserType>('users').find((u) => u.email.toLowerCase() === aEmail.trim().toLowerCase());
+    const existing = getFromDB<UserType>('users').find((u) => u.email.toLowerCase() === aEmail.toLowerCase());
     if (existing) {
       setAEmailError('Email sudah terdaftar.');
       return;
     }
-    try {
-      const newAdmin: UserType = {
-        id: `usr_admin_${Date.now()}`,
-        name: aName.trim(),
-        email: aEmail.trim(),
-        password: finalPassword,
-        role: 'admin',
-        status: 'active',
-        createdAt: new Date().toISOString()
-      };
-      await insertToDB<UserType>('users', newAdmin);
-      setAName(''); setAEmail(''); setAPass(''); setShowAddAdmin(false);
-      reloadAll();
-      if (onReloadData) onReloadData();
-      triggerToast('success', `✅ Admin "${aName}" berhasil ditambahkan! Password: ${finalPassword}`);
-    } catch (err: any) {
-      console.error('[AddAdmin Error]:', err);
-      const msg = err?.message || String(err);
-      triggerToast('error', `Gagal membuat akun admin: ${msg}`);
-    }
+    // SECURITY: password TIDAK disimpan di browser/localStorage — kirim ke backend agar di-hash bcrypt.
+    registerToBackend({ name: aName, email: aEmail, password: aPass, role: 'ADMIN' as any })
+      .then((created) => {
+        const createdAny = created as any;
+        const createdUser = createdAny?.user ?? createdAny;
+        const newAdmin: UserType = {
+          id: createdUser?.id ?? `usr_admin_${Date.now()}`,
+          name: createdUser?.name ?? aName,
+          email: createdUser?.email ?? aEmail,
+          role: 'admin',
+          status: createdUser?.status ? String(createdUser.status).toLowerCase() : 'active',
+          createdAt: createdUser?.createdAt ?? new Date().toISOString()
+        } as UserType;
+        insertToDB<UserType>('users', newAdmin);
+        setAName(''); setAEmail(''); setAPass(''); setShowAddAdmin(false);
+        reloadAll();
+        triggerToast('success', `Admin "${aName}" ditambahkan.`);
+      })
+      .catch((err: any) => {
+        triggerToast('error', err?.message || 'Gagal menambahkan admin via server.');
+      });
   };
 
-  const handleDisableAdmin = async (u: UserType) => {
+  const handleDisableAdmin = (u: UserType) => {
     const nextStatus = u.status === 'active' ? 'inactive' : 'active';
-    await updateInDB<UserType>('users', { ...u, status: nextStatus });
+    updateInDB<UserType>('users', { ...u, status: nextStatus });
     if (u.role === 'mitra') {
       const allM = getFromDB<Mitra>('mitra');
       const targetM = allM.find((m) => m.userId === u.id || m.email.toLowerCase() === u.email.toLowerCase());
       if (targetM) {
-        await updateInDB<Mitra>('mitra', { ...targetM, statusKerjaSama: nextStatus === 'active' ? 'aktif' : 'nonaktif' });
+        updateInDB<Mitra>('mitra', { ...targetM, statusKerjaSama: nextStatus === 'active' ? 'aktif' : 'nonaktif' });
       }
     }
     reloadAll();
     triggerToast('success', nextStatus === 'active' ? `Akun "${u.name}" diaktifkan.` : `Akun "${u.name}" dinonaktifkan.`);
   };
 
-  const handleDeleteAdmin = async (u: UserType) => {
+  const handleDeleteAdmin = (u: UserType) => {
     if (adminUsers.length <= 1) {
       triggerToast('error', 'Minimal harus ada 1 admin.');
       return;
     }
     if (confirm(`Hapus admin "${u.name}"?`)) {
-      await deleteInDB('users', u.id);
+      deleteInDB('users', u.id);
       reloadAll();
       triggerToast('success', 'Admin dihapus.');
     }
@@ -1375,17 +1280,17 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
   const [lStatus, setLStatus] = useState<'published' | 'draft' | 'closed'>('draft');
   const [lIsPinned, setLIsPinned] = useState(false);
 
-  const handleTogglePinKonten = async (k: KontenKarir) => {
+  const handleTogglePinKonten = (k: KontenKarir) => {
     const updated = { ...k, isPinned: !k.isPinned };
-    await updateInDB<KontenKarir>('konten_karir', updated);
+    updateInDB<KontenKarir>('konten_karir', updated);
     reloadAll();
     if (onReloadData) onReloadData();
     triggerToast('success', updated.isPinned ? `Konten "${k.judul}" disematkan ke Popular Info.` : `Sematkan konten "${k.judul}" dibatalkan.`);
   };
 
-  const handleTogglePinLowongan = async (l: Lowongan) => {
+  const handleTogglePinLowongan = (l: Lowongan) => {
     const updated = { ...l, isPinned: !l.isPinned };
-    await updateInDB<Lowongan>('lowongan', updated);
+    updateInDB<Lowongan>('lowongan', updated);
     reloadAll();
     if (onReloadData) onReloadData();
     triggerToast('success', updated.isPinned ? `Lowongan "${l.judul}" disematkan ke Popular Info.` : `Sematkan lowongan "${l.judul}" dibatalkan.`);
@@ -1502,14 +1407,9 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
       }
     } catch (err: any) {
       console.error('SAVE_LOWONGAN_FAIL', err);
-      // Tampilkan pesan error ASLI dari backend/Supabase agar bisa didiagnosis.
-      const rawMsg = err?.message || 'Gagal menyimpan lowongan.';
-      let msg = rawMsg;
-      if (rawMsg.includes('Invalid or expired token') || rawMsg.includes('Belum login')) {
-        msg = 'Sesi login kedaluwarsa. Silakan logout lalu login ulang, kemudian coba simpan lagi.';
-      } else if (rawMsg.includes('Terlalu banyak request')) {
-        msg = 'Terlalu banyak percobaan simpan. Tunggu ±1 menit lalu coba lagi.';
-      }
+      const msg = (err && err.name === 'QuotaExceededError')
+        ? 'Gagal menyimpan: storage penyimpanan lokal penuh. Hapus beberapa lowongan lama atau gunakan poster lebih kecil.'
+        : 'Gagal menyimpan lowongan ke penyimpanan lokal.';
       triggerToast('error', msg);
       return;
     }
@@ -1518,9 +1418,9 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
     if (onReloadData) onReloadData();
   };
 
-  const handleDeleteLowonganAdmin = async (l: Lowongan) => {
+  const handleDeleteLowonganAdmin = (l: Lowongan) => {
     if (confirm(`Hapus lowongan \"${l.judul}\" (By Admin)?`)) {
-      await deleteInDB('lowongan', l.id);
+      deleteInDB('lowongan', l.id);
       reloadAll();
       triggerToast('success', 'Lowongan By Admin dihapus.');
     }
@@ -1787,15 +1687,9 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
       }
     } catch (err: any) {
       console.error('SAVE_KONTEN_FAIL', err);
-      // Tampilkan pesan error ASLI dari backend/Supabase agar bisa didiagnosis,
-      // bukan pesan generik "penyimpanan lokal" yang menyesatkan.
-      const rawMsg = err?.message || 'Gagal menyimpan konten.';
-      let msg = rawMsg;
-      if (rawMsg.includes('Invalid or expired token') || rawMsg.includes('Belum login')) {
-        msg = 'Sesi login kedaluwarsa. Silakan logout lalu login ulang, kemudian coba simpan lagi.';
-      } else if (rawMsg.includes('Terlalu banyak request')) {
-        msg = 'Terlalu banyak percobaan simpan. Tunggu ±1 menit lalu coba lagi.';
-      }
+      const msg = (err && err.name === 'QuotaExceededError')
+        ? 'Gagal menyimpan: storage penyimpanan lokal penuh. Hapus beberapa konten lama (terutama yang ber-thumbnail besar) lalu coba lagi.'
+        : 'Gagal menyimpan konten ke penyimpanan lokal.';
       setSaveError(msg);
       triggerToast('error', msg);
       return;
@@ -1808,9 +1702,9 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
     if (onReloadData) onReloadData();
   };
 
-  const handleDeleteKonten = async (k: KontenKarir) => {
+  const handleDeleteKonten = (k: KontenKarir) => {
     if (confirm(`Hapus konten "${k.judul}"?`)) {
-      await deleteInDB('konten_karir', k.id);
+      deleteInDB('konten_karir', k.id);
       reloadAll();
       triggerToast('success', 'Konten dihapus.');
     }
@@ -2237,27 +2131,12 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                   {isOpen && (
                     <div className="flex flex-col gap-1">
                       {section.items.map((menu) => {
-                        const isApprovalItem = (menu.id as string) === 'mitra-approval';
-                        const isListItem = (menu.id as string) === 'mitra-list';
-                        const active =
-                          activeTab === menu.id ||
-                          (activeTab === 'mitra' && ((isApprovalItem && mitraSub === 'approval') || (isListItem && mitraSub === 'list')));
-                        const pendingBadgeCount = isApprovalItem ? pendingMitra.length : menu.id === 'komentar' ? pendingKomentarCount : 0;
-
+                        const active = activeTab === menu.id;
                         return (
                           <button
                             key={menu.id}
                             id={`adm-tab-${menu.id}`}
-                            onClick={() => {
-                              if (isApprovalItem) {
-                                setActiveTab('mitra', 'approval');
-                              } else if (isListItem) {
-                                setActiveTab('mitra', 'list');
-                              } else {
-                                setActiveTab(menu.id as AdminTab);
-                              }
-                              setIsMobileMenuOpen(false);
-                            }}
+                            onClick={() => { setActiveTab(menu.id); setIsMobileMenuOpen(false); }}
                             className={`group relative flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-left transition-all duration-200 cursor-pointer ${active
                                 ? 'bg-[#0077C6] text-white font-extrabold shadow-md shadow-blue-950/20 border-l-4 border-amber-400'
                                 : 'text-slate-300 hover:text-white hover:bg-white/5 font-semibold'
@@ -2265,8 +2144,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                           >
                             <span className={`transition-transform duration-200 ${active ? 'text-amber-400 scale-110' : 'text-slate-400 group-hover:text-white'}`}>{menu.icon}</span>
                             <span className="text-xs truncate">{menu.label}</span>
-                            {pendingBadgeCount > 0 && (
-                              <span className="ml-auto bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full">{pendingBadgeCount}</span>
+                            {menu.id === 'komentar' && pendingKomentarCount > 0 && (
+                              <span className="ml-auto bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full">{pendingKomentarCount}</span>
                             )}
                           </button>
                         );
@@ -2299,46 +2178,44 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
         </div>
       </aside>
 
-      {/* 2. Main Content Column Wrapper */}
-      <div className="flex-1 md:ml-[250px] flex flex-col min-h-screen w-full min-w-0">
-        {/* TopNavBar Header (Sticky Header: height h-20) */}
-        <header className="sticky top-0 z-30 h-20 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-6 sm:px-8 flex justify-between items-center shadow-xs shrink-0">
-          <div className="flex items-center gap-4 flex-1 max-w-lg">
-            <button
-              className="md:hidden text-slate-700 p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 cursor-pointer shrink-0"
-              onClick={() => setIsMobileMenuOpen(true)}
-            >
-              <Menu className="w-5 h-5" />
-            </button>
+      {/* 2. TopNavBar Header (Fixed Top Navbar: height h-20) */}
+      <header className="fixed top-0 right-0 left-0 md:left-[250px] h-20 bg-white border-b border-slate-200/80 z-30 px-6 sm:px-8 flex justify-between items-center shadow-xs">
+        <div className="flex items-center gap-4 flex-1 max-w-lg">
+          <button
+            className="md:hidden text-slate-700 p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 cursor-pointer shrink-0"
+            onClick={() => setIsMobileMenuOpen(true)}
+          >
+            <Menu className="w-5 h-5" />
+          </button>
 
-            {/* Global Search Bar (Berada tepat di posisi kiri dekat sidebar) */}
-            <div className="flex-1 relative">
-              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                readOnly
-                onClick={() => setIsCmdPaletteOpen(true)}
-                placeholder="Cari modul atau aksi cepat... (Ctrl+K)"
-                className="w-full pl-10 pr-14 py-2.5 bg-slate-100/90 hover:bg-slate-100 border border-slate-200 rounded-xl text-xs font-medium cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20"
-              />
-              <kbd className="absolute right-3 top-1/2 -translate-y-1/2 bg-white text-slate-400 px-1.5 py-0.5 rounded text-[10px] font-mono border border-slate-200 shadow-2xs">Ctrl K</kbd>
-            </div>
+          {/* Global Search Bar (Berada tepat di posisi kiri dekat sidebar) */}
+          <div className="flex-1 relative">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              readOnly
+              onClick={() => setIsCmdPaletteOpen(true)}
+              placeholder="Cari modul atau aksi cepat... (Ctrl+K)"
+              className="w-full pl-10 pr-14 py-2.5 bg-slate-100/90 hover:bg-slate-100 border border-slate-200 rounded-xl text-xs font-medium cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20"
+            />
+            <kbd className="absolute right-3 top-1/2 -translate-y-1/2 bg-white text-slate-400 px-1.5 py-0.5 rounded text-[10px] font-mono border border-slate-200 shadow-2xs">Ctrl K</kbd>
           </div>
+        </div>
 
-          {/* User Profile Info */}
-          <div className="flex items-center gap-3 shrink-0 ml-4">
-            <div className="text-right hidden sm:block">
-              <div className="text-xs font-extrabold text-slate-900 leading-tight">{user.name}</div>
-              <div className="text-[10px] text-slate-500 font-semibold">Super Administrator</div>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-[#1B365D] text-white flex items-center justify-center font-bold text-xs shadow-xs">
-              {user.name.charAt(0)}
-            </div>
+        {/* User Profile Info */}
+        <div className="flex items-center gap-3 shrink-0 ml-4">
+          <div className="text-right hidden sm:block">
+            <div className="text-xs font-extrabold text-slate-900 leading-tight">{user.name}</div>
+            <div className="text-[10px] text-slate-500 font-semibold">Super Administrator</div>
           </div>
-        </header>
+          <div className="w-10 h-10 rounded-xl bg-[#1B365D] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+            {user.name.charAt(0)}
+          </div>
+        </div>
+      </header>
 
-        {/* 3. Main Workspace Canvas Area */}
-        <main className="flex-1 px-4 sm:px-8 py-6 pb-12 overflow-y-auto max-w-[1600px] w-full" id="adm-main">
+      {/* 3. Main Workspace Canvas Area (pt-[60px] untuk menggeser isi ke atas dekat Search Bar) */}
+      <main className="flex-1 md:ml-[250px] pt-[60px] px-4 sm:px-8 pb-12 overflow-y-auto max-w-[1600px] w-full" id="adm-main">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -4344,7 +4221,70 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
               </div>
             )}
 
-            {/* ============== MANAJEMEN ADMIN (SEMBUNYIKAN SEBAGAI SINGLE SHARED CREDENTIAL) ============== */}
+            {/* ============== MANAJEMEN ADMIN ============== */}
+            {activeTab === 'admin' && (
+              <div className="space-y-6" id="adm-admin">
+                <div className="flex items-center justify-between flex-wrap gap-3 border-b border-slate-200/80 pb-4">
+                  <div>
+                    <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                      <UserCog className="w-6 h-6 text-[#1B365D]" /> Kelola Akun Administrator
+                    </h1>
+                    <p className="text-xs text-slate-500 mt-1">Pengelolaan akun pengelola portal dan hak akses admin CDC UM Kendari</p>
+                  </div>
+                  <button
+                    onClick={() => setShowAddAdmin(!showAddAdmin)}
+                    className="bg-[#1B365D] hover:bg-[#0077C6] text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-xs transition cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" /> Tambah Admin Baru
+                  </button>
+                </div>
+
+                {showAddAdmin && (
+                  <form onSubmit={handleAddAdmin} className="bg-white rounded-3xl border border-slate-200 shadow-md p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700">Nama Lengkap Admin *</label>
+                      <input value={aName} onChange={(e) => setAName(e.target.value)} required className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-[#1B365D]/20 focus:border-[#1B365D]" placeholder="Nama admin" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700">Email Resmi *</label>
+                      <input value={aEmail} onChange={(e) => { setAEmail(e.target.value); setAEmailError(''); }} required className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-[#1B365D]/20 focus:border-[#1B365D]" placeholder="email@umkendari.ac.id" />
+                      {aEmailError && <div className="text-rose-500 text-[11px] font-bold">{aEmailError}</div>}
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700">Password (Wajib, min 8 + besar/kecil/angka)</label>
+                      <input value={aPass} onChange={(e) => setAPass(e.target.value)} type="password" required minLength={8} autoComplete="new-password" className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-[#1B365D]/20 focus:border-[#1B365D]" placeholder="Min. 8 karakter, huruf besar + kecil + angka" />
+                    </div>
+                    <div className="flex items-end gap-2">
+                      <button type="submit" className="bg-[#1B365D] hover:bg-[#0077C6] text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-xs cursor-pointer">Simpan Admin Baru</button>
+                      <button type="button" onClick={() => setShowAddAdmin(false)} className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer">Batal</button>
+                    </div>
+                  </form>
+                )}
+
+                <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                  <div className="grid grid-cols-12 gap-2 px-5 py-3.5 bg-slate-50 border-b border-slate-200/80 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
+                    <div className="col-span-5">Nama / Email Admin</div>
+                    <div className="col-span-3">Status Akun</div>
+                    <div className="col-span-4 text-right">Aksi</div>
+                  </div>
+                  {adminUsers.length === 0 ? (
+                    <div className="p-8 text-center text-slate-400">Tidak ada admin.</div>
+                  ) : adminUsers.map((u) => (
+                    <div key={u.id} className="grid grid-cols-12 gap-2 px-4 py-3 border-t border-slate-100 items-center">
+                      <div className="col-span-5 min-w-0">
+                        <div className="font-semibold text-slate-800 truncate">{u.name}{u.id === user.id && <span className="ml-1 text-[10px] text-blue-600">(anda)</span>}</div>
+                        <div className="text-[11px] text-slate-400 truncate">{u.email}</div>
+                      </div>
+                      <div className="col-span-3">{statusBadge(u.status, { active: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Active' }, inactive: { bg: 'bg-slate-100', text: 'text-slate-600', label: 'Inactive' }, pending: { bg: 'bg-amber-50', text: 'text-amber-700', label: 'Pending' }, rejected: { bg: 'bg-rose-50', text: 'text-rose-700', label: 'Rejected' } })}</div>
+                      <div className="col-span-4 flex justify-end gap-1.5">
+                        <button onClick={() => handleDisableAdmin(u)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-lg text-xs font-bold">{u.status === 'active' ? 'Nonaktifkan' : 'Aktifkan'}</button>
+                        <button onClick={() => handleDeleteAdmin(u)} disabled={u.id === user.id} className="bg-rose-50 hover:bg-rose-100 text-rose-600 disabled:opacity-40 px-2.5 py-1 rounded-lg text-xs font-bold">Hapus</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* ============== MANAJEMEN SURAT KEPUTUSAN CDC ============== */}
             {activeTab === 'sk-cdc' && (() => {
@@ -4384,7 +4324,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                 }
               };
 
-              const handleSaveSk = async (e: React.FormEvent) => {
+              const handleSaveSk = (e: React.FormEvent) => {
                 e.preventDefault();
                 if (!skJudul.trim() || !skKategori.trim()) {
                   triggerToast('error', 'Judul Dokumen dan Kategori wajib diisi.');
@@ -4426,28 +4366,28 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                   currentList.unshift(newItem);
                 }
 
-                await saveToDB('surat_keputusan', currentList);
+                saveToDB('surat_keputusan', currentList);
                 reloadAll();
                 if (onReloadData) onReloadData();
                 setShowSkForm(false);
                 triggerToast('success', editSkId ? 'Surat Keputusan diperbarui.' : 'Surat Keputusan baru berhasil disimpan.');
               };
 
-              const handleDeleteSk = async (item: SuratKeputusan) => {
+              const handleDeleteSk = (item: SuratKeputusan) => {
                 if (confirm(`Hapus Surat Keputusan "${item.judul}"?`)) {
-                  await deleteInDB('surat_keputusan', item.id);
+                  deleteInDB('surat_keputusan', item.id);
                   reloadAll();
                   if (onReloadData) onReloadData();
                   triggerToast('success', 'Dokumen berhasil dihapus.');
                 }
               };
 
-              const handleSetFeatured = async (item: SuratKeputusan) => {
+              const handleSetFeatured = (item: SuratKeputusan) => {
                 const currentList = getFromDB<SuratKeputusan>('surat_keputusan').map((i) => ({
                   ...i,
                   isFeatured: i.id === item.id
                 }));
-                await saveToDB('surat_keputusan', currentList);
+                saveToDB('surat_keputusan', currentList);
                 reloadAll();
                 if (onReloadData) onReloadData();
                 triggerToast('success', `"${item.judul}" diset sebagai Featured Preview utama.`);
@@ -4721,7 +4661,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                 }
               };
 
-              const handleSaveKal = async (e: React.FormEvent) => {
+              const handleSaveKal = (e: React.FormEvent) => {
                 e.preventDefault();
                 if (!kalJudul.trim() || !kalKategori.trim()) {
                   triggerToast('error', 'Judul Agenda dan Kategori wajib diisi.');
@@ -4763,28 +4703,28 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                   currentList.unshift(newItem);
                 }
 
-                await saveToDB('kalender_kegiatan', currentList);
+                saveToDB('kalender_kegiatan', currentList);
                 reloadAll();
                 if (onReloadData) onReloadData();
                 setShowKalForm(false);
                 triggerToast('success', editKalId ? 'Kalender Kegiatan diperbarui.' : 'Agenda Kalender Kegiatan baru berhasil disimpan.');
               };
 
-              const handleDeleteKal = async (item: KalenderKegiatan) => {
+              const handleDeleteKal = (item: KalenderKegiatan) => {
                 if (confirm(`Hapus agenda Kalender Kegiatan "${item.judul}"?`)) {
-                  await deleteInDB('kalender_kegiatan', item.id);
+                  deleteInDB('kalender_kegiatan', item.id);
                   reloadAll();
                   if (onReloadData) onReloadData();
                   triggerToast('success', 'Agenda berhasil dihapus.');
                 }
               };
 
-              const handleSetFeaturedKal = async (item: KalenderKegiatan) => {
+              const handleSetFeaturedKal = (item: KalenderKegiatan) => {
                 const currentList = getFromDB<KalenderKegiatan>('kalender_kegiatan').map((i) => ({
                   ...i,
                   isFeatured: i.id === item.id
                 }));
-                await saveToDB('kalender_kegiatan', currentList);
+                saveToDB('kalender_kegiatan', currentList);
                 reloadAll();
                 if (onReloadData) onReloadData();
                 triggerToast('success', `"${item.judul}" diset sebagai Featured Preview utama.`);
@@ -5059,7 +4999,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                 }
               };
 
-              const handleSaveLap = async (e: React.FormEvent) => {
+              const handleSaveLap = (e: React.FormEvent) => {
                 e.preventDefault();
                 if (!lapJudul.trim() || !lapKategori.trim()) {
                   triggerToast('error', 'Judul Laporan dan Kategori wajib diisi.');
@@ -5100,28 +5040,28 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                   currentList.unshift(newItem);
                 }
 
-                await saveToDB('laporan_kinerja', currentList);
+                saveToDB('laporan_kinerja', currentList);
                 reloadAll();
                 if (onReloadData) onReloadData();
                 setShowLapForm(false);
                 triggerToast('success', editLapId ? 'Laporan Kinerja diperbarui.' : 'Laporan Kinerja baru berhasil disimpan.');
               };
 
-              const handleDeleteLap = async (item: LaporanKinerja) => {
+              const handleDeleteLap = (item: LaporanKinerja) => {
                 if (confirm(`Hapus dokumen Laporan Kinerja "${item.judul}"?`)) {
-                  await deleteInDB('laporan_kinerja', item.id);
+                  deleteInDB('laporan_kinerja', item.id);
                   reloadAll();
                   if (onReloadData) onReloadData();
                   triggerToast('success', 'Dokumen laporan berhasil dihapus.');
                 }
               };
 
-              const handleSetFeaturedLap = async (item: LaporanKinerja) => {
+              const handleSetFeaturedLap = (item: LaporanKinerja) => {
                 const currentList = getFromDB<LaporanKinerja>('laporan_kinerja').map((i) => ({
                   ...i,
                   isFeatured: i.id === item.id
                 }));
-                await saveToDB('laporan_kinerja', currentList);
+                saveToDB('laporan_kinerja', currentList);
                 reloadAll();
                 if (onReloadData) onReloadData();
                 triggerToast('success', `"${item.judul}" diset sebagai Featured Preview utama.`);
@@ -5369,7 +5309,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                 setShowMouForm(true);
               };
 
-              const handleSaveMou = async (e: React.FormEvent) => {
+              const handleSaveMou = (e: React.FormEvent) => {
                 e.preventDefault();
                 if (!mouJudul.trim()) {
                   triggerToast('error', 'Judul MOU wajib diisi!');
@@ -5412,25 +5352,25 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                   triggerToast('success', 'Dokumen MOU baru berhasil ditambahkan!');
                 }
 
-                await saveToDB('mou_stakeholder', currentList);
+                saveToDB('mou_stakeholder', currentList);
                 setMouItems(currentList);
                 setShowMouForm(false);
               };
 
-              const handleDeleteMou = async (item: MouStakeholder) => {
+              const handleDeleteMou = (item: MouStakeholder) => {
                 if (window.confirm(`Hapus dokumen MOU "${item.judul}"?`)) {
-                  await deleteInDB('mou_stakeholder', item.id);
+                  deleteInDB('mou_stakeholder', item.id);
                   setMouItems(getFromDB<MouStakeholder>('mou_stakeholder'));
                   triggerToast('success', 'Dokumen MOU berhasil dihapus!');
                 }
               };
 
-              const handleSetFeaturedMou = async (item: MouStakeholder) => {
+              const handleSetFeaturedMou = (item: MouStakeholder) => {
                 const currentList = getFromDB<MouStakeholder>('mou_stakeholder').map((i) => ({
                   ...i,
                   isFeatured: i.id === item.id
                 }));
-                await saveToDB('mou_stakeholder', currentList);
+                saveToDB('mou_stakeholder', currentList);
                 setMouItems(currentList);
                 triggerToast('success', `"${item.judul}" dijadikan tampilan featured utama!`);
               };
@@ -5692,7 +5632,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                 setShowGalForm(true);
               };
 
-              const handleSaveGaleri = async (e: React.FormEvent) => {
+              const handleSaveGaleri = (e: React.FormEvent) => {
                 e.preventDefault();
                 if (!galJudul.trim()) {
                   triggerToast('error', 'Judul galeri kegiatan wajib diisi.');
@@ -5715,10 +5655,10 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                 };
 
                 if (editGalId) {
-                  await updateInDB<GaleriItem>('galeri_items', newItem);
+                  updateInDB<GaleriItem>('galeri_items', newItem);
                   triggerToast('success', 'Galeri Kegiatan berhasil diperbarui!');
                 } else {
-                  await insertToDB<GaleriItem>('galeri_items', newItem);
+                  insertToDB<GaleriItem>('galeri_items', newItem);
                   triggerToast('success', 'Galeri Kegiatan baru berhasil ditambahkan!');
                 }
 
@@ -5727,9 +5667,9 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                 if (onReloadData) onReloadData();
               };
 
-              const handleDeleteGaleri = async (item: GaleriItem) => {
+              const handleDeleteGaleri = (item: GaleriItem) => {
                 if (confirm(`Apakah Anda yakin ingin menghapus "${item.judul}"?`)) {
-                  await deleteInDB('galeri_items', item.id);
+                  deleteInDB('galeri_items', item.id);
                   triggerToast('success', 'Item galeri kegiatan berhasil dihapus.');
                   reloadAll();
                   if (onReloadData) onReloadData();
@@ -7714,11 +7654,11 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
               KELOLA MEDIA SOSIAL & TAUTAN FOOTER
           ══════════════════════════════════════════ */}
             {activeTab === 'media-sosial' && (() => {
-              const handleToggleStatus = async (id: string) => {
+              const handleToggleStatus = (id: string) => {
                 const updatedList = socMedList.map((item) =>
                   item.id === id ? { ...item, isActive: !item.isActive } : item
                 );
-                await saveToDB('social_media', updatedList);
+                saveToDB('social_media', updatedList);
                 setSocMedList(updatedList);
                 const target = updatedList.find((i) => i.id === id);
                 triggerToast(
@@ -7729,20 +7669,20 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                 );
               };
 
-              const handleSaveItemUrl = async (id: string, newUrl: string) => {
+              const handleSaveItemUrl = (id: string, newUrl: string) => {
                 const updatedList = socMedList.map((item) =>
                   item.id === id ? { ...item, url: newUrl } : item
                 );
-                await saveToDB('social_media', updatedList);
+                saveToDB('social_media', updatedList);
                 setSocMedList(updatedList);
                 triggerToast('success', 'URL link media sosial berhasil diperbarui!');
               };
 
-              const handleDeleteItem = async (id: string) => {
+              const handleDeleteItem = (id: string) => {
                 const target = socMedList.find((i) => i.id === id);
                 if (confirm(`Hapus media sosial "${target?.label || 'ini'}"?`)) {
                   const updatedList = socMedList.filter((item) => item.id !== id);
-                  await saveToDB('social_media', updatedList);
+                  saveToDB('social_media', updatedList);
                   setSocMedList(updatedList);
                   triggerToast('success', 'Media sosial berhasil dihapus.');
                 }
@@ -7766,7 +7706,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                 setShowSocMedModal(true);
               };
 
-              const handleSaveModalForm = async (e: React.FormEvent) => {
+              const handleSaveModalForm = (e: React.FormEvent) => {
                 e.preventDefault();
                 if (!socLabel.trim() || !socUrl.trim()) {
                   triggerToast('error', 'Label dan Link URL wajib diisi.');
@@ -7807,7 +7747,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                   updatedList.push(newItem);
                 }
 
-                await saveToDB('social_media', updatedList);
+                saveToDB('social_media', updatedList);
                 setSocMedList(updatedList);
                 setShowSocMedModal(false);
                 triggerToast(
@@ -8210,9 +8150,9 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                     approved: komentarList.filter((k) => k.status === 'approved').length,
                     rejected: komentarList.filter((k) => k.status === 'rejected').length,
                   };
-                  const doApprove = async (id: string) => { await updateKomentarBeritaStatus(id, 'approved'); reloadAll(); triggerToast('success', 'Komentar disetujui & akan tayang di publik.'); };
-                  const doReject = async (id: string) => { await updateKomentarBeritaStatus(id, 'rejected'); reloadAll(); triggerToast('error', 'Komentar ditolak.'); };
-                  const doDelete = async (id: string) => { await deleteKomentarBerita(id); reloadAll(); triggerToast('error', 'Komentar dihapus.'); };
+                  const doApprove = (id: string) => { updateKomentarBeritaStatus(id, 'approved'); reloadAll(); triggerToast('success', 'Komentar disetujui & akan tayang di publik.'); };
+                  const doReject = (id: string) => { updateKomentarBeritaStatus(id, 'rejected'); reloadAll(); triggerToast('error', 'Komentar ditolak.'); };
+                  const doDelete = (id: string) => { deleteKomentarBerita(id); reloadAll(); triggerToast('error', 'Komentar dihapus.'); };
                   const tabs: { id: typeof komentarFilter; label: string }[] = [
                     { id: 'pending', label: `Menunggu (${counts.pending})` },
                     { id: 'approved', label: `Disetujui (${counts.approved})` },
@@ -8593,7 +8533,6 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
           </motion.div>
         </AnimatePresence>
       </main>
-      </div>
 
       {/* Toast */}
       {toast && (

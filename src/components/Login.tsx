@@ -25,7 +25,7 @@ import {
   X,
   Phone
 } from 'lucide-react';
-import { getHelpdeskConfig, getFromDB, saveToDB } from '../data';
+import { getHelpdeskConfig } from '../data';
 import { loginToBackend } from '../services/dbService';
 import { User as UserType, HelpdeskConfig } from '../types';
 import { promptGoogleLogin, GoogleLogo } from '../utils/googleAuth';
@@ -106,49 +106,9 @@ export default function Login({
           String(backendErr.message).includes('5000')
         );
         if (isNetworkErr) {
-          console.warn('[Login] Backend port 5000 tidak terhubung, beralih ke verifikasi lokal browser.');
-          const users = getFromDB<UserType>('users');
-          const cleanEmail = email.trim().toLowerCase();
-          let matched = users.find(
-            (u) => u.email.toLowerCase() === cleanEmail
-          );
-
-          if (!matched) {
-            // Smart Typo Detection: periksa jika ada kesalahan ketik huruf 'l' dan 'i' (misal: mltra vs mitra)
-            const typoCandidate = users.find((u) => {
-              const uEmail = u.email.toLowerCase();
-              const swapLtoI = cleanEmail.replace(/mltra/g, 'mitra');
-              const swapItoL = cleanEmail.replace(/mitra/g, 'mltra');
-              return uEmail === swapLtoI || uEmail === swapItoL;
-            });
-
-            if (typoCandidate) {
-              setErrorMessage(`Akun tidak ditemukan untuk "${email.trim()}". Apakah maksud Anda "${typoCandidate.email}"? Silakan periksa penulisan huruf 'i' dan 'l'.`);
-              return;
-            }
-
-            setErrorMessage('Kredensial salah atau akun tidak ditemukan. Pastikan email terdaftar dengan benar.');
-            return;
-          }
-
-          const userPassword = matched.password || 'password';
-          const isValidPassword =
-            password === userPassword ||
-            password === 'password' ||
-            (matched.role === 'mitra' && (password === 'mitra123!' || password === 'mitra123')) ||
-            (matched.role === 'admin' && (password === 'admin123' || password === 'admin123!' || password === 'password'));
-
-          if (!isValidPassword) {
-            setErrorMessage('Kata sandi yang Anda masukkan salah. Silakan periksa kembali.');
-            return;
-          }
-
-          const updatedMatched = { ...matched, lastLoginAt: new Date().toISOString() };
-          const updatedUsers = users.map((u) => (u.id === matched.id ? updatedMatched : u));
-          await saveToDB('users', updatedUsers);
-          localStorage.setItem('cdc_session_id', matched.id);
-          localStorage.setItem('cdc_auth_token', `local_token_${matched.id}`);
-          user = updatedMatched;
+          console.warn('[Login] Backend tidak terjangkau. Login lokal dinonaktifkan demi keamanan.');
+          setErrorMessage('Server autentikasi tidak terjangkau. Pastikan backend aktif dan coba lagi — login offline tidak diperbolehkan.');
+          return;
         } else {
           throw backendErr;
         }

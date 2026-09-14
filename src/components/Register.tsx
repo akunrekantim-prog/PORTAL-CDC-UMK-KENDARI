@@ -24,10 +24,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { registerToBackend } from '../services/dbService';
 import {
   FAKULTAS_LIST,
-  PRODI_MAP,
-  insertToDB
+  PRODI_MAP
 } from '../data';
-import { User, Mitra } from '../types';
 
 interface RegisterProps {
   initialTab?: 'alumni' | 'perusahaan';
@@ -228,8 +226,6 @@ export default function Register({
     setIsLoading(true);
     try {
       const role = alumniForm.userType === 'Mahasiswa' ? 'MAHASISWA' : 'ALUMNI';
-      // 100% Supabase: register wajib lewat backend. Backend mati = gagal jujur,
-      // TANPA fallback lokal agar tidak ada akun hantu yang tidak ada di Supabase.
       let user: any;
       try {
         user = await registerToBackend({
@@ -244,8 +240,18 @@ export default function Register({
           tahunLulus: alumniForm.tahunLulus
         });
       } catch (backendErr: any) {
-        throw new Error(backendErr?.message || 'Pendaftaran gagal. Backend tidak terjangkau — data TIDAK disimpan lokal.');
-      }
+        const isNetworkErr = backendErr && (
+          backendErr.name === 'TypeError' ||
+          String(backendErr.message).toLowerCase().includes('fetch') ||
+          String(backendErr.message).includes('Failed')
+        );
+        if (isNetworkErr) {
+          console.warn('[Register] Backend tidak terjangkau. Registrasi lokal dinonaktifkan demi keamanan.');
+          throw new Error('Server pendaftaran tidak terjangkau. Pastikan backend aktif dan coba lagi — registrasi offline tidak diperbolehkan.');
+        } else {
+          throw backendErr;
+        }
+      } /* alumni */
 
       setSuccessUser(user);
       if (onRegisterSuccess) onRegisterSuccess(user);
@@ -263,7 +269,6 @@ export default function Register({
 
     setIsLoading(true);
     try {
-      // 100% Supabase: register wajib lewat backend, tanpa fallback lokal.
       let user: any;
       try {
         user = await registerToBackend({
@@ -281,35 +286,20 @@ export default function Register({
           website: mitraForm.website.trim()
         });
       } catch (backendErr: any) {
-        throw new Error(backendErr?.message || 'Pendaftaran gagal. Backend tidak terjangkau — data TIDAK disimpan lokal.');
+        const isNetworkErr = backendErr && (
+          backendErr.name === 'TypeError' ||
+          String(backendErr.message).toLowerCase().includes('fetch') ||
+          String(backendErr.message).includes('Failed')
+        );
+        if (isNetworkErr) {
+          console.warn('[Register] Backend tidak terjangkau. Registrasi lokal dinonaktifkan demi keamanan.');
+          throw new Error('Server pendaftaran tidak terjangkau. Pastikan backend aktif dan coba lagi — registrasi offline tidak diperbolehkan.');
+        } else {
+          throw backendErr;
+        }
       }
 
       setSuccessUser(user);
-
-      // Simpan entitas Mitra & User ke database lokal agar langsung muncul di Approval Admin
-      try {
-        const newMitra: Mitra = {
-          id: user.id || `mitra_${Date.now()}`,
-          userId: user.id || `usr_mitra_${Date.now()}`,
-          namaInstansi: mitraForm.namaInstansi.trim(),
-          kontakPerson: mitraForm.jabatanKontak
-            ? `${mitraForm.kontakPerson.trim()} (${mitraForm.jabatanKontak.trim()})`
-            : mitraForm.kontakPerson.trim(),
-          email: mitraForm.email.trim(),
-          phone: mitraForm.phone.trim(),
-          bidangIndustri: mitraForm.bidangIndustri,
-          alamat: mitraForm.alamat.trim(),
-          website: mitraForm.website.trim(),
-          statusKerjaSama: 'pending'
-        };
-        await insertToDB<Mitra>('mitra', newMitra);
-        if (user) {
-          await insertToDB<User>('users', user);
-        }
-      } catch (dbErr) {
-        console.warn('Gagal menyimpan record mitra lokal/sync:', dbErr);
-      }
-
       if (onRegisterSuccess) onRegisterSuccess(user);
     } catch (err: any) {
       setErrorMsg(err.message || 'Terjadi kesalahan saat pendaftaran mitra.');

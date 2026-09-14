@@ -901,7 +901,7 @@ const headers = {
 
 - [DATABASE_SETUP.md](./DATABASE_SETUP.md) - Database schema
 - [BACKEND_ARCHITECTURE.md](./BACKEND_ARCHITECTURE.md) - Backend API
-- [SECURITY_AUDIT_REPORT.md](../SECURITY_AUDIT_REPORT.md) - Security audit
+- [SECURITY_AUDIT_REPORT.md](SECURITY_AUDIT_REPORT.md) - Security audit
 
 ---
 

@@ -18,25 +18,25 @@ Seed accounts are now created via `scripts/seed_full_database.ts` which:
 
 ### Admin Account
 - Email: `admin@umkendari.ac.id`
-- Password: `admin123!` (temporary dev password)
+- Password: di-set via `SEED_ADMIN_PASSWORD` (env, tidak ditulis di repo)
 - Role: Admin
 - Access: Full system access
 
 ### Mahasiswa Account
 - Email: `mhs@umkendari.ac.id`
-- Password: `mahasiswa123!`
+- Password: di-set via `SEED_MAHASISWA_PASSWORD` (env, tidak ditulis di repo)
 - Role: User (Mahasiswa)
 - Access: Student portal features
 
 ### Alumni Account
 - Email: `alumni@umkendari.ac.id`
-- Password: `alumni123!`
+- Password: di-set via `SEED_ALUMNI_PASSWORD` (env, tidak ditulis di repo)
 - Role: User (Alumni)
 - Access: Alumni portal features
 
 ### Mitra Account
 - Email: `mitra@umkendari.ac.id`
-- Password: `mitra123!`
+- Password: di-set via `SEED_MITRA_PASSWORD` (env, tidak ditulis di repo)
 - Role: Mitra
 - Access: Partner portal features
 
@@ -47,11 +47,11 @@ Seed accounts are now created via `scripts/seed_full_database.ts` which:
 ### Option 1: Via Seed Script (Recommended)
 
 ```bash
-# Set environment variables for seed passwords
-export SEED_ADMIN_PASSWORD="admin123!"
-export SEED_MAHASISWA_PASSWORD="mahasiswa123!"
-export SEED_ALUMNI_PASSWORD="alumni123!"
-export SEED_MITRA_PASSWORD="mitra123!"
+# Set environment variables for seed passwords (JANGAN pakai nilai contoh ini — buat sendiri)
+export SEED_ADMIN_PASSWORD="<buat-password-admin-kuat-min-12-karakter>"
+export SEED_MAHASISWA_PASSWORD="<buat-password-mahasiswa-kuat-min-12-karakter>"
+export SEED_ALUMNI_PASSWORD="<buat-password-alumni-kuat-min-12-karakter>"
+export SEED_MITRA_PASSWORD="<buat-password-mitra-kuat-min-12-karakter>"
 
 # Run seed script
 npm run seed
