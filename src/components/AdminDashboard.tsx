@@ -1381,9 +1381,14 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       }
     } catch (err: any) {
       console.error('SAVE_LOWONGAN_FAIL', err);
-      const msg = (err && err.name === 'QuotaExceededError')
-        ? 'Gagal menyimpan: storage penyimpanan lokal penuh. Hapus beberapa lowongan lama atau gunakan poster lebih kecil.'
-        : 'Gagal menyimpan lowongan ke penyimpanan lokal.';
+      // Tampilkan pesan error ASLI dari backend/Supabase agar bisa didiagnosis.
+      const rawMsg = err?.message || 'Gagal menyimpan lowongan.';
+      let msg = rawMsg;
+      if (rawMsg.includes('Invalid or expired token') || rawMsg.includes('Belum login')) {
+        msg = 'Sesi login kedaluwarsa. Silakan logout lalu login ulang, kemudian coba simpan lagi.';
+      } else if (rawMsg.includes('Terlalu banyak request')) {
+        msg = 'Terlalu banyak percobaan simpan. Tunggu ±1 menit lalu coba lagi.';
+      }
       triggerToast('error', msg);
       return;
     }
@@ -1661,9 +1666,15 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
       }
     } catch (err: any) {
       console.error('SAVE_KONTEN_FAIL', err);
-      const msg = (err && err.name === 'QuotaExceededError')
-        ? 'Gagal menyimpan: storage penyimpanan lokal penuh. Hapus beberapa konten lama (terutama yang ber-thumbnail besar) lalu coba lagi.'
-        : 'Gagal menyimpan konten ke penyimpanan lokal.';
+      // Tampilkan pesan error ASLI dari backend/Supabase agar bisa didiagnosis,
+      // bukan pesan generik "penyimpanan lokal" yang menyesatkan.
+      const rawMsg = err?.message || 'Gagal menyimpan konten.';
+      let msg = rawMsg;
+      if (rawMsg.includes('Invalid or expired token') || rawMsg.includes('Belum login')) {
+        msg = 'Sesi login kedaluwarsa. Silakan logout lalu login ulang, kemudian coba simpan lagi.';
+      } else if (rawMsg.includes('Terlalu banyak request')) {
+        msg = 'Terlalu banyak percobaan simpan. Tunggu ±1 menit lalu coba lagi.';
+      }
       setSaveError(msg);
       triggerToast('error', msg);
       return;
