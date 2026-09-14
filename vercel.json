@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://GANTI-DENGAN-HOST-BACKEND-TESTING/api/:path*"
+    }
+  ]
+}

@@ -21,5 +21,14 @@ export default defineConfig(() => {
       // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
     },
+    // `vite preview` TIDAK mewarisi server.proxy di atas, jadi harus dideklarasikan
+    // ulang. Tanpa ini, menguji build produksi secara lokal (`npm run preview`)
+    // akan gagal konek ke backend — padahal build-nya sendiri benar.
+    preview: {
+      port: 3000,
+      proxy: {
+        '/api': { target: 'http://localhost:5000', changeOrigin: true },
+      },
+    },
   };
 });

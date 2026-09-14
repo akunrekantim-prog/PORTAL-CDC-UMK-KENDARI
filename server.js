@@ -6,6 +6,8 @@ import rateLimit from 'express-rate-limit';
 import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
 import crypto from 'crypto';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
 
@@ -703,6 +705,27 @@ app.delete('/api/:table/:id', authenticateToken, writeLimiter, async (req, res) 
     console.error('[Express DELETE Error]:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
+});
+
+// ── Serve frontend hasil build (dist/) ───────────────────────────
+// Wajib berada SEBELUM handler 404 di bawah, dan SESUDAH semua route /api.
+// Kalau urutannya terbalik, semua halaman akan membalas JSON {"error":"Not found"}.
+// Dengan ini frontend & backend berada di satu origin, sehingga:
+//   - cookie httpOnly sameSite:'strict' tetap bekerja (tidak perlu SameSite=None)
+//   - CSP connectSrc tidak perlu diubah
+//   - VITE_API_URL cukup "/api" relative, dan build yang sama bisa dipakai di
+//     server kampus tanpa rebuild.
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const distDir = path.join(__dirname, 'dist');
+
+app.use(express.static(distDir));
+
+// SPA fallback: semua GET non-/api diarahkan ke index.html agar deep link
+// (mis. /berita/slug) tidak 404 saat di-refresh langsung.
+app.get(/^(?!\/api).*/, (_req, res, next) => {
+  res.sendFile(path.join(distDir, 'index.html'), (err) => {
+    if (err) next(); // dist/ belum dibuild → biarkan jatuh ke 404 JSON
+  });
 });
 
 // 404 + generic error handler — jangan leak stack di prod

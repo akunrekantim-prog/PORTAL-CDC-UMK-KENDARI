@@ -16,6 +16,7 @@ import {
   getFromDB,
   sortJobsByNewest
 } from './data';
+import { API_BASE_URL } from './config/api';
 import EventDetailView from './components/layanan/EventDetailView';
 // ...
 import PublicLayout from './components/PublicLayout';
@@ -168,11 +169,7 @@ export default function App() {
       localStorage.removeItem('cdc_token_expiry');
       localStorage.removeItem('cdc_session_id');
     } catch { /* abaikan */ }
-    try { fetch('/api/logout', { method: 'POST', credentials: 'include' }); } catch { /* abaikan */ }
-    try {
-      const base = (typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.VITE_API_URL) || 'http://localhost:5000/api';
-      fetch(`${base}/logout`, { method: 'POST', credentials: 'include' }).catch(()=>{});
-    } catch { /* abaikan */ }
+    try { fetch(`${API_BASE_URL}/logout`, { method: 'POST', credentials: 'include' }).catch(() => {}); } catch { /* abaikan */ }
   };
 
   // Navigation callbacks

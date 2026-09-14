@@ -4,8 +4,8 @@
  * Service pengelola transaksi data langsung ke Supabase PostgreSQL via Express API Backend
  *
  * Aturan main:
- * - API_BASE_URL dari VITE_API_URL (prod) dengan fallback localhost:5000 (dev).
- * - Semua request privat (/all-data, /sync/*, DELETE) WAJIB kirim Authorization: Bearer <cdc_auth_token>.
+ * - API_BASE_URL berasal dari src/config/api.ts (default "/api", relative).
+ * - Semua request privat (/all-data, /sync/*, DELETE) WAJIB kirim Authorization: Bearer ***
  * - Boot publik pakai /public-data (tanpa token). Boot privat pakai /all-data (dengan token).
  * - Role/status dari backend (UPPERCASE Prisma enum) dinormalisasi ke lowercase konvensi frontend.
  */
@@ -20,12 +20,7 @@ import {
   TracerStudy,
   KontenKarir
 } from '../types';
-
-const API_BASE_URL =
-  (typeof import.meta !== 'undefined' &&
-    (import.meta as any).env &&
-    (import.meta as any).env.VITE_API_URL) ||
-  'http://localhost:5000/api';
+import { API_BASE_URL } from '../config/api';
 
 /* ── Auth session helpers ─────────────────────────────────────────── */
 
@@ -325,5 +320,3 @@ export async function logoutFromBackend(): Promise<void> {
   } catch { /* abaikan — sesi lokal tetap dibersihkan */ }
   clearAuthSession();
 }
-
-export { API_BASE_URL };
