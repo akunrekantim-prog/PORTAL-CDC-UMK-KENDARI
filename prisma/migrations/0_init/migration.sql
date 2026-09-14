@@ -624,3 +624,139 @@ ALTER TABLE "komentar_beritas" ADD CONSTRAINT "komentar_beritas_beritaId_fkey" F
 -- AddForeignKey
 ALTER TABLE "job_fair_companies" ADD CONSTRAINT "job_fair_companies_jobFairId_fkey" FOREIGN KEY ("jobFairId") REFERENCES "job_fair_events"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
+-- ============================================================================-- CHECK constraints (TIDAK dikelola Prisma — lihat docs/arsip-supabase/005_add_checks.sql)
+-- Prisma mengabaikan CHECK di `migrate diff`, jadi blok ini harus tetap ada di
+-- sini. Tanpa ini, database server kampus kehilangan seluruh validasi data.
+-- Sumber kebenaran: docs/arsip-supabase/005_add_checks.sql
+-- ============================================================================
+
+-- ── LANGKAH 0: bersihkan SEMUA varian case dari constraint ini ─────────────
+-- Idempoten: nama target dihitung dari tabel + nama lowercase, jadi berapa pun
+-- varian case yang pernah tercipta akan terhapus sebelum dipasang ulang.
+DO $$
+DECLARE
+  t text;
+  want text;
+BEGIN
+  FOR t, want IN
+    SELECT * FROM (VALUES
+      ('alumnis',             'alumnis_statuspekerjaan_check'),
+      ('tracer_studies',      'tracer_studies_statuspekerjaan_check'),
+      ('beritas',             'beritas_status_check'),
+      ('pengumumans',         'pengumumans_status_check'),
+      ('konten_karirs',       'konten_karirs_status_check'),
+      ('konten_karirs',       'konten_karirs_jenis_check'),
+      ('konten_karirs',       'konten_karirs_scope_check'),
+      ('konten_karirs',       'konten_karirs_tipe_check'),
+      ('lowongans',           'lowongans_jenispekerjaan_check'),
+      ('lowongans',           'lowongans_sumber_check'),
+      ('pengajuan_magangs',   'pengajuan_magangs_interviewmethod_check'),
+      ('pengajuan_magangs',   'pengajuan_magangs_interviewstatus_check'),
+      ('komentar_beritas',    'komentar_beritas_status_check'),
+      ('campus_hirings',      'campus_hirings_status_check'),
+      ('job_fair_events',     'job_fair_events_status_check'),
+      ('mou_stakeholders',    'mou_stakeholders_status_check'),
+      ('uploaded_documents',  'uploaded_documents_category_check'),
+      ('survei_lulusans',     'survei_lulusans_kualitaslulusan_check'),
+      ('survei_lulusans',     'survei_lulusans_kemampuanteknis_check'),
+      ('survei_lulusans',     'survei_lulusans_kemampuankomunikasi_check'),
+      ('survei_lulusans',     'survei_lulusans_etikakerja_check'),
+      ('survei_lulusans',     'survei_lulusans_kemampuankerjatim_check')
+    ) AS v(tbl, con)
+  LOOP
+    EXECUTE format(
+      'ALTER TABLE %I DROP CONSTRAINT IF EXISTS %I', t, want);
+    -- hapus juga varian camelCase apa pun (case-insensitive)
+    PERFORM 1 FROM pg_constraint c
+      JOIN pg_class r ON r.oid = c.conrelid
+      JOIN pg_namespace n ON n.oid = r.relnamespace
+     WHERE n.nspname = 'public' AND c.contype = 'c'
+       AND r.relname = t AND lower(c.conname) = want;
+    IF FOUND THEN
+      EXECUTE (
+        SELECT format('ALTER TABLE %I DROP CONSTRAINT %I', t, c.conname)
+        FROM pg_constraint c
+        JOIN pg_class r ON r.oid = c.conrelid
+        JOIN pg_namespace n ON n.oid = r.relnamespace
+        WHERE n.nspname = 'public' AND c.contype = 'c'
+          AND r.relname = t AND lower(c.conname) = want
+        LIMIT 1);
+    END IF;
+  END LOOP;
+END $$;
+
+-- ── alumni & tracer study: status pekerjaan (lowercase) ─────────────────────
+ALTER TABLE alumnis ADD CONSTRAINT alumnis_statuspekerjaan_check
+  CHECK ("statusPekerjaan" IN ('bekerja','wirausaha','lanjut_studi','belum_bekerja'));
+
+ALTER TABLE tracer_studies ADD CONSTRAINT tracer_studies_statuspekerjaan_check
+  CHECK ("statusPekerjaan" IN ('bekerja','wirausaha','lanjut_studi','belum_bekerja'));
+
+-- ── konten: status artikel (lowercase) ─────────────────────────────────────
+ALTER TABLE beritas ADD CONSTRAINT beritas_status_check
+  CHECK (status IN ('draft','published','archived'));
+
+ALTER TABLE pengumumans ADD CONSTRAINT pengumumans_status_check
+  CHECK (status IN ('draft','published','archived'));
+
+ALTER TABLE konten_karirs ADD CONSTRAINT konten_karirs_status_check
+  CHECK (status IN ('draft','published','archived'));
+
+-- ── konten_karir: enum jenis/scope/tipe ────────────────────────────────────
+ALTER TABLE konten_karirs ADD CONSTRAINT konten_karirs_jenis_check
+  CHECK (jenis IN ('berita','lowongan','program','pengumuman','workshop','softskill','seminar','presentasi'));
+
+ALTER TABLE konten_karirs ADD CONSTRAINT konten_karirs_scope_check
+  CHECK (scope IN ('LOKAL','REGIONAL','NASIONAL','GLOBAL'));
+
+ALTER TABLE konten_karirs ADD CONSTRAINT konten_karirs_tipe_check
+  CHECK (tipe IN ('magang','kerja'));
+
+-- ── lowongan ───────────────────────────────────────────────────────────────
+ALTER TABLE lowongans ADD CONSTRAINT lowongans_jenispekerjaan_check
+  CHECK ("jenisPekerjaan" IN ('full-time','part-time','freelance','kontrak'));
+
+ALTER TABLE lowongans ADD CONSTRAINT lowongans_sumber_check
+  CHECK (sumber IN ('admin','mitra'));
+
+-- ── pengajuan magang: status interview (lowercase) ─────────────────────────
+ALTER TABLE pengajuan_magangs ADD CONSTRAINT pengajuan_magangs_interviewmethod_check
+  CHECK ("interviewMethod" IN ('online','offline'));
+
+ALTER TABLE pengajuan_magangs ADD CONSTRAINT pengajuan_magangs_interviewstatus_check
+  CHECK ("interviewStatus" IN ('pending','scheduled','completed'));
+
+-- ── komentar berita: status UPPERCASE (beda konvensi dari tabel lain) ──────
+ALTER TABLE komentar_beritas ADD CONSTRAINT komentar_beritas_status_check
+  CHECK (status IN ('PENDING','APPROVED','REJECTED','SPAM'));
+
+-- ── event ──────────────────────────────────────────────────────────────────
+ALTER TABLE campus_hirings ADD CONSTRAINT campus_hirings_status_check
+  CHECK (status IN ('upcoming','ongoing','completed'));
+
+ALTER TABLE job_fair_events ADD CONSTRAINT job_fair_events_status_check
+  CHECK (status IN ('upcoming','ongoing','completed'));
+
+-- ── MoU ────────────────────────────────────────────────────────────────────
+ALTER TABLE mou_stakeholders ADD CONSTRAINT mou_stakeholders_status_check
+  CHECK (status IN ('aktif','expired','dalam_proses'));
+
+-- ── dokumen ────────────────────────────────────────────────────────────────
+ALTER TABLE uploaded_documents ADD CONSTRAINT uploaded_documents_category_check
+  CHECK (category IN ('cv','surat_pengantar','transkrip','ktp','lainnya'));
+
+-- ── survei lulusan: skor 1..5 ──────────────────────────────────────────────
+ALTER TABLE survei_lulusans ADD CONSTRAINT survei_lulusans_kualitaslulusan_check
+  CHECK ("kualitasLulusan" >= 1 AND "kualitasLulusan" <= 5);
+
+ALTER TABLE survei_lulusans ADD CONSTRAINT survei_lulusans_kemampuanteknis_check
+  CHECK ("kemampuanTeknis" >= 1 AND "kemampuanTeknis" <= 5);
+
+ALTER TABLE survei_lulusans ADD CONSTRAINT survei_lulusans_kemampuankomunikasi_check
+  CHECK ("kemampuanKomunikasi" >= 1 AND "kemampuanKomunikasi" <= 5);
+
+ALTER TABLE survei_lulusans ADD CONSTRAINT survei_lulusans_etikakerja_check
+  CHECK ("etikaKerja" >= 1 AND "etikaKerja" <= 5);
+
+ALTER TABLE survei_lulusans ADD CONSTRAINT survei_lulusans_kemampuankerjatim_check
+  CHECK ("kemampuanKerjaTim" >= 1 AND "kemampuanKerjaTim" <= 5);
