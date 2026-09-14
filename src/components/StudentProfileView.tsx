@@ -68,6 +68,55 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
     mahasiswaData?.photoUrl || user.photoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300&auto=format&fit=crop'
   );
 
+  // Offset sticky sub-nav: diukur dari tumpukan header nyata (bar pratinjau peran +
+  // header situs), bukan asumsi `top-16` (64px) yang membuat nav tertutup di mobile/iPad.
+  const navRef = React.useRef<HTMLDivElement>(null);
+  const [navOffset, setNavOffset] = useState(64);
+
+  React.useEffect(() => {
+    let frame = 0;
+    const measure = () => {
+      const nav = navRef.current;
+      if (!nav) return;
+
+      // Offset = batas bawah terjauh dari header sticky/fixed yang sedang menempel di atas.
+      // Di app ini ada dua lapis: bar "Pratinjau peran" (z-120) + header situs (z-40).
+      // Tingginya berubah saat teks wrap di layar sempit (108px di mobile, 53px di desktop),
+      // jadi diukur, bukan di-hardcode.
+      let bottom = 0;
+      document.querySelectorAll<HTMLElement>('body *').forEach((el) => {
+        if (nav.contains(el) || el.contains(nav)) return;
+        const cs = window.getComputedStyle(el);
+        if (cs.position !== 'sticky' && cs.position !== 'fixed') return;
+        if (cs.display === 'none' || cs.visibility === 'hidden') return;
+        const r = el.getBoundingClientRect();
+        // Hanya elemen selebar halaman yang menempel di tepi atas viewport.
+        if (r.width < window.innerWidth * 0.6) return;
+        if (r.height < 24 || r.height > 220) return;
+        if (r.top > 2) return;
+        bottom = Math.max(bottom, r.bottom);
+      });
+
+      setNavOffset(Math.max(48, Math.round(bottom)));
+    };
+
+    const onScroll = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => { frame = 0; measure(); });
+    };
+
+    measure();
+    window.addEventListener('resize', measure);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    const t = window.setTimeout(measure, 300); // ukur ulang setelah font/layout stabil
+    return () => {
+      window.removeEventListener('resize', measure);
+      window.removeEventListener('scroll', onScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+      window.clearTimeout(t);
+    };
+  }, []);
+
   React.useEffect(() => {
     if (mahasiswaData?.photoUrl) {
       setAvatarUrl(mahasiswaData.photoUrl);
@@ -177,7 +226,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
   const [sendOpportunities, setSendOpportunities] = useState(mahasiswaData?.sendOpportunities || '');
   const [cvName, setCvName] = useState(mahasiswaData?.cvName || '');
 
-  // Qualification State (Pendidikan - CDC UI Style)
+  // State Pendidikan (CDC UI Style)
   const [qualifications, setQualifications] = useState(() => mahasiswaData?.qualifications || []);
   const [newInst, setNewInst] = useState(() => mahasiswaData?.university || 'Universitas Muhammadiyah Kendari');
   const [newLevel, setNewLevel] = useState(() => {
@@ -203,14 +252,14 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
   });
   const [newIpk, setNewIpk] = useState(() => mahasiswaData?.qualifications?.[0]?.ipk || '');
 
-  // Animation variants for smooth inline card transformation (CDC UI Style)
+  // Varian animasi untuk transisi kartu inline (CDC UI Style)
   const sectionVariants = {
     initial: { opacity: 0, y: 8 },
     animate: { opacity: 1, y: 0, transition: { duration: 0.22, ease: [0.22, 1, 0.36, 1] as const } },
     exit: { opacity: 0, y: -8, transition: { duration: 0.16, ease: [0.22, 1, 0.36, 1] as const } }
   };
 
-  // Open section and smooth scroll helper
+  // Buka seksi & gulir halus
   const handleOpenSection = (sectionId: string) => {
     setEditingSection(prev => prev === sectionId ? null : sectionId);
     setTimeout(() => {
@@ -221,7 +270,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
     }, 100);
   };
 
-  // Skills State
+  // Keahlian State
   const [skills, setSkills] = useState<string[]>(() => mahasiswaData?.skills || []);
   const [newSkillInput, setNewSkillInput] = useState('');
 
@@ -305,7 +354,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
     triggerToast('Profil berhasil diperbarui!');
   };
 
-  // Add Skill Handler
+  // Handler Tambah Keahlian
   const handleAddSkill = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = newSkillInput.trim();
@@ -314,7 +363,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
       setSkills(nextSkills);
       setNewSkillInput('');
       saveProfileData({ skills: nextSkills });
-      triggerToast('Skill baru berhasil ditambahkan!');
+      triggerToast('Keahlian baru berhasil ditambahkan!');
     }
   };
 
@@ -322,7 +371,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
     const nextSkills = skills.filter(s => s !== skillToRemove);
     setSkills(nextSkills);
     saveProfileData({ skills: nextSkills });
-    triggerToast('Skill berhasil dihapus');
+    triggerToast('Keahlian berhasil dihapus');
   };
 
   // Add Experience Handler
@@ -501,12 +550,12 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
     },
     {
       id: 'skills',
-      label: `Skill (${skills.length})`,
+      label: `Keahlian (${skills.length})`,
       isCompleted: isSkillsCompleted,
       weight: 15,
       detail: skills.length > 0 ? `${skills.length} Keahlian` : 'Belum Ada',
       action: () => handleOpenSection('skills'),
-      actionLabel: 'Kelola Skill'
+      actionLabel: 'Kelola Keahlian'
     },
     {
       id: 'experience',
@@ -537,7 +586,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
     },
     {
       id: 'career',
-      label: 'Preferensi Karir',
+      label: 'Preferensi Karier',
       isCompleted: isCareerCompleted,
       weight: 5,
       detail: isCareerCompleted ? 'Terisi' : 'Belum Diisi',
@@ -557,17 +606,17 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
 
       {/* Toast Notification */}
       {toastMsg && (
-        <div className="fixed top-4 right-4 z-50 bg-emerald-50 text-emerald-800 px-5 py-3 rounded-2xl shadow-lg border border-emerald-200 flex items-center gap-3 animate-fadeIn text-sm font-semibold">
+        <div className="fixed top-4 right-4 z-50 bg-emerald-50 text-emerald-800 px-5 py-3 rounded-xl shadow-lg border border-emerald-200 flex items-center gap-3 animate-fadeIn text-sm font-semibold">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
           <span>{toastMsg}</span>
         </div>
       )}
 
       {/* 1. HEADER HERO SECTION (INSTITUTIONAL GRADE UI - WHITE THEME) */}
-      <div className="bg-white text-slate-900 pt-8 pb-10 px-4 sm:px-6 lg:px-8 relative border-b border-slate-200 shadow-2xs">
+      <div className="bg-white text-slate-900 pt-8 pb-10 px-4 sm:px-6 lg:px-8 relative border-b border-slate-200 shadow-sm">
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center md:items-start gap-7 relative z-10">
 
-          {/* Hidden File Input for Local Image Upload */}
+          {/* Input Berkas Tersembunyi untuk Unggah Foto Lokal */}
           <input
             type="file"
             ref={fileInputRef}
@@ -580,7 +629,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
           <div className="relative group shrink-0">
             <div
               onClick={() => fileInputRef.current?.click()}
-              className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl border-2 border-slate-200 ring-4 ring-[#0077C6]/10 shadow-sm overflow-hidden bg-slate-100 flex items-center justify-center cursor-pointer relative transition-transform duration-300 group-hover:scale-[1.02]"
+              className="w-28 h-28 sm:w-32 sm:h-32 rounded-xl border-2 border-slate-200 ring-4 ring-[#0077C6]/10 shadow-sm overflow-hidden bg-slate-100 flex items-center justify-center cursor-pointer relative transition-transform duration-300 group-hover:scale-[1.02]"
               title="Klik untuk ubah foto profil dari berkas lokal"
             >
               {avatarUrl ? (
@@ -596,7 +645,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="absolute -bottom-1 -right-1 bg-[#0077C6] hover:bg-blue-700 text-white p-2.5 rounded-2xl shadow-md border-2 border-white transition transform group-hover:scale-110 cursor-pointer"
+              className="absolute -bottom-1 -right-1 bg-[#0077C6] hover:bg-[#005FA3] text-white p-2.5 rounded-xl shadow-lg border-2 border-white transition transform group-hover:scale-110 cursor-pointer"
               title="Ubah Foto Profil dari Berkas Lokal"
             >
               <Camera className="w-3.5 h-3.5" />
@@ -614,7 +663,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                   animate="animate"
                   exit="exit"
                   onSubmit={handleSaveProfileSection}
-                  className="bg-slate-50/95 border border-slate-200/90 rounded-2xl p-5 space-y-4 shadow-xs"
+                  className="bg-slate-50/95 border border-slate-200/90 rounded-xl p-5 space-y-4 shadow-sm"
                 >
                   <div className="flex items-center justify-between border-b border-slate-200/70 pb-3">
                     <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
@@ -686,7 +735,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     </button>
                     <button
                       type="submit"
-                      className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-5 py-2 rounded-xl text-xs shadow-xs transition cursor-pointer active:scale-95"
+                      className="bg-[#0077C6] hover:bg-[#005FA3] text-white font-bold px-5 py-2 rounded-xl text-xs shadow-sm transition cursor-pointer active:scale-95"
                     >
                       Simpan Perubahan
                     </button>
@@ -705,7 +754,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     <button
                       type="button"
                       onClick={() => setEditingSection('headerInfo')}
-                      className="bg-blue-50 hover:bg-blue-100 text-[#0077C6] text-xs font-bold px-3.5 py-1 rounded-full border border-blue-200 uppercase tracking-wider flex items-center gap-1.5 transition group cursor-pointer"
+                      className="bg-[#E8F3FB] hover:bg-[#D6E9F8] text-[#0077C6] text-xs font-bold px-3.5 py-1 rounded-full border border-[#B3D9F2] uppercase tracking-wider flex items-center gap-1.5 transition group cursor-pointer"
                       title="Klik untuk ubah status (Mahasiswa / Alumni)"
                     >
                       <ShieldCheck className="w-3.5 h-3.5 text-[#0077C6]" />
@@ -716,7 +765,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     <button
                       type="button"
                       onClick={() => setEditingSection('headerInfo')}
-                      className="text-xs text-[#0077C6] hover:text-blue-700 hover:underline flex items-center gap-1 font-semibold md:ml-auto cursor-pointer"
+                      className="text-xs text-[#0077C6] hover:text-[#005FA3] hover:underline flex items-center gap-1 font-semibold py-1.5 -my-1.5 md:ml-auto cursor-pointer"
                       title="Edit Info Utama (Status, Nama & Universitas)"
                     >
                       <Pencil className="w-3.5 h-3.5" /> Edit Info Profil
@@ -725,7 +774,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
 
                   <h1
                     onClick={() => setEditingSection('headerInfo')}
-                    className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight cursor-pointer hover:text-[#0077C6] transition group flex items-center justify-center md:justify-start gap-2"
+                    className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight cursor-pointer hover:text-[#0077C6] transition group flex items-center justify-center md:justify-start gap-2"
                     title="Klik untuk edit nama"
                   >
                     <span>{`${firstName} ${lastName}`.trim() || user.name}</span>
@@ -745,7 +794,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
             </AnimatePresence>
 
             {/* Tentang Saya (Bio Card) */}
-            <div id="section-aboutMe" className="pt-3 border-t border-slate-100 mt-3 space-y-1.5 bg-slate-50/80 p-4 rounded-2xl border border-slate-200/80 scroll-mt-24">
+            <div id="section-aboutMe" className="pt-3 border-t border-slate-100 mt-3 space-y-1.5 bg-slate-50/80 p-4 rounded-xl border border-slate-200/80 scroll-mt-24">
               <div className="flex items-center justify-between text-xs font-bold text-slate-700">
                 <span className="text-xs text-[#0077C6] font-semibold flex items-center gap-1.5">
                   <UserIcon className="w-3.5 h-3.5 text-[#0077C6]" /> Tentang Saya
@@ -761,7 +810,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                 ) : (
                   <button
                     onClick={() => setEditingSection('aboutMe')}
-                    className="text-[#0077C6] hover:text-blue-700 hover:underline flex items-center gap-1 font-semibold text-xs cursor-pointer"
+                    className="text-[#0077C6] hover:text-[#005FA3] hover:underline flex items-center gap-1 font-semibold text-xs py-1.5 -my-1.5 cursor-pointer"
                   >
                     {aboutMe ? 'Edit Bio' : '+ Tulis Bio'} <Pencil className="w-3 h-3" />
                   </button>
@@ -783,7 +832,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                       value={aboutMe}
                       onChange={e => setAboutMe(e.target.value)}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white leading-relaxed"
-                      placeholder="Tuliskan deskripsi singkat mengenai latar belakang, passion, dan tujuan karir Anda..."
+                      placeholder="Tuliskan deskripsi singkat mengenai latar belakang, minat, dan tujuan karier Anda..."
                     />
                     <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-200/60">
                       <button
@@ -800,7 +849,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                           setEditingSection(null);
                           triggerToast('Bio berhasil diperbarui!');
                         }}
-                        className="px-5 py-2 text-xs font-bold text-white bg-[#0077C6] hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer active:scale-95"
+                        className="px-5 py-2 text-xs font-bold text-white bg-[#0077C6] hover:bg-[#005FA3] rounded-xl shadow-sm transition cursor-pointer active:scale-95"
                       >
                         Simpan Bio
                       </button>
@@ -830,11 +879,15 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
       </div>
 
       {/* 2. STICKY SUB-NAVIGATION TABS (LINEAR/VERCEL DESIGN) */}
-      <div className="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-16 z-30 shadow-2xs">
+      <div
+        ref={navRef}
+        className="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky z-30 shadow-sm"
+        style={{ top: navOffset }}
+      >
         <div className="max-w-4xl mx-auto px-4 flex items-center justify-center gap-4 sm:gap-8 text-xs sm:text-sm font-bold">
           <button
             onClick={() => setSubTab('profile')}
-            className={`py-3.5 px-3 transition-all flex items-center gap-2 relative ${subTab === 'profile'
+            className={`py-3.5 px-3 transition flex items-center gap-2 relative ${subTab === 'profile'
               ? 'text-[#0077C6] font-bold border-b-2 border-[#0077C6]'
               : 'text-slate-600 hover:text-slate-900 font-medium'
               }`}
@@ -845,7 +898,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
 
           <button
             onClick={() => setSubTab('bookmarks')}
-            className={`py-3.5 px-3 transition-all flex items-center gap-2 relative ${subTab === 'bookmarks'
+            className={`py-3.5 px-3 transition flex items-center gap-2 relative ${subTab === 'bookmarks'
               ? 'text-[#0077C6] font-bold border-b-2 border-[#0077C6]'
               : 'text-slate-600 hover:text-slate-900 font-medium'
               }`}
@@ -857,7 +910,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                 const validSaved = getValidSavedJobs(user.id);
                 if (validSaved.length > 0) {
                   return (
-                    <span className="bg-blue-100 text-[#0077C6] text-xs font-bold px-2 py-0.5 rounded-full ml-0.5">
+                    <span className="bg-[#D6E9F8] text-[#0077C6] text-xs font-bold px-2 py-0.5 rounded-full ml-0.5">
                       {validSaved.length}
                     </span>
                   );
@@ -869,7 +922,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
 
           <button
             onClick={() => setSubTab('account')}
-            className={`py-3.5 px-3 transition-all flex items-center gap-2 relative ${subTab === 'account'
+            className={`py-3.5 px-3 transition flex items-center gap-2 relative ${subTab === 'account'
               ? 'text-[#0077C6] font-bold border-b-2 border-[#0077C6]'
               : 'text-slate-600 hover:text-slate-900 font-medium'
               }`}
@@ -895,10 +948,10 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
           <div className="space-y-6 animate-fadeIn">
 
             {/* KELENGKAPAN PROFIL PROGRESS CARD (DYNAMIC & CLEAN DESIGN) */}
-            <div className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-xs space-y-4 hover:border-slate-300 transition-all">
+            <div className="bg-white rounded-xl p-6 border border-slate-200/90 shadow-sm space-y-4 hover:border-slate-300 transition">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#0055D4] flex items-center justify-center font-bold shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-[#E8F3FB] text-[#0055D4] flex items-center justify-center font-bold shrink-0">
                     <TrendingUp className="w-5 h-5 text-[#0055D4]" />
                   </div>
                   <div>
@@ -911,11 +964,11 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className={`font-bold px-3.5 py-1.5 rounded-full text-xs border shadow-2xs ${completionPercent >= 80
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  <span className={`font-bold px-3.5 py-1.5 rounded-full text-xs border shadow-sm ${completionPercent >= 80
+                    ? 'bg-blue-50 text-[#0077C6] border-blue-200'
                     : completionPercent >= 50
-                      ? 'bg-blue-50 text-[#0055D4] border-blue-200'
-                      : 'bg-amber-50 text-amber-700 border-amber-200'
+                      ? 'bg-[#E8F3FB] text-[#0055D4] border-[#B3D9F2]'
+                      : 'bg-slate-50 text-slate-600 border-slate-200'
                     }`}>
                     {completionPercent}% Selesai
                   </span>
@@ -926,12 +979,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
               <div className="space-y-1.5">
                 <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-200/60">
                   <div
-                    className={`h-full rounded-full transition-all duration-700 ease-out ${completionPercent >= 80
-                      ? 'bg-gradient-to-r from-emerald-500 to-teal-600'
-                      : completionPercent >= 50
-                        ? 'bg-gradient-to-r from-blue-500 to-[#0077C6]'
-                        : 'bg-gradient-to-r from-amber-500 to-orange-500'
-                      }`}
+                    className="h-full rounded-full bg-[#0077C6] transition-[width] duration-700 ease-out"
                     style={{ width: `${Math.max(completionPercent, 4)}%` }}
                   ></div>
                 </div>
@@ -955,19 +1003,19 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     type="button"
                     onClick={item.action}
                     className={`text-xs font-semibold px-3 py-1.5 rounded-xl border flex items-center gap-1.5 transition cursor-pointer active:scale-95 ${item.isCompleted
-                      ? 'text-emerald-800 bg-emerald-50/90 border-emerald-200 hover:bg-emerald-100/80 hover:border-emerald-300'
-                      : 'text-slate-600 bg-slate-50 border-slate-200 hover:bg-blue-50 hover:text-[#0055D4] hover:border-blue-300'
+                      ? 'text-[#0077C6] bg-blue-50/90 border-blue-200 hover:bg-blue-100/80 hover:border-blue-300'
+                      : 'text-slate-600 bg-slate-50 border-slate-200 hover:bg-[#E8F3FB] hover:text-[#0055D4] hover:border-[#8CC4EA]'
                       }`}
                     title={item.isCompleted ? `${item.label}: Lengkap (${item.detail}) - Klik untuk perbarui` : `${item.label}: Belum Lengkap - Klik untuk ${item.actionLabel.toLowerCase()}`}
                   >
                     {item.isCompleted ? (
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <CheckCircle2 className="w-3.5 h-3.5 text-[#0077C6] shrink-0" />
                     ) : (
                       <Plus className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     )}
                     <span>{item.label}</span>
                     {!item.isCompleted && (
-                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-amber-100/90 text-amber-800 ml-0.5">
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600 ml-0.5">
                         + Lengkapi
                       </span>
                     )}
@@ -979,11 +1027,11 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
             {/* ══════════════════════════════════════════
                 SEKSI 1: DATA PRIBADI
             ══════════════════════════════════════════ */}
-            <div id="section-personal" className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-6 hover:border-slate-300 transition-all scroll-mt-24">
+            <div id="section-personal" className="bg-white rounded-xl p-6 sm:p-7 border border-slate-200/90 shadow-sm space-y-6 hover:border-slate-300 transition scroll-mt-24">
               <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-                    <UserIcon className="w-5 h-5 text-blue-600" />
+                  <div className="w-9 h-9 rounded-xl bg-[#E8F3FB] text-[#0077C6] flex items-center justify-center font-bold">
+                    <UserIcon className="w-5 h-5 text-[#0077C6]" />
                   </div>
                   <div>
                     <h3 className="text-base font-bold text-slate-900">Data Pribadi</h3>
@@ -1110,7 +1158,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                       </button>
                       <button
                         type="submit"
-                        className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-xs transition cursor-pointer active:scale-95"
+                        className="bg-[#0077C6] hover:bg-[#005FA3] text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-sm transition cursor-pointer active:scale-95"
                       >
                         Simpan Perubahan
                       </button>
@@ -1125,34 +1173,34 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     exit="exit"
                     className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs"
                   >
-                    <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
+                    <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-sm transition">
                       <div className="text-xs font-semibold text-slate-500">Nama Lengkap</div>
                       <div className="font-bold text-slate-900 text-sm truncate">{`${firstName} ${lastName}`.trim() || 'Belum Diisi'}</div>
                     </div>
 
                     {userStatusType === 'Mahasiswa' && (
-                      <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
+                      <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-sm transition">
                         <div className="text-xs font-semibold text-slate-500">NIM (Nomor Induk Mahasiswa)</div>
                         <div className="font-bold text-slate-900 text-sm">{nim || 'Belum Diisi'}</div>
                       </div>
                     )}
 
-                    <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
+                    <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-sm transition">
                       <div className="text-xs font-semibold text-slate-500">Email</div>
                       <div className="font-bold text-slate-900 text-sm truncate">{email || user.email}</div>
                     </div>
 
-                    <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
+                    <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-sm transition">
                       <div className="text-xs font-semibold text-slate-500">No. Telepon / WhatsApp</div>
                       <div className="font-bold text-slate-900 text-sm">{mobile || 'Belum Diisi'}</div>
                     </div>
 
-                    <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
+                    <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-sm transition">
                       <div className="text-xs font-semibold text-slate-500">Jenis Kelamin</div>
                       <div className="font-bold text-slate-900 text-sm">{gender === 'Male' ? 'Laki-Laki' : gender === 'Female' ? 'Perempuan' : (gender || 'Belum Diisi')}</div>
                     </div>
 
-                    <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-2xs transition">
+                    <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-xl space-y-1 hover:bg-white hover:shadow-sm transition">
                       <div className="text-xs font-semibold text-slate-500">Kewarganegaraan</div>
                       <div className="font-bold text-slate-900 text-sm">{nationality || 'Indonesian'}</div>
                     </div>
@@ -1164,14 +1212,14 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
             {/* ══════════════════════════════════════════
                 SEKSI 2: PENDIDIKAN (EDUCATION - CDC UI STYLE)
             ══════════════════════════════════════════ */}
-            <div id="section-education" className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-6 hover:border-slate-300 transition-all scroll-mt-24">
+            <div id="section-education" className="bg-white rounded-xl p-6 sm:p-7 border border-slate-200/90 shadow-sm space-y-6 hover:border-slate-300 transition scroll-mt-24">
               <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-                    <GraduationCap className="w-5 h-5 text-emerald-600" />
+                  <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#0077C6] flex items-center justify-center font-bold">
+                    <GraduationCap className="w-5 h-5 text-[#0077C6]" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-slate-900">Education</h3>
+                    <h3 className="text-base font-bold text-slate-900">Pendidikan</h3>
                     <p className="text-xs text-slate-500 font-normal">Riwayat studi perguruan tinggi dan sekolah</p>
                   </div>
                 </div>
@@ -1198,16 +1246,16 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                       setNewIpk('');
                       setEditingSection('education');
                     }}
-                    className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                    className="bg-blue-50 hover:bg-blue-100 text-[#0077C6] px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                   >
-                    <Plus className="w-3.5 h-3.5 text-emerald-600" /> Tambah Pendidikan
+                    <Plus className="w-3.5 h-3.5" /> Tambah Pendidikan
                   </button>
                 ) : (
                   <button
                     onClick={() => setEditingSection('education')}
-                    className="text-[#EAB308] hover:text-amber-600 bg-amber-50/80 hover:bg-amber-100/80 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                    className="text-[#0077C6] hover:text-[#005FA3] bg-blue-50 hover:bg-blue-100 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                   >
-                    <Pencil className="w-3.5 h-3.5 text-[#EAB308]" /> Edit
+                    <Pencil className="w-3.5 h-3.5" /> Edit
                   </button>
                 )}
               </div>
@@ -1226,7 +1274,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     {/* CDC UI Style Fields */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="sm:col-span-2">
-                        <label className="font-bold text-slate-700 block mb-1.5">University *</label>
+                        <label className="font-bold text-slate-700 block mb-1.5">Perguruan Tinggi *</label>
                         <input
                           type="text"
                           required
@@ -1238,7 +1286,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                       </div>
 
                       <div>
-                        <label className="font-bold text-slate-700 block mb-1.5">Qualification</label>
+                        <label className="font-bold text-slate-700 block mb-1.5">Jenjang Pendidikan</label>
                         <select
                           value={newLevel}
                           onChange={e => setNewLevel(e.target.value)}
@@ -1254,7 +1302,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                       </div>
 
                       <div>
-                        <label className="font-bold text-slate-700 block mb-1.5">Field of Study (Jurusan / Program Studi)</label>
+                        <label className="font-bold text-slate-700 block mb-1.5">Program Studi</label>
                         <input
                           type="text"
                           value={newFieldOfStudy}
@@ -1265,7 +1313,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                       </div>
 
                       <div>
-                        <label className="font-bold text-slate-700 block mb-1.5">Admission Date (Bulan &amp; Tahun Masuk)</label>
+                        <label className="font-bold text-slate-700 block mb-1.5">Tahun Masuk</label>
                         <div className="grid grid-cols-2 gap-2">
                           <select
                             value={newAdmissionMonth}
@@ -1287,7 +1335,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                       </div>
 
                       <div>
-                        <label className="font-bold text-slate-700 block mb-1.5">Graduation Date (Bulan &amp; Tahun Lulus)</label>
+                        <label className="font-bold text-slate-700 block mb-1.5">Tahun Kelulusan</label>
                         <div className="grid grid-cols-2 gap-2">
                           <select
                             value={newGraduationMonth}
@@ -1316,7 +1364,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                           id="still-studying-check"
                           checked={isStillStudying}
                           onChange={e => setIsStillStudying(e.target.checked)}
-                          className="w-4 h-4 text-[#EAB308] rounded border-slate-300 focus:ring-[#EAB308] accent-amber-500 cursor-pointer"
+                          className="w-4 h-4 rounded border-slate-300 accent-[#0077C6] cursor-pointer"
                         />
                         <label htmlFor="still-studying-check" className="text-xs font-semibold text-slate-700 cursor-pointer select-none">
                           I still studying here (Masih menempuh pendidikan di sini)
@@ -1348,7 +1396,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                               setEditingSection(null);
                               triggerToast('Riwayat pendidikan berhasil direset.');
                             }}
-                            className="text-rose-600 hover:text-rose-700 font-bold text-xs hover:underline cursor-pointer flex items-center gap-1"
+                            className="text-red-600 hover:text-red-700 font-bold text-xs hover:underline cursor-pointer flex items-center gap-1"
                           >
                             <Trash2 className="w-3.5 h-3.5" /> Hapus Pendidikan
                           </button>
@@ -1364,7 +1412,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                         </button>
                         <button
                           type="submit"
-                          className="bg-[#FFCC00] hover:bg-amber-400 text-slate-900 font-bold px-7 py-2.5 rounded-xl text-xs sm:text-sm shadow-xs transition cursor-pointer active:scale-95 flex items-center gap-1.5"
+                          className="bg-[#0077C6] hover:bg-[#005FA3] text-white font-bold px-7 py-2.5 rounded-xl text-xs sm:text-sm shadow-sm transition cursor-pointer active:scale-95 flex items-center gap-1.5"
                         >
                           Save
                         </button>
@@ -1424,7 +1472,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                         {qualifications[0]?.ipk && (
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 py-2 text-xs">
                             <div className="text-xs font-semibold text-slate-500">IPK / Nilai Akhir</div>
-                            <div className="md:col-span-2 font-bold text-emerald-700 text-sm">
+                            <div className="md:col-span-2 font-bold text-[#0077C6] text-sm">
                               {qualifications[0]?.ipk}
                             </div>
                           </div>
@@ -1439,16 +1487,16 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
             </div>
 
             {/* ══════════════════════════════════════════
-                SEKSI 3: SKILL & KEAHLIAN
+                SEKSI 3: KEAHLIAN
             ══════════════════════════════════════════ */}
-            <div id="section-skills" className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-6 hover:border-slate-300 transition-all scroll-mt-24">
+            <div id="section-skills" className="bg-white rounded-xl p-6 sm:p-7 border border-slate-200/90 shadow-sm space-y-6 hover:border-slate-300 transition scroll-mt-24">
               <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
-                    <Code className="w-5 h-5 text-indigo-600" />
+                  <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#0077C6] flex items-center justify-center font-bold">
+                    <Code className="w-5 h-5 text-[#0077C6]" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-slate-900">Skill &amp; Keahlian</h3>
+                    <h3 className="text-base font-bold text-slate-900">Keahlian</h3>
                     <p className="text-xs text-slate-500 font-normal">Keahlian teknis dan kompetensi utama Anda</p>
                   </div>
                 </div>
@@ -1464,9 +1512,9 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                 ) : (
                   <button
                     onClick={() => setEditingSection('skills')}
-                    className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                    className="bg-blue-50 hover:bg-blue-100 text-[#0077C6] px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                   >
-                    <Pencil className="w-3.5 h-3.5" /> Kelola Skill
+                    <Pencil className="w-3.5 h-3.5" /> Kelola Keahlian
                   </button>
                 )}
               </div>
@@ -1484,14 +1532,14 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     <form onSubmit={handleAddSkill} className="flex gap-2">
                       <input
                         type="text"
-                        placeholder="Ketik skill baru (misal: React, Python, UI/UX)..."
+                        placeholder="Ketik keahlian baru (misal: React, Python, UI/UX)..."
                         value={newSkillInput}
                         onChange={e => setNewSkillInput(e.target.value)}
                         className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-normal text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
                       />
                       <button
                         type="submit"
-                        className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center gap-1 transition shadow-xs cursor-pointer active:scale-95"
+                        className="bg-[#0077C6] hover:bg-[#005FA3] text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center gap-1 transition shadow-sm cursor-pointer active:scale-95"
                       >
                         <Plus className="w-4 h-4" /> Tambah
                       </button>
@@ -1513,9 +1561,9 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                                 const nextSkills = [...skills, preset];
                                 setSkills(nextSkills);
                                 saveProfileData({ skills: nextSkills });
-                                triggerToast(`Skill "${preset}" berhasil ditambahkan!`);
+                                triggerToast(`Keahlian "${preset}" berhasil ditambahkan!`);
                               }}
-                              className="text-xs bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-[#0077C6] border border-slate-200/80 hover:border-blue-300 px-2.5 py-1 rounded-lg transition cursor-pointer"
+                              className="text-xs bg-slate-100 hover:bg-[#E8F3FB] text-slate-700 hover:text-[#0077C6] border border-slate-200/80 hover:border-[#8CC4EA] px-2.5 py-1 rounded-lg transition cursor-pointer"
                             >
                               + {preset}
                             </button>
@@ -1524,22 +1572,22 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     </div>
 
                     <div className="space-y-2 pt-2 border-t border-slate-100">
-                      <div className="text-xs font-bold text-slate-700">Daftar Skill Anda Saat Ini:</div>
+                      <div className="text-xs font-bold text-slate-700">Daftar Keahlian Saat Ini:</div>
                       <div className="flex flex-wrap gap-2 p-1 max-h-48 overflow-y-auto">
                         {skills.length === 0 ? (
-                          <span className="text-xs text-slate-400 italic">Belum ada skill yang ditambahkan.</span>
+                          <span className="text-xs text-slate-400 italic">Belum ada keahlian yang ditambahkan.</span>
                         ) : (
                           skills.map(sk => (
                             <span
                               key={sk}
-                              className="bg-blue-50 text-blue-800 border border-blue-200 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2"
+                              className="bg-[#E8F3FB] text-[#005FA3] border border-[#B3D9F2] px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2"
                             >
                               <span>{sk}</span>
                               <button
                                 type="button"
                                 onClick={() => handleRemoveSkill(sk)}
-                                className="text-blue-400 hover:text-rose-600 transition cursor-pointer"
-                                title="Hapus Skill"
+                                className="text-[#7FBEE8] hover:text-red-600 transition cursor-pointer"
+                                title="Hapus Keahlian"
                               >
                                 <X className="w-3.5 h-3.5" />
                               </button>
@@ -1569,19 +1617,19 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     className="flex flex-wrap gap-2.5"
                   >
                     {skills.length === 0 ? (
-                      <p className="text-xs text-slate-500 italic">Belum ada skill yang ditambahkan.</p>
+                      <p className="text-xs text-slate-500 italic">Belum ada keahlian yang ditambahkan.</p>
                     ) : (
                       skills.map(sk => (
                         <span
                           key={sk}
-                          className="bg-slate-100 text-slate-800 border border-slate-200/90 hover:border-blue-300 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-2xs transition"
+                          className="bg-slate-100 text-slate-800 border border-slate-200/90 hover:border-[#8CC4EA] px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm transition"
                         >
                           <span>{sk}</span>
                           <button
                             type="button"
                             onClick={() => handleRemoveSkill(sk)}
-                            className="text-slate-400 hover:text-rose-600 transition ml-0.5 cursor-pointer"
-                            title="Hapus Skill"
+                            className="text-slate-400 hover:text-red-600 transition -my-1 -mr-1 ml-0.5 p-1.5 rounded-md hover:bg-red-50 cursor-pointer"
+                            title="Hapus Keahlian"
                           >
                             <X className="w-3.5 h-3.5" />
                           </button>
@@ -1596,11 +1644,11 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
             {/* ══════════════════════════════════════════
                 SEKSI 4: PENGALAMAN
             ══════════════════════════════════════════ */}
-            <div id="section-experience" className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-6 hover:border-slate-300 transition-all scroll-mt-24">
+            <div id="section-experience" className="bg-white rounded-xl p-6 sm:p-7 border border-slate-200/90 shadow-sm space-y-6 hover:border-slate-300 transition scroll-mt-24">
               <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
-                    <Briefcase className="w-5 h-5 text-amber-600" />
+                  <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#0077C6] flex items-center justify-center font-bold">
+                    <Briefcase className="w-5 h-5 text-[#0077C6]" />
                   </div>
                   <div>
                     <h3 className="text-base font-bold text-slate-900">Pengalaman Kerja &amp; Organisasi</h3>
@@ -1619,7 +1667,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                 ) : (
                   <button
                     onClick={() => setEditingSection('experience')}
-                    className="bg-amber-50 hover:bg-amber-100 text-amber-800 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                    className="bg-blue-50 hover:bg-blue-100 text-[#0077C6] px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" /> Tambah Pengalaman
                   </button>
@@ -1636,7 +1684,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     exit="exit"
                     className="space-y-5"
                   >
-                    <form onSubmit={handleAddExperience} className="space-y-4 text-xs bg-slate-50/80 p-4.5 rounded-2xl border border-slate-200">
+                    <form onSubmit={handleAddExperience} className="space-y-4 text-xs bg-slate-50/80 p-4.5 rounded-xl border border-slate-200">
                       <div className="text-xs font-semibold text-slate-800 mb-1">
                         Formulir Tambah Pengalaman Baru
                       </div>
@@ -1697,7 +1745,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                         </button>
                         <button
                           type="submit"
-                          className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-xs transition cursor-pointer active:scale-95"
+                          className="bg-[#0077C6] hover:bg-[#005FA3] text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-sm transition cursor-pointer active:scale-95"
                         >
                           Simpan Pengalaman
                         </button>
@@ -1710,16 +1758,16 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                         <div className="text-xs font-bold text-slate-700">Daftar Pengalaman yang Tersimpan:</div>
                         <div className="space-y-3">
                           {experiences.map(exp => (
-                            <div key={exp.id} className="bg-slate-50/90 border border-slate-200/80 rounded-2xl p-4 flex items-start justify-between">
+                            <div key={exp.id} className="bg-slate-50/90 border border-slate-200/80 rounded-xl p-4 flex items-start justify-between">
                               <div className="space-y-1">
                                 <h4 className="font-bold text-slate-900 text-sm">{exp.position}</h4>
-                                <div className="text-xs font-semibold text-amber-700">{exp.company} • {exp.period}</div>
+                                <div className="text-xs font-semibold text-[#0077C6]">{exp.company} • {exp.period}</div>
                                 {exp.description && <p className="text-xs text-slate-600 mt-1">{exp.description}</p>}
                               </div>
                               <button
                                 type="button"
                                 onClick={() => handleRemoveExperience(exp.id)}
-                                className="text-slate-400 hover:text-rose-600 transition p-1 cursor-pointer"
+                                className="text-slate-400 hover:text-red-600 transition p-2 -m-1 rounded-lg hover:bg-red-50 cursor-pointer"
                                 title="Hapus Pengalaman"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -1743,11 +1791,11 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                       <p className="text-xs text-slate-500 italic">Belum ada pengalaman yang ditambahkan.</p>
                     ) : (
                       experiences.map(exp => (
-                        <div key={exp.id} className="bg-slate-50/80 border border-slate-200/70 hover:border-amber-300 rounded-2xl p-4.5 space-y-2 relative transition-all border-l-4 border-l-amber-500">
+                        <div key={exp.id} className="bg-slate-50/80 border border-slate-200/70 hover:border-blue-300 rounded-xl p-4.5 space-y-2 relative transition border-l-4 border-l-amber-500">
                           <div className="flex items-start justify-between">
                             <div>
                               <h4 className="font-bold text-slate-900 text-sm sm:text-base">{exp.position}</h4>
-                              <div className="text-xs font-bold text-amber-700 flex items-center gap-1.5 mt-0.5">
+                              <div className="text-xs font-bold text-[#0077C6] flex items-center gap-1.5 mt-0.5">
                                 <Building2 className="w-3.5 h-3.5" /> {exp.company}
                               </div>
                             </div>
@@ -1758,7 +1806,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                               <button
                                 type="button"
                                 onClick={() => handleRemoveExperience(exp.id)}
-                                className="text-slate-400 hover:text-rose-600 transition p-1 cursor-pointer"
+                                className="text-slate-400 hover:text-red-600 transition p-2 -m-1 rounded-lg hover:bg-red-50 cursor-pointer"
                                 title="Hapus Pengalaman"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -1779,11 +1827,11 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
             {/* ══════════════════════════════════════════
                 SEKSI 5: SERTIFIKAT & LISENSI
             ══════════════════════════════════════════ */}
-            <div id="section-certificate" className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-6 hover:border-slate-300 transition-all scroll-mt-24">
+            <div id="section-certificate" className="bg-white rounded-xl p-6 sm:p-7 border border-slate-200/90 shadow-sm space-y-6 hover:border-slate-300 transition scroll-mt-24">
               <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
-                    <Award className="w-5 h-5 text-rose-600" />
+                  <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#0077C6] flex items-center justify-center font-bold">
+                    <Award className="w-5 h-5 text-[#0077C6]" />
                   </div>
                   <div>
                     <h3 className="text-base font-bold text-slate-900">Sertifikat &amp; Lisensi</h3>
@@ -1802,7 +1850,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                 ) : (
                   <button
                     onClick={() => setEditingSection('certificate')}
-                    className="bg-rose-50 hover:bg-rose-100 text-rose-700 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                    className="bg-blue-50 hover:bg-blue-100 text-[#0077C6] px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" /> Tambah Sertifikat
                   </button>
@@ -1819,7 +1867,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     exit="exit"
                     className="space-y-5"
                   >
-                    <form onSubmit={handleAddCertificate} className="space-y-4 text-xs bg-slate-50/80 p-4.5 rounded-2xl border border-slate-200">
+                    <form onSubmit={handleAddCertificate} className="space-y-4 text-xs bg-slate-50/80 p-4.5 rounded-xl border border-slate-200">
                       <div className="text-xs font-semibold text-slate-800 mb-1">
                         Formulir Tambah Sertifikat Baru
                       </div>
@@ -1867,7 +1915,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                         </button>
                         <button
                           type="submit"
-                          className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-xs transition cursor-pointer active:scale-95"
+                          className="bg-[#0077C6] hover:bg-[#005FA3] text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-sm transition cursor-pointer active:scale-95"
                         >
                           Simpan Sertifikat
                         </button>
@@ -1880,15 +1928,15 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                         <div className="text-xs font-bold text-slate-700">Daftar Sertifikat yang Tersimpan:</div>
                         <div className="space-y-2">
                           {certificates.map(cert => (
-                            <div key={cert.id} className="bg-slate-50/90 border border-slate-200/80 rounded-2xl p-4 flex items-center justify-between text-xs">
+                            <div key={cert.id} className="bg-slate-50/90 border border-slate-200/80 rounded-xl p-4 flex items-center justify-between text-xs">
                               <div className="space-y-0.5">
                                 <div className="font-bold text-slate-900 text-sm">{cert.name}</div>
-                                <div className="text-rose-700 font-semibold">{cert.issuer || 'Lembaga Sertifikasi'} • Tahun {cert.year}</div>
+                                <div className="text-[#0077C6] font-semibold">{cert.issuer || 'Lembaga Sertifikasi'} • Tahun {cert.year}</div>
                               </div>
                               <button
                                 type="button"
                                 onClick={() => handleRemoveCertificate(cert.id)}
-                                className="text-slate-400 hover:text-rose-600 transition p-1 cursor-pointer"
+                                className="text-slate-400 hover:text-red-600 transition p-2 -m-1 rounded-lg hover:bg-red-50 cursor-pointer"
                                 title="Hapus Sertifikat"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -1912,18 +1960,18 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                       <p className="text-xs text-slate-500 italic">Belum ada sertifikat yang ditambahkan.</p>
                     ) : (
                       certificates.map(cert => (
-                        <div key={cert.id} className="bg-slate-50/80 border border-slate-200/70 hover:border-rose-300 rounded-2xl p-4.5 flex items-center justify-between transition-all">
+                        <div key={cert.id} className="bg-slate-50/80 border border-slate-200/70 hover:border-blue-300 rounded-xl p-4.5 flex items-center justify-between transition">
                           <div className="space-y-1">
                             <h4 className="font-bold text-slate-900 text-sm sm:text-base">{cert.name}</h4>
-                            <div className="text-xs font-semibold text-rose-700 flex items-center gap-1.5">
-                              <Award className="w-3.5 h-3.5 text-rose-600" /> Penerbit: {cert.issuer || 'Lembaga Sertifikasi'}
+                            <div className="text-xs font-semibold text-[#0077C6] flex items-center gap-1.5">
+                              <Award className="w-3.5 h-3.5 text-[#0077C6]" /> Penerbit: {cert.issuer || 'Lembaga Sertifikasi'}
                             </div>
                             <div className="text-xs text-slate-500 font-medium">Tahun Perolehan: {cert.year}</div>
                           </div>
                           <button
                             type="button"
                             onClick={() => handleRemoveCertificate(cert.id)}
-                            className="text-slate-400 hover:text-rose-600 transition p-1 cursor-pointer"
+                            className="text-slate-400 hover:text-red-600 transition p-2 -m-1 rounded-lg hover:bg-red-50 cursor-pointer"
                             title="Hapus Sertifikat"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -1939,11 +1987,11 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
             {/* ══════════════════════════════════════════
                 SEKSI 6: BAHASA
             ══════════════════════════════════════════ */}
-            <div id="section-languages" className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-6 hover:border-slate-300 transition-all scroll-mt-24">
+            <div id="section-languages" className="bg-white rounded-xl p-6 sm:p-7 border border-slate-200/90 shadow-sm space-y-6 hover:border-slate-300 transition scroll-mt-24">
               <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center font-bold">
-                    <Languages className="w-5 h-5 text-teal-600" />
+                  <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#0077C6] flex items-center justify-center font-bold">
+                    <Languages className="w-5 h-5 text-[#0077C6]" />
                   </div>
                   <div>
                     <h3 className="text-base font-bold text-slate-900">Bahasa</h3>
@@ -1962,7 +2010,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                 ) : (
                   <button
                     onClick={() => setEditingSection('languages')}
-                    className="bg-teal-50 hover:bg-teal-100 text-teal-700 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                    className="bg-blue-50 hover:bg-blue-100 text-[#0077C6] px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" /> Tambah Bahasa
                   </button>
@@ -1979,7 +2027,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     exit="exit"
                     className="space-y-4"
                   >
-                    <form onSubmit={handleAddLanguage} className="space-y-4 text-xs bg-slate-50/80 p-4.5 rounded-2xl border border-slate-200">
+                    <form onSubmit={handleAddLanguage} className="space-y-4 text-xs bg-slate-50/80 p-4.5 rounded-xl border border-slate-200">
                       <div className="text-xs font-semibold text-slate-800 mb-1">
                         Formulir Tambah Bahasa
                       </div>
@@ -2020,7 +2068,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                         </button>
                         <button
                           type="submit"
-                          className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-xs transition cursor-pointer active:scale-95"
+                          className="bg-[#0077C6] hover:bg-[#005FA3] text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-sm transition cursor-pointer active:scale-95"
                         >
                           Simpan Bahasa
                         </button>
@@ -2033,15 +2081,15 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                         <div className="text-xs font-bold text-slate-700">Daftar Bahasa yang Dikuasai:</div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {languagesList.map(lang => (
-                            <div key={lang.id} className="bg-slate-50/90 border border-slate-200/80 rounded-2xl p-3.5 flex items-center justify-between text-xs">
+                            <div key={lang.id} className="bg-slate-50/90 border border-slate-200/80 rounded-xl p-3.5 flex items-center justify-between text-xs">
                               <div>
                                 <div className="font-bold text-slate-900">{lang.name}</div>
-                                <div className="text-teal-700 font-semibold">{lang.level}</div>
+                                <div className="text-[#0077C6] font-semibold">{lang.level}</div>
                               </div>
                               <button
                                 type="button"
                                 onClick={() => handleRemoveLanguage(lang.id)}
-                                className="text-slate-400 hover:text-rose-600 transition p-1 cursor-pointer"
+                                className="text-slate-400 hover:text-red-600 transition p-2 -m-1 rounded-lg hover:bg-red-50 cursor-pointer"
                                 title="Hapus Bahasa"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -2065,15 +2113,15 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                       <p className="text-xs text-slate-500 italic col-span-2">Belum ada bahasa yang ditambahkan.</p>
                     ) : (
                       languagesList.map(lang => (
-                        <div key={lang.id} className="bg-slate-50/80 border border-slate-200/70 rounded-2xl p-4 flex items-center justify-between">
+                        <div key={lang.id} className="bg-slate-50/80 border border-slate-200/70 rounded-xl p-4 flex items-center justify-between">
                           <div>
                             <div className="font-bold text-slate-900 text-sm">{lang.name}</div>
-                            <div className="text-xs text-teal-700 font-bold mt-0.5">{lang.level}</div>
+                            <div className="text-xs text-[#0077C6] font-bold mt-0.5">{lang.level}</div>
                           </div>
                           <button
                             type="button"
                             onClick={() => handleRemoveLanguage(lang.id)}
-                            className="text-slate-400 hover:text-rose-600 transition p-1 cursor-pointer"
+                            className="text-slate-400 hover:text-red-600 transition p-2 -m-1 rounded-lg hover:bg-red-50 cursor-pointer"
                             title="Hapus Bahasa"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -2087,16 +2135,16 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
             </div>
 
             {/* ══════════════════════════════════════════
-                SEKSI 7: PREFERENSI KARIR
+                SEKSI 7: PREFERENSI KARIER
             ══════════════════════════════════════════ */}
-            <div id="section-career" className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-xs space-y-6 hover:border-slate-300 transition-all scroll-mt-24">
+            <div id="section-career" className="bg-white rounded-xl p-6 sm:p-7 border border-slate-200/90 shadow-sm space-y-6 hover:border-slate-300 transition scroll-mt-24">
               <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-[#0077C6]/10 text-[#0077C6] flex items-center justify-center font-bold">
                     <Briefcase className="w-5 h-5 text-[#0077C6]" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-slate-900">Preferensi Karir</h3>
+                    <h3 className="text-base font-bold text-slate-900">Preferensi Karier</h3>
                     <p className="text-xs text-slate-500 font-normal">Kriteria pekerjaan dan penempatan yang dicari</p>
                   </div>
                 </div>
@@ -2152,7 +2200,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                         />
                       </div>
                       <div>
-                        <label className="font-bold text-slate-700 block mb-1.5">Industri Yang Diminati</label>
+                        <label className="font-bold text-slate-700 block mb-1.5">Industri yang Diminati</label>
                         <input
                           type="text"
                           placeholder="Contoh: IT, Perbankan, Pendidikan"
@@ -2183,7 +2231,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                       </button>
                       <button
                         type="submit"
-                        className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-xs transition cursor-pointer active:scale-95"
+                        className="bg-[#0077C6] hover:bg-[#005FA3] text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-sm transition cursor-pointer active:scale-95"
                       >
                         Simpan Perubahan
                       </button>
@@ -2244,10 +2292,10 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                     <div
                       key={job.id}
                       onClick={() => onSelectJob && onSelectJob(job)}
-                      className="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md transition-all flex justify-between items-start cursor-pointer group hover:border-[#0077C6]/50"
+                      className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-lg transition flex justify-between items-start cursor-pointer group hover:border-[#0077C6]/50"
                     >
                       <div className="space-y-2.5 min-w-0 pr-3">
-                        <span className="text-xs font-bold text-orange-600 uppercase tracking-wide block truncate">{job.namaInstansi}</span>
+                        <span className="text-xs font-bold text-[#0077C6] uppercase tracking-wide block truncate">{job.namaInstansi}</span>
                         <h4 className="text-base font-bold text-slate-900 group-hover:text-[#0077C6] transition-colors leading-snug line-clamp-2">
                           {job.judul}
                         </h4>
@@ -2259,8 +2307,8 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                       </div>
 
                       <div className="flex flex-col items-end gap-3 shrink-0">
-                        <span className="bg-emerald-50 text-emerald-700 font-bold text-xs px-3 py-1 rounded-full border border-emerald-200 shadow-2xs flex items-center gap-1.5">
-                          <Bookmark className="w-3.5 h-3.5 fill-emerald-600 text-emerald-600" />
+                        <span className="bg-blue-50 text-[#0077C6] font-bold text-xs px-3 py-1 rounded-full border border-blue-200 shadow-sm flex items-center gap-1.5">
+                          <Bookmark className="w-3.5 h-3.5 fill-[#0077C6] text-[#0077C6]" />
                           <span>Tersimpan</span>
                         </span>
                         <button
@@ -2269,7 +2317,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                             toggleSaveJob(job.id, user.id);
                             setSavedRefreshKey(k => k + 1);
                           }}
-                          className="bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-600 p-1.5 rounded-lg border border-slate-200 transition text-xs font-semibold cursor-pointer"
+                          className="bg-slate-100 hover:bg-red-50 text-slate-400 hover:text-red-600 p-1.5 rounded-lg border border-slate-200 transition text-xs font-semibold cursor-pointer"
                           title="Hapus dari Simpanan"
                         >
                           <X className="w-4 h-4" />
@@ -2279,8 +2327,8 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                   ))}
                 </div>
               ) : (
-                <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-2xs space-y-4">
-                  <div className="w-16 h-16 bg-blue-50 text-[#0077C6] rounded-full flex items-center justify-center mx-auto">
+                <div className="bg-white rounded-xl p-12 text-center border border-slate-200 shadow-sm space-y-4">
+                  <div className="w-16 h-16 bg-[#E8F3FB] text-[#0077C6] rounded-full flex items-center justify-center mx-auto">
                     <Bookmark className="w-8 h-8" />
                   </div>
                   <h4 className="font-bold text-slate-900 text-lg">Belum Ada Lowongan Tersimpan</h4>
@@ -2295,9 +2343,9 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
 
         {/* SUB-TAB C: MY ACCOUNT */}
         {subTab === 'account' && (
-          <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-2xs max-w-xl mx-auto space-y-6 animate-fadeIn">
+          <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm max-w-xl mx-auto space-y-6 animate-fadeIn">
             <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-              <div className="w-10 h-10 rounded-2xl bg-[#0077C6]/10 text-[#0077C6] flex items-center justify-center font-bold">
+              <div className="w-10 h-10 rounded-xl bg-[#0077C6]/10 text-[#0077C6] flex items-center justify-center font-bold">
                 <Settings className="w-5 h-5" />
               </div>
               <div>
@@ -2313,7 +2361,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
               </div>
               <div>
                 <label className="font-bold text-slate-700 block mb-1.5">Peran Akun Pengguna</label>
-                <input type="text" value="Mahasiswa / Alumni UMK (Terverifikasi)" disabled className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-emerald-700 font-bold text-xs sm:text-sm" />
+                <input type="text" value="Mahasiswa / Alumni UMK (Terverifikasi)" disabled className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-bold text-xs sm:text-sm cursor-not-allowed" />
               </div>
             </div>
           </div>
