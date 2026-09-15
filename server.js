@@ -97,7 +97,7 @@ app.use((req, res, next) => {
 // ── Rate limiters ────────────────────────────────────────────────
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: isProd ? 5 : 100,
   message: { success: false, message: 'Terlalu banyak percobaan login. Coba lagi dalam 15 menit.' },
   standardHeaders: true, legacyHeaders: false
 });

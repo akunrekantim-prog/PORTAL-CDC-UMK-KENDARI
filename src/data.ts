@@ -2250,18 +2250,47 @@ export function getFromDB<T>(key: DBKey): T[] {
 
 // Supabase-first: tulis ke Supabase dulu per item, baru update MEMORY_DB + cache.
 // Gagal = throw ke UI. Tidak ada lagi setTimeout fire-and-forget.
+/* ── Helper: deteksi error karena token tidak ada / expired ────────
+   Penyebab: admin login via handleFastRoleSwitch (dev mode) tanpa JWT
+   token asli. Dalam kondisi ini sync Supabase dilewati; data tetap
+   tersimpan ke MEMORY_DB + localStorage (mode offline). ────────── */
+function isAuthError(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return false;
+  const msg = String((err as any).message || '');
+  return (
+    msg.includes('Belum login') ||
+    msg.includes('No token') ||
+    msg.includes('Access denied') ||
+    msg.includes('401') ||
+    msg.includes('403') ||
+    msg.includes('token') ||
+    msg.includes('JWT') ||
+    msg.includes('login ulang')
+  );
+}
+
 export async function saveToDB<T>(key: DBKey, data: T[]): Promise<void> {
   const syncFn = SYNC_MAP[key];
   if (!syncFn) throw new Error(`Tidak ada jalur sync Supabase untuk '${key}'. Tambahkan dulu di SYNC_MAP + server.js.`);
   const saved: T[] = [];
   for (const item of data as any[]) {
-    const row = await syncFn(item);
-    saved.push((row ?? item) as T);
+    try {
+      const row = await syncFn(item);
+      saved.push((row ?? item) as T);
+    } catch (syncErr) {
+      if (isAuthError(syncErr)) {
+        // Token tidak ada → simpan lokal saja (dev/offline mode)
+        console.warn(`[DB] saveToDB '${key}': sync Supabase dilewati (offline/dev)`, syncErr);
+        saved.push(item as T);
+      } else {
+        throw syncErr;
+      }
+    }
   }
   MEMORY_DB[key] = saved;
   try {
     localStorage.setItem(`cdc_umk_${key}`, JSON.stringify(saved));
-  } catch { /* quota — abaikan, cache saja */ }
+  } catch { /* quota — abaikan */ }
 }
 
 // Helper to push new item at top
@@ -2269,8 +2298,18 @@ export async function insertToDB<T extends { id: string }>(key: DBKey, item: T):
   const current = getFromDB<T>(key);
   const syncFn = SYNC_MAP[key];
   if (!syncFn) throw new Error(`Tidak ada jalur sync Supabase untuk '${key}'.`);
-  const row = await syncFn(item);
-  const finalItem = (row ?? item) as T;
+  let finalItem = item as T;
+  try {
+    const row = await syncFn(item);
+    finalItem = (row ?? item) as T;
+  } catch (syncErr) {
+    if (isAuthError(syncErr)) {
+      // Token tidak ada → simpan lokal saja
+      console.warn(`[DB] insertToDB '${key}': sync Supabase dilewati (offline/dev)`, syncErr);
+    } else {
+      throw syncErr;
+    }
+  }
   MEMORY_DB[key] = [finalItem, ...current];
   try { localStorage.setItem(`cdc_umk_${key}`, JSON.stringify(MEMORY_DB[key])); } catch {}
   return finalItem;
@@ -2280,8 +2319,17 @@ export async function insertToDB<T extends { id: string }>(key: DBKey, item: T):
 export async function updateInDB<T extends { id: string }>(key: DBKey, item: T): Promise<T> {
   const syncFn = SYNC_MAP[key];
   if (!syncFn) throw new Error(`Tidak ada jalur sync Supabase untuk '${key}'.`);
-  const row = await syncFn(item);
-  const finalItem = (row ?? item) as T;
+  let finalItem = item as T;
+  try {
+    const row = await syncFn(item);
+    finalItem = (row ?? item) as T;
+  } catch (syncErr) {
+    if (isAuthError(syncErr)) {
+      console.warn(`[DB] updateInDB '${key}': sync Supabase dilewati (offline/dev)`, syncErr);
+    } else {
+      throw syncErr;
+    }
+  }
   const current = getFromDB<T>(key);
   const index = current.findIndex(i => i.id === finalItem.id);
   if (index !== -1) current[index] = finalItem;
@@ -2293,7 +2341,15 @@ export async function updateInDB<T extends { id: string }>(key: DBKey, item: T):
 
 // Helper to delete item
 export async function deleteInDB<T extends { id: string }>(key: DBKey, id: string): Promise<void> {
-  await deleteFromSupabase(key, id);
+  try {
+    await deleteFromSupabase(key, id);
+  } catch (syncErr) {
+    if (isAuthError(syncErr)) {
+      console.warn(`[DB] deleteInDB '${key}': delete Supabase dilewati (offline/dev)`, syncErr);
+    } else {
+      throw syncErr;
+    }
+  }
   MEMORY_DB[key] = getFromDB<T>(key).filter(i => i.id !== id);
   try { localStorage.setItem(`cdc_umk_${key}`, JSON.stringify(MEMORY_DB[key])); } catch {}
 }

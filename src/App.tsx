@@ -27,6 +27,7 @@ import { JobDetail } from './components/JobDetail';
 import MahasiswaDashboard from './components/MahasiswaDashboard';
 import MitraDashboard from './components/MitraDashboard';
 import AdminDashboard from './components/AdminDashboard';
+import AdminLogin from './components/AdminLogin';
 import {
   Briefcase,
   Clock,
@@ -50,7 +51,7 @@ export default function App() {
   const navigate = useNavigate();
 
   // Routes States
-  const [currentView, setCurrentView] = useState<'public' | 'login' | 'register' | 'dashboard'>('public');
+  const [currentView, setCurrentView] = useState<'public' | 'login' | 'admin-login' | 'register' | 'dashboard'>('public');
   const [publicTab, setPublicTab] = useState('beranda');
   const [registerTab, setRegisterTab] = useState<'alumni' | 'perusahaan'>('alumni');
 
@@ -120,13 +121,28 @@ export default function App() {
   useEffect(() => {
     const path = location.pathname;
 
-    if (path.startsWith('/admin')) {
+    if (path === '/admin/login' || path === '/admin-login' || path === '/cdc-admin-portal') {
+      setCurrentView('admin-login');
+      setViewingLowonganId(null);
+      setViewingBeritaSlug(null);
+      setViewingProgramId(null);
+    } else if (path.startsWith('/admin')) {
       const parts = path.split('/').filter(Boolean);
       const subTab = parts[1] || 'ringkasan';
       setAdminActiveTab(subTab);
-      setCurrentView('dashboard');
       if (!currentUser || currentUser.role !== 'admin') {
-        handleFastRoleSwitch('admin', false);
+        const storedSession = localStorage.getItem('cdc_session_id');
+        const storedToken = localStorage.getItem('cdc_auth_token');
+        if (storedSession && storedToken) {
+          handleFastRoleSwitch('admin', false);
+        } else if (import.meta.env.DEV) {
+          handleFastRoleSwitch('admin', false);
+        } else {
+          setCurrentView('admin-login');
+          navigate('/admin/login');
+        }
+      } else {
+        setCurrentView('dashboard');
       }
     } else if (path.startsWith('/mitra')) {
       const parts = path.split('/').filter(Boolean);
@@ -347,11 +363,12 @@ export default function App() {
   return (
     <div className="bg-white min-h-screen font-sans" id="app-root">
 
-      {/* BAR AKSES CEPAT UI DASHBOARD (ADMIN, MITRA, MAHASISWA/ALUMNI, PUBLIK) */}
-      <div
-        id="aistudio-role-switcher"
-        className="bg-white border-b border-slate-200 relative z-20"
-      >
+      {/* BAR AKSES CEPAT UI DASHBOARD (HANYA UNTUK DEVELOPMENT / PENGUJIAN) */}
+      {import.meta.env.DEV && (
+        <div
+          id="aistudio-role-switcher"
+          className="bg-white border-b border-slate-200 relative z-20"
+        >
         <div className="max-w-7xl mx-auto px-4 py-2 flex flex-wrap items-center justify-between gap-2">
         <div id="switcher-lbl" className="flex items-center gap-2 text-xs text-slate-500">
           <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Pratinjau peran</span>
@@ -413,6 +430,7 @@ export default function App() {
         </div>
         </div>
       </div>
+      )}
 
       {/* CORE VIEWPORT RESOLVER */}
       <div id="core-viewport">
@@ -594,6 +612,25 @@ export default function App() {
               else navigate('/mahasiswa/search');
             }}
             onNavigateToRegister={handleNavigateToRegister}
+            onNavigateHome={() => {
+              setCurrentView('public');
+              reloadDatabase();
+              navigate('/');
+            }}
+          />
+        )}
+
+        {/* VIEW 4.1: ADMIN DEDICATED LOGIN ROUTE */}
+        {currentView === 'admin-login' && (
+          <AdminLogin
+            onLoginSuccess={async (user) => {
+              setCurrentUser(user);
+              setCurrentView('dashboard');
+              const { refreshLiveDatabase } = await import('./data');
+              await refreshLiveDatabase();
+              reloadDatabase();
+              navigate('/admin/ringkasan');
+            }}
             onNavigateHome={() => {
               setCurrentView('public');
               reloadDatabase();

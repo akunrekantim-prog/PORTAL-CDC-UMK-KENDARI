@@ -579,16 +579,7 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
               ))}
             </nav>
 
-            {/* ── BUG-003 fix: tombol Login publik (sebelumnya tidak ada jalan
-                masuk dari header/homepage; satu-satunya via halaman Register).
-                Desktop: tombol "Masuk Portal" di kanan navbar. */}
-            <button
-              onClick={() => { setOpenDropdown(null); onNavigateToLogin(); }}
-              id="header-login-btn"
-              className="hidden lg:flex items-center gap-1.5 bg-[#F26522] hover:bg-[#d95316] text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors duration-150 shrink-0 ml-2"
-            >
-              {t('nav.login', 'Masuk Portal')}
-            </button>
+
 
             {/* ── MOBILE HAMBURGER ── */}
             <button
@@ -742,16 +733,7 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                 </div>
               );
             })}
-            {/* ── BUG-003 fix (mobile): tombol Login di bawah drawer ── */}
-            <div className="border-t border-gray-200 p-4">
-              <button
-                onClick={() => { setIsMobileOpen(false); setMobileExpanded(null); onNavigateToLogin(); }}
-                id="header-login-btn-mobile"
-                className="w-full flex items-center justify-center gap-2 bg-[#F26522] hover:bg-[#d95316] text-white px-4 py-3 rounded-xl text-sm font-bold transition-colors duration-150"
-              >
-                {t('nav.login', 'Masuk Portal')}
-              </button>
-            </div>
+
           </div>
         )}
       </header>

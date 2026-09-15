@@ -971,27 +971,45 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
 
   const handleAddAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!aName || !aEmail) {
+    if (!aName.trim() || !aEmail.trim()) {
       triggerToast('error', 'Nama dan email wajib diisi.');
       return;
     }
-    const existing = getFromDB<UserType>('users').find((u) => u.email.toLowerCase() === aEmail.toLowerCase());
+    const finalPassword = aPass.trim() || 'Admin123!';
+    // Validasi kekuatan password di sisi frontend (sama dengan server: min 8, huruf besar, kecil, angka)
+    const isStrong = finalPassword.length >= 8
+      && /[A-Z]/.test(finalPassword)
+      && /[a-z]/.test(finalPassword)
+      && /[0-9]/.test(finalPassword);
+    if (!isStrong) {
+      triggerToast('error', 'Password minimal 8 karakter dan harus mengandung huruf besar, huruf kecil, serta angka. Contoh: Admin123!');
+      return;
+    }
+    const existing = getFromDB<UserType>('users').find((u) => u.email.toLowerCase() === aEmail.trim().toLowerCase());
     if (existing) {
       setAEmailError('Email sudah terdaftar.');
       return;
     }
-    const newAdmin: UserType = {
-      id: `usr_admin_${Date.now()}`,
-      name: aName,
-      email: aEmail,
-      role: 'admin',
-      status: 'active',
-      createdAt: new Date().toISOString()
-    };
-    await insertToDB<UserType>('users', newAdmin);
-    setAName(''); setAEmail(''); setAPass(''); setShowAddAdmin(false);
-    reloadAll();
-    triggerToast('success', `Admin "${aName}" ditambahkan.`);
+    try {
+      const newAdmin: UserType = {
+        id: `usr_admin_${Date.now()}`,
+        name: aName.trim(),
+        email: aEmail.trim(),
+        password: finalPassword,
+        role: 'admin',
+        status: 'active',
+        createdAt: new Date().toISOString()
+      };
+      await insertToDB<UserType>('users', newAdmin);
+      setAName(''); setAEmail(''); setAPass(''); setShowAddAdmin(false);
+      reloadAll();
+      if (onReloadData) onReloadData();
+      triggerToast('success', `✅ Admin "${aName}" berhasil ditambahkan! Password: ${finalPassword}`);
+    } catch (err: any) {
+      console.error('[AddAdmin Error]:', err);
+      const msg = err?.message || String(err);
+      triggerToast('error', `Gagal membuat akun admin: ${msg}`);
+    }
   };
 
   const handleDisableAdmin = async (u: UserType) => {
@@ -4356,11 +4374,14 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                       <input value={aEmail} onChange={(e) => { setAEmail(e.target.value); setAEmailError(''); }} required className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-[#1B365D]/20 focus:border-[#1B365D]" placeholder="email@umkendari.ac.id" />
                       {aEmailError && <div className="text-rose-500 text-[11px] font-bold">{aEmailError}</div>}
                     </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Password (Opsional)</label>
-                      <input value={aPass} onChange={(e) => setAPass(e.target.value)} type="password" className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-[#1B365D]/20 focus:border-[#1B365D]" placeholder="Default: password" />
+                    <div className="space-y-1.5 md:col-span-2">
+                      <label className="text-xs font-bold text-slate-700">Password <span className="font-normal text-slate-400">(Opsional — default: Admin123!)</span></label>
+                      <input value={aPass} onChange={(e) => setAPass(e.target.value)} type="password" className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-[#1B365D]/20 focus:border-[#1B365D]" placeholder="Min. 8 karakter, huruf besar + huruf kecil + angka. Contoh: Admin123!" />
+                      <p className="text-[10px] text-slate-400 flex items-center gap-1">
+                        <span>ⓘ</span> Password wajib mengandung: huruf <strong>Besar</strong>, huruf <strong>kecil</strong>, dan <strong>angka</strong> (min. 8 karakter). Jika dikosongkan, akan menggunakan default: <code className="bg-slate-100 px-1 rounded">Admin123!</code>
+                      </p>
                     </div>
-                    <div className="flex items-end gap-2">
+                    <div className="flex items-center gap-2 md:col-span-2">
                       <button type="submit" className="bg-[#1B365D] hover:bg-[#0077C6] text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-xs cursor-pointer">Simpan Admin Baru</button>
                       <button type="button" onClick={() => setShowAddAdmin(false)} className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer">Batal</button>
                     </div>
