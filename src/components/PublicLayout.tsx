@@ -1312,8 +1312,8 @@ export default function PublicLayout({
 
                 {/* Info Terkini Loker widget */}
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                  <div className="bg-slate-50 px-5 py-3.5 border-b border-slate-200">
-                    <h4 className="font-extrabold text-sm text-slate-800 uppercase tracking-wider
+                  <div className="bg-[#1E3A8A] px-5 py-3.5 flex items-center justify-between">
+                    <h4 className="font-extrabold text-sm text-white uppercase tracking-wider
                                    flex items-center gap-2">
                       Info Terkini Loker
                     </h4>
@@ -1372,10 +1372,10 @@ export default function PublicLayout({
                         rel="noopener noreferrer"
                         className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl
                                    bg-white border border-slate-200 hover:border-[#1E3A8A]
-                                   hover:bg-blue-50 transition-all text-sm font-semibold text-slate-700 group"
+                                   hover:bg-[#1E3A8A] hover:text-white transition-all text-sm font-semibold text-slate-700 group"
                       >
                         <span>{s.label}</span>
-                        <ExternalLink className="w-4 h-4 text-slate-300 group-hover:text-[#1E3A8A]
+                        <ExternalLink className="w-4 h-4 text-slate-300 group-hover:text-white
                                                  group-hover:translate-x-0.5 transition-all shrink-0" />
                       </a>
                     ) : (
@@ -1384,10 +1384,10 @@ export default function PublicLayout({
                         onClick={() => s.tab && setTab(s.tab)}
                         className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl
                                    bg-white border border-slate-200 hover:border-[#1E3A8A]
-                                   hover:bg-blue-50 transition-all text-sm font-semibold text-slate-700 group cursor-pointer"
+                                   hover:bg-[#1E3A8A] hover:text-white transition-all text-sm font-semibold text-slate-700 group cursor-pointer"
                       >
                         <span>{s.label}</span>
-                        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#1E3A8A]
+                        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-white
                                                  group-hover:translate-x-0.5 transition-all shrink-0" />
                       </button>
                     )

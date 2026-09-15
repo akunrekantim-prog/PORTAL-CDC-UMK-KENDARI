@@ -63,6 +63,27 @@ export default function MouStakeholderView({ setTab }: MouStakeholderViewProps) 
     }
   };
 
+  const handleDownloadFile = async (url: string, filename: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.target = '_blank';
+      link.click();
+    }
+  };
+
   const getShareTitle = () => {
     return activeItem ? `MOU Stakeholder: ${activeItem.judul}` : 'MOU Dengan Stakeholder CDC UM Kendari';
   };
@@ -103,39 +124,28 @@ export default function MouStakeholderView({ setTab }: MouStakeholderViewProps) 
             {/* Header Judul MOU */}
             <div className="text-center sm:text-left border-b border-slate-200 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <span className="px-2.5 py-0.5 rounded bg-blue-100 text-blue-800 text-[11px] font-extrabold uppercase tracking-wider mb-1 inline-block">
-                  {activeItem.displayType === 'poster' ? 'Tampilan Poster' : 'Tampilan PDF Scrollable'}
-                </span>
                 <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">
                   {activeItem.judul}
                 </h2>
               </div>
 
-              {/* Action buttons (Unduh Poster/PDF) */}
+              {/* Action buttons (Unduh Gambar/PDF) */}
               {activeItem.displayType === 'poster' && activeItem.posterUrl ? (
-                <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-                  <button
-                    onClick={() => setZoomPoster(activeItem.posterUrl || null)}
-                    className="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-3.5 py-2 rounded-lg transition shadow-xs"
-                  >
-                    <Maximize2 className="w-4 h-4" /> Perbesar Poster
-                  </button>
-                  <a
-                    href={activeItem.posterUrl}
-                    download={`${activeItem.judul.replace(/\s+/g, '_')}_poster.jpg`}
-                    className="inline-flex items-center gap-1.5 bg-[#F26522] hover:bg-[#d95316] text-white text-xs font-bold px-3.5 py-2 rounded-lg transition shadow-xs"
-                  >
-                    <Download className="w-4 h-4" /> Unduh Gambar
-                  </a>
-                </div>
+                <button
+                  onClick={() => handleDownloadFile(activeItem.posterUrl!, `${activeItem.judul.replace(/\s+/g, '_')}_poster.jpg`)}
+                  className="inline-flex items-center gap-1.5 bg-[#F26522] hover:bg-[#d95316] text-white text-xs font-bold px-4 py-2.5 rounded-lg transition shadow-xs cursor-pointer self-start sm:self-auto shrink-0"
+                  title="Unduh gambar poster ukuran besar"
+                >
+                  <Download className="w-4 h-4" /> Unduh Gambar
+                </button>
               ) : activeItem.displayType === 'pdf' && activeItem.pdfUrl ? (
-                <a
-                  href={activeItem.pdfUrl}
-                  download={`${activeItem.judul.replace(/\s+/g, '_')}.pdf`}
-                  className="inline-flex items-center gap-1.5 bg-[#F26522] hover:bg-[#d95316] text-white text-xs font-bold px-3.5 py-2 rounded-lg transition self-start sm:self-auto shrink-0 shadow-xs"
+                <button
+                  onClick={() => handleDownloadFile(activeItem.pdfUrl!, `${activeItem.judul.replace(/\s+/g, '_')}.pdf`)}
+                  className="inline-flex items-center gap-1.5 bg-[#F26522] hover:bg-[#d95316] text-white text-xs font-bold px-4 py-2.5 rounded-lg transition self-start sm:self-auto shrink-0 shadow-xs cursor-pointer"
+                  title="Unduh berkas PDF"
                 >
                   <Download className="w-4 h-4" /> Unduh PDF
-                </a>
+                </button>
               ) : null}
             </div>
 
@@ -146,7 +156,8 @@ export default function MouStakeholderView({ setTab }: MouStakeholderViewProps) 
                 <img
                   src={activeItem.posterUrl}
                   alt={activeItem.judul}
-                  className="max-h-[800px] w-auto mx-auto object-contain rounded-xl cursor-pointer hover:opacity-95 transition"
+                  title="Tekan/klik gambar untuk memperbesar poster"
+                  className="max-h-[800px] w-auto mx-auto object-contain rounded-xl cursor-pointer hover:opacity-95 hover:scale-[1.005] transition duration-200"
                   onClick={() => setZoomPoster(activeItem.posterUrl || null)}
                 />
               </div>

@@ -2261,7 +2261,7 @@ export function getFromDB<T>(key: DBKey): T[] {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > (MEMORY_DB[key]?.length || 0)) {
+        if (Array.isArray(parsed)) {
           MEMORY_DB[key] = parsed;
         }
         // Self-heal: bila data lama di browser masih memuat password, timpa dgn versi bersih

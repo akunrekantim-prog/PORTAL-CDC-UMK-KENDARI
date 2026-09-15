@@ -209,7 +209,7 @@ export default function GaleriView({ setTab }: GaleriViewProps) {
 
                           {/* Action Links */}
                           <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-                            {item.linkUrl && (
+                            {item.linkUrl && item.linkUrl.trim() !== '' && (
                               <a
                                 href={item.linkUrl}
                                 target="_blank"
@@ -227,14 +227,6 @@ export default function GaleriView({ setTab }: GaleriViewProps) {
                               >
                                 <Download className="w-3.5 h-3.5" /> Unduh PDF
                               </a>
-                            )}
-                            {item.tipeMedia === 'poster' && item.posterUrl && (
-                              <button
-                                onClick={() => setZoomPoster(item.posterUrl || null)}
-                                className="inline-flex items-center gap-1 bg-slate-800 text-white px-3 py-1.5 rounded-md font-bold hover:bg-slate-900 transition ml-auto"
-                              >
-                                <Maximize2 className="w-3.5 h-3.5" /> Lihat Gambar
-                              </button>
                             )}
                           </div>
                         </div>
