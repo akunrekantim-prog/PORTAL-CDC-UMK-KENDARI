@@ -1090,14 +1090,22 @@ export default function PublicLayout({
                               {item.badge}
                             </div>
                           </div>
-                          <div className="p-5 space-y-2">
-                            <h4 className="font-bold text-slate-900 leading-snug line-clamp-2
-                                           group-hover:text-[#1E3A8A] transition-colors">
-                              {item.title}
-                            </h4>
-                            <p className="text-slate-500 text-xs line-clamp-2 leading-relaxed">{stripHtmlTags(item.excerpt)}</p>
-                            <div className="text-xs text-slate-400 font-medium pt-1">
-                              Oleh {item.penulis} · {formatDateDisplay(item.createdAt)}
+                          <div className="p-5 flex flex-col justify-between flex-1 space-y-2">
+                            <div>
+                              <h4 className="font-bold text-slate-900 leading-snug line-clamp-2
+                                             group-hover:text-[#1E3A8A] transition-colors">
+                                {item.title}
+                              </h4>
+                              <p className="text-slate-500 text-xs line-clamp-2 leading-relaxed mt-1">{stripHtmlTags(item.excerpt)}</p>
+                            </div>
+                            <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-3">
+                              <span className="whitespace-nowrap font-medium text-slate-400 truncate max-w-[160px]">
+                                Oleh {(!item.penulis || item.penulis.toLowerCase().includes('admin')) ? 'Admin Website' : item.penulis}
+                              </span>
+                              <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
+                                <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                {formatDateDisplay(item.createdAt)}
+                              </span>
                             </div>
                           </div>
                         </motion.div>

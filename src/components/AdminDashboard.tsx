@@ -1215,7 +1215,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
       setEJenis(item.jenis);
       setEJudul(item.judul);
       setEBody(item.body);
-      setEPenulis(item.penulis || '');
+      setEPenulis(item.penulis || 'Admin Website');
       setEThumbnail(item.thumbnail || '');
       setENamaInstansi(item.namaInstansi || '');
       setETipe(item.tipe || 'magang');
@@ -1240,7 +1240,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
     } else {
       setEditId(null);
       setEJenis(jenis || 'berita');
-      setEJudul(''); setEBody(''); setEPenulis(''); setEThumbnail('');
+      setEJudul(''); setEBody(''); setEPenulis('Admin Website'); setEThumbnail('');
       setENamaInstansi((jenis === 'workshop' || jenis === 'softskill' || jenis === 'seminar') ? 'CDC UM Kendari' : '');
       setELinkLamar(''); setEKategori((jenis || 'berita') === 'presentasi' ? 'internasional' : ''); setEScope('LOKAL');
       setEGaji(''); setEKuota(''); setEDeadline(''); setELinkCta(''); setEStatus('published');
@@ -1667,7 +1667,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
       jenis: eJenis,
       judul: eJudul.trim(),
       body: finalBody,
-      penulis: eJenis === 'berita' ? (ePenulis.trim() || user.name) : undefined,
+      penulis: eJenis === 'berita' ? (ePenulis.trim() || 'Admin Website') : undefined,
       namaInstansi: (eJenis === 'lowongan' || eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? (eNamaInstansi.trim() || 'CDC UM Kendari') : undefined,
       tipe: eJenis === 'lowongan' ? eTipe : undefined,
       linkLamar: eJenis === 'lowongan' ? eLinkLamar.trim() : undefined,
