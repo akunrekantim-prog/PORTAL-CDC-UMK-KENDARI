@@ -1800,7 +1800,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                       <p className="text-xs text-slate-500 italic">Belum ada pengalaman yang ditambahkan.</p>
                     ) : (
                       experiences.map(exp => (
-                        <div key={exp.id} className="bg-slate-50/80 border border-slate-200/70 hover:border-blue-300 rounded-xl p-4.5 space-y-2 relative transition border-l-4 border-l-amber-500">
+                        <div key={exp.id} className="bg-slate-50/80 border border-slate-200/70 hover:border-blue-300 rounded-xl p-4.5 space-y-2 relative transition">
                           <div className="flex items-start justify-between">
                             <div>
                               <h4 className="font-bold text-slate-900 text-sm sm:text-base">{exp.position}</h4>
