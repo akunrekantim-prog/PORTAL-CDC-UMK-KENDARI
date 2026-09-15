@@ -75,9 +75,29 @@ function normalizeRecord(entity: string, row: any): any {
     // user: ACTIVE→active; lowongan: PUBLISHED→published; pengajuan: SUBMITTED→submitted
     out.status = out.status.toLowerCase();
   }
-  if (typeof out.statusKerjaSama === 'string') out.statusKerjaSama = out.statusKerjaSama.toLowerCase();
+  if (typeof out.statusKerjaSama === 'string') {
+    const s = out.statusKerjaSama.toLowerCase();
+    if (s === 'active' || s === 'approved' || s === 'aktif') out.statusKerjaSama = 'aktif';
+    else if (s === 'inactive' || s === 'rejected' || s === 'nonaktif' || s === 'disabled') out.statusKerjaSama = 'nonaktif';
+    else out.statusKerjaSama = 'pending';
+  }
   if (typeof out.tipe === 'string') out.tipe = out.tipe.toLowerCase();
   if (entity === 'konten_karir' && typeof out.jenis === 'string') out.jenis = out.jenis.toLowerCase();
+  // BUG-004 fix: backend GaleriItem {imageUrl, kategori} → frontend
+  // GaleriItem {tipeMedia, posterUrl/youtubeUrl/pdfUrl, kategoriSection}.
+  // Tebak tipeMedia dari konten imageUrl (youtube / pdf-base64 / gambar).
+  if (entity === 'galeri_items' && !out.tipeMedia && typeof out.imageUrl === 'string') {
+    const u = out.imageUrl;
+    out.tipeMedia = u.includes('youtube.com') || u.includes('youtu.be')
+      ? 'youtube'
+      : u.startsWith('data:application/pdf')
+        ? 'pdf'
+        : 'poster';
+    if (out.tipeMedia === 'youtube') out.youtubeUrl = u;
+    else if (out.tipeMedia === 'pdf') out.pdfUrl = u;
+    else out.posterUrl = u;
+    if (!out.kategoriSection && typeof out.kategori === 'string') out.kategoriSection = out.kategori;
+  }
   return out;
 }
 

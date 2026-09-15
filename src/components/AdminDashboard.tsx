@@ -165,6 +165,8 @@ interface AdminDashboardProps {
   user: UserType;
   onLogout: () => void;
   onReloadData?: () => void;
+  activeTab?: AdminTab;
+  onTabChange?: (tab: AdminTab) => void;
 }
 
 type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin' | 'keanggotaan' | 'visi-misi' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'media-sosial' | 'komentar' | 'konseling' | 'hero-slider' | 'campus-hiring' | 'job-fair' | 'statistik-beranda';
@@ -325,11 +327,54 @@ async function saveLowonganWithQuota(item: Lowongan, isEdit: boolean): Promise<n
   }
 }
 
-export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDashboardProps) {
-  const [activeTab, setActiveTab] = useState<AdminTab>('ringkasan');
+const VALID_ADMIN_TABS: AdminTab[] = [
+  'ringkasan', 'konten', 'mitra', 'admin', 'keanggotaan', 'visi-misi',
+  'sk-cdc', 'kalender', 'laporan', 'mou', 'galeri', 'media-sosial',
+  'komentar', 'konseling', 'hero-slider', 'campus-hiring', 'job-fair', 'statistik-beranda'
+];
+
+const ALIAS_MAP: Record<string, { tab: AdminTab; sub?: string }> = {
+  'mitra-approval': { tab: 'mitra', sub: 'approval' },
+  'mitra-list': { tab: 'mitra', sub: 'list' },
+  'konten-riwayat': { tab: 'konten', sub: 'riwayat' },
+  'konten-buat': { tab: 'konten', sub: 'pembuatan' }
+};
+
+export default function AdminDashboard({ user, onLogout, onReloadData, activeTab: activeTabProp, onTabChange }: AdminDashboardProps) {
+  const resolveTabInfo = (rawTab?: string): { tab: AdminTab; sub?: string } => {
+    if (!rawTab) return { tab: 'ringkasan' };
+    if (ALIAS_MAP[rawTab]) return ALIAS_MAP[rawTab];
+    if (VALID_ADMIN_TABS.includes(rawTab as AdminTab)) return { tab: rawTab as AdminTab };
+    return { tab: 'ringkasan' };
+  };
+
+  const [activeTab, setActiveTabInternal] = useState<AdminTab>(() => resolveTabInfo(activeTabProp).tab);
   const [kontenSub, setKontenSub] = useState<KontenSubTab>('riwayat');
-  const [selectedCategory, setSelectedCategory] = useState<JenisKonten | null>(null);
   const [mitraSub, setMitraSub] = useState<MitraSubTab>('approval');
+
+  const setActiveTab = (tab: AdminTab, sub?: string) => {
+    setActiveTabInternal(tab);
+    if (sub && tab === 'mitra') setMitraSub(sub as MitraSubTab);
+    if (sub && tab === 'konten') setKontenSub(sub as KontenSubTab);
+    if (onTabChange) {
+      const urlTab = sub ? `${tab}-${sub}` : tab;
+      onTabChange(urlTab as any);
+    }
+  };
+
+  useEffect(() => {
+    const info = resolveTabInfo(activeTabProp);
+    if (info.tab !== activeTab) {
+      setActiveTabInternal(info.tab);
+    }
+    if (info.sub && info.tab === 'mitra') {
+      setMitraSub(info.sub as MitraSubTab);
+    } else if (info.sub && info.tab === 'konten') {
+      setKontenSub(info.sub as KontenSubTab);
+    }
+  }, [activeTabProp]);
+
+  const [selectedCategory, setSelectedCategory] = useState<JenisKonten | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCmdPaletteOpen, setIsCmdPaletteOpen] = useState(false);
   const [cmdSearchQuery, setCmdSearchQuery] = useState('');
@@ -688,7 +733,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
     {
       group: 'MANAJEMEN MITRA',
       items: [
-        { id: 'mitra', label: 'Approval & List Mitra', icon: <Building2 className="w-4 h-4" /> }
+        { id: 'mitra-approval' as any, label: 'Approval Mitra Baru', icon: <Clock className="w-4 h-4" /> },
+        { id: 'mitra-list' as any, label: 'Daftar Mitra Terdaftar', icon: <Building2 className="w-4 h-4" /> }
       ]
     },
     {
@@ -720,7 +766,39 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   /* =========================================================
    *  DASHBOARD AWAL
    * =======================================================*/
-  const pendingMitra = mitra.filter((m) => m.statusKerjaSama === 'pending');
+  const normalizeMitraStatus = (status?: string): 'aktif' | 'nonaktif' | 'pending' => {
+    if (!status) return 'pending';
+    const s = String(status).toLowerCase();
+    if (s === 'aktif' || s === 'active' || s === 'approved') return 'aktif';
+    if (s === 'nonaktif' || s === 'inactive' || s === 'rejected' || s === 'disabled') return 'nonaktif';
+    return 'pending';
+  };
+
+  // Kombinasikan data dari tabel 'mitra' dengan fallback akun 'users' yang ber-role 'mitra'
+  const allMitraCombined: Mitra[] = (() => {
+    const existingUserIds = new Set(mitra.map((m) => m.userId));
+    const fallbackUsers: Mitra[] = allUsers
+      .filter((u) => (u.role === 'mitra' || (u as any).role === 'MITRA') && !existingUserIds.has(u.id))
+      .map((u: any) => ({
+        id: `mitra_${u.id}`,
+        userId: u.id,
+        namaInstansi: u.namaInstansi || u.name,
+        kontakPerson: u.kontakPerson || u.name,
+        email: u.email,
+        phone: u.phone || '',
+        bidangIndustri: u.bidangIndustri || 'Industri / Perusahaan',
+        alamat: u.alamat || '',
+        website: u.website || '',
+        statusKerjaSama: normalizeMitraStatus(u.status)
+      }));
+    const directMitra = mitra.map((m) => ({
+      ...m,
+      statusKerjaSama: normalizeMitraStatus(m.statusKerjaSama)
+    }));
+    return [...directMitra, ...fallbackUsers];
+  })();
+
+  const pendingMitra = allMitraCombined.filter((m) => m.statusKerjaSama === 'pending');
   const totalMenunggu = pendingMitra.length;
   const pendingKomentarCount = komentarList.filter((k) => k.status === 'pending').length;
 
@@ -728,7 +806,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const aktivitas = [
     ...lowongan.map((l) => ({ date: l.createdAt, text: `Lowongan baru dipublikasikan: ${l.judul}` })),
     ...konten.map((k) => ({ date: k.createdAt, text: `Konten ${JENIS_LABEL[k.jenis]} dibuat: ${k.judul}` })),
-    ...mitra.map((m) => {
+    ...allMitraCombined.map((m) => {
       const u = allUsers.find((usr) => usr.id === m.userId);
       return { date: u?.createdAt || new Date().toISOString(), text: `Mitra terdaftar: ${m.namaInstansi}` };
     })
@@ -736,7 +814,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 8);
 
-  const topMitra = [...mitra]
+  const topMitra = [...allMitraCombined]
     .map((m) => ({
       m,
       count: lowongan.filter(
@@ -795,40 +873,55 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const [mitraStatusFilter, setMitraStatusFilter] = useState<'Semua' | 'aktif' | 'nonaktif' | 'pending'>('Semua');
 
   const handleApproveMitra = async (m: Mitra, note: string) => {
-    const updated = { ...m, statusKerjaSama: 'aktif' as const };
-    await updateInDB<Mitra>('mitra', updated);
+    const existingInMitra = mitra.some((x) => x.id === m.id || x.userId === m.userId);
+    const updated: Mitra = { ...m, statusKerjaSama: 'aktif' as const };
+    if (existingInMitra) {
+      await updateInDB<Mitra>('mitra', updated);
+    } else {
+      await insertToDB<Mitra>('mitra', updated);
+    }
     // juga aktifkan user-nya
     const users = getFromDB<UserType>('users');
-    const u = users.find((x) => x.id === m.userId);
+    const u = users.find((x) => x.id === m.userId || x.email.toLowerCase() === (m.email || '').toLowerCase());
     if (u) {
       const u2 = { ...u, status: 'active' as const };
       await updateInDB<UserType>('users', u2);
     }
     setApprovalNote('');
-    setSelectedMitra(updated);
+    setSelectedMitra(null);
     reloadAll();
     triggerToast('success', `Mitra "${m.namaInstansi}" disetujui.${note ? ' Catatan: ' + note : ''}`);
   };
 
   const handleRejectMitra = async (m: Mitra, note: string) => {
-    const updated = { ...m, statusKerjaSama: 'nonaktif' as const };
-    await updateInDB<Mitra>('mitra', updated);
+    const existingInMitra = mitra.some((x) => x.id === m.id || x.userId === m.userId);
+    const updated: Mitra = { ...m, statusKerjaSama: 'nonaktif' as const };
+    if (existingInMitra) {
+      await updateInDB<Mitra>('mitra', updated);
+    } else {
+      await insertToDB<Mitra>('mitra', updated);
+    }
     const users = getFromDB<UserType>('users');
-    const u = users.find((x) => x.id === m.userId);
+    const u = users.find((x) => x.id === m.userId || x.email.toLowerCase() === (m.email || '').toLowerCase());
     if (u) {
       const u2 = { ...u, status: 'rejected' as const };
       await updateInDB<UserType>('users', u2);
     }
     setApprovalNote('');
-    setSelectedMitra(updated);
+    setSelectedMitra(null);
     reloadAll();
     triggerToast('error', `Mitra "${m.namaInstansi}" ditolak.${note ? ' Catatan: ' + note : ''}`);
   };
 
   const handleBanMitra = async (m: Mitra) => {
     const next = m.statusKerjaSama === 'aktif' ? 'nonaktif' : 'aktif';
+    const existingInMitra = mitra.some((x) => x.id === m.id || x.userId === m.userId);
     const updated = { ...m, statusKerjaSama: next as any };
-    await updateInDB<Mitra>('mitra', updated);
+    if (existingInMitra) {
+      await updateInDB<Mitra>('mitra', updated);
+    } else {
+      await insertToDB<Mitra>('mitra', updated);
+    }
     const users = getFromDB<UserType>('users');
     const u = users.find((x) => x.id === m.userId || x.email.toLowerCase() === (m.email || '').toLowerCase());
     if (u) {
@@ -842,16 +935,27 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const handleDeleteMitra = async (m: Mitra) => {
     if (confirm(`Hapus mitra "${m.namaInstansi}" secara permanen?`)) {
       await deleteInDB('mitra', m.id);
+      const users = getFromDB<UserType>('users');
+      const u = users.find((x) => x.id === m.userId || x.email.toLowerCase() === (m.email || '').toLowerCase());
+      if (u) {
+        await deleteInDB('users', u.id);
+      }
       setSelectedMitra(null);
       reloadAll();
       triggerToast('success', 'Mitra dihapus.');
     }
   };
 
-  const filteredMitra = mitra.filter((m) => {
+  const filteredMitra = allMitraCombined.filter((m) => {
     const q = mitraQuery.trim().toLowerCase();
-    const matchQ = !q || m.namaInstansi.toLowerCase().includes(q) || (m.email || '').toLowerCase().includes(q);
-    const matchS = mitraStatusFilter === 'Semua' || m.statusKerjaSama === mitraStatusFilter;
+    const matchQ =
+      !q ||
+      (m.namaInstansi || '').toLowerCase().includes(q) ||
+      (m.email || '').toLowerCase().includes(q) ||
+      (m.kontakPerson || '').toLowerCase().includes(q) ||
+      (m.bidangIndustri || '').toLowerCase().includes(q);
+    const mStatus = normalizeMitraStatus(m.statusKerjaSama);
+    const matchS = mitraStatusFilter === 'Semua' || mStatus === mitraStatusFilter;
     return matchQ && matchS;
   });
 
@@ -892,7 +996,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
 
   const handleDisableAdmin = async (u: UserType) => {
     const nextStatus = u.status === 'active' ? 'inactive' : 'active';
-    await await updateInDB<UserType>('users', { ...u, status: nextStatus });
+    await updateInDB<UserType>('users', { ...u, status: nextStatus });
     if (u.role === 'mitra') {
       const allM = getFromDB<Mitra>('mitra');
       const targetM = allM.find((m) => m.userId === u.id || m.email.toLowerCase() === u.email.toLowerCase());
@@ -2116,12 +2220,27 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                   {isOpen && (
                     <div className="flex flex-col gap-1">
                       {section.items.map((menu) => {
-                        const active = activeTab === menu.id;
+                        const isApprovalItem = (menu.id as string) === 'mitra-approval';
+                        const isListItem = (menu.id as string) === 'mitra-list';
+                        const active =
+                          activeTab === menu.id ||
+                          (activeTab === 'mitra' && ((isApprovalItem && mitraSub === 'approval') || (isListItem && mitraSub === 'list')));
+                        const pendingBadgeCount = isApprovalItem ? pendingMitra.length : menu.id === 'komentar' ? pendingKomentarCount : 0;
+
                         return (
                           <button
                             key={menu.id}
                             id={`adm-tab-${menu.id}`}
-                            onClick={() => { setActiveTab(menu.id); setIsMobileMenuOpen(false); }}
+                            onClick={() => {
+                              if (isApprovalItem) {
+                                setActiveTab('mitra', 'approval');
+                              } else if (isListItem) {
+                                setActiveTab('mitra', 'list');
+                              } else {
+                                setActiveTab(menu.id as AdminTab);
+                              }
+                              setIsMobileMenuOpen(false);
+                            }}
                             className={`group relative flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-left transition-all duration-200 cursor-pointer ${active
                                 ? 'bg-[#0077C6] text-white font-extrabold shadow-md shadow-blue-950/20 border-l-4 border-amber-400'
                                 : 'text-slate-300 hover:text-white hover:bg-white/5 font-semibold'
@@ -2129,8 +2248,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
                           >
                             <span className={`transition-transform duration-200 ${active ? 'text-amber-400 scale-110' : 'text-slate-400 group-hover:text-white'}`}>{menu.icon}</span>
                             <span className="text-xs truncate">{menu.label}</span>
-                            {menu.id === 'komentar' && pendingKomentarCount > 0 && (
-                              <span className="ml-auto bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full">{pendingKomentarCount}</span>
+                            {pendingBadgeCount > 0 && (
+                              <span className="ml-auto bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full">{pendingBadgeCount}</span>
                             )}
                           </button>
                         );
@@ -2163,44 +2282,46 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
         </div>
       </aside>
 
-      {/* 2. TopNavBar Header (Fixed Top Navbar: height h-20) */}
-      <header className="fixed top-0 right-0 left-0 md:left-[250px] h-20 bg-white border-b border-slate-200/80 z-30 px-6 sm:px-8 flex justify-between items-center shadow-xs">
-        <div className="flex items-center gap-4 flex-1 max-w-lg">
-          <button
-            className="md:hidden text-slate-700 p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 cursor-pointer shrink-0"
-            onClick={() => setIsMobileMenuOpen(true)}
-          >
-            <Menu className="w-5 h-5" />
-          </button>
+      {/* 2. Main Content Column Wrapper */}
+      <div className="flex-1 md:ml-[250px] flex flex-col min-h-screen w-full min-w-0">
+        {/* TopNavBar Header (Sticky Header: height h-20) */}
+        <header className="sticky top-0 z-30 h-20 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-6 sm:px-8 flex justify-between items-center shadow-xs shrink-0">
+          <div className="flex items-center gap-4 flex-1 max-w-lg">
+            <button
+              className="md:hidden text-slate-700 p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 cursor-pointer shrink-0"
+              onClick={() => setIsMobileMenuOpen(true)}
+            >
+              <Menu className="w-5 h-5" />
+            </button>
 
-          {/* Global Search Bar (Berada tepat di posisi kiri dekat sidebar) */}
-          <div className="flex-1 relative">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              readOnly
-              onClick={() => setIsCmdPaletteOpen(true)}
-              placeholder="Cari modul atau aksi cepat... (Ctrl+K)"
-              className="w-full pl-10 pr-14 py-2.5 bg-slate-100/90 hover:bg-slate-100 border border-slate-200 rounded-xl text-xs font-medium cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20"
-            />
-            <kbd className="absolute right-3 top-1/2 -translate-y-1/2 bg-white text-slate-400 px-1.5 py-0.5 rounded text-[10px] font-mono border border-slate-200 shadow-2xs">Ctrl K</kbd>
+            {/* Global Search Bar (Berada tepat di posisi kiri dekat sidebar) */}
+            <div className="flex-1 relative">
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                readOnly
+                onClick={() => setIsCmdPaletteOpen(true)}
+                placeholder="Cari modul atau aksi cepat... (Ctrl+K)"
+                className="w-full pl-10 pr-14 py-2.5 bg-slate-100/90 hover:bg-slate-100 border border-slate-200 rounded-xl text-xs font-medium cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20"
+              />
+              <kbd className="absolute right-3 top-1/2 -translate-y-1/2 bg-white text-slate-400 px-1.5 py-0.5 rounded text-[10px] font-mono border border-slate-200 shadow-2xs">Ctrl K</kbd>
+            </div>
           </div>
-        </div>
 
-        {/* User Profile Info */}
-        <div className="flex items-center gap-3 shrink-0 ml-4">
-          <div className="text-right hidden sm:block">
-            <div className="text-xs font-extrabold text-slate-900 leading-tight">{user.name}</div>
-            <div className="text-[10px] text-slate-500 font-semibold">Super Administrator</div>
+          {/* User Profile Info */}
+          <div className="flex items-center gap-3 shrink-0 ml-4">
+            <div className="text-right hidden sm:block">
+              <div className="text-xs font-extrabold text-slate-900 leading-tight">{user.name}</div>
+              <div className="text-[10px] text-slate-500 font-semibold">Super Administrator</div>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-[#1B365D] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+              {user.name.charAt(0)}
+            </div>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-[#1B365D] text-white flex items-center justify-center font-bold text-xs shadow-xs">
-            {user.name.charAt(0)}
-          </div>
-        </div>
-      </header>
+        </header>
 
-      {/* 3. Main Workspace Canvas Area (pt-[60px] untuk menggeser isi ke atas dekat Search Bar) */}
-      <main className="flex-1 md:ml-[250px] pt-[60px] px-4 sm:px-8 pb-12 overflow-y-auto max-w-[1600px] w-full" id="adm-main">
+        {/* 3. Main Workspace Canvas Area */}
+        <main className="flex-1 px-4 sm:px-8 py-6 pb-12 overflow-y-auto max-w-[1600px] w-full" id="adm-main">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -8518,6 +8639,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
           </motion.div>
         </AnimatePresence>
       </main>
+      </div>
 
       {/* Toast */}
       {toast && (

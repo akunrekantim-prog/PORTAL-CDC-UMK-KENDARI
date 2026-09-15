@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   User as UserType,
   Lowongan,
@@ -18,7 +19,6 @@ import {
 } from './data';
 import { API_BASE_URL } from './config/api';
 import EventDetailView from './components/layanan/EventDetailView';
-// ...
 import PublicLayout from './components/PublicLayout';
 import BeritaDetailView from './components/BeritaDetailView';
 import Register from './components/Register';
@@ -46,17 +46,25 @@ import { motion } from 'motion/react';
 import { renderContentMarkdown, stripHtmlTags } from './markdown';
 
 export default function App() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   // Routes States
   const [currentView, setCurrentView] = useState<'public' | 'login' | 'register' | 'dashboard'>('public');
   const [publicTab, setPublicTab] = useState('beranda');
   const [registerTab, setRegisterTab] = useState<'alumni' | 'perusahaan'>('alumni');
+
+  // Dashboard active tab states
+  const [adminActiveTab, setAdminActiveTab] = useState<any>('ringkasan');
+  const [mitraActiveTab, setMitraActiveTab] = useState<any>('ringkasan');
+  const [mahasiswaActiveTab, setMahasiswaActiveTab] = useState<any>('search');
 
   // Detail States 
   const [viewingLowonganId, setViewingLowonganId] = useState<string | null>(null);
   const [viewingBeritaSlug, setViewingBeritaSlug] = useState<string | null>(null);
   const [viewingProgramId, setViewingProgramId] = useState<string | null>(null);
 
-  // Authentication State (user login via backend; handleFastRoleSwitch HANYA dev)
+  // Authentication State
   const [currentUser, setCurrentUser] = useState<UserType | null>(null);
 
   // Local database States for passing to sub-components
@@ -66,8 +74,7 @@ export default function App() {
   const [allKonten, setAllKonten] = useState<KontenKarir[]>([]);
   const [allPengumuman, setAllPengumuman] = useState<Pengumuman[]>([]);
 
-  // Map KontenKarir jenis 'berita' (input admin) -> model Berita agar
-  // bisa langsung tampil di beranda & tab Berita tanpa duplikasi UI.
+  // Map KontenKarir jenis 'berita' (input admin) -> model Berita
   const mapKontenBeritaToBerita = (k: KontenKarir): Berita => ({
     id: k.id,
     title: k.judul,
@@ -79,12 +86,11 @@ export default function App() {
     authorId: k.createdBy || 'usr_admin',
     publishedAt: k.createdAt,
     createdAt: k.createdAt,
-    // field ekstra untuk tampilan scope & penulis
     scope: k.scope,
     penulis: k.penulis
   });
 
-  // Load baseline database langsung dari Supabase PostgreSQL saat mounting
+  // Load baseline database
   useEffect(() => {
     async function loadData() {
       await initializeDB();
@@ -95,36 +101,128 @@ export default function App() {
 
   const reloadDatabase = () => {
     setAllLowongan(sortJobsByNewest(getFromDB<Lowongan>('lowongan').filter(l => l.status === 'published')));
-    // Gabungkan seed berita lama + berita hasil input admin (konten_karir)
     const beritaSeed = getFromDB<Berita>('berita');
     const kontenBerita = getFromDB<KontenKarir>('konten_karir')
       .filter((k) => k.jenis === 'berita' && k.status === 'published')
       .map(mapKontenBeritaToBerita);
     setAllBerita([...kontenBerita, ...beritaSeed]);
     setAllPengumuman(getFromDB<Pengumuman>('pengumuman'));
-    // Program & Pengumuman (input admin, jenis 'program', published)
     const programList = getFromDB<KontenKarir>('konten_karir')
       .filter((k) => k.jenis === 'program' && k.status === 'published')
       .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
     setAllProgram(programList);
-    // Seluruh konten_karir (termasuk event layanan: workshop/softskill/seminar)
     setAllKonten(getFromDB<KontenKarir>('konten_karir'));
   };
 
-  // Login resmi lewat komponen Login (POST /api/login backend, bcrypt + JWT).
-  // handleLoginSubmit lama (inline App.tsx) DIHAPUS — sumber ganda = celah auth.
-  // Development Direct-Switch tool — HANYA aktif bila DEV build + VITE_ENABLE_FAST_AUTH=true.
-  // Di production tombol disembunyikan agar tidak jadi backdoor.
-  const FAST_AUTH_ENABLED = true; // Selalu aktifkan Akses Cepat UI untuk testing & demonstrasi
+  const FAST_AUTH_ENABLED = true;
 
-  // Quick Access Role Switcher dengan Fallback Akun Otomatis
-  const handleFastRoleSwitch = (role: 'admin' | 'user' | 'mitra' | 'public' | 'mahasiswa') => {
+  // Sync URL Path to state
+  useEffect(() => {
+    const path = location.pathname;
+
+    if (path.startsWith('/admin')) {
+      const parts = path.split('/').filter(Boolean);
+      const subTab = parts[1] || 'ringkasan';
+      setAdminActiveTab(subTab);
+      setCurrentView('dashboard');
+      if (!currentUser || currentUser.role !== 'admin') {
+        handleFastRoleSwitch('admin', false);
+      }
+    } else if (path.startsWith('/mitra')) {
+      const parts = path.split('/').filter(Boolean);
+      const subTab = parts[1] || 'ringkasan';
+      setMitraActiveTab(subTab);
+      setCurrentView('dashboard');
+      if (!currentUser || currentUser.role !== 'mitra') {
+        handleFastRoleSwitch('mitra', false);
+      }
+    } else if (path.startsWith('/mahasiswa')) {
+      const parts = path.split('/').filter(Boolean);
+      let subTab = parts[1] || 'search';
+      if (subTab === 'lamaran') subTab = 'applications';
+      if (subTab === 'profil') subTab = 'profile';
+      if (subTab === 'lowongan') subTab = 'search';
+      setMahasiswaActiveTab(subTab as any);
+      setCurrentView('dashboard');
+      if (!currentUser || !['user', 'mahasiswa', 'alumni'].includes(currentUser.role)) {
+        handleFastRoleSwitch('user', false);
+      }
+    } else if (path.startsWith('/lowongan/')) {
+      const id = path.replace('/lowongan/', '');
+      setCurrentView('public');
+      setViewingLowonganId(id);
+      setViewingBeritaSlug(null);
+      setViewingProgramId(null);
+    } else if (path === '/lowongan') {
+      setCurrentView('public');
+      setPublicTab('lowongan');
+      setViewingLowonganId(null);
+      setViewingBeritaSlug(null);
+      setViewingProgramId(null);
+    } else if (path.startsWith('/berita/')) {
+      const slug = path.replace('/berita/', '');
+      setCurrentView('public');
+      setViewingBeritaSlug(slug);
+      setViewingLowonganId(null);
+      setViewingProgramId(null);
+    } else if (path === '/berita') {
+      setCurrentView('public');
+      setPublicTab('berita');
+      setViewingLowonganId(null);
+      setViewingBeritaSlug(null);
+      setViewingProgramId(null);
+    } else if (path.startsWith('/program/')) {
+      const id = path.replace('/program/', '');
+      setCurrentView('public');
+      setViewingProgramId(id);
+      setViewingLowonganId(null);
+      setViewingBeritaSlug(null);
+    } else if (path.startsWith('/layanan/')) {
+      const tab = path.replace('/layanan/', '');
+      setCurrentView('public');
+      setPublicTab(tab);
+      setViewingLowonganId(null);
+      setViewingBeritaSlug(null);
+      setViewingProgramId(null);
+    } else if (path.startsWith('/prestasi/')) {
+      const subPath = path.replace('/prestasi/', '');
+      const formattedTab = 'presentasi-' + subPath.replace('/', '-');
+      setCurrentView('public');
+      setPublicTab(formattedTab);
+      setViewingLowonganId(null);
+      setViewingBeritaSlug(null);
+      setViewingProgramId(null);
+    } else if (path === '/login') {
+      setCurrentView('login');
+      setViewingLowonganId(null);
+      setViewingBeritaSlug(null);
+      setViewingProgramId(null);
+    } else if (path.startsWith('/register')) {
+      setCurrentView('register');
+      setRegisterTab(path.includes('perusahaan') ? 'perusahaan' : 'alumni');
+      setViewingLowonganId(null);
+      setViewingBeritaSlug(null);
+      setViewingProgramId(null);
+    } else if (path === '/' || path === '/beranda') {
+      setCurrentView('public');
+      setPublicTab('beranda');
+      setViewingLowonganId(null);
+      setViewingBeritaSlug(null);
+      setViewingProgramId(null);
+    }
+  }, [location.pathname]);
+
+  // Role Switcher
+  const handleFastRoleSwitch = (role: 'admin' | 'user' | 'mitra' | 'public' | 'mahasiswa', shouldNavigate = true) => {
     if (role === 'public') {
       setCurrentUser(null);
       setCurrentView('public');
       setViewingLowonganId(null);
       setViewingBeritaSlug(null);
       setViewingProgramId(null);
+      if (shouldNavigate && location.pathname !== '/' && location.pathname !== '/beranda') {
+        navigate('/beranda');
+      }
       return;
     }
 
@@ -139,7 +237,6 @@ export default function App() {
       (u) => (u.role === searchRole || u.role === role || (searchRole === 'user' && (u.role === 'mahasiswa' || u.role === 'alumni' || u.role === 'user'))) && (u.status === 'active' || u.status === 'pending')
     );
 
-    // Synthetic fallback jika user belum tersimpan di DB lokal
     if (!target) {
       if (role === 'admin') {
         target = { id: 'usr_admin', name: 'Admin Website CDC', email: 'admin@umkendari.ac.id', role: 'admin', status: 'active' } as UserType;
@@ -157,6 +254,12 @@ export default function App() {
     setViewingProgramId(null);
     reloadDatabase();
     try { localStorage.setItem('cdc_session_id', target.id); } catch { /* ignore */ }
+
+    if (shouldNavigate) {
+      if (role === 'admin') navigate('/admin/ringkasan');
+      else if (role === 'mitra') navigate('/mitra/ringkasan');
+      else navigate('/mahasiswa/search');
+    }
   };
 
   const handleLogout = () => {
@@ -170,22 +273,41 @@ export default function App() {
       localStorage.removeItem('cdc_session_id');
     } catch { /* abaikan */ }
     try { fetch(`${API_BASE_URL}/logout`, { method: 'POST', credentials: 'include' }).catch(() => {}); } catch { /* abaikan */ }
+    navigate('/');
+  };
+
+  const handleSetPublicTab = (tab: string) => {
+    setPublicTab(tab);
+    reloadDatabase();
+    if (tab === 'beranda') navigate('/');
+    else if (tab === 'lowongan') navigate('/lowongan');
+    else if (tab === 'berita') navigate('/berita');
+    else if (tab.startsWith('presentasi-')) {
+      const sub = tab.replace('presentasi-', '').replace('-', '/');
+      navigate(`/prestasi/${sub}`);
+    } else {
+      navigate(`/layanan/${tab}`);
+    }
   };
 
   // Navigation callbacks
   const handleNavigateToLogin = () => {
     setCurrentView('login');
+    navigate('/login');
   };
 
   const handleNavigateToRegister = (type: 'alumni' | 'perusahaan' = 'alumni') => {
     setRegisterTab(type);
     setCurrentView('register');
+    navigate(`/register/${type}`);
   };
 
   const handleSelectLowongan = (id: string) => {
     window.scrollTo(0, 0);
     setViewingLowonganId(id);
     setViewingBeritaSlug(null);
+    setViewingProgramId(null);
+    navigate(`/lowongan/${id}`);
   };
 
   const handleSelectBerita = (slug: string) => {
@@ -193,6 +315,7 @@ export default function App() {
     setViewingBeritaSlug(slug);
     setViewingLowonganId(null);
     setViewingProgramId(null);
+    navigate(`/berita/${slug}`);
   };
 
   const handleSelectProgram = (id: string) => {
@@ -200,6 +323,7 @@ export default function App() {
     setViewingProgramId(id);
     setViewingLowonganId(null);
     setViewingBeritaSlug(null);
+    navigate(`/program/${id}`);
   };
 
   // Find detailed models
@@ -226,7 +350,7 @@ export default function App() {
       {/* BAR AKSES CEPAT UI DASHBOARD (ADMIN, MITRA, MAHASISWA/ALUMNI, PUBLIK) */}
       <div
         id="aistudio-role-switcher"
-        className="bg-white border-b border-slate-200 sticky top-0 z-[120]"
+        className="bg-white border-b border-slate-200 relative z-20"
       >
         <div className="max-w-7xl mx-auto px-4 py-2 flex flex-wrap items-center justify-between gap-2">
         <div id="switcher-lbl" className="flex items-center gap-2 text-xs text-slate-500">
@@ -297,10 +421,7 @@ export default function App() {
         {currentView === 'public' && !viewingLowonganId && !viewingBeritaSlug && !viewingProgramId && (
           <PublicLayout
             currentTab={publicTab}
-            setTab={(tab) => {
-              setPublicTab(tab);
-              reloadDatabase();
-            }}
+            setTab={handleSetPublicTab}
             lowongan={allLowongan}
             berita={allBerita}
             program={allProgram}
@@ -319,21 +440,21 @@ export default function App() {
           selectedLowongan ? (
             <JobDetail
               job={selectedLowongan}
-              onBack={() => setViewingLowonganId(null)}
+              onBack={() => {
+                setViewingLowonganId(null);
+                navigate('/lowongan');
+              }}
               onSelectJob={(id) => handleSelectLowongan(id)}
               setTab={(tab) => {
                 setViewingLowonganId(null);
-                setPublicTab(tab);
-                reloadDatabase();
+                handleSetPublicTab(tab);
               }}
               onNavigateToLogin={handleNavigateToLogin}
               onNavigateToRegister={handleNavigateToRegister}
               isLoggedIn={false}
               onApply={() => {
                 setViewingLowonganId(null);
-                setPublicTab('beranda');
                 handleNavigateToLogin();
-                reloadDatabase();
               }}
               onSelectBerita={(slug) => {
                 setViewingLowonganId(null);
@@ -356,7 +477,7 @@ export default function App() {
               <button
                 onClick={() => {
                   setViewingLowonganId(null);
-                  setPublicTab('lowongan');
+                  handleSetPublicTab('lowongan');
                 }}
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0077C6] hover:bg-blue-700 text-white font-bold text-sm rounded-xl transition shadow-xs cursor-pointer"
               >
@@ -371,12 +492,14 @@ export default function App() {
           <BeritaDetailView
             berita={selectedBerita}
             allBeritaList={allBerita}
-            onSelectBerita={(b) => setViewingBeritaSlug(b.slug)}
-            onBack={() => setViewingBeritaSlug(null)}
+            onSelectBerita={(b) => handleSelectBerita(b.slug)}
+            onBack={() => {
+              setViewingBeritaSlug(null);
+              navigate('/berita');
+            }}
             setTab={(tab) => {
               setViewingBeritaSlug(null);
-              setPublicTab(tab);
-              reloadDatabase();
+              handleSetPublicTab(tab);
             }}
             onNavigateToLogin={handleNavigateToLogin}
             onNavigateToRegister={handleNavigateToRegister}
@@ -395,8 +518,11 @@ export default function App() {
         {currentView === 'public' && viewingProgramId && selectedProgram && (
           <div className="max-w-3xl mx-auto px-4 py-16 space-y-6" id="program-detail-panel">
             <button
-              onClick={() => setViewingProgramId(null)}
-              className="inline-flex items-center gap-1.5 text-slate-550 hover:text-slate-800 font-bold text-sm bg-white border border-slate-150 px-4 py-2 rounded-xl shadow-xs transition"
+              onClick={() => {
+                setViewingProgramId(null);
+                navigate('/');
+              }}
+              className="inline-flex items-center gap-1.5 text-slate-550 hover:text-slate-800 font-bold text-sm bg-white border border-slate-150 px-4 py-2 rounded-xl shadow-xs transition cursor-pointer"
               id="program-back-btn"
             >
               <ChevronLeft className="w-4 h-4" /> Kembali
@@ -460,21 +586,18 @@ export default function App() {
             onLoginSuccess={async (user) => {
               setCurrentUser(user);
               setCurrentView('dashboard');
-              // Tarik ulang dataset privat (/all-data) dengan token baru agar dashboard tidak hanya lihat data publik.
-              const { fetchInitialDatabaseFromSupabase } = await import('./services/dbService');
-              const full = await fetchInitialDatabaseFromSupabase();
-              if (full) {
-                const { initializeDB: _reinit } = await import('./data');
-                // MEMORY_DB sudah tertimpa fetchInitial..., reloadDatabase sinkronkan state React.
-                reloadDatabase();
-              } else {
-                reloadDatabase();
-              }
+              const { refreshLiveDatabase } = await import('./data');
+              await refreshLiveDatabase();
+              reloadDatabase();
+              if (user.role === 'admin') navigate('/admin/ringkasan');
+              else if (user.role === 'mitra') navigate('/mitra/ringkasan');
+              else navigate('/mahasiswa/search');
             }}
             onNavigateToRegister={handleNavigateToRegister}
             onNavigateHome={() => {
               setCurrentView('public');
               reloadDatabase();
+              navigate('/');
             }}
           />
         )}
@@ -487,6 +610,7 @@ export default function App() {
             onNavigateHome={() => {
               setCurrentView('public');
               reloadDatabase();
+              navigate('/');
             }}
             onRegisterSuccess={(user) => {
               reloadDatabase();
@@ -494,20 +618,45 @@ export default function App() {
             onLoginSuccess={(user) => {
               setCurrentUser(user);
               setCurrentView('dashboard');
-              reloadDatabase();
+              import('./data').then(({ refreshLiveDatabase }) =>
+                refreshLiveDatabase().then(() => {
+                  reloadDatabase();
+                  if (user.role === 'admin') navigate('/admin/ringkasan');
+                  else if (user.role === 'mitra') navigate('/mitra/ringkasan');
+                  else navigate('/mahasiswa/search');
+                }),
+              );
             }}
           />
         )}
 
-        {/* VIEW 5: DISPATCH DASHBOARDS TO ROLE-SPECIFIC PANELS
-            Role backend dinormalisasi dbService: admin / mitra / mahasiswa / alumni / user. */}
+        {/* VIEW 5: DISPATCH DASHBOARDS TO ROLE-SPECIFIC PANELS */}
         {currentView === 'dashboard' && currentUser && (
           <div id="dashboard-panel-resolver">
+            {(() => {
+              try {
+                if (!localStorage.getItem('cdc_auth_token')) {
+                  return (
+                    <div id="preview-mode-banner" className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-center text-xs font-semibold text-amber-800">
+                      Mode pratinjau peran — tombol Simpan / Posting / Hapus tidak menyimpan data.
+                      Login dengan akun asli untuk mengelola data.
+                    </div>
+                  );
+                }
+              } catch { /* abaikan */ }
+              return null;
+            })()}
             {['user', 'mahasiswa', 'alumni', 'job_seeker'].includes(currentUser.role) && (
               <MahasiswaDashboard
                 user={currentUser}
                 onLogout={handleLogout}
                 allLowongan={allLowongan}
+                activeTab={mahasiswaActiveTab}
+                onTabChange={(tab) => {
+                  setMahasiswaActiveTab(tab);
+                  const sub = tab === 'applications' ? 'lamaran' : tab === 'profile' ? 'profil' : 'lowongan';
+                  navigate(`/mahasiswa/${sub}`);
+                }}
               />
             )}
             {currentUser.role === 'mitra' && (
@@ -515,6 +664,11 @@ export default function App() {
                 user={currentUser}
                 onLogout={handleLogout}
                 onReloadData={reloadDatabase}
+                activeTab={mitraActiveTab}
+                onTabChange={(tab) => {
+                  setMitraActiveTab(tab);
+                  navigate(`/mitra/${tab}`);
+                }}
               />
             )}
             {currentUser.role === 'admin' && (
@@ -522,6 +676,11 @@ export default function App() {
                 user={currentUser}
                 onLogout={handleLogout}
                 onReloadData={reloadDatabase}
+                activeTab={adminActiveTab}
+                onTabChange={(tab) => {
+                  setAdminActiveTab(tab);
+                  navigate(`/admin/${tab}`);
+                }}
               />
             )}
           </div>

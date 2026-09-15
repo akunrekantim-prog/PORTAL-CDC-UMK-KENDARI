@@ -37,10 +37,24 @@ interface MahasiswaDashboardProps {
   user: UserType;
   onLogout: () => void;
   allLowongan: Lowongan[];
+  activeTab?: 'search' | 'applications' | 'profile';
+  onTabChange?: (tab: 'search' | 'applications' | 'profile') => void;
 }
 
-export default function MahasiswaDashboard({ user, onLogout, allLowongan }: MahasiswaDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'search' | 'applications' | 'profile'>('search');
+export default function MahasiswaDashboard({ user, onLogout, allLowongan, activeTab: activeTabProp, onTabChange }: MahasiswaDashboardProps) {
+  const [activeTab, setActiveTabInternal] = useState<'search' | 'applications' | 'profile'>(activeTabProp || 'search');
+
+  const setActiveTab = (tab: 'search' | 'applications' | 'profile') => {
+    setActiveTabInternal(tab);
+    if (onTabChange) onTabChange(tab);
+  };
+
+  useEffect(() => {
+    if (activeTabProp && activeTabProp !== activeTab) {
+      setActiveTabInternal(activeTabProp);
+    }
+  }, [activeTabProp]);
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Data States

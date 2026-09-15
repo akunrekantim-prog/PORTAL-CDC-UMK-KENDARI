@@ -23,6 +23,12 @@ export interface User {
   lastLoginAt?: string;
   createdAt: string;
   userStatusType?: 'Mahasiswa' | 'Alumni';
+  // Profil opsional untuk Mitra / User
+  namaInstansi?: string;
+  kontakPerson?: string;
+  bidangIndustri?: string;
+  alamat?: string;
+  website?: string;
 }
 
 export interface Mahasiswa {

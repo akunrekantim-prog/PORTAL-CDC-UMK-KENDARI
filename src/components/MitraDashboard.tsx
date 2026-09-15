@@ -82,6 +82,8 @@ interface MitraDashboardProps {
   user: UserType;
   onLogout: () => void;
   onReloadData?: () => void;
+  activeTab?: MitraTab;
+  onTabChange?: (tab: MitraTab) => void;
 }
 
 type MitraTab = 'ringkasan' | 'lowongan' | 'pelamar' | 'profil';
@@ -461,8 +463,20 @@ function PdfViewerPreview({
   );
 }
 
-export default function MitraDashboard({ user, onLogout, onReloadData }: MitraDashboardProps) {
-  const [activeTab, setActiveTab] = useState<MitraTab>('ringkasan');
+export default function MitraDashboard({ user, onLogout, onReloadData, activeTab: activeTabProp, onTabChange }: MitraDashboardProps) {
+  const [activeTab, setActiveTabInternal] = useState<MitraTab>(activeTabProp || 'ringkasan');
+
+  const setActiveTab = (tab: MitraTab) => {
+    setActiveTabInternal(tab);
+    if (onTabChange) onTabChange(tab);
+  };
+
+  useEffect(() => {
+    if (activeTabProp && activeTabProp !== activeTab) {
+      setActiveTabInternal(activeTabProp);
+    }
+  }, [activeTabProp]);
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCmdPaletteOpen, setIsCmdPaletteOpen] = useState(false);
   const [cmdSearchQuery, setCmdSearchQuery] = useState('');

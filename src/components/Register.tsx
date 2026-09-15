@@ -24,8 +24,10 @@ import { motion, AnimatePresence } from 'motion/react';
 import { registerToBackend } from '../services/dbService';
 import {
   FAKULTAS_LIST,
-  PRODI_MAP
+  PRODI_MAP,
+  insertToDB
 } from '../data';
+import { User, Mitra } from '../types';
 
 interface RegisterProps {
   initialTab?: 'alumni' | 'perusahaan';
@@ -283,6 +285,31 @@ export default function Register({
       }
 
       setSuccessUser(user);
+
+      // Simpan entitas Mitra & User ke database lokal agar langsung muncul di Approval Admin
+      try {
+        const newMitra: Mitra = {
+          id: user.id || `mitra_${Date.now()}`,
+          userId: user.id || `usr_mitra_${Date.now()}`,
+          namaInstansi: mitraForm.namaInstansi.trim(),
+          kontakPerson: mitraForm.jabatanKontak
+            ? `${mitraForm.kontakPerson.trim()} (${mitraForm.jabatanKontak.trim()})`
+            : mitraForm.kontakPerson.trim(),
+          email: mitraForm.email.trim(),
+          phone: mitraForm.phone.trim(),
+          bidangIndustri: mitraForm.bidangIndustri,
+          alamat: mitraForm.alamat.trim(),
+          website: mitraForm.website.trim(),
+          statusKerjaSama: 'pending'
+        };
+        await insertToDB<Mitra>('mitra', newMitra);
+        if (user) {
+          await insertToDB<User>('users', user);
+        }
+      } catch (dbErr) {
+        console.warn('Gagal menyimpan record mitra lokal/sync:', dbErr);
+      }
+
       if (onRegisterSuccess) onRegisterSuccess(user);
     } catch (err: any) {
       setErrorMsg(err.message || 'Terjadi kesalahan saat pendaftaran mitra.');

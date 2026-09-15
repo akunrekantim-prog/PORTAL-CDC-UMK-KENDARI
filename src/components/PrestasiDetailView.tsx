@@ -403,7 +403,7 @@ export default function PrestasiDetailView({
                         {/* Thumbnail */}
                         <div className="relative h-36 w-full overflow-hidden bg-slate-100">
                           <img
-                            src={item.thumbnail || 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=800&auto=format&fit=crop'}
+                            src={item.thumbnail || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=800&auto=format&fit=crop'}
                             alt={item.judul}
                             className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                           />
