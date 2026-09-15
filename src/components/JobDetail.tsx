@@ -305,6 +305,8 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                 <img
                   src={coverImage}
                   alt={job.judul}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-contain group-hover:scale-102 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-slate-950/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -772,6 +774,8 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                         <img
                           src={itemPoster}
                           alt={item.judul}
+                          loading="lazy"
+                          decoding="async"
                           className="w-12 h-12 rounded-xl border border-slate-200 object-cover shrink-0 bg-slate-50"
                         />
                         <div className="min-w-0 flex-1 space-y-0.5">

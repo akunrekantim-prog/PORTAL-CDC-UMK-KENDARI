@@ -559,6 +559,8 @@ export default function PublicLayout({
                         <img
                           src={importantAnn.posterUrl}
                           alt={importantAnn.title}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full max-h-[380px] object-cover object-center group-hover:scale-102 transition-transform duration-500 cursor-pointer"
                           onClick={() => setSelectedPosterModal(importantAnn.posterUrl!)}
                         />
@@ -686,6 +688,8 @@ export default function PublicLayout({
                                         <img
                                           src={posterSrc}
                                           alt={item.judul || item.namaInstansi}
+                                          loading="lazy"
+                                          decoding="async"
                                           className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
                                           onError={(e) => {
                                             (e.currentTarget as HTMLElement).style.display = 'none';
@@ -721,6 +725,8 @@ export default function PublicLayout({
                                   <img
                                     src={item.companyLogo}
                                     alt={item.namaInstansi}
+                                    loading="lazy"
+                                    decoding="async"
                                     className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
                                     onError={(e) => {
                                       (e.currentTarget as HTMLElement).style.display = 'none';
@@ -885,6 +891,8 @@ export default function PublicLayout({
                                   <img
                                     src={item.thumbnail}
                                     alt={item.judul}
+                                    loading="lazy"
+                                    decoding="async"
                                     className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                   />
 
@@ -989,6 +997,8 @@ export default function PublicLayout({
                                     <img
                                       src={item.thumbnail}
                                       alt={item.judul}
+                                      loading="lazy"
+                                      decoding="async"
                                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                     />
                                   ) : (
@@ -1061,6 +1071,8 @@ export default function PublicLayout({
                               <img
                                 src={item.coverImageUrl}
                                 alt={item.title}
+                                loading="lazy"
+                                decoding="async"
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                               />
                             ) : (
@@ -1250,6 +1262,8 @@ export default function PublicLayout({
                                   <img
                                     src={item.thumbnail}
                                     alt={item.label}
+                                    loading="lazy"
+                                    decoding="async"
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                     onError={(e) => {
                                       (e.currentTarget as HTMLElement).style.display = 'none';
@@ -1315,6 +1329,8 @@ export default function PublicLayout({
                             'https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=800&auto=format&fit=crop'
                           }
                           alt={loker.namaInstansi}
+                          loading="lazy"
+                          decoding="async"
                           className="w-12 h-12 rounded-xl border border-slate-200 object-cover shrink-0 mt-0.5 bg-slate-50"
                         />
                         <div className="min-w-0 flex-1">
@@ -1395,6 +1411,8 @@ export default function PublicLayout({
                 <img
                   src={visiMisiUrl}
                   alt="Visi & Misi UPT. Pusat Pengembangan Kreativitas, Inovasi dan Konseling Mahasiswa Universitas Muhammadiyah Kendari"
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-auto object-contain rounded-xl"
                   onError={(e) => { (e.target as HTMLImageElement).src = '/visi-misi-cdc.svg'; }}
                 />
@@ -1414,6 +1432,8 @@ export default function PublicLayout({
               <img
                 src={visiMisiUrl}
                 alt="Visi & Misi UPT. Pusat Pengembangan Kreativitas, Inovasi dan Konseling Mahasiswa Universitas Muhammadiyah Kendari"
+                loading="lazy"
+                decoding="async"
                 className="w-full h-auto rounded-2xl object-contain shadow-sm"
                 onError={(e) => { (e.target as HTMLImageElement).src = '/visi-misi-cdc.svg'; }}
               />
@@ -1751,6 +1771,8 @@ export default function PublicLayout({
                                       <img
                                         src={posterSrc}
                                         alt={item.judul || item.namaInstansi}
+                                        loading="lazy"
+                                        decoding="async"
                                         className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
                                         onError={(e) => {
                                           (e.currentTarget as HTMLElement).style.display = 'none';
@@ -1786,6 +1808,8 @@ export default function PublicLayout({
                                 <img
                                   src={item.companyLogo}
                                   alt={item.namaInstansi}
+                                  loading="lazy"
+                                  decoding="async"
                                   className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
                                   onError={(e) => {
                                     (e.currentTarget as HTMLElement).style.display = 'none';
@@ -1989,6 +2013,8 @@ export default function PublicLayout({
                               <img
                                 src={item.coverImageUrl}
                                 alt={item.title}
+                                loading="lazy"
+                                decoding="async"
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                               />
                             ) : (
@@ -2258,6 +2284,8 @@ export default function PublicLayout({
                                   <img
                                     src={item.thumbnail}
                                     alt={item.judul}
+                                    loading="lazy"
+                                    decoding="async"
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                   />
                                 ) : (
@@ -2411,7 +2439,7 @@ export default function PublicLayout({
             >
               ✕
             </button>
-            <img src={selectedPosterModal} alt="Poster Full" className="w-full max-h-[85vh] object-contain rounded-xl" />
+            <img src={selectedPosterModal} alt="Poster Full" loading="lazy" decoding="async" className="w-full max-h-[85vh] object-contain rounded-xl" />
           </div>
         </div>
       )}

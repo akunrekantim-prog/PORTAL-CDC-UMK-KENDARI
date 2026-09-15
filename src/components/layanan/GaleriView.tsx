@@ -149,6 +149,8 @@ export default function GaleriView({ setTab }: GaleriViewProps) {
                             <img
                               src={item.posterUrl}
                               alt={item.judul}
+                              loading="lazy"
+                              decoding="async"
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer"
                               onClick={() => setZoomPoster(item.posterUrl || null)}
                             />
@@ -252,6 +254,8 @@ export default function GaleriView({ setTab }: GaleriViewProps) {
             <img
               src={zoomPoster}
               alt="Poster Zoom"
+              loading="lazy"
+              decoding="async"
               className="max-h-[90vh] max-w-[90vw] object-contain rounded-xl shadow-2xl"
             />
           </div>

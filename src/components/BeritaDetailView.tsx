@@ -340,6 +340,8 @@ export default function BeritaDetailView({
                   <img
                     src={berita.coverImageUrl}
                     alt={berita.title}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -384,6 +386,8 @@ export default function BeritaDetailView({
                           <img
                             src={item.coverImageUrl || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=800&auto=format&fit=crop'}
                             alt={item.title}
+                            loading="lazy"
+                            decoding="async"
                             className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                           />
                           {item.scope && (
