@@ -73,6 +73,7 @@ export default function CareerFair() {
           categoryLabel="Job Fair"
           imageUrl={selectedFair.bannerUrl || '/poster-cdc-web-umk-2.svg'}
           posterAspect={selectedFair.posterAspect || '16:9'}
+          uploadDateLabel={formatDateDisplay(selectedFair.createdAt)}
           onBack={handleBackToList}
           metaItems={[]}
         >

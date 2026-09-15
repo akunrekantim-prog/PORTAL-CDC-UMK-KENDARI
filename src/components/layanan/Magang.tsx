@@ -195,6 +195,7 @@ export default function Magang({ lowongan = [], onSelectLowongan }: MagangProps)
           categoryLabel="Internship"
           imageUrl={getBannerImage(selectedMagang)}
           posterAspect={(selectedMagang as any).posterAspect || '16:9'}
+          uploadDateLabel={formatDateDisplay(selectedMagang.createdAt)}
           onBack={handleBackToList}
           metaItems={[
             <span key="instansi" className="font-semibold text-slate-800">

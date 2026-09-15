@@ -24,6 +24,7 @@ interface ShareableDetailPageProps {
   imageUrl?: string;
   posterAspect?: '16:9' | '9:16';
   metaItems: React.ReactNode[];
+  uploadDateLabel?: string;
   onBack: () => void;
   children?: React.ReactNode;
 }
@@ -36,6 +37,7 @@ export default function ShareableDetailPage({
   imageUrl,
   posterAspect = '16:9',
   metaItems,
+  uploadDateLabel,
   onBack,
   children
 }: ShareableDetailPageProps) {
@@ -171,6 +173,12 @@ export default function ShareableDetailPage({
                   {item}
                 </div>
               ))}
+              {uploadDateLabel && (
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-4 h-4 text-amber-500 shrink-0" />
+                  <span>Diunggah: {uploadDateLabel}</span>
+                </div>
+              )}
               <div className="flex items-center gap-1.5">
                 <User className="w-4 h-4 text-amber-500 shrink-0" />
                 <span>Oleh: <strong className="font-bold text-slate-800">Admin Website</strong></span>

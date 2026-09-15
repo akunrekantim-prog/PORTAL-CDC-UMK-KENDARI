@@ -89,6 +89,7 @@ export default function CampusHiring() {
           categoryLabel="Campus Hiring - Recruitment"
           imageUrl={selectedEvent.bannerUrl || selectedEvent.logoPerusahaan || '/poster-cdc-web-umk-1.svg'}
           posterAspect={selectedEvent.posterAspect || '16:9'}
+          uploadDateLabel={formatDateDisplay(selectedEvent.createdAt)}
           onBack={handleBackToList}
           metaItems={[]}
         >

@@ -6,6 +6,34 @@ Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 
 ---
 
+## Tanggal: 16 September 2026 (Sesi 2)
+**Oleh: ARYA APRIAWAN**
+**Fokus Pekerjaan:** Penambahan keterangan tanggal upload admin pada halaman detail layanan (Internship, Campus Hiring, Job Fair, Workshop, Softskill, Seminar).
+
+### Ringkasan Perubahan
+1. **Dukungan Tanggal Upload di Komponen Detail (`ShareableDetailPage.tsx`):**
+   - Menambah prop opsional `uploadDateLabel`.
+   - Menampilkan metadata `Diunggah: [tanggal]` dengan ikon jam emas, sejajar kategori dan `Oleh: Admin Website`.
+
+2. **Penyambungan Tanggal Upload per Layanan:**
+   - `Magang.tsx`: `formatDateDisplay(selectedMagang.createdAt)`.
+   - `CampusHiring.tsx`: `formatDateDisplay(selectedEvent.createdAt)`.
+   - `CareerFair.tsx`: `formatDateDisplay(selectedFair.createdAt)`.
+   - `EventDetailView.tsx` (Workshop/Softskill/Seminar): `formatDateDisplay(event.uploadedAt || event.date)`.
+
+### File Diubah
+- **[MODIFY]** `src/components/layanan/ui/ShareableDetailPage.tsx`
+- **[MODIFY]** `src/components/layanan/Magang.tsx`
+- **[MODIFY]** `src/components/layanan/CampusHiring.tsx`
+- **[MODIFY]** `src/components/layanan/CareerFair.tsx`
+- **[MODIFY]** `src/components/layanan/EventDetailView.tsx`
+- **[MODIFY]** `docs/progres.md` (entri ini)
+
+### Verifikasi
+- ✅ `npm run lint` (`tsc --noEmit`) — 0 error
+
+---
+
 ## Tanggal: 16 September 2026 (Sesi 1)
 **Oleh: ARYA APRIAWAN**
 **Fokus Pekerjaan:** Penyesuaian efek visual interaktif (hover) pada seluruh menu sub-bab dan sub-subbab navbar utama.

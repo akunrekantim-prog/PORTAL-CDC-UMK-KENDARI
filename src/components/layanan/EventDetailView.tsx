@@ -1,6 +1,7 @@
 import React from 'react';
 import { EventLayananItem } from '../../types';
 import { renderContentMarkdown } from '../../markdown';
+import { formatDateDisplay } from '../../data';
 import ShareableDetailPage from './ui/ShareableDetailPage';
 
 interface EventDetailViewProps {
@@ -24,6 +25,7 @@ export default function EventDetailView({
         categoryLabel={categoryLabel}
         imageUrl={event.image}
         posterAspect="16:9"
+        uploadDateLabel={formatDateDisplay(event.uploadedAt || event.date)}
         onBack={onBack}
         metaItems={[]}
       >
