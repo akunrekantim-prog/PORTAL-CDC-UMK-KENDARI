@@ -170,7 +170,7 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
   const [subMobileExpanded, setSubMobileExpanded] = useState<string | null>(null);
-  const [activeSubMenu, setActiveSubMenu] = useState<string | null>('Profil');
+  const [activeSubMenu, setActiveSubMenu] = useState<string | null>(null);
 
   const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -255,7 +255,10 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
   }, []);
 
   const handleMouseLeave = useCallback(() => {
-    closeTimer.current = setTimeout(() => setOpenDropdown(null), 100);
+    closeTimer.current = setTimeout(() => {
+      setOpenDropdown(null);
+      setActiveSubMenu(null);
+    }, 100);
   }, []);
 
   const cancelClose = useCallback(() => {
@@ -516,10 +519,10 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                               className={[
                                 'group w-full text-left px-5 py-3 text-sm font-medium flex items-center justify-between gap-4 transition-colors duration-150',
                                 isSubActive
-                                  ? 'bg-gray-100/90 text-gray-900 font-semibold'
+                                  ? 'bg-[#10006b] text-white font-semibold'
                                   : child.tab && currentTab === child.tab
-                                    ? 'text-[#F26522] bg-orange-50/60 font-semibold'
-                                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900',
+                                    ? 'text-[#F26522] bg-orange-50/60 font-semibold hover:bg-[#10006b] hover:text-white'
+                                    : 'text-gray-700 bg-white hover:bg-[#10006b] hover:text-white',
                               ].join(' ')}
                             >
                               <span>{getNavText(child.label)}</span>
@@ -528,8 +531,8 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                                   className={[
                                     'w-3.5 h-3.5 transition-all duration-300 ease-in-out shrink-0',
                                     isSubActive
-                                      ? '-rotate-90 text-[#F26522] scale-110 translate-x-0.5'
-                                      : 'rotate-0 text-gray-400 group-hover:-rotate-90 group-hover:text-[#F26522] group-hover:translate-x-0.5',
+                                      ? '-rotate-90 text-white scale-110 translate-x-0.5'
+                                      : 'rotate-0 text-gray-400 group-hover:-rotate-90 group-hover:text-white group-hover:translate-x-0.5',
                                   ].join(' ')}
                                   fill="none"
                                   viewBox="0 0 24 24"
@@ -564,8 +567,8 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                                 className={[
                                   'w-full text-left px-5 py-3 text-sm font-medium transition-colors duration-150',
                                   subChild.tab && currentTab === subChild.tab
-                                    ? 'text-[#F26522] bg-orange-50/60 font-semibold'
-                                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900',
+                                    ? 'text-[#F26522] bg-orange-50/60 font-semibold hover:bg-[#10006b] hover:text-white'
+                                    : 'text-gray-700 bg-white hover:bg-[#10006b] hover:text-white',
                                 ].join(' ')}
                               >
                                 {getNavText(subChild.label)}
@@ -677,14 +680,14 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                             className={[
                               'group w-full text-left px-10 py-2.5 text-sm font-semibold transition-colors duration-100 flex items-center justify-between',
                               child.tab && currentTab === child.tab
-                                ? 'text-[#F26522]'
-                                : 'text-gray-700 hover:text-[#F26522]',
+                                ? 'text-[#F26522] hover:bg-[#10006b] hover:text-white'
+                                : 'text-gray-700 hover:bg-[#10006b] hover:text-white',
                             ].join(' ')}
                           >
                             <span>{child.label}</span>
                             {child.children && (
                               <svg
-                                className="w-3.5 h-3.5 transition-all duration-300 ease-in-out text-gray-400 group-hover:text-[#F26522] group-hover:-rotate-90 group-hover:translate-x-0.5"
+                                className="w-3.5 h-3.5 transition-all duration-300 ease-in-out text-gray-400 group-hover:text-white group-hover:-rotate-90 group-hover:translate-x-0.5"
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
@@ -712,8 +715,8 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                                   className={[
                                     'w-full text-left pl-14 pr-6 py-2 text-xs font-semibold flex items-center gap-1.5 transition-colors duration-100',
                                     subChild.tab && currentTab === subChild.tab
-                                      ? 'text-[#F26522]'
-                                      : 'text-gray-600 hover:text-[#F26522]',
+                                      ? 'text-[#F26522] hover:bg-[#10006b] hover:text-white'
+                                      : 'text-gray-600 hover:bg-[#10006b] hover:text-white',
                                   ].join(' ')}
                                 >
                                   <span className="text-[#F26522] font-bold text-[10px]">└</span>

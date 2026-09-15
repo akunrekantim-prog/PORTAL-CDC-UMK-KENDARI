@@ -6,6 +6,27 @@ Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 
 ---
 
+## Tanggal: 16 September 2026 (Sesi 1)
+**Oleh: ARYA APRIAWAN**
+**Fokus Pekerjaan:** Penyesuaian efek visual interaktif (hover) pada seluruh menu sub-bab dan sub-subbab navbar utama.
+
+### Ringkasan Perubahan
+1. **Efek Hover Sub-bab dan Sub-subbab Navbar (`Header.tsx`):**
+   - Mengubah efek interaksi cursor pada seluruh dropdown menu navigasi utama (desktop & mobile drawer).
+   - Ketika cursor diarahkan (hover) ke item sub-bab maupun sub-subbab, latar belakang item langsung berubah menjadi warna biru navy khas CDC UM Kendari (`bg-[#10006b]`) dengan warna teks putih (`text-white`), serta ikon indikator panah submenu berubah menjadi putih.
+   - Ketika cursor tidak diarahkan (mouse leave), latar belakang item kembali berwarna putih (`bg-white`) dengan teks normal abu-abu/gelap (`text-gray-700`).
+   - Mereset status `activeSubMenu` secara default ke `null` dan saat mouse leave agar submenu samping tidak terbuka otomatis sebelum disentuh kursor.
+
+### File Diubah
+- **[MODIFY]** `src/components/Header.tsx`
+- **[MODIFY]** `docs/progres.md` (entri ini)
+
+### Verifikasi
+- ✅ `npx tsc --noEmit` — 0 error
+- ✅ Verifikasi UI & Browser Playwright terhadap respon hover dropdown navbar
+
+---
+
 ## Tanggal: 15 September 2026 (Sesi 4)
 **Oleh: ARYA APRIAWAN**
 **Fokus Pekerjaan:** Koreksi label Internship kembali单一, perapihan card Magang admin vs mitra, dan penyejajaran footer card beranda rata bawah.
