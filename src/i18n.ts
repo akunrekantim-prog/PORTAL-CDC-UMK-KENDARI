@@ -152,7 +152,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'nav.seminar': 'Career Success Seminar',
     'nav.jobfair': 'Job Fair',
     'nav.campushiring': 'Campus Hiring',
-    'nav.magang': 'Internship',
+    'nav.magang': 'Internship / Magang',
     'nav.tracer': 'Tracer Study',
     'nav.tracerform': 'Tracer Questionnaire Form',
     'nav.simbelmawa': 'Simbelmawa',

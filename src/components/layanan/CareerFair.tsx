@@ -3,28 +3,16 @@ import { motion } from 'framer-motion';
 import {
   Ticket,
   ArrowRight,
-  ArrowLeft
+  ArrowLeft,
+  Clock
 } from 'lucide-react';
+import { formatDateDisplay } from '../../data';
 import { Section } from './ui';
 import Pagination from './ui/Pagination';
 import ShareableDetailPage from './ui/ShareableDetailPage';
 import { useLayanan } from './LayananContainer';
 import { getJobFair } from '../../data';
 import { JobFairItem } from '../../types';
-
-const formatDateDisplay = (dateStart: string, dateEnd?: string) => {
-  try {
-    const d1 = new Date(dateStart);
-    if (isNaN(d1.getTime())) return dateStart;
-    const f1 = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(d1);
-    if (!dateEnd || dateEnd === dateStart) return f1;
-    const d2 = new Date(dateEnd);
-    const f2 = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(d2);
-    return `${f1} – ${f2}`;
-  } catch {
-    return dateStart;
-  }
-};
 
 export default function CareerFair() {
   const [items, setItems] = useState<JobFairItem[]>([]);
@@ -158,11 +146,20 @@ export default function CareerFair() {
                   />
                 </div>
 
-                {/* Card Body — cukup judul besar saja sesuai arahan PM */}
-                <div className="p-5 flex-1">
-                  <h3 className="font-bold text-slate-900 text-lg line-clamp-3 leading-snug group-hover:text-[#0077C6] transition-colors">
+                {/* Card Body — judul + footer keterangan */}
+                <div className="p-5 space-y-2 flex-1 flex flex-col">
+                  <h3 className="font-bold text-slate-900 text-lg line-clamp-3 leading-snug group-hover:text-[#0077C6] transition-colors flex-1">
                     {fair.judul}
                   </h3>
+
+                  {/* Meta Footer: source + tanggal upload admin */}
+                  <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
+                    <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
+                    <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
+                      <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      {formatDateDisplay(fair.createdAt)}
+                    </span>
+                  </div>
                 </div>
               </motion.div>
             ))}

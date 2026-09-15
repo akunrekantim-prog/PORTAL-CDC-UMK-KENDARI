@@ -83,7 +83,7 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Seminar Sukses Berkarir', tab: 'seminar' },
       { label: 'Job Fair', tab: 'career-fair' },
       { label: 'Campus Hiring', tab: 'campus-hiring' },
-      { label: 'Internship', tab: 'magang' },
+      { label: 'Internship / Magang', tab: 'magang' },
     ],
   },
   {
@@ -204,7 +204,7 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
       'Seminar Sukses Berkarir': 'nav.seminar',
       'Job Fair': 'nav.jobfair',
       'Campus Hiring': 'nav.campushiring',
-      'Internship': 'nav.magang',
+      'Internship / Magang': 'nav.magang',
       'Tracer Study': 'nav.tracer',
       'Form Kuesioner Tracer Study': 'nav.tracerform',
       'Simbelmawa': 'nav.simbelmawa',

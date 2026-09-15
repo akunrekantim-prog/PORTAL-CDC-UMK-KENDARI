@@ -4,29 +4,16 @@ import {
   Building2,
   ArrowRight,
   ArrowLeft,
-  Video
+  Video,
+  Clock
 } from 'lucide-react';
+import { formatDateDisplay } from '../../data';
 import { Section } from './ui';
 import Pagination from './ui/Pagination';
 import ShareableDetailPage from './ui/ShareableDetailPage';
 import { useLayanan } from './LayananContainer';
 import { getCampusHiring, saveCampusHiring } from '../../data';
 import { CampusHiringItem } from '../../types';
-
-const formatDateDisplay = (dateStr: string) => {
-  try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    return new Intl.DateTimeFormat('id-ID', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    }).format(d);
-  } catch {
-    return dateStr;
-  }
-};
 
 export default function CampusHiring() {
   const [items, setItems] = useState<CampusHiringItem[]>([]);
@@ -181,11 +168,20 @@ export default function CampusHiring() {
                   )}
                 </div>
 
-                {/* Card Body — cukup judul besar saja sesuai arahan PM */}
-                <div className="p-5 flex-1">
-                  <h3 className="font-bold text-slate-900 text-lg line-clamp-3 leading-snug group-hover:text-[#0077C6] transition-colors">
+                {/* Card Body — judul + footer keterangan */}
+                <div className="p-5 space-y-2 flex-1 flex flex-col">
+                  <h3 className="font-bold text-slate-900 text-lg line-clamp-3 leading-snug group-hover:text-[#0077C6] transition-colors flex-1">
                     {event.judul}
                   </h3>
+
+                  {/* Meta Footer: source + tanggal upload admin */}
+                  <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
+                    <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
+                    <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
+                      <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      {formatDateDisplay(event.createdAt)}
+                    </span>
+                  </div>
                 </div>
               </motion.div>
             ))}

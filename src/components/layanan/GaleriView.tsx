@@ -13,7 +13,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { GaleriItem } from '../../types';
-import { getFromDB } from '../../data';
+import { getFromDB, formatDateDisplay } from '../../data';
 import {
   Facebook,
   Share2,
@@ -29,7 +29,8 @@ import {
   Maximize2,
   X,
   Play,
-  Film
+  Film,
+  Clock
 } from 'lucide-react';
 import SocialShareBar from '../ui/SocialShareBar';
 
@@ -195,6 +196,15 @@ export default function GaleriView({ setTab }: GaleriViewProps) {
                                 {item.deskripsi}
                               </p>
                             )}
+
+                            {/* Meta Footer: source + tanggal upload */}
+                            <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
+                              <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
+                              <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
+                                <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                {formatDateDisplay(item.createdAt)}
+                              </span>
+                            </div>
                           </div>
 
                           {/* Action Links */}

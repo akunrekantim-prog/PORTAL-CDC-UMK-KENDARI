@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Filter, X } from 'lucide-react';
+import { Search, Filter, X, Clock } from 'lucide-react';
+import { formatDateDisplay } from '../../../data';
 import { EventLayananItem, KontenKarir } from '../../../types';
 import EventDetailView from '../EventDetailView';
 import { useLayanan } from '../LayananContainer';
@@ -397,11 +398,20 @@ export default function EventCardLayout({
                 />
               </div>
 
-              {/* Card Body — cukup judul besar saja seperti Campus Hiring */}
-              <div className="p-5 flex-1">
-                <h3 className="font-bold text-slate-900 text-lg line-clamp-3 leading-snug group-hover:text-[#0077C6] transition-colors">
+              {/* Card Body — judul + footer keterangan */}
+              <div className="p-5 space-y-2 flex-1 flex flex-col">
+                <h3 className="font-bold text-slate-900 text-lg line-clamp-3 leading-snug group-hover:text-[#0077C6] transition-colors flex-1">
                   {item.title}
                 </h3>
+
+                {/* Meta Footer: source + tanggal upload admin */}
+                <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
+                  <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
+                  <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
+                    <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    {formatDateDisplay(item.uploadedAt || item.date)}
+                  </span>
+                </div>
               </div>
             </motion.div>
           ))}

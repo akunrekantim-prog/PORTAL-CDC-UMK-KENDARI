@@ -6,6 +6,47 @@ Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 
 ---
 
+## Tanggal: 15 September 2026 (Sesi 3)
+**Oleh: ARYA APRIAWAN**
+**Fokus Pekerjaan:** Penyelarasan label menu Internship / Magang, penambahan footer keterangan `by Admin Website • tanggal` di seluruh card layanan, dan penyesuaian logic tanggal card mengikuti waktu upload admin.
+
+### Ringkasan Perubahan
+1. **Penyelarasan Label Menu Internship / Magang:**
+   - Mengubah label menu dari `Internship` menjadi `Internship / Magang` di `LayananContainer.tsx` (judul besar halaman + breadcrumb), `Header.tsx` (dropdown navigasi + kamus i18n key mapping), dan `i18n.ts` (kamus EN).
+
+2. **Penambahan Footer Keterangan Card Layanan:**
+   - Menambahkan footer `by Admin Website • [tanggal]` dengan ikon jam (`Clock`) pada card layout di:
+     - `EventCardLayout.tsx` (Workshop, Softskill, Seminar)
+     - `CampusHiring.tsx`
+     - `CareerFair.tsx`
+     - `GaleriView.tsx`
+   - Card Magang (`Magang.tsx`) sudah memiliki footer ini sebelumnya.
+   - Footer menggunakan pola yang konsisten dengan card lowongan di beranda (`PublicLayout.tsx`): teks kiri `by Admin Website`, kanan ikon jam + tanggal.
+
+3. **Penyesuaian Logic Tanggal Card:**
+   - Tanggal footer card kini mengikuti waktu upload admin (`createdAt` / `uploadedAt`), bukan tanggal acara (`date` / `tanggalMulai`).
+   - `EventCardLayout.tsx`: prioritas `uploadedAt` (waktu admin upload), fallback `date`.
+   - `CampusHiring.tsx` dan `CareerFair.tsx`: menggunakan `createdAt`.
+   - Mapping `KontenKarir` ke `EventLayananItem` sudah menyimpan `uploadedAt: k.createdAt` sejak sebelumnya.
+
+4. **Pembersihan Helper Tanggal Duplikat:**
+   - Menghapus fungsi `formatDateDisplay` lokal di `CampusHiring.tsx` dan `CareerFair.tsx`, diganti dengan import dari `../../data` (sumber tunggal `formatDateDisplay`).
+
+### File Diubah
+- **[MODIFY]** `src/components/layanan/LayananContainer.tsx`
+- **[MODIFY]** `src/components/Header.tsx`
+- **[MODIFY]** `src/i18n.ts`
+- **[MODIFY]** `src/components/layanan/ui/EventCardLayout.tsx`
+- **[MODIFY]** `src/components/layanan/CampusHiring.tsx`
+- **[MODIFY]** `src/components/layanan/CareerFair.tsx`
+- **[MODIFY]** `src/components/layanan/GaleriView.tsx`
+- **[MODIFY]** `docs/progres.md` (entri ini)
+
+### Verifikasi
+- ✅ `npm run lint` (`tsc --noEmit`) — 0 error
+
+---
+
 ## Tanggal: 15 September 2026 (Sesi 2)
 **Oleh: ARYA APRIAWAN**
 **Fokus Pekerjaan:** Audit bug/error menyeluruh, perbaikan error TypeScript, sinkronisasi route dashboard, dan hardening bug runtime frontend.
