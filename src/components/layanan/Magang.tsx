@@ -209,102 +209,68 @@ export default function Magang({ lowongan = [], onSelectLowongan }: MagangProps)
           ]}
         >
           <div className="space-y-8 pt-2">
-            {/* 1. RINGKASAN PROGRAM MAGANG (Highlight Card Grid) */}
-            <div className="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-5 sm:p-6 shadow-2xs">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
-                <Briefcase className="w-4 h-4 text-[#0077C6]" />
-                Ringkasan Program Magang
-              </h3>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                {/* Jenis Pekerjaan */}
-                <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-2xs space-y-1">
-                  <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
-                    <Briefcase className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                    <span>Jenis Pekerjaan</span>
-                  </div>
-                  <div className="font-bold text-slate-900 text-sm">Magang</div>
+            {/* 1. RINGKASAN PROGRAM MAGANG */}
+            <div className="border border-slate-200 rounded-lg overflow-hidden">
+              {/* Info row — flat, no nested cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 divide-x divide-slate-200 border-b border-slate-200 bg-slate-50/60 text-sm">
+                <div className="px-4 py-3">
+                  <div className="text-[11px] text-slate-400 mb-0.5">Jenis</div>
+                  <div className="font-semibold text-slate-800">Magang</div>
                 </div>
-
-                {/* Kategori */}
-                <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-2xs space-y-1">
-                  <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
-                    <Layers className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                    <span>Kategori</span>
-                  </div>
-                  <div className="font-bold text-slate-900 text-sm truncate" title={selectedMagang.kategori || 'Umum'}>
+                <div className="px-4 py-3">
+                  <div className="text-[11px] text-slate-400 mb-0.5">Kategori</div>
+                  <div className="font-semibold text-slate-800 truncate" title={selectedMagang.kategori || 'Umum'}>
                     {selectedMagang.kategori || 'Umum'}
                   </div>
                 </div>
-
-                {/* Gaji / Uang Saku */}
-                <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-2xs space-y-1">
-                  <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
-                    <Banknote className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>Gaji / Uang Saku</span>
-                  </div>
-                  <div className="font-bold text-slate-900 text-sm">
-                    {selectedMagang.gaji || 'Uang Saku'}
-                  </div>
+                <div className="px-4 py-3">
+                  <div className="text-[11px] text-slate-400 mb-0.5">Kompensasi</div>
+                  <div className="font-semibold text-slate-800">{selectedMagang.gaji || 'Uang Saku'}</div>
                 </div>
-
-                {/* Kuota */}
-                <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-2xs space-y-1">
-                  <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
-                    <Users className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                    <span>Kuota</span>
-                  </div>
-                  <div className="font-bold text-slate-900 text-sm">
-                    {selectedMagang.kuota ? `${selectedMagang.kuota} Orang` : 'Terbuka'}
-                  </div>
+                <div className="px-4 py-3">
+                  <div className="text-[11px] text-slate-400 mb-0.5">Kuota</div>
+                  <div className="font-semibold text-slate-800">{selectedMagang.kuota ? `${selectedMagang.kuota} orang` : 'Terbuka'}</div>
                 </div>
-
-                {/* Batas Waktu */}
-                <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-2xs space-y-1 col-span-2 sm:col-span-1">
-                  <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
-                    <Calendar className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-                    <span>Batas Waktu</span>
-                  </div>
-                  <div className={`font-bold text-sm ${isDeadlinePassed ? 'text-rose-600' : 'text-slate-900'}`}>
+                <div className="px-4 py-3 col-span-2 sm:col-span-1">
+                  <div className="text-[11px] text-slate-400 mb-0.5">Deadline</div>
+                  <div className={`font-semibold ${isDeadlinePassed ? 'text-red-600' : 'text-slate-800'}`}>
                     {selectedMagang.deadline ? formatDateDisplay(selectedMagang.deadline) : 'Terbuka'}
                   </div>
                 </div>
               </div>
 
-              {/* ACTION BUTTONS (LAMAR & SIMPAN) */}
-              <div className="mt-6 pt-5 border-t border-slate-200/70 flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
+              {/* Action row */}
+              <div className="px-4 py-3 flex flex-wrap items-center justify-between gap-3 bg-white">
+                <div className="flex items-center gap-2.5">
                   <button
                     onClick={() => setIsApplyModalOpen(true)}
                     disabled={isDeadlinePassed}
-                    className={`inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm text-white shadow-md transition-all ${
+                    className={`inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition ${
                       isDeadlinePassed
-                        ? 'bg-slate-400 cursor-not-allowed opacity-75'
-                        : 'bg-[#0077C6] hover:bg-[#005fa0] active:scale-98 cursor-pointer'
+                        ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                        : 'bg-[#0077C6] text-white hover:bg-[#005fa0] active:scale-[0.98] cursor-pointer'
                     }`}
                   >
-                    <Send className="w-4 h-4" />
-                    <span>{isDeadlinePassed ? 'Pendaftaran Ditutup' : 'Lamar Posisi Magang'}</span>
+                    <Send className="w-3.5 h-3.5" />
+                    {isDeadlinePassed ? 'Pendaftaran Ditutup' : 'Lamar Magang'}
                   </button>
 
                   <button
                     onClick={() => handleToggleSave(selectedMagang.id)}
-                    className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm border transition-all cursor-pointer ${
+                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition cursor-pointer ${
                       isSaved
-                        ? 'bg-amber-50 text-amber-700 border-amber-300 hover:bg-amber-100'
-                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                        ? 'bg-amber-50 text-amber-700 border-amber-200'
+                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                     }`}
                   >
-                    <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-amber-500 text-amber-500' : 'text-slate-500'}`} />
-                    <span>{isSaved ? 'Tersimpan' : 'Simpan Lowongan'}</span>
+                    <Bookmark className={`w-3.5 h-3.5 ${isSaved ? 'fill-amber-500 text-amber-500' : 'text-slate-400'}`} />
+                    {isSaved ? 'Tersimpan' : 'Simpan'}
                   </button>
                 </div>
 
-                <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
-                  <Building2 className="w-4 h-4 text-slate-400" />
-                  <span>{selectedMagang.namaInstansi}</span>
-                  {selectedMagang.lokasi && <span>• {selectedMagang.lokasi}</span>}
-                </div>
+                <span className="text-xs text-slate-400">
+                  {selectedMagang.namaInstansi}{selectedMagang.lokasi ? ` · ${selectedMagang.lokasi}` : ''}
+                </span>
               </div>
             </div>
 
