@@ -32,6 +32,14 @@ import {
   Copy,
   FileText
 } from 'lucide-react';
+import {
+  shareToFacebook,
+  shareToTwitter,
+  shareToWhatsApp,
+  shareToTelegram,
+  shareToLinkedIn,
+  ShareContentOptions
+} from '../utils/shareUtils';
 import { JobApplicationModal } from './JobApplicationModal';
 
 // Helper function to safely convert any input (array, JSON string, multiline string, undefined) to string[]
@@ -199,31 +207,37 @@ export const JobDetail: React.FC<JobDetailProps> = ({
 
   const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
 
+  const getJobShareOpts = (): ShareContentOptions => ({
+    type: job.tipe === 'magang' ? 'magang' : 'lowongan',
+    title: job.judul,
+    url: typeof window !== 'undefined' ? window.location.href : '',
+    namaInstansi: job.namaInstansi,
+    lokasi: job.lokasi,
+    gaji: job.gaji,
+    deadline: job.deadline ? formatDateDisplay(job.deadline) : undefined,
+    kuota: job.kuota ? `${job.kuota} orang` : undefined,
+    deskripsi: job.deskripsi,
+    kualifikasi: Array.isArray(job.kualifikasi) ? job.kualifikasi.join(', ') : job.kualifikasi
+  });
+
   const handleShareFacebook = () => {
-    const targetUrl = encodeURIComponent(window.location.href);
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${targetUrl}`, '_blank', 'noopener,noreferrer');
+    shareToFacebook(getJobShareOpts());
   };
 
   const handleShareTwitter = () => {
-    const targetUrl = encodeURIComponent(window.location.href);
-    const targetTitle = encodeURIComponent(`Lowongan Kerja: ${job.judul} di ${job.namaInstansi}`);
-    window.open(`https://twitter.com/intent/tweet?url=${targetUrl}&text=${targetTitle}`, '_blank', 'noopener,noreferrer');
+    shareToTwitter(getJobShareOpts());
   };
 
   const handleShareWhatsApp = () => {
-    const text = `Lowongan Kerja: ${job.judul} di ${job.namaInstansi}. Cek selengkapnya di: ${window.location.href}`;
-    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+    shareToWhatsApp(getJobShareOpts());
   };
 
   const handleShareTelegram = () => {
-    const targetUrl = encodeURIComponent(window.location.href);
-    const targetTitle = encodeURIComponent(`Lowongan Kerja: ${job.judul} di ${job.namaInstansi}`);
-    window.open(`https://t.me/share/url?url=${targetUrl}&text=${targetTitle}`, '_blank', 'noopener,noreferrer');
+    shareToTelegram(getJobShareOpts());
   };
 
   const handleShareLinkedIn = () => {
-    const targetUrl = encodeURIComponent(window.location.href);
-    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${targetUrl}`, '_blank', 'noopener,noreferrer');
+    shareToLinkedIn(getJobShareOpts(), (msg) => triggerToast(msg));
   };
 
   const handleShareEmail = () => {

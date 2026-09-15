@@ -239,8 +239,17 @@ export default function Login({
         {/* Main Content Area */}
         <div className="my-auto py-2 space-y-6">
 
-          {/* Header Title */}
-          <div className="text-center space-y-1.5">
+          {/* Header Title & Branding Logo */}
+          <div className="text-center space-y-2">
+            <img
+              src="/logo-cdc-branding-transparent.png"
+              alt="Logo Career Development Center UMK"
+              className={`w-auto object-contain mx-auto transition-all ${
+                isEnteringCredentials
+                  ? 'h-12 sm:h-14 mt-3 sm:mt-4 mb-2'
+                  : 'h-16 sm:h-20 -mt-3 sm:-mt-5 mb-2'
+              }`}
+            />
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
               LOGIN
             </h2>

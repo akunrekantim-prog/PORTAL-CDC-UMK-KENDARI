@@ -35,7 +35,17 @@ interface SocialShareBarProps {
   title?: string;
   url?: string;
   className?: string;
-  type?: 'prestasi' | 'berita' | 'event' | 'general';
+  type?: 'prestasi' | 'berita' | 'event' | 'lowongan' | 'magang' | 'campus_hiring' | 'job_fair' | 'dokumen' | 'general';
+  namaInstansi?: string;
+  lokasi?: string;
+  gaji?: string;
+  deadline?: string;
+  kuota?: string;
+  deskripsi?: string;
+  kualifikasi?: string;
+  tanggal?: string;
+  kategori?: string;
+  author?: string;
   namaMahasiswa?: string;
   prodi?: string;
   peringkat?: string;
@@ -72,6 +82,16 @@ export default function SocialShareBar({
   url,
   className = '',
   type = 'general',
+  namaInstansi,
+  lokasi,
+  gaji,
+  deadline,
+  kuota,
+  deskripsi,
+  kualifikasi,
+  tanggal,
+  kategori,
+  author,
   namaMahasiswa,
   prodi,
   peringkat,
@@ -85,6 +105,16 @@ export default function SocialShareBar({
     title: title || 'Portal CDC UM Kendari',
     url: url || (typeof window !== 'undefined' ? window.location.href : ''),
     type,
+    namaInstansi,
+    lokasi,
+    gaji,
+    deadline,
+    kuota,
+    deskripsi,
+    kualifikasi,
+    tanggal,
+    kategori,
+    author,
     namaMahasiswa,
     prodi,
     peringkat,
