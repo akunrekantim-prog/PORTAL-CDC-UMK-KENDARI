@@ -162,13 +162,15 @@ import {
   ShieldCheck
 } from 'lucide-react';
 
+type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin' | 'keanggotaan' | 'visi-misi' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'media-sosial' | 'komentar' | 'konseling' | 'hero-slider' | 'campus-hiring' | 'job-fair' | 'statistik-beranda';
+
 interface AdminDashboardProps {
   user: UserType;
   onLogout: () => void;
   onReloadData?: () => void;
+  activeTab?: AdminTab;
+  onTabChange?: (tab: AdminTab) => void;
 }
-
-type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin' | 'keanggotaan' | 'visi-misi' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'media-sosial' | 'komentar' | 'konseling' | 'hero-slider' | 'campus-hiring' | 'job-fair' | 'statistik-beranda';
 type KontenSubTab = 'riwayat' | 'pembuatan';
 type MitraSubTab = 'approval' | 'list';
 
@@ -338,14 +340,25 @@ async function saveLowonganWithQuota(item: Lowongan, isEdit: boolean): Promise<n
   }
 }
 
-export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDashboardProps) {
-  const [activeTab, setActiveTab] = useState<AdminTab>('ringkasan');
+export default function AdminDashboard({ user, onLogout, onReloadData, activeTab: activeTabProp, onTabChange }: AdminDashboardProps) {
+  const [activeTab, setActiveTabInternal] = useState<AdminTab>(activeTabProp || 'ringkasan');
   const [kontenSub, setKontenSub] = useState<KontenSubTab>('riwayat');
   const [selectedCategory, setSelectedCategory] = useState<JenisKonten | null>(null);
   const [mitraSub, setMitraSub] = useState<MitraSubTab>('approval');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCmdPaletteOpen, setIsCmdPaletteOpen] = useState(false);
   const [cmdSearchQuery, setCmdSearchQuery] = useState('');
+
+  const setActiveTab = (tab: AdminTab) => {
+    setActiveTabInternal(tab);
+    onTabChange?.(tab);
+  };
+
+  useEffect(() => {
+    if (activeTabProp && activeTabProp !== activeTab) {
+      setActiveTabInternal(activeTabProp);
+    }
+  }, [activeTabProp, activeTab]);
 
   // Keyboard shortcut listener Ctrl + K / Cmd + K for Command Palette
   useEffect(() => {
@@ -374,6 +387,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
   const [kalItems, setKalItems] = useState<KalenderKegiatan[]>([]);
   const [lapItems, setLapItems] = useState<LaporanKinerja[]>([]);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const toastTimerRef = useRef<number | null>(null);
   const [zoomImage, setZoomImage] = useState<string | null>(null);
 
   // Form states SK CDC
@@ -687,9 +701,20 @@ export default function AdminDashboard({ user, onLogout, onReloadData }: AdminDa
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) {
+        window.clearTimeout(toastTimerRef.current);
+      }
+    };
+  }, []);
+
   const triggerToast = (type: 'success' | 'error', text: string) => {
     setToast({ type, text });
-    setTimeout(() => setToast(null), 3500);
+    if (toastTimerRef.current) {
+      window.clearTimeout(toastTimerRef.current);
+    }
+    toastTimerRef.current = window.setTimeout(() => setToast(null), 3500);
   };
 
   /* =========================================================

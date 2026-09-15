@@ -133,9 +133,12 @@ function AnimatedCounterStat({ rawValue }: { rawValue: string }) {
 
   useEffect(() => {
     let startTimestamp: number | null = null;
+    let frameId = 0;
+    let cancelled = false;
     const duration = 1800; // 1.8 detik animasi count-up
 
     const step = (timestamp: number) => {
+      if (cancelled) return;
       if (!startTimestamp) startTimestamp = timestamp;
       const progress = Math.min((timestamp - startTimestamp) / duration, 1);
       const easeProgress = 1 - Math.pow(1 - progress, 3); // easeOutCubic
@@ -143,14 +146,17 @@ function AnimatedCounterStat({ rawValue }: { rawValue: string }) {
       setCount(currentCount);
 
       if (progress < 1) {
-        window.requestAnimationFrame(step);
+        frameId = window.requestAnimationFrame(step);
       } else {
         setCount(targetNum);
       }
     };
 
-    const handle = window.requestAnimationFrame(step);
-    return () => window.cancelAnimationFrame(handle);
+    frameId = window.requestAnimationFrame(step);
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(frameId);
+    };
   }, [targetNum]);
 
   return (

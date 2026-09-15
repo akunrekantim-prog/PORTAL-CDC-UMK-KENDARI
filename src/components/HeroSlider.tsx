@@ -65,11 +65,12 @@ export default function HeroSlider({ setTab }: HeroSliderProps) {
     if (isPaused || totalSlides <= 1) return;
 
     const timer = setInterval(() => {
-      nextSlide();
+      setDirection(1);
+      setCurrentSlide((prev) => (prev + 1) % totalSlides);
     }, SLIDE_DURATION);
 
     return () => clearInterval(timer);
-  }, [currentSlide, isPaused, totalSlides]);
+  }, [isPaused, totalSlides]);
 
   const handleSlideClick = (slide: HeroSlideItem) => {
     if (!slide.targetUrl || !slide.targetUrl.trim()) {

@@ -508,6 +508,7 @@ export default function MitraDashboard({ user, onLogout, onReloadData, activeTab
   const [myApplicants, setMyApplicants] = useState<PengajuanMagang[]>([]);
   const [selectedApplicantDoc, setSelectedApplicantDoc] = useState<PengajuanMagang | null>(null);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const toastTimerRef = useRef<number | null>(null);
   const [zoomImage, setZoomImage] = useState<string | null>(null);
 
   // Profile Form States
@@ -693,9 +694,20 @@ export default function MitraDashboard({ user, onLogout, onReloadData, activeTab
     };
   }, [user.id, activeTab]);
 
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) {
+        window.clearTimeout(toastTimerRef.current);
+      }
+    };
+  }, []);
+
   const triggerToast = (type: 'success' | 'error', text: string) => {
     setToast({ type, text });
-    setTimeout(() => setToast(null), 3500);
+    if (toastTimerRef.current) {
+      window.clearTimeout(toastTimerRef.current);
+    }
+    toastTimerRef.current = window.setTimeout(() => setToast(null), 3500);
   };
 
   // Profile Save

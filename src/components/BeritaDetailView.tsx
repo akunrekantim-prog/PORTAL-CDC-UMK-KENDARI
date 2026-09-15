@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   ChevronLeft,
   Tag,
@@ -67,9 +67,8 @@ export default function BeritaDetailView({
   onSelectPrestasi,
   onSelectEvent,
 }: BeritaDetailViewProps) {
-  // Komentar yang SUDAH DISETUJUI ADMIN (dari DB, persisten per berita)
-  const [comments, setComments] = useState<CommentItem[]>(() =>
-    getApprovedKomentarBerita(berita.slug).map(k => ({
+  const loadApprovedComments = (slug: string): CommentItem[] =>
+    getApprovedKomentarBerita(slug).map(k => ({
       id: k.id,
       nama: k.nama,
       email: k.email,
@@ -77,8 +76,10 @@ export default function BeritaDetailView({
       date: new Intl.DateTimeFormat('id-ID', {
         day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
       }).format(new Date(k.createdAt))
-    }))
-  );
+    }));
+
+  // Komentar yang SUDAH DISETUJUI ADMIN (dari DB, persisten per berita)
+  const [comments, setComments] = useState<CommentItem[]>(() => loadApprovedComments(berita.slug));
   // ID komentar yang USER ini kirim di sesi ini (status pending) —
   // hanya untuk soft-notice "menunggu persetujuan", tidak tampil ke user lain.
   const [myPendingIds, setMyPendingIds] = useState<string[]>([]);
@@ -88,10 +89,28 @@ export default function BeritaDetailView({
   const [inputEmail, setInputEmail] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const toastTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    setComments(loadApprovedComments(berita.slug));
+    setMyPendingIds([]);
+    setMyPendingNotice(false);
+  }, [berita.slug]);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) {
+        window.clearTimeout(toastTimerRef.current);
+      }
+    };
+  }, []);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 3500);
+    if (toastTimerRef.current) {
+      window.clearTimeout(toastTimerRef.current);
+    }
+    toastTimerRef.current = window.setTimeout(() => setToastMsg(null), 3500);
   };
 
   // Komputasi Berita Terkait (Maksimal 3 Card berdasarkan relevansi Scope & Judul)

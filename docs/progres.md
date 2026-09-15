@@ -6,6 +6,48 @@ Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 
 ---
 
+## Tanggal: 15 September 2026 (Sesi 2)
+**Oleh: ARYA APRIAWAN**
+**Fokus Pekerjaan:** Audit bug/error menyeluruh, perbaikan error TypeScript, sinkronisasi route dashboard, dan hardening bug runtime frontend.
+
+### Ringkasan Perubahan
+1. **Perbaikan Compile Error Admin Dashboard:**
+   - Menambahkan dukungan prop `activeTab` dan `onTabChange` pada `AdminDashboardProps`.
+   - Menyinkronkan tab admin internal dengan URL `/admin/:tab` sehingga refresh/deep-link admin tidak kembali paksa ke `ringkasan`.
+   - Menghapus import tidak terpakai di `App.tsx`.
+
+2. **Perbaikan Route Auth Dashboard:**
+   - Memperbaiki alur `/admin/...`, `/mitra/...`, dan `/mahasiswa/...` agar tidak menghasilkan blank page saat production refresh tanpa session aktif.
+   - Route dashboard kini mengarahkan user tidak valid ke halaman login/admin-login, bukan memanggil fast-auth dev-only di production.
+   - Menambahkan dependency effect route yang relevan agar tidak memakai stale `currentUser`.
+
+3. **Perbaikan Bug Runtime UI:**
+   - `Dropdown.tsx`: mencegah crash saat Enter ditekan ketika `options` kosong.
+   - `BeritaDetailView.tsx`: komentar berita kini reload saat artikel berubah tanpa remount.
+   - `PublicLayout.tsx`: membersihkan `requestAnimationFrame` aktif agar tidak update state setelah unmount.
+   - `HeroSlider.tsx`: memperbaiki autoplay interval agar tidak bergantung pada callback stale.
+   - `AdminDashboard.tsx`, `MitraDashboard.tsx`, dan `MahasiswaDashboard.tsx`: timer toast kini dibersihkan saat unmount.
+
+4. **Catatan Operasional Backend Dev:**
+   - Error terminal `/api/public-data ECONNREFUSED` teridentifikasi sebagai backend Express belum berjalan di port `5000`; solusi operasional: jalankan `npm run server` berdampingan dengan `npm run dev`.
+
+### File Diubah
+- **[MODIFY]** `src/App.tsx`
+- **[MODIFY]** `src/components/AdminDashboard.tsx`
+- **[MODIFY]** `src/components/BeritaDetailView.tsx`
+- **[MODIFY]** `src/components/Dropdown.tsx`
+- **[MODIFY]** `src/components/HeroSlider.tsx`
+- **[MODIFY]** `src/components/MahasiswaDashboard.tsx`
+- **[MODIFY]** `src/components/MitraDashboard.tsx`
+- **[MODIFY]** `src/components/PublicLayout.tsx`
+- **[MODIFY]** `docs/progres.md` (entri ini)
+
+### Verifikasi
+- ✅ `npm run lint` (`tsc --noEmit`) — 0 error
+- ✅ `npm run build` — sukses build production
+
+---
+
 ## Tanggal: 15 September 2026
 **Oleh: ARYA APRIAWAN**
 **Fokus Pekerjaan:** Penyelarasan tampilan detail Internship / Magang (`Magang.tsx`) menggunakan layout editorial `ShareableDetailPage` seperti Campus Hiring dengan tetap mempertahankan seluruh konsep & data lowongan magang.

@@ -37,7 +37,18 @@ export default function Dropdown({ value, options, onChange, placeholder = 'Pili
     if (e.key === 'Escape') { setOpen(false); return; }
     if (e.key === 'ArrowDown') { e.preventDefault(); setActive((a) => Math.min(a + 1, options.length - 1)); }
     if (e.key === 'ArrowUp') { e.preventDefault(); setActive((a) => Math.max(a - 1, 0)); }
-    if (e.key === 'Enter') { e.preventDefault(); if (open) { onChange(options[active].value); setOpen(false); } else setOpen(true); }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (open) {
+        const selectedOption = options[active];
+        if (selectedOption) {
+          onChange(selectedOption.value);
+          setOpen(false);
+        }
+      } else if (options.length > 0) {
+        setOpen(true);
+      }
+    }
   };
 
   const pad = size === 'sm' ? 'px-3 py-1.5 text-xs' : 'px-3 py-2 text-sm';

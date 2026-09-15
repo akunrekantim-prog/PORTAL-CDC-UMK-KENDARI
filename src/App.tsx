@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   User as UserType,
@@ -18,7 +18,6 @@ import {
   sortJobsByNewest
 } from './data';
 import { API_BASE_URL } from './config/api';
-import EventDetailView from './components/layanan/EventDetailView';
 import PublicLayout from './components/PublicLayout';
 import BeritaDetailView from './components/BeritaDetailView';
 import Register from './components/Register';
@@ -124,6 +123,12 @@ export default function App() {
     (import.meta as any).env?.DEV === true &&
     (import.meta as any).env?.VITE_ENABLE_FAST_AUTH === 'true';
 
+  const redirectToLogin = useCallback((adminOnly = false) => {
+    setCurrentUser(null);
+    setCurrentView(adminOnly ? 'admin-login' : 'login');
+    navigate(adminOnly ? '/admin/login' : '/login');
+  }, [navigate]);
+
   // Sync URL Path to state
   useEffect(() => {
     const path = location.pathname;
@@ -138,15 +143,11 @@ export default function App() {
       const subTab = parts[1] || 'ringkasan';
       setAdminActiveTab(subTab);
       if (!currentUser || currentUser.role !== 'admin') {
-        const storedSession = localStorage.getItem('cdc_session_id');
-        const storedToken = localStorage.getItem('cdc_auth_token');
-        if (storedSession && storedToken) {
-          handleFastRoleSwitch('admin', false);
-        } else if (import.meta.env.DEV) {
+        if (FAST_AUTH_ENABLED) {
           handleFastRoleSwitch('admin', false);
         } else {
-          setCurrentView('admin-login');
-          navigate('/admin/login');
+          redirectToLogin(true);
+          return;
         }
       } else {
         setCurrentView('dashboard');
@@ -155,10 +156,15 @@ export default function App() {
       const parts = path.split('/').filter(Boolean);
       const subTab = parts[1] || 'ringkasan';
       setMitraActiveTab(subTab);
-      setCurrentView('dashboard');
       if (!currentUser || currentUser.role !== 'mitra') {
-        handleFastRoleSwitch('mitra', false);
+        if (FAST_AUTH_ENABLED) {
+          handleFastRoleSwitch('mitra', false);
+        } else {
+          redirectToLogin(false);
+        }
+        return;
       }
+      setCurrentView('dashboard');
     } else if (path.startsWith('/mahasiswa')) {
       const parts = path.split('/').filter(Boolean);
       let subTab = parts[1] || 'search';
@@ -166,10 +172,15 @@ export default function App() {
       if (subTab === 'profil') subTab = 'profile';
       if (subTab === 'lowongan') subTab = 'search';
       setMahasiswaActiveTab(subTab as any);
-      setCurrentView('dashboard');
-      if (!currentUser || !['user', 'mahasiswa', 'alumni'].includes(currentUser.role)) {
-        handleFastRoleSwitch('user', false);
+      if (!currentUser || !['user', 'mahasiswa', 'alumni', 'job_seeker'].includes(currentUser.role)) {
+        if (FAST_AUTH_ENABLED) {
+          handleFastRoleSwitch('user', false);
+        } else {
+          redirectToLogin(false);
+        }
+        return;
       }
+      setCurrentView('dashboard');
     } else if (path.startsWith('/lowongan/')) {
       const id = path.replace('/lowongan/', '');
       setCurrentView('public');
@@ -233,7 +244,7 @@ export default function App() {
       setViewingBeritaSlug(null);
       setViewingProgramId(null);
     }
-  }, [location.pathname]);
+  }, [location.pathname, currentUser, navigate, FAST_AUTH_ENABLED, redirectToLogin]);
 
   // Quick Access Role Switcher — DEV ONLY, tanpa synthetic fallback user.
   const handleFastRoleSwitch = (role: 'admin' | 'user' | 'mitra' | 'public' | 'mahasiswa', shouldNavigate = true) => {

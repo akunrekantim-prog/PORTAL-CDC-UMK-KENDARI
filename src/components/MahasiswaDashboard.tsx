@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   User as UserType,
   Mahasiswa,
@@ -84,6 +84,7 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan, active
 
   // Toast Notification
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const toastTimerRef = useRef<number | null>(null);
 
   const loadStudentData = () => {
     const students = getFromDB<Mahasiswa>('mahasiswa');
@@ -115,9 +116,20 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan, active
     loadStudentData();
   }, [user.id]);
 
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) {
+        window.clearTimeout(toastTimerRef.current);
+      }
+    };
+  }, []);
+
   const triggerToast = (msg: string) => {
     setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 3500);
+    if (toastTimerRef.current) {
+      window.clearTimeout(toastTimerRef.current);
+    }
+    toastTimerRef.current = window.setTimeout(() => setToastMsg(null), 3500);
   };
 
   const handleApplySubmit = async (data: any) => {
