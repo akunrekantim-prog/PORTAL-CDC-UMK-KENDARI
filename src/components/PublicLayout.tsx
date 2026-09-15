@@ -682,106 +682,106 @@ export default function PublicLayout({
                           onClick={() => onSelectLowongan(item.id)}
                           className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col h-full cursor-pointer group"
                         >
-                          <div className="flex flex-col h-full">
-                            {item.sumber === 'admin' ? (
-                              /* Poster Image Container (Khusus Input Admin: Full-bleed, Zoom-in Center Crop + animasi reveal) */
-                              <div className="w-full h-48 sm:h-52 relative overflow-hidden bg-slate-900 border-b border-slate-100">
-                                {(() => {
-                                  const posterSrc = item.flyer || item.imageUrl || (item.flyers && item.flyers.length > 0 ? item.flyers[0] : null) || item.bannerImage;
-                                  if (posterSrc) {
-                                    return (
-                                      <>
-                                        <img
-                                          src={posterSrc}
-                                          alt={item.judul || item.namaInstansi}
-                                          loading="lazy"
-                                          decoding="async"
-                                          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
-                                          onError={(e) => {
-                                            (e.currentTarget as HTMLElement).style.display = 'none';
-                                          }}
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none" />
-                                      </>
-                                    );
-                                  }
+                          {item.sumber === 'admin' ? (
+                            /* Poster Image Container (Khusus Input Admin: Full-bleed, Zoom-in Center Crop + animasi reveal) */
+                            <div className="w-full h-48 sm:h-52 relative overflow-hidden bg-slate-900 border-b border-slate-100 shrink-0">
+                              {(() => {
+                                const posterSrc = item.flyer || item.imageUrl || (item.flyers && item.flyers.length > 0 ? item.flyers[0] : null) || item.bannerImage;
+                                if (posterSrc) {
                                   return (
-                                    <div className="w-full h-full flex flex-col items-center justify-center bg-slate-100 text-slate-400 space-y-1">
-                                      <Building2 className="w-10 h-10 text-slate-400" />
-                                      <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">{item.namaInstansi}</span>
-                                    </div>
+                                    <>
+                                      <img
+                                        src={posterSrc}
+                                        alt={item.judul || item.namaInstansi}
+                                        loading="lazy"
+                                        decoding="async"
+                                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                                        onError={(e) => {
+                                          (e.currentTarget as HTMLElement).style.display = 'none';
+                                        }}
+                                      />
+                                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none" />
+                                    </>
                                   );
-                                })()}
-                                <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
-                                  {item.tipe === 'magang' ? (
-                                    <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-emerald-600 text-white uppercase tracking-wider">
-                                      INTERNSHIP
-                                    </span>
-                                  ) : item.jenisPekerjaan ? (
-                                    <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-slate-800/90 backdrop-blur-xs text-white">
-                                      {item.jenisPekerjaan === 'full-time' ? 'Full-Time' : 'Part-Time'}
-                                    </span>
-                                  ) : null}
-                                </div>
-                              </div>
-                            ) : (
-                              /* Company Logo Container (Background Putih Bersih) */
-                              <div className="w-full h-44 relative overflow-hidden bg-white flex items-center justify-center p-3 border-b border-slate-100">
-                                {item.companyLogo ? (
-                                  <img
-                                    src={item.companyLogo}
-                                    alt={item.namaInstansi}
-                                    loading="lazy"
-                                    decoding="async"
-                                    className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
-                                    onError={(e) => {
-                                      (e.currentTarget as HTMLElement).style.display = 'none';
-                                    }}
-                                  />
-                                ) : (
-                                  <div className="flex flex-col items-center justify-center text-slate-300 space-y-1">
+                                }
+                                return (
+                                  <div className="w-full h-full flex flex-col items-center justify-center bg-slate-100 text-slate-400 space-y-1">
                                     <Building2 className="w-10 h-10 text-slate-400" />
                                     <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">{item.namaInstansi}</span>
                                   </div>
-                                )}
-                                <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
-                                  {item.tipe === 'magang' ? (
-                                    <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-emerald-600 text-white uppercase tracking-wider">
-                                      INTERNSHIP
-                                    </span>
-                                  ) : item.jenisPekerjaan ? (
-                                    <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-slate-700 text-white">
-                                      {item.jenisPekerjaan === 'full-time' ? 'Full-Time' : 'Part-Time'}
-                                    </span>
-                                  ) : null}
-                                </div>
+                                );
+                              })()}
+                              <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
+                                {item.tipe === 'magang' ? (
+                                  <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-emerald-600 text-white uppercase tracking-wider">
+                                    INTERNSHIP
+                                  </span>
+                                ) : item.jenisPekerjaan ? (
+                                  <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-slate-800/90 backdrop-blur-xs text-white">
+                                    {item.jenisPekerjaan === 'full-time' ? 'Full-Time' : 'Part-Time'}
+                                  </span>
+                                ) : null}
                               </div>
-                            )}
+                            </div>
+                          ) : (
+                            /* Company Logo Container (Background Putih Bersih) */
+                            <div className="w-full h-44 relative overflow-hidden bg-white flex items-center justify-center p-3 border-b border-slate-100 shrink-0">
+                              {item.companyLogo ? (
+                                <img
+                                  src={item.companyLogo}
+                                  alt={item.namaInstansi}
+                                  loading="lazy"
+                                  decoding="async"
+                                  className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
+                                  onError={(e) => {
+                                    (e.currentTarget as HTMLElement).style.display = 'none';
+                                  }}
+                                />
+                              ) : (
+                                <div className="flex flex-col items-center justify-center text-slate-300 space-y-1">
+                                  <Building2 className="w-10 h-10 text-slate-400" />
+                                  <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">{item.namaInstansi}</span>
+                                </div>
+                              )}
+                              <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
+                                {item.tipe === 'magang' ? (
+                                  <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-emerald-600 text-white uppercase tracking-wider">
+                                    INTERNSHIP
+                                  </span>
+                                ) : item.jenisPekerjaan ? (
+                                  <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-slate-700 text-white">
+                                    {item.jenisPekerjaan === 'full-time' ? 'Full-Time' : 'Part-Time'}
+                                  </span>
+                                ) : null}
+                              </div>
+                            </div>
+                          )}
 
-                            {/* Card Content */}
-                            <div className="p-5 space-y-2 flex-1 flex flex-col">
+                          {/* Card Content */}
+                          <div className="p-5 flex-1 flex flex-col justify-between space-y-2">
+                            <div>
                               {/* Instansi Subheading in Accent Orange */}
                               <div className="text-xs font-bold text-orange-600 tracking-wide uppercase truncate">
                                 {item.namaInstansi}
                               </div>
 
                               {/* Main Title */}
-                              <h3 className="font-extrabold text-slate-900 text-lg leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2 min-h-[3.5rem] flex-1">
+                              <h3 className="font-extrabold text-slate-900 text-lg leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2 mt-1">
                                 {item.judul}
                               </h3>
+                            </div>
 
-                              {/* Meta Footer: source + Upload Date */}
-                              <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-auto">
-                                {item.sumber === 'admin' ? (
-                                  <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
-                                ) : (
-                                  <span className="whitespace-nowrap font-medium text-slate-400">by Mitra</span>
-                                )}
-                                <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
-                                  <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                                  {formatDateDisplay(item.createdAt || item.deadline)}
-                                </span>
-                              </div>
+                            {/* Meta Footer: source + Upload Date */}
+                            <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-auto">
+                              {item.sumber === 'admin' ? (
+                                <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
+                              ) : (
+                                <span className="whitespace-nowrap font-medium text-slate-400">by Mitra</span>
+                              )}
+                              <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
+                                <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                {formatDateDisplay(item.createdAt || item.deadline)}
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -1763,108 +1763,108 @@ export default function PublicLayout({
                       <div
                         key={item.id}
                         onClick={() => onSelectLowongan(item.id)}
-                        className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group"
+                        className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col h-full cursor-pointer group"
                       >
-                        <div>
-                          {item.sumber === 'admin' ? (
-                            /* Poster Image Container (Khusus Input Admin: Full-bleed, Zoom-in Center Crop + animasi reveal) */
-                            <div className="w-full h-48 sm:h-52 relative overflow-hidden bg-slate-900 border-b border-slate-100">
-                              {(() => {
-                                const posterSrc = item.flyer || item.imageUrl || (item.flyers && item.flyers.length > 0 ? item.flyers[0] : null) || item.bannerImage;
-                                if (posterSrc) {
-                                  return (
-                                    <>
-                                      <img
-                                        src={posterSrc}
-                                        alt={item.judul || item.namaInstansi}
-                                        loading="lazy"
-                                        decoding="async"
-                                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
-                                        onError={(e) => {
-                                          (e.currentTarget as HTMLElement).style.display = 'none';
-                                        }}
-                                      />
-                                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none" />
-                                    </>
-                                  );
-                                }
+                        {item.sumber === 'admin' ? (
+                          /* Poster Image Container (Khusus Input Admin: Full-bleed, Zoom-in Center Crop + animasi reveal) */
+                          <div className="w-full h-48 sm:h-52 relative overflow-hidden bg-slate-900 border-b border-slate-100 shrink-0">
+                            {(() => {
+                              const posterSrc = item.flyer || item.imageUrl || (item.flyers && item.flyers.length > 0 ? item.flyers[0] : null) || item.bannerImage;
+                              if (posterSrc) {
                                 return (
-                                  <div className="w-full h-full flex flex-col items-center justify-center bg-slate-100 text-slate-400 space-y-1">
-                                    <Building2 className="w-10 h-10 text-slate-400" />
-                                    <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">{item.namaInstansi}</span>
-                                  </div>
+                                  <>
+                                    <img
+                                      src={posterSrc}
+                                      alt={item.judul || item.namaInstansi}
+                                      loading="lazy"
+                                      decoding="async"
+                                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                                      onError={(e) => {
+                                        (e.currentTarget as HTMLElement).style.display = 'none';
+                                      }}
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none" />
+                                  </>
                                 );
-                              })()}
-                              <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
-                                {item.tipe === 'magang' ? (
-                                  <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-emerald-600 text-white uppercase tracking-wider">
-                                    INTERNSHIP
-                                  </span>
-                                ) : item.jenisPekerjaan ? (
-                                  <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-slate-800/90 backdrop-blur-xs text-white">
-                                    {item.jenisPekerjaan === 'full-time' ? 'Full-Time' : 'Part-Time'}
-                                  </span>
-                                ) : null}
-                              </div>
-                            </div>
-                          ) : (
-                            /* Company Logo Container (Background Putih Bersih) */
-                            <div className="w-full h-44 relative overflow-hidden bg-white flex items-center justify-center p-3 border-b border-slate-100">
-                              {hasLogo ? (
-                                <img
-                                  src={item.companyLogo}
-                                  alt={item.namaInstansi}
-                                  loading="lazy"
-                                  decoding="async"
-                                  className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
-                                  onError={(e) => {
-                                    (e.currentTarget as HTMLElement).style.display = 'none';
-                                  }}
-                                />
-                              ) : (
-                                <div className={`w-32 h-24 rounded-2xl ${getCompanyBadgeColor(item.namaInstansi)} flex flex-col items-center justify-center p-2 shadow-xs group-hover:scale-105 transition-transform duration-300 text-center`}>
-                                  <span className="font-extrabold text-xl tracking-wider leading-none">{getCompanyInitials(item.namaInstansi)}</span>
-                                  <span className="text-[9px] font-extrabold tracking-wider uppercase mt-1 line-clamp-1 px-1">{item.namaInstansi.replace(/^PT\s+/i, '').split(' ')[0]}</span>
+                              }
+                              return (
+                                <div className="w-full h-full flex flex-col items-center justify-center bg-slate-100 text-slate-400 space-y-1">
+                                  <Building2 className="w-10 h-10 text-slate-400" />
+                                  <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">{item.namaInstansi}</span>
                                 </div>
-                              )}
-                              <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
-                                {item.tipe === 'magang' ? (
-                                  <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-emerald-600 text-white uppercase tracking-wider">
-                                    INTERNSHIP
-                                  </span>
-                                ) : item.jenisPekerjaan ? (
-                                  <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-slate-700 text-white">
-                                    {item.jenisPekerjaan === 'full-time' ? 'Full-Time' : 'Part-Time'}
-                                  </span>
-                                ) : null}
-                              </div>
+                              );
+                            })()}
+                            <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
+                              {item.tipe === 'magang' ? (
+                                <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-emerald-600 text-white uppercase tracking-wider">
+                                  INTERNSHIP
+                                </span>
+                              ) : item.jenisPekerjaan ? (
+                                <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-slate-800/90 backdrop-blur-xs text-white">
+                                  {item.jenisPekerjaan === 'full-time' ? 'Full-Time' : 'Part-Time'}
+                                </span>
+                              ) : null}
                             </div>
-                          )}
+                          </div>
+                        ) : (
+                          /* Company Logo Container (Background Putih Bersih) */
+                          <div className="w-full h-44 relative overflow-hidden bg-white flex items-center justify-center p-3 border-b border-slate-100 shrink-0">
+                            {hasLogo ? (
+                              <img
+                                src={item.companyLogo}
+                                alt={item.namaInstansi}
+                                loading="lazy"
+                                decoding="async"
+                                className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
+                                onError={(e) => {
+                                  (e.currentTarget as HTMLElement).style.display = 'none';
+                                }}
+                              />
+                            ) : (
+                              <div className={`w-32 h-24 rounded-2xl ${getCompanyBadgeColor(item.namaInstansi)} flex flex-col items-center justify-center p-2 shadow-xs group-hover:scale-105 transition-transform duration-300 text-center`}>
+                                <span className="font-extrabold text-xl tracking-wider leading-none">{getCompanyInitials(item.namaInstansi)}</span>
+                                <span className="text-[9px] font-extrabold tracking-wider uppercase mt-1 line-clamp-1 px-1">{item.namaInstansi.replace(/^PT\s+/i, '').split(' ')[0]}</span>
+                              </div>
+                            )}
+                            <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
+                              {item.tipe === 'magang' ? (
+                                <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-emerald-600 text-white uppercase tracking-wider">
+                                  INTERNSHIP
+                                </span>
+                              ) : item.jenisPekerjaan ? (
+                                <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-md shadow-xs bg-slate-700 text-white">
+                                  {item.jenisPekerjaan === 'full-time' ? 'Full-Time' : 'Part-Time'}
+                                </span>
+                              ) : null}
+                            </div>
+                          </div>
+                        )}
 
-                          {/* Card Content */}
-                          <div className="p-5 space-y-2">
+                        {/* Card Content */}
+                        <div className="p-5 flex-1 flex flex-col justify-between space-y-2">
+                          <div>
                             {/* Category / Instansi Subheading in Accent Orange */}
                             <div className="text-xs font-bold text-orange-600 tracking-wide uppercase truncate">
                               {item.namaInstansi}
                             </div>
 
                             {/* Main Title */}
-                            <h3 className="font-extrabold text-slate-900 text-lg leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2">
+                            <h3 className="font-extrabold text-slate-900 text-lg leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2 mt-1">
                               {item.judul}
                             </h3>
+                          </div>
 
-                            {/* Meta Footer: source + Upload Date */}
-                            <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
-                              {item.sumber === 'admin' ? (
-                                <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
-                              ) : (
-                                <span className="whitespace-nowrap font-medium text-slate-400">by Mitra</span>
-                              )}
-                              <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
-                                <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                                {formatDateDisplay(item.createdAt || item.deadline)}
-                              </span>
-                            </div>
+                          {/* Meta Footer: source + Upload Date */}
+                          <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-auto">
+                            {item.sumber === 'admin' ? (
+                              <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
+                            ) : (
+                              <span className="whitespace-nowrap font-medium text-slate-400">by Mitra</span>
+                            )}
+                            <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
+                              <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              {formatDateDisplay(item.createdAt || item.deadline)}
+                            </span>
                           </div>
                         </div>
                       </div>

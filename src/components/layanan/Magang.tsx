@@ -435,65 +435,65 @@ export default function Magang({ lowongan = [], onSelectLowongan }: MagangProps)
                 }}
                 className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md hover:border-slate-300 transition-all flex flex-col h-full cursor-pointer"
               >
-                <div className="flex flex-col h-full">
-                  {item.sumber === 'admin' ? (
-                    /* Poster admin: full-bleed 16:9 sejajar card Campus Hiring */
-                    <div className="relative overflow-hidden border-b border-slate-100 bg-slate-900 aspect-[16/9]">
+                {item.sumber === 'admin' ? (
+                  /* Poster admin: full-bleed 16:9 sejajar card Campus Hiring */
+                  <div className="relative overflow-hidden border-b border-slate-100 bg-slate-900 aspect-[16/9] shrink-0">
+                    <img
+                      src={getBannerImage(item)}
+                      alt={item.namaInstansi}
+                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLElement).style.display = 'none';
+                      }}
+                    />
+                  </div>
+                ) : (
+                  /* Logo mitra: contain + padding agar tidak gepeng */
+                  <div className="relative overflow-hidden border-b border-slate-100 bg-white flex items-center justify-center aspect-[16/9] p-6 shrink-0">
+                    {item.companyLogo ? (
                       <img
-                        src={getBannerImage(item)}
+                        src={item.companyLogo}
                         alt={item.namaInstansi}
-                        className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
+                        className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
                         loading="lazy"
                         onError={(e) => {
                           (e.currentTarget as HTMLElement).style.display = 'none';
                         }}
                       />
-                    </div>
-                  ) : (
-                    /* Logo mitra: contain + padding agar tidak gepeng */
-                    <div className="relative overflow-hidden border-b border-slate-100 bg-white flex items-center justify-center aspect-[16/9] p-6">
-                      {item.companyLogo ? (
-                        <img
-                          src={item.companyLogo}
-                          alt={item.namaInstansi}
-                          className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
-                          loading="lazy"
-                          onError={(e) => {
-                            (e.currentTarget as HTMLElement).style.display = 'none';
-                          }}
-                        />
-                      ) : (
-                        <div className="flex flex-col items-center justify-center text-slate-300 space-y-1">
-                          <Building2 className="w-10 h-10 text-slate-400" />
-                          <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">
-                            {item.namaInstansi}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-slate-300 space-y-1">
+                        <Building2 className="w-10 h-10 text-slate-400" />
+                        <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">
+                          {item.namaInstansi}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
 
-                  {/* Card Content */}
-                  <div className="p-5 space-y-2 flex-1 flex flex-col">
+                {/* Card Content */}
+                <div className="p-5 flex-1 flex flex-col justify-between space-y-2">
+                  <div>
                     <div className="text-xs font-bold text-orange-600 tracking-wide uppercase truncate">
                       {item.namaInstansi}
                     </div>
 
-                    <h3 className="font-extrabold text-slate-900 text-lg leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2 flex-1">
+                    <h3 className="font-extrabold text-slate-900 text-lg leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2 mt-1">
                       {item.judul}
                     </h3>
+                  </div>
 
-                    <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
-                      {item.sumber === 'admin' ? (
-                        <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
-                      ) : (
-                        <span className="whitespace-nowrap font-medium text-slate-400">by Mitra</span>
-                      )}
-                      <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
-                        <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        {formatDateDisplay(item.createdAt || item.deadline)}
-                      </span>
-                    </div>
+                  <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-auto">
+                    {item.sumber === 'admin' ? (
+                      <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
+                    ) : (
+                      <span className="whitespace-nowrap font-medium text-slate-400">by Mitra</span>
+                    )}
+                    <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
+                      <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      {formatDateDisplay(item.createdAt || item.deadline)}
+                    </span>
                   </div>
                 </div>
               </div>

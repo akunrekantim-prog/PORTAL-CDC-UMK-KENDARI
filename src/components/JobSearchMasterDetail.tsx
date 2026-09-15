@@ -726,68 +726,68 @@ export const JobSearchMasterDetail: React.FC<JobSearchMasterDetailProps> = ({
                 <div
                   key={item.id}
                   onClick={() => setSelectedJobForDetail(item)}
-                  className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group relative"
+                  className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col h-full cursor-pointer group relative"
                 >
-                  <div>
-                    {/* Company Logo Image Container */}
-                    <div className="w-full h-44 relative overflow-hidden bg-white flex items-center justify-center p-3 border-b border-slate-100">
-                      {hasLogo ? (
-                        <img
-                          src={item.companyLogo}
-                          alt={item.namaInstansi}
-                          className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
-                          onError={(e) => {
-                            (e.currentTarget as HTMLElement).style.display = 'none';
-                          }}
-                        />
-                      ) : (
-                        <div className={`w-32 h-24 rounded-2xl ${getCompanyBadgeColor(item.namaInstansi)} flex flex-col items-center justify-center p-2 shadow-xs group-hover:scale-105 transition-transform duration-300 text-center`}>
-                          <span className="font-extrabold text-xl tracking-wider leading-none">{getCompanyInitials(item.namaInstansi)}</span>
-                          <span className="text-[9px] font-extrabold tracking-wider uppercase mt-1 line-clamp-1 px-1">{item.namaInstansi.replace(/^PT\s+/i, '').split(' ')[0]}</span>
-                        </div>
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleSaveJob(item.id, currentUserId || undefined);
-                          setSavedJobIds(getSavedJobIds(currentUserId || undefined));
+                  {/* Company Logo Image Container */}
+                  <div className="w-full h-44 relative overflow-hidden bg-white flex items-center justify-center p-3 border-b border-slate-100 shrink-0">
+                    {hasLogo ? (
+                      <img
+                        src={item.companyLogo}
+                        alt={item.namaInstansi}
+                        className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLElement).style.display = 'none';
                         }}
-                        className={`absolute top-3 right-3 w-8 h-8 rounded-full border transition z-10 cursor-pointer flex items-center justify-center ${savedJobIds.includes(item.id)
-                          ? 'bg-amber-50 text-amber-600 border-amber-300 shadow-2xs'
-                          : 'bg-white hover:bg-slate-50 text-slate-400 hover:text-amber-500 border-slate-200 shadow-2xs'
-                          }`}
-                        title={savedJobIds.includes(item.id) ? 'Lowongan Tersimpan' : 'Simpan Lowongan'}
-                      >
-                        <Bookmark className={`w-4 h-4 ${savedJobIds.includes(item.id) ? 'fill-amber-500 text-amber-500' : ''}`} />
-                      </button>
-                    </div>
+                      />
+                    ) : (
+                      <div className={`w-32 h-24 rounded-2xl ${getCompanyBadgeColor(item.namaInstansi)} flex flex-col items-center justify-center p-2 shadow-xs group-hover:scale-105 transition-transform duration-300 text-center`}>
+                        <span className="font-extrabold text-xl tracking-wider leading-none">{getCompanyInitials(item.namaInstansi)}</span>
+                        <span className="text-[9px] font-extrabold tracking-wider uppercase mt-1 line-clamp-1 px-1">{item.namaInstansi.replace(/^PT\s+/i, '').split(' ')[0]}</span>
+                      </div>
+                    )}
 
-                    {/* Card Content */}
-                    <div className="p-5 space-y-2">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleSaveJob(item.id, currentUserId || undefined);
+                        setSavedJobIds(getSavedJobIds(currentUserId || undefined));
+                      }}
+                      className={`absolute top-3 right-3 w-8 h-8 rounded-full border transition z-10 cursor-pointer flex items-center justify-center ${savedJobIds.includes(item.id)
+                        ? 'bg-amber-50 text-amber-600 border-amber-300 shadow-2xs'
+                        : 'bg-white hover:bg-slate-50 text-slate-400 hover:text-amber-500 border-slate-200 shadow-2xs'
+                        }`}
+                      title={savedJobIds.includes(item.id) ? 'Lowongan Tersimpan' : 'Simpan Lowongan'}
+                    >
+                      <Bookmark className={`w-4 h-4 ${savedJobIds.includes(item.id) ? 'fill-amber-500 text-amber-500' : ''}`} />
+                    </button>
+                  </div>
+
+                  {/* Card Content */}
+                  <div className="p-5 flex-1 flex flex-col justify-between space-y-2">
+                    <div>
                       {/* Instansi Subheading in Accent Orange */}
                       <div className="text-xs font-bold text-[#EA580C] uppercase tracking-wide truncate">
                         {item.namaInstansi}
                       </div>
 
                       {/* Main Title */}
-                      <h3 className="font-extrabold text-slate-900 text-base md:text-lg leading-snug group-hover:text-[#0055D4] transition-colors line-clamp-2">
+                      <h3 className="font-extrabold text-slate-900 text-base md:text-lg leading-snug group-hover:text-[#0055D4] transition-colors line-clamp-2 mt-1">
                         {item.judul}
                       </h3>
+                    </div>
 
-                      {/* Meta Footer: source + Upload Date */}
-                      <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
-                        {item.sumber === 'admin' ? (
-                          <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
-                        ) : (
-                          <span className="whitespace-nowrap font-medium text-slate-400">by Mitra</span>
-                        )}
-                        <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
-                          <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                          {formatDateDisplay(item.createdAt || item.deadline)}
-                        </span>
-                      </div>
+                    {/* Meta Footer: source + Upload Date */}
+                    <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-auto">
+                      {item.sumber === 'admin' ? (
+                        <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
+                      ) : (
+                        <span className="whitespace-nowrap font-medium text-slate-400">by Mitra</span>
+                      )}
+                      <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
+                        <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        {formatDateDisplay(item.createdAt || item.deadline)}
+                      </span>
                     </div>
                   </div>
                 </div>
