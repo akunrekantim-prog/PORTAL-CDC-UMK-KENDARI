@@ -757,8 +757,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
         { id: 'laporan', label: 'Laporan Kinerja', icon: <FileText className="w-4 h-4" /> },
         { id: 'mou', label: 'MOU Stakeholder', icon: <FileText className="w-4 h-4" /> },
         { id: 'galeri', label: 'Galeri Kegiatan', icon: <Film className="w-4 h-4" /> },
-        { id: 'konseling', label: 'Bimbingan & Konseling', icon: <HeartHandshake className="w-4 h-4" /> },
-        { id: 'admin', label: 'Kelola Admin', icon: <UserCog className="w-4 h-4" /> }
+        { id: 'konseling', label: 'Bimbingan & Konseling', icon: <HeartHandshake className="w-4 h-4" /> }
       ]
     }
   ];
@@ -4345,73 +4344,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
               </div>
             )}
 
-            {/* ============== MANAJEMEN ADMIN ============== */}
-            {activeTab === 'admin' && (
-              <div className="space-y-6" id="adm-admin">
-                <div className="flex items-center justify-between flex-wrap gap-3 border-b border-slate-200/80 pb-4">
-                  <div>
-                    <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-                      <UserCog className="w-6 h-6 text-[#1B365D]" /> Kelola Akun Administrator
-                    </h1>
-                    <p className="text-xs text-slate-500 mt-1">Pengelolaan akun pengelola portal dan hak akses admin CDC UM Kendari</p>
-                  </div>
-                  <button
-                    onClick={() => setShowAddAdmin(!showAddAdmin)}
-                    className="bg-[#1B365D] hover:bg-[#0077C6] text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-xs transition cursor-pointer"
-                  >
-                    <Plus className="w-4 h-4" /> Tambah Admin Baru
-                  </button>
-                </div>
-
-                {showAddAdmin && (
-                  <form onSubmit={handleAddAdmin} className="bg-white rounded-3xl border border-slate-200 shadow-md p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Nama Lengkap Admin *</label>
-                      <input value={aName} onChange={(e) => setAName(e.target.value)} required className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-[#1B365D]/20 focus:border-[#1B365D]" placeholder="Nama admin" />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Email Resmi *</label>
-                      <input value={aEmail} onChange={(e) => { setAEmail(e.target.value); setAEmailError(''); }} required className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-[#1B365D]/20 focus:border-[#1B365D]" placeholder="email@umkendari.ac.id" />
-                      {aEmailError && <div className="text-rose-500 text-[11px] font-bold">{aEmailError}</div>}
-                    </div>
-                    <div className="space-y-1.5 md:col-span-2">
-                      <label className="text-xs font-bold text-slate-700">Password <span className="font-normal text-slate-400">(Opsional — default: Admin123!)</span></label>
-                      <input value={aPass} onChange={(e) => setAPass(e.target.value)} type="password" className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-[#1B365D]/20 focus:border-[#1B365D]" placeholder="Min. 8 karakter, huruf besar + huruf kecil + angka. Contoh: Admin123!" />
-                      <p className="text-[10px] text-slate-400 flex items-center gap-1">
-                        <span>ⓘ</span> Password wajib mengandung: huruf <strong>Besar</strong>, huruf <strong>kecil</strong>, dan <strong>angka</strong> (min. 8 karakter). Jika dikosongkan, akan menggunakan default: <code className="bg-slate-100 px-1 rounded">Admin123!</code>
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 md:col-span-2">
-                      <button type="submit" className="bg-[#1B365D] hover:bg-[#0077C6] text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-xs cursor-pointer">Simpan Admin Baru</button>
-                      <button type="button" onClick={() => setShowAddAdmin(false)} className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer">Batal</button>
-                    </div>
-                  </form>
-                )}
-
-                <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-                  <div className="grid grid-cols-12 gap-2 px-5 py-3.5 bg-slate-50 border-b border-slate-200/80 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
-                    <div className="col-span-5">Nama / Email Admin</div>
-                    <div className="col-span-3">Status Akun</div>
-                    <div className="col-span-4 text-right">Aksi</div>
-                  </div>
-                  {adminUsers.length === 0 ? (
-                    <div className="p-8 text-center text-slate-400">Tidak ada admin.</div>
-                  ) : adminUsers.map((u) => (
-                    <div key={u.id} className="grid grid-cols-12 gap-2 px-4 py-3 border-t border-slate-100 items-center">
-                      <div className="col-span-5 min-w-0">
-                        <div className="font-semibold text-slate-800 truncate">{u.name}{u.id === user.id && <span className="ml-1 text-[10px] text-blue-600">(anda)</span>}</div>
-                        <div className="text-[11px] text-slate-400 truncate">{u.email}</div>
-                      </div>
-                      <div className="col-span-3">{statusBadge(u.status, { active: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Active' }, inactive: { bg: 'bg-slate-100', text: 'text-slate-600', label: 'Inactive' }, pending: { bg: 'bg-amber-50', text: 'text-amber-700', label: 'Pending' }, rejected: { bg: 'bg-rose-50', text: 'text-rose-700', label: 'Rejected' } })}</div>
-                      <div className="col-span-4 flex justify-end gap-1.5">
-                        <button onClick={() => handleDisableAdmin(u)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-lg text-xs font-bold">{u.status === 'active' ? 'Nonaktifkan' : 'Aktifkan'}</button>
-                        <button onClick={() => handleDeleteAdmin(u)} disabled={u.id === user.id} className="bg-rose-50 hover:bg-rose-100 text-rose-600 disabled:opacity-40 px-2.5 py-1 rounded-lg text-xs font-bold">Hapus</button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* ============== MANAJEMEN ADMIN (SEMBUNYIKAN SEBAGAI SINGLE SHARED CREDENTIAL) ============== */}
 
             {/* ============== MANAJEMEN SURAT KEPUTUSAN CDC ============== */}
             {activeTab === 'sk-cdc' && (() => {
