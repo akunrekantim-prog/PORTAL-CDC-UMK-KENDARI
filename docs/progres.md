@@ -6,6 +6,34 @@ Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 
 ---
 
+## Tanggal: 15 September 2026 (Sesi 4)
+**Oleh: ARYA APRIAWAN**
+**Fokus Pekerjaan:** Koreksi label Internship kembali单一, perapihan card Magang admin vs mitra, dan penyejajaran footer card beranda rata bawah.
+
+### Ringkasan Perubahan
+1. **Koreksi Label Internship:**
+   - Mengembalikan label dari `Internship / Magang` menjadi `Internship` saja di `LayananContainer.tsx` (judul besar + breadcrumb), `Header.tsx` (menu + key mapping), `i18n.ts` (kamus ID + EN), dan `Magang.tsx` (`categoryLabel` detail + sub-judul `Daftar Program Internship`).
+
+2. **Perapihan Card Magang (`Magang.tsx`):**
+   - Membedakan thumbnail: poster admin full-bleed 16:9 (`object-cover object-top`), logo mitra contain + padding agar tidak gepeng.
+   - Menyelaraskan struktur card (`h-full`, `flex-col`, `flex-1`) dan hover border agar sejajar card admin.
+
+3. **Penyejajaran Footer Card Beranda (`PublicLayout.tsx`):**
+   - Section `INFO KARIR CDC TERKINI`: card pakai `h-full`, konten `flex-1 flex flex-col`, judul `min-h-[3.5rem] flex-1`, footer `mt-auto` sehingga `by Admin Website • tanggal` selalu rata bawah walau judul pendek.
+
+### File Diubah
+- **[MODIFY]** `src/components/layanan/LayananContainer.tsx`
+- **[MODIFY]** `src/components/layanan/Magang.tsx`
+- **[MODIFY]** `src/components/Header.tsx`
+- **[MODIFY]** `src/i18n.ts`
+- **[MODIFY]** `src/components/PublicLayout.tsx`
+- **[MODIFY]** `docs/progres.md` (entri ini)
+
+### Verifikasi
+- ✅ `npm run lint` (`tsc --noEmit`) — 0 error
+
+---
+
 ## Tanggal: 15 September 2026 (Sesi 3)
 **Oleh: ARYA APRIAWAN**
 **Fokus Pekerjaan:** Penyelarasan label menu Internship / Magang, penambahan footer keterangan `by Admin Website • tanggal` di seluruh card layanan, dan penyesuaian logic tanggal card mengikuti waktu upload admin.

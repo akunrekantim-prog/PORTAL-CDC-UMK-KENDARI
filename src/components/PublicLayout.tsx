@@ -680,9 +680,9 @@ export default function PublicLayout({
                         <div
                           key={item.id}
                           onClick={() => onSelectLowongan(item.id)}
-                          className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group"
+                          className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col h-full cursor-pointer group"
                         >
-                          <div>
+                          <div className="flex flex-col h-full">
                             {item.sumber === 'admin' ? (
                               /* Poster Image Container (Khusus Input Admin: Full-bleed, Zoom-in Center Crop + animasi reveal) */
                               <div className="w-full h-48 sm:h-52 relative overflow-hidden bg-slate-900 border-b border-slate-100">
@@ -759,19 +759,19 @@ export default function PublicLayout({
                             )}
 
                             {/* Card Content */}
-                            <div className="p-5 space-y-2">
+                            <div className="p-5 space-y-2 flex-1 flex flex-col">
                               {/* Instansi Subheading in Accent Orange */}
                               <div className="text-xs font-bold text-orange-600 tracking-wide uppercase truncate">
                                 {item.namaInstansi}
                               </div>
 
                               {/* Main Title */}
-                              <h3 className="font-extrabold text-slate-900 text-lg leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2">
+                              <h3 className="font-extrabold text-slate-900 text-lg leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2 min-h-[3.5rem] flex-1">
                                 {item.judul}
                               </h3>
 
                               {/* Meta Footer: source + Upload Date */}
-                              <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
+                              <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-auto">
                                 {item.sumber === 'admin' ? (
                                   <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
                                 ) : (

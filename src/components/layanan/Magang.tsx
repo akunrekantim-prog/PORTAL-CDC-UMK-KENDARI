@@ -192,7 +192,7 @@ export default function Magang({ lowongan = [], onSelectLowongan }: MagangProps)
 
         <ShareableDetailPage
           title={selectedMagang.judul}
-          categoryLabel="Internship / Magang"
+          categoryLabel="Internship"
           imageUrl={getBannerImage(selectedMagang)}
           posterAspect={(selectedMagang as any).posterAspect || '16:9'}
           onBack={handleBackToList}
@@ -386,7 +386,7 @@ export default function Magang({ lowongan = [], onSelectLowongan }: MagangProps)
       {/* Title & Subtitle */}
       <div className="space-y-1">
         <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1B365D] tracking-tight">
-          Daftar Program Magang / Internship
+          Daftar Program Internship
         </h2>
         <p className="text-slate-500 font-medium text-sm sm:text-base">
           Temukan kesempatan magang industri resmi dari mitra terpercaya CDC UM Kendari.
@@ -433,37 +433,53 @@ export default function Magang({ lowongan = [], onSelectLowongan }: MagangProps)
                     handleOpenDetail(item);
                   }
                 }}
-                className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group"
+                className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md hover:border-slate-300 transition-all flex flex-col h-full cursor-pointer"
               >
-                <div>
-                  {/* Company Logo Image Container (Background Putih Bersih) */}
-                  <div className="w-full h-44 relative overflow-hidden bg-white flex items-center justify-center p-3 border-b border-slate-100">
-                    {item.companyLogo ? (
+                <div className="flex flex-col h-full">
+                  {item.sumber === 'admin' ? (
+                    /* Poster admin: full-bleed 16:9 sejajar card Campus Hiring */
+                    <div className="relative overflow-hidden border-b border-slate-100 bg-slate-900 aspect-[16/9]">
                       <img
-                        src={item.companyLogo}
+                        src={getBannerImage(item)}
                         alt={item.namaInstansi}
-                        className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
                         onError={(e) => {
                           (e.currentTarget as HTMLElement).style.display = 'none';
                         }}
                       />
-                    ) : (
-                      <div className="flex flex-col items-center justify-center text-slate-300 space-y-1">
-                        <Building2 className="w-10 h-10 text-slate-400" />
-                        <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">
-                          {item.namaInstansi}
-                        </span>
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  ) : (
+                    /* Logo mitra: contain + padding agar tidak gepeng */
+                    <div className="relative overflow-hidden border-b border-slate-100 bg-white flex items-center justify-center aspect-[16/9] p-6">
+                      {item.companyLogo ? (
+                        <img
+                          src={item.companyLogo}
+                          alt={item.namaInstansi}
+                          className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <div className="flex flex-col items-center justify-center text-slate-300 space-y-1">
+                          <Building2 className="w-10 h-10 text-slate-400" />
+                          <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">
+                            {item.namaInstansi}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Card Content */}
-                  <div className="p-5 space-y-2">
+                  <div className="p-5 space-y-2 flex-1 flex flex-col">
                     <div className="text-xs font-bold text-orange-600 tracking-wide uppercase truncate">
                       {item.namaInstansi}
                     </div>
 
-                    <h3 className="font-extrabold text-slate-900 text-lg leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2">
+                    <h3 className="font-extrabold text-slate-900 text-lg leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2 flex-1">
                       {item.judul}
                     </h3>
 

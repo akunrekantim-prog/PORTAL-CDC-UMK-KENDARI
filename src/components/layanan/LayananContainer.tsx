@@ -100,7 +100,7 @@ export const LAYANAN_MENU: LayananMenuOption[] = [
   },
   {
     id: 'magang',
-    label: 'Internship / Magang',
+    label: 'Internship',
     shortLabel: 'Magang',
     description: 'Informasi lowongan magang industri dan alur pendaftaran magang bersertifikat resmi.',
     icon: Briefcase,
