@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Lowongan, Mahasiswa } from '../types';
-import { getFromDB, applyForJob, getSavedJobIds, toggleSaveJob, formatDateDisplay, isJobDeadlinePassed } from '../data';
+import { getFromDB, applyForJob, getSavedJobIds, toggleSaveJob, formatDateDisplay, isJobDeadlinePassed, sortJobsByNewest } from '../data';
 import Header from './Header';
 import { Footer } from './Footer';
 import {
@@ -181,10 +181,10 @@ export const JobDetail: React.FC<JobDetailProps> = ({
     }
   };
 
-  // Fetch all jobs for "Postingan Terbaru" widget safely
+  // Fetch all jobs for "Postingan Terbaru" widget safely — sorted by newest (matching Beranda logic)
   const allLowongan = getFromDB<Lowongan>('lowongan') || [];
-  const recentJobs = allLowongan
-    .filter(l => l && l.id !== job.id && l.status === 'published')
+  const publishedJobs = sortJobsByNewest(allLowongan.filter(l => l && l.id !== job.id && l.status === 'published'));
+  const recentJobs = publishedJobs
     .filter(l => {
       const q = (sidebarSearch || '').toLowerCase().trim();
       if (!q) return true;
@@ -192,7 +192,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
       const instansi = (l.namaInstansi || '').toLowerCase();
       return judul.includes(q) || instansi.includes(q);
     })
-    .slice(0, 3);
+    .slice(0, 4);
 
   // Handlers
   const triggerToast = (msg: string) => {
@@ -515,15 +515,16 @@ export const JobDetail: React.FC<JobDetailProps> = ({
             {/* RIGHT COLUMN: Sticky Sidebar Summary Table & Widgets (lg:col-span-4) */}
             <aside className="lg:col-span-4 space-y-6 lg:sticky lg:top-24 lg:self-start transition-all duration-300">
 
-              {/* Widget 1: Ringkasan Pekerjaan (Senior Programmer Grade Design) */}
-              <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xs hover:border-slate-300 transition-all p-6 space-y-6">
-                <div className="border-b border-slate-100 pb-3">
-                  <h3 className="text-base font-extrabold text-slate-900">
+              {/* Widget 1: Ringkasan Pekerjaan (Institutional Blue Header Design) */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden transition-all">
+                <div className="bg-[#0077C6] px-5 py-3.5 flex items-center justify-between">
+                  <h3 className="font-extrabold text-sm text-white uppercase tracking-wider flex items-center gap-2">
                     Ringkasan Pekerjaan
                   </h3>
                 </div>
 
-                {/* Key-Value Rows */}
+                <div className="p-5 sm:p-6 space-y-6">
+                  {/* Key-Value Rows */}
                 <div className="space-y-3.5 text-xs sm:text-sm">
                   {/* Jenis Pekerjaan */}
                   <div className="flex items-center justify-between py-1.5 border-b border-slate-100/80 gap-3">
@@ -756,6 +757,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                   </div>
                 </div>
 
+                </div>
               </div>
 
               {/* Widget 2: Search Sidebar Input Box */}
@@ -772,51 +774,55 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                 </div>
               </div>
 
-              {/* Widget 3: Postingan Terbaru */}
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-4">
-                <h3 className="text-lg font-extrabold text-slate-900 border-b border-slate-100 pb-3">
-                  Postingan Terbaru
-                </h3>
+              {/* Widget 3: Postingan Terbaru (Institutional Blue Header Design & Beranda Logic) */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden transition-all">
+                <div className="bg-[#0077C6] px-5 py-3.5 flex items-center justify-between">
+                  <h3 className="font-extrabold text-sm text-white uppercase tracking-wider flex items-center gap-2">
+                    Postingan Terbaru
+                  </h3>
+                </div>
 
-                <div className="space-y-4">
+                <div className="p-5 sm:p-6 space-y-4">
                   {recentJobs.map((item) => {
                     const itemPoster =
-                      item.flyer ||
-                      item.imageUrl ||
-                      (Array.isArray(item.flyers) && item.flyers.length > 0 ? item.flyers[0] : null) ||
-                      item.bannerImage ||
-                      item.companyLogo ||
-                      defaultLogo;
+                      item.sumber === 'admin'
+                        ? (item.flyer || item.imageUrl || (Array.isArray(item.flyers) && item.flyers.length > 0 ? item.flyers[0] : null) || item.bannerImage || defaultPoster)
+                        : (item.companyLogo || defaultLogo);
                     return (
                       <div
                         key={item.id}
                         onClick={() => onSelectJob && onSelectJob(item.id)}
-                        className="flex items-start gap-3.5 group cursor-pointer border-b border-slate-50 last:border-0 pb-3 last:pb-0"
+                        className="flex items-start gap-3.5 group cursor-pointer border-b border-slate-100 last:border-0 pb-3.5 last:pb-0"
                       >
-                        <img
-                          src={itemPoster}
-                          alt={item.judul}
-                          loading="lazy"
-                          decoding="async"
-                          className="w-12 h-12 rounded-xl border border-slate-200 object-cover shrink-0 bg-slate-50"
-                        />
+                        <div className="w-12 h-12 rounded-xl border border-slate-200/80 overflow-hidden shrink-0 bg-white flex items-center justify-center p-1 shadow-2xs">
+                          <img
+                            src={itemPoster}
+                            alt={item.judul}
+                            loading="lazy"
+                            decoding="async"
+                            className={`w-full h-full ${item.sumber === 'admin' ? 'object-cover' : 'object-contain'} group-hover:scale-105 transition-transform duration-200`}
+                          />
+                        </div>
                         <div className="min-w-0 flex-1 space-y-0.5">
-                          <h4 className="font-extrabold text-slate-900 text-xs sm:text-sm leading-snug group-hover:text-[#0077C6] transition-colors truncate">
+                          <div className="text-[11px] font-bold text-orange-600 uppercase tracking-wide truncate">
+                            {item.namaInstansi}
+                          </div>
+                          <h4 className="font-extrabold text-slate-900 text-xs sm:text-sm leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2">
                             {item.judul}
                           </h4>
-                          <p className="text-xs text-slate-500 font-medium truncate">
-                            {item.namaInstansi}
-                          </p>
-                          <p className="text-[11px] text-slate-400">
-                            {formatDateDisplay(item.createdAt || item.deadline)}
-                          </p>
+                          <div className="flex items-center gap-1.5 text-[11px] text-slate-400 font-medium pt-0.5">
+                            <span>{item.sumber === 'admin' ? 'by Admin Website' : 'by Mitra'}</span>
+                            <span>•</span>
+                            <Clock className="w-3 h-3 text-slate-400 shrink-0" />
+                            <span>{formatDateDisplay(item.createdAt || item.deadline)}</span>
+                          </div>
                         </div>
                       </div>
                     );
                   })}
 
                   {recentJobs.length === 0 && (
-                    <p className="text-xs text-slate-400 text-center py-2">Tidak ada postingan terbaru</p>
+                    <p className="text-xs text-slate-400 text-center py-3">Tidak ada postingan terbaru</p>
                   )}
                 </div>
               </div>

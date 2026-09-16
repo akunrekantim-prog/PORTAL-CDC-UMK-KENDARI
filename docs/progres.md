@@ -6,6 +6,41 @@ Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 
 ---
 
+## Tanggal: 16 September 2026 (Sesi 4)
+**Oleh: ARYA APRIAWAN**
+**Fokus Pekerjaan:** Penghapusan menu navigasi Register pada navbar utama dan penambahan tombol akses cepat Login di top bar kanan (bersebelahan dengan pengalih bahasa/bendera).
+
+### Ringkasan Perubahan
+1. **Penghapusan Menu Register Navbar (`Header.tsx`):**
+   - Menghapus item dropdown `Register` (`Register User` & `Register Mitra`) dari daftar menu navigasi utama desktop dan drawer navigasi mobile.
+2. **Penempatan Menu Login Teks di Paling Kanan Top Bar (`Header.tsx`):**
+   - Menempatkan menu **Login** di posisi paling kanan atas (setelah dropdown bendera dan dipisahkan titik `•`), tampil polos dalam bentuk teks murni tanpa logo dengan efek hover oranye (`hover:text-orange-300`), selaras dengan format tautan utilitas seperti `SIMKATMAWA`.
+   - Mengklik tulisan Login langsung mengarahkan pengguna ke rute login (`/login`).
+
+### File Diubah
+- **[MODIFY]** `src/components/Header.tsx`
+- **[MODIFY]** `docs/progres.md` (entri ini)
+
+---
+
+## Tanggal: 16 September 2026 (Sesi 3)
+**Oleh: ARYA APRIAWAN**
+**Fokus Pekerjaan:** Penyelarasan header sidebar Job Detail (Ringkasan Pekerjaan & Postingan Terbaru) dengan gaya biru Popular Info serta penyesuaian logika Postingan Terbaru mengikuti Beranda.
+
+### Ringkasan Perubahan
+1. **Header Biru Institusional (`JobDetail.tsx`):**
+   - Mengubah header pada kartu sidebar **Ringkasan Pekerjaan** dan **Postingan Terbaru** menggunakan warna biru cerah khas tombol CDC UMK (`bg-[#0077C6]`), teks putih tebal uppercase (`font-extrabold text-sm text-white uppercase tracking-wider`), dan sudut melengkung terintegrasi (`rounded-2xl overflow-hidden`).
+2. **Logika Postingan Terbaru Selaras Beranda (`JobDetail.tsx`):**
+   - Mengurutkan lowongan menggunakan `sortJobsByNewest` agar postingan terbaru (berdasarkan tanggal rilis/pembuatan) selalu berada di urutan teratas.
+   - Menyelaraskan thumbnail: poster untuk sumber admin (`object-cover`) dan logo instansi untuk sumber mitra (`object-contain`).
+   - Menambahkan metadata lengkap kartu: nama instansi beraksen oranye, judul lowongan 2 baris, dan penanda sumber (`by Admin Website` / `by Mitra`) disertai ikon jam dan tanggal upload.
+
+### File Diubah
+- **[MODIFY]** `src/components/JobDetail.tsx`
+- **[MODIFY]** `docs/progres.md` (entri ini)
+
+---
+
 ## Tanggal: 16 September 2026 (Sesi 2)
 **Oleh: ARYA APRIAWAN**
 **Fokus Pekerjaan:** Penambahan keterangan tanggal upload admin pada halaman detail layanan (Internship, Campus Hiring, Job Fair, Workshop, Softskill, Seminar).
