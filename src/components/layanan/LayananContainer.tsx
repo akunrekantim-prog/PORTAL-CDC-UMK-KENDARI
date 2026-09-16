@@ -40,7 +40,7 @@ export const LAYANAN_MENU: LayananMenuOption[] = [
     id: 'campus-hiring',
     label: 'Campus Hiring - Recruitment',
     shortLabel: 'Campus Hiring',
-    description: 'Program rekrutmen langsung di kampus oleh perusahaan mitra untuk mahasiswa dan alumni UMK.',
+    description: 'Program rekrutmen langsung di kampus oleh perusahaan mitra untuk mahasiswa dan alumni UM KENDARI.',
     icon: Rocket,
     badge: 'Recruitment',
     color: 'from-blue-700 to-sky-600'
@@ -93,7 +93,7 @@ export const LAYANAN_MENU: LayananMenuOption[] = [
     id: 'career-fair',
     label: 'Job Fair',
     shortLabel: 'Job Fair',
-    description: 'Bursa kerja tahunan yang mempertemukan mahasiswa dan alumni UMK dengan puluhan perusahaan mitra.',
+    description: 'Bursa kerja tahunan yang mempertemukan mahasiswa dan alumni UM KENDARI dengan puluhan perusahaan mitra.',
     icon: CalendarDays,
     badge: 'Annual Event',
     color: 'from-amber-400 to-yellow-600'

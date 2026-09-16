@@ -25,7 +25,7 @@ export default function CampusHiring({ konten = [], initialEventId }: { konten?:
       <EventCardLayout
         category="campus-hiring"
         pageTitle="Campus Hiring - Recruitment"
-        subtitle="Program rekrutmen langsung di kampus oleh perusahaan mitra untuk mahasiswa dan alumni UMK."
+        subtitle="Program rekrutmen langsung di kampus oleh perusahaan mitra untuk mahasiswa dan alumni UM KENDARI."
         events={seedEvents}
         kontenEvents={konten}
         initialEventId={initialEventId}

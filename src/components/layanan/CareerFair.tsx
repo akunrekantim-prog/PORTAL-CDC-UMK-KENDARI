@@ -12,7 +12,7 @@ export default function CareerFair({ konten = [], initialEventId }: { konten?: K
       title: fair.judul,
       organizer: 'CDC UM Kendari',
       date: fair.createdAt ? fair.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10),
-      location: fair.lokasi || 'Gedung UMK Kendari',
+      location: fair.lokasi || 'Gedung UM Kendari',
       image: fair.bannerUrl || '/poster-cdc-web-umk-2.svg',
       description: fair.deskripsi || '',
       status: 'buka',
@@ -25,7 +25,7 @@ export default function CareerFair({ konten = [], initialEventId }: { konten?: K
       <EventCardLayout
         category="career-fair"
         pageTitle="Job Fair"
-        subtitle="Bursa kerja tahunan yang mempertemukan mahasiswa dan alumni UMK dengan puluhan perusahaan BUMN & Swasta Nasional."
+        subtitle="Bursa kerja tahunan yang mempertemukan mahasiswa dan alumni UM KENDARI dengan puluhan perusahaan BUMN & Swasta Nasional."
         events={seedEvents}
         kontenEvents={konten}
         initialEventId={initialEventId}
