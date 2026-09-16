@@ -54,26 +54,13 @@ interface SocialShareBarProps {
   summary?: string;
 }
 
-export function WhatsAppWaIcon({ className = "w-4 h-4" }: { className?: string }) {
+export function WhatsAppWaIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M12 2C6.477 2 2 6.477 2 12C2 13.84 2.502 15.56 3.374 17.037L2 22L7.094 20.67C8.528 21.517 10.207 22 12 22C17.523 22 22 17.523 22 12C22 6.477 17.523 2 12 2Z"
-        fill="white"
-      />
-      <text
-        x="12"
-        y="14.8"
-        textAnchor="middle"
-        fill="#25D366"
-        fontSize="8.5"
-        fontWeight="900"
-        fontFamily="system-ui, -apple-system, BlinkMacSystemFont, sans-serif"
-        letterSpacing="-0.5px"
-      >
-        WA
-      </text>
-    </svg>
+    <img
+      src="/whatsapp-icon.png"
+      alt="WhatsApp"
+      className={`inline-block shrink-0 object-contain ${className}`}
+    />
   );
 }
 
@@ -200,7 +187,7 @@ export default function SocialShareBar({
         className="flex items-center gap-2 bg-[#25D366] hover:bg-[#1ebd59] text-white px-3.5 py-2 rounded-md font-bold text-xs sm:text-sm shadow-2xs transition active:scale-95 cursor-pointer"
         title="Bagikan via WhatsApp"
       >
-        <WhatsAppWaIcon className="w-4.5 h-4.5" />
+        <WhatsAppWaIcon className="w-5 h-5" />
         <span>WhatsApp</span>
       </button>
 

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   ChevronLeft,
   Tag,
@@ -58,6 +58,12 @@ export default function PrestasiDetailView({
   onSelectEvent,
 }: PrestasiDetailViewProps) {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (prestasi && prestasi.judul) {
+      document.title = `${prestasi.judul} - Prestasi Mahasiswa | Portal CDC UM Kendari`;
+    }
+  }, [prestasi]);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -355,13 +361,13 @@ export default function PrestasiDetailView({
                 </div>
               </div>
 
-              {/* FEATURED MAIN COVER IMAGE (DOKUMENTASI DENGAN RASTER SHADOW SLATE) */}
+              {/* FEATURED MAIN COVER IMAGE (Natural Aspect Ratio - tanpa template rasio kaku & tanpa ruang hitam) */}
               {prestasi.thumbnail ? (
-                <div className="w-full aspect-[16/9] sm:aspect-[21/9] rounded-2xl overflow-hidden border border-slate-200/80 bg-slate-900 shadow-sm relative group">
+                <div className="w-full rounded-2xl overflow-hidden border border-slate-200/80 shadow-2xs group flex justify-center bg-slate-50/50">
                   <img
                     src={prestasi.thumbnail}
                     alt={prestasi.judul}
-                    className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
+                    className="w-full h-auto max-h-[650px] object-contain rounded-2xl group-hover:scale-102 transition-transform duration-500"
                   />
                 </div>
               ) : (
