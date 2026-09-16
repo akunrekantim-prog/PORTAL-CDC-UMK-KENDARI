@@ -2861,26 +2861,31 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                                   </div>
                                 </div>
                               ) : (
-                                <div className="py-2 space-y-0 max-w-3xl">
-                                  {annShowBadge && (
-                                    <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
-                                      {annShowBadgeIcon && <Megaphone className="w-3.5 h-3.5 text-slate-400" />}
-                                      {annBadgeText || 'PENGUMUMAN PENTING'}
-                                    </p>
-                                  )}
-                                  <h4 className="text-base font-extrabold text-slate-900 leading-tight tracking-tight pt-2">
-                                    {annTitle || 'Judul Pengumuman...'}
-                                  </h4>
-                                  <p className="text-xs text-slate-500 leading-relaxed pt-1.5">
-                                    {annContent || 'Isi deskripsi pengumuman...'}
-                                  </p>
-                                  {annLinkUrl && (
-                                    <div className="pt-3">
-                                      <span className="inline-flex items-center gap-1.5 bg-slate-900 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl">
-                                        {annLinkLabel || 'Buka Tautan'} <ExternalLink className="w-3 h-3" />
-                                      </span>
+                                <div className="border-y border-slate-200 py-4 max-w-3xl">
+                                  <div className="flex gap-4">
+                                    <div className="w-1 self-stretch rounded-full bg-[#1E3A8A] shrink-0" />
+                                    <div className="min-w-0">
+                                      {annShowBadge && (
+                                        <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#1E3A8A]">
+                                          {annShowBadgeIcon && <Megaphone className="w-3.5 h-3.5" />}
+                                          {annBadgeText || 'PENGUMUMAN PENTING'}
+                                        </p>
+                                      )}
+                                      <h4 className="text-base font-extrabold text-slate-900 leading-tight tracking-tight pt-2">
+                                        {annTitle || 'Judul Pengumuman...'}
+                                      </h4>
+                                      <p className="text-xs text-slate-500 leading-relaxed pt-1.5">
+                                        {annContent || 'Isi deskripsi pengumuman...'}
+                                      </p>
+                                      {annLinkUrl && (
+                                        <div className="pt-3">
+                                          <span className="inline-flex items-center gap-1.5 bg-[#1E3A8A] text-white font-bold text-[10px] px-3.5 py-1.5 rounded-xl">
+                                            {annLinkLabel || 'Buka Tautan'} <ExternalLink className="w-3 h-3" />
+                                          </span>
+                                        </div>
+                                      )}
                                     </div>
-                                  )}
+                                  </div>
                                 </div>
                               )}
 

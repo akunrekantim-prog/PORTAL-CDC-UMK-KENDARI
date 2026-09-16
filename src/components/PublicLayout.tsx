@@ -631,34 +631,45 @@ export default function PublicLayout({
                         </div>
                       </div>
                     ) : (
-                      /* Mode Badge / Banner Teks — flat editorial, nyatu background */
-                      <div className="py-2 max-w-3xl">
-                        {importantAnn.showBadge !== false && (
-                          <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
-                            {importantAnn.showBadgeIcon !== false && (
-                              <Megaphone className="w-3.5 h-3.5 text-slate-400" />
+                      /* Mode Badge / Banner Teks — strip formal kampus */
+                      <div className="border-y border-slate-200 py-6 sm:py-7">
+                        <div className="flex gap-5">
+                          <div className="w-1 self-stretch rounded-full bg-[#1E3A8A] shrink-0" />
+                          <div className="max-w-3xl min-w-0">
+                            {importantAnn.showBadge !== false && (
+                              <div className="flex items-center gap-2 flex-wrap text-[11px] font-bold uppercase tracking-[0.14em]">
+                                <span className="flex items-center gap-1.5 text-[#1E3A8A]">
+                                  {importantAnn.showBadgeIcon !== false && (
+                                    <Megaphone className="w-3.5 h-3.5" />
+                                  )}
+                                  {importantAnn.badgeText || 'PENGUMUMAN PENTING'}
+                                </span>
+                                <span className="text-slate-300 font-normal">/</span>
+                                <span className="text-slate-400">
+                                  {formatDateDisplay(importantAnn.publishedAt || importantAnn.createdAt)}
+                                </span>
+                              </div>
                             )}
-                            {importantAnn.badgeText || 'PENGUMUMAN PENTING'}
-                          </p>
-                        )}
-                        <h3 className="mt-2 text-xl sm:text-2xl font-extrabold text-slate-900 leading-tight tracking-tight">
-                          {importantAnn.title}
-                        </h3>
-                        <p className="mt-2 text-sm sm:text-base text-slate-500 leading-relaxed max-w-2xl">
-                          {stripHtmlTags(importantAnn.content)}
-                        </p>
-                        {importantAnn.linkUrl && (
-                          <div className="pt-4">
-                            <a
-                              href={importantAnn.linkUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 bg-slate-900 hover:bg-black text-white font-bold text-xs px-4 py-2.5 rounded-xl transition cursor-pointer"
-                            >
-                              {importantAnn.linkLabel || 'Buka Tautan'} <ExternalLink className="w-3.5 h-3.5" />
-                            </a>
+                            <h3 className="mt-2 text-xl sm:text-2xl font-extrabold text-slate-900 leading-tight tracking-tight">
+                              {importantAnn.title}
+                            </h3>
+                            <p className="mt-2 text-sm sm:text-base text-slate-500 leading-relaxed max-w-2xl">
+                              {stripHtmlTags(importantAnn.content)}
+                            </p>
+                            {importantAnn.linkUrl && (
+                              <div className="pt-4">
+                                <a
+                                  href={importantAnn.linkUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-2 bg-[#1E3A8A] hover:bg-[#162c6b] text-white font-bold text-xs px-5 py-2.5 rounded-xl transition cursor-pointer"
+                                >
+                                  {importantAnn.linkLabel || 'Buka Tautan'} <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
+                              </div>
+                            )}
                           </div>
-                        )}
+                        </div>
                       </div>
                     )}
                   </motion.div>
