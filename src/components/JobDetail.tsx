@@ -305,10 +305,10 @@ export const JobDetail: React.FC<JobDetailProps> = ({
           <div className="flex items-center justify-between">
             <button
               onClick={onBack}
-              className="inline-flex items-center gap-1.5 text-[#0077C6] hover:text-blue-800 font-bold text-sm transition group"
+              className="inline-flex items-center gap-1.5 text-[#1E3A8A] hover:text-[#142355] font-bold text-sm transition group"
               id="job-back-link"
             >
-              <ChevronLeft className="w-4 h-4 text-[#0077C6] group-hover:-translate-x-0.5 transition-transform" />
+              <ChevronLeft className="w-4 h-4 text-[#1E3A8A] group-hover:-translate-x-0.5 transition-transform" />
               <span>Kembali ke Lowongan</span>
             </button>
           </div>
@@ -372,7 +372,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                       )}
 
                       {(job.sumber === 'mitra' || (!job.sumber && Boolean(job.mitraId))) && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-600 text-white">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#1E3A8A] text-white">
                           <Building2 className="w-3.5 h-3.5" /> by Mitra Perusahaan
                         </span>
                       )}
@@ -390,7 +390,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                       href={job.linkEksternal}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="bg-[#0077C6] hover:bg-blue-700 text-white font-extrabold text-xs uppercase tracking-wider px-6 py-3 rounded-2xl shadow-xs hover:shadow-md transition-all shrink-0 self-start active:scale-95 inline-flex items-center justify-center cursor-pointer"
+                      className="bg-[#1E3A8A] hover:bg-[#142355] active:bg-[#0f172a] text-white font-extrabold text-xs uppercase tracking-wider px-6 py-3 rounded-2xl shadow-xs hover:shadow-md transition-all shrink-0 self-start active:scale-95 inline-flex items-center justify-center cursor-pointer"
                       id="btn-cta-admin"
                     >
                       {job.ctaLabel && job.ctaLabel.trim() ? job.ctaLabel : 'Lamar Pekerjaan'}
@@ -406,7 +406,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                           setIsApplyModalOpen(true);
                         }
                       }}
-                      className="bg-[#0077C6] hover:bg-blue-700 text-white font-extrabold text-xs uppercase tracking-wider px-6 py-3 rounded-2xl shadow-xs hover:shadow-md transition-all shrink-0 self-start active:scale-95 flex items-center justify-center cursor-pointer"
+                      className="bg-[#1E3A8A] hover:bg-[#142355] active:bg-[#0f172a] text-white font-extrabold text-xs uppercase tracking-wider px-6 py-3 rounded-2xl shadow-xs hover:shadow-md transition-all shrink-0 self-start active:scale-95 flex items-center justify-center cursor-pointer"
                       id="btn-lamar-sekarang-top"
                     >
                       {job.ctaLabel && job.ctaLabel.trim() ? job.ctaLabel : 'Lamar Pekerjaan'}
@@ -427,7 +427,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                   if (!hasAnyDetail) {
                     return (
                       <div className="bg-slate-50/80 border border-slate-200/90 rounded-2xl p-6 text-center space-y-3">
-                        <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto border border-blue-100 shadow-2xs">
+                        <div className="w-12 h-12 bg-[#1E3A8A]/10 text-[#1E3A8A] rounded-2xl flex items-center justify-center mx-auto border border-[#1E3A8A]/20 shadow-2xs">
                           <FileText className="w-6 h-6" />
                         </div>
                         <div className="space-y-1">
@@ -517,7 +517,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
 
               {/* Widget 1: Ringkasan Pekerjaan (Institutional Blue Header Design) */}
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden transition-all">
-                <div className="bg-[#0077C6] px-5 py-3.5 flex items-center justify-between">
+                <div className="bg-[#1E3A8A] px-5 py-3.5 flex items-center justify-between">
                   <h3 className="font-extrabold text-sm text-white uppercase tracking-wider flex items-center gap-2">
                     Ringkasan Pekerjaan
                   </h3>
@@ -581,7 +581,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                               {primary}
                             </span>
                             {extra > 0 && (
-                              <span className="bg-[#0077C6] text-white font-extrabold px-2 py-0.5 rounded-full text-[10px] shrink-0 shadow-2xs group-hover:bg-blue-700 transition">
+                              <span className="bg-[#1E3A8A] text-white font-extrabold px-2 py-0.5 rounded-full text-[10px] shrink-0 shadow-2xs group-hover:bg-[#142355] transition">
                                 +{extra}
                               </span>
                             )}
@@ -692,7 +692,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                       href={job.linkEksternal}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full bg-[#0077C6] hover:bg-blue-700 text-white font-extrabold py-3.5 rounded-2xl shadow-xs hover:shadow-md transition-all text-xs uppercase tracking-wider text-center active:scale-95 flex items-center justify-center cursor-pointer"
+                      className="w-full bg-[#1E3A8A] hover:bg-[#142355] active:bg-[#0f172a] text-white font-extrabold py-3.5 rounded-2xl shadow-xs hover:shadow-md transition-all text-xs uppercase tracking-wider text-center active:scale-95 flex items-center justify-center cursor-pointer"
                       id="btn-cta-admin-side"
                     >
                       {job.ctaLabel && job.ctaLabel.trim() ? job.ctaLabel : 'Lamar Pekerjaan'}
@@ -708,7 +708,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                           setIsApplyModalOpen(true);
                         }
                       }}
-                      className="w-full bg-[#0077C6] hover:bg-blue-700 text-white font-extrabold py-3.5 rounded-2xl shadow-xs hover:shadow-md transition-all text-xs uppercase tracking-wider text-center active:scale-95 flex items-center justify-center cursor-pointer"
+                      className="w-full bg-[#1E3A8A] hover:bg-[#142355] active:bg-[#0f172a] text-white font-extrabold py-3.5 rounded-2xl shadow-xs hover:shadow-md transition-all text-xs uppercase tracking-wider text-center active:scale-95 flex items-center justify-center cursor-pointer"
                       id="btn-lamar-pekerjaan-ini"
                     >
                       {job.ctaLabel && job.ctaLabel.trim() ? job.ctaLabel : 'Lamar Pekerjaan'}
@@ -733,7 +733,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                   <div className="flex items-center justify-center gap-2.5">
                     <button
                       onClick={() => setIsShareModalOpen(true)}
-                      className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-[#0077C6] text-white font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-xs active:scale-95"
+                      className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-[#1E3A8A] text-white font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-xs active:scale-95"
                       title="Pilihan Bagikan Lengkap"
                       id="btn-open-share-modal"
                     >
@@ -742,7 +742,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                     </button>
                     <button
                       onClick={handleCopyLink}
-                      className="w-9 h-9 rounded-xl bg-slate-50 hover:bg-blue-50 text-slate-600 hover:text-[#0077C6] border border-slate-200 flex items-center justify-center transition cursor-pointer"
+                      className="w-9 h-9 rounded-xl bg-slate-50 hover:bg-[#1E3A8A]/10 text-slate-600 hover:text-[#1E3A8A] border border-slate-200 flex items-center justify-center transition cursor-pointer"
                       title="Salin Tautan"
                     >
                       <Link2 className="w-4 h-4" />
@@ -769,14 +769,14 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                     value={sidebarSearch}
                     onChange={(e) => setSidebarSearch(e.target.value)}
                     placeholder="Cari lowongan lainnya..."
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs sm:text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#0077C6]/20 focus:border-[#0077C6]"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs sm:text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#1E3A8A]/20 focus:border-[#1E3A8A]"
                   />
                 </div>
               </div>
 
               {/* Widget 3: Postingan Terbaru (Institutional Blue Header Design & Beranda Logic) */}
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden transition-all">
-                <div className="bg-[#0077C6] px-5 py-3.5 flex items-center justify-between">
+                <div className="bg-[#1E3A8A] px-5 py-3.5 flex items-center justify-between">
                   <h3 className="font-extrabold text-sm text-white uppercase tracking-wider flex items-center gap-2">
                     Postingan Terbaru
                   </h3>
@@ -807,7 +807,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                           <div className="text-[11px] font-bold text-orange-600 uppercase tracking-wide truncate">
                             {item.namaInstansi}
                           </div>
-                          <h4 className="font-extrabold text-slate-900 text-xs sm:text-sm leading-snug group-hover:text-[#0077C6] transition-colors line-clamp-2">
+                          <h4 className="font-extrabold text-slate-900 text-xs sm:text-sm leading-snug group-hover:text-[#1E3A8A] transition-colors line-clamp-2">
                             {item.judul}
                           </h4>
                           <div className="flex items-center gap-1.5 text-[11px] text-slate-400 font-medium pt-0.5">
@@ -897,7 +897,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[#0077C6] flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-2xl bg-[#1E3A8A]/10 text-[#1E3A8A] flex items-center justify-center shrink-0">
                   <Share2 className="w-5 h-5" />
                 </div>
                 <div>

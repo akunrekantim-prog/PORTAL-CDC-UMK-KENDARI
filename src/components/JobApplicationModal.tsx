@@ -126,7 +126,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
       <div className="bg-white max-w-lg w-full rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl overflow-hidden animate-fadeIn my-auto">
         
         {/* Modal Header */}
-        <div className="bg-[#1B365D] text-white p-4 sm:p-6 relative">
+        <div className="bg-[#1E3A8A] text-white p-4 sm:p-6 relative">
           <button
             onClick={handleClose}
             className="absolute top-4 right-4 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
@@ -183,7 +183,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
               </div>
               <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
                 <span className="text-slate-500 font-medium">Mitra:</span>
-                <span className="font-bold text-[#0077C6] truncate max-w-[180px] sm:max-w-[220px] text-right">{job.namaInstansi}</span>
+                <span className="font-bold text-[#1E3A8A] truncate max-w-[180px] sm:max-w-[220px] text-right">{job.namaInstansi}</span>
               </div>
               <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
                 <span className="text-slate-500 font-medium">Nama Pelamar:</span>
@@ -251,7 +251,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
                 value={applicantName}
                 onChange={(e) => setApplicantName(e.target.value)}
                 placeholder="Masukkan nama lengkap Anda..."
-                className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20 bg-white"
               />
             </div>
 
@@ -264,7 +264,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
                   value={applicantEmail}
                   onChange={(e) => setApplicantEmail(e.target.value)}
                   placeholder="email@contoh.com"
-                  className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                  className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20 bg-white"
                 />
               </div>
 
@@ -276,7 +276,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
                   value={applicantProdi}
                   onChange={(e) => setApplicantProdi(e.target.value)}
                   placeholder="Contoh: S1 Teknik Informatika"
-                  className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                  className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20 bg-white"
                 />
               </div>
             </div>
@@ -286,7 +286,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
                 Upload Berkas CV / Portofolio (PDF/Gambar) <span className="text-rose-500 font-semibold text-xs">* Wajib</span>
               </label>
               <div className={`border-2 border-dashed rounded-xl sm:rounded-2xl p-3.5 sm:p-4 text-center cursor-pointer bg-slate-50 transition relative ${
-                fileError ? 'border-rose-400 bg-rose-50/50' : 'border-slate-200 hover:border-[#0077C6]'
+                fileError ? 'border-rose-400 bg-rose-50/50' : 'border-slate-200 hover:border-[#1E3A8A]'
               }`}>
                 <input
                   type="file"
@@ -295,7 +295,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 />
                 <UploadCloud className={`w-7 h-7 sm:w-8 sm:h-8 mx-auto mb-1 ${fileError ? 'text-rose-400' : 'text-slate-400'}`} />
-                <span className={`text-xs font-bold block truncate px-2 ${fileError ? 'text-rose-600' : 'text-[#0077C6]'}`}>
+                <span className={`text-xs font-bold block truncate px-2 ${fileError ? 'text-rose-600' : 'text-[#1E3A8A]'}`}>
                   {uploadedFileName ? uploadedFileName : 'Klik untuk unggah berkas CV (PDF / Gambar)'}
                 </span>
                 <span className="text-xs text-slate-400 mt-0.5 block">Format PDF / PNG / JPG • Maksimal 1 MB</span>
@@ -316,7 +316,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
                 value={applicantNotes}
                 onChange={(e) => setApplicantNotes(e.target.value)}
                 placeholder="Tuliskan pesan atau surat pengantar singkat Anda untuk mitra..."
-                className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 bg-white"
+                className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20 bg-white"
               />
             </div>
 
@@ -331,7 +331,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-[#0077C6] hover:bg-blue-700 text-white font-bold px-5 py-2 sm:px-6 sm:py-2.5 rounded-xl text-xs transition tracking-wider shadow-xs disabled:opacity-50 cursor-pointer"
+                className="bg-[#1E3A8A] hover:bg-[#142355] active:bg-[#0f172a] text-white font-bold px-5 py-2 sm:px-6 sm:py-2.5 rounded-xl text-xs transition tracking-wider shadow-xs disabled:opacity-50 cursor-pointer"
               >
                 {isSubmitting ? 'Mengirim...' : 'Kirim Lamaran'}
               </button>
