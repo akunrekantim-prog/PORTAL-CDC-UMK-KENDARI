@@ -578,7 +578,7 @@ export default function PublicLayout({
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="overflow-hidden rounded-3xl border border-emerald-200/80 shadow-md bg-gradient-to-br from-emerald-50/90 via-white to-emerald-50/40 relative"
+                    className={isPosterMode ? "overflow-hidden rounded-3xl relative" : "relative"}
                   >
                     {isPosterMode ? (
                       /* Mode Poster / Gambar Visual */
@@ -631,40 +631,34 @@ export default function PublicLayout({
                         </div>
                       </div>
                     ) : (
-                      /* Mode Badge / Banner Teks */
-                      <div className="p-6 sm:p-7 flex flex-col sm:flex-row items-start gap-5 relative">
-                        {importantAnn.showBadgeIcon !== false && (
-                          <div className="bg-emerald-500 text-slate-950 p-3.5 rounded-2xl shadow-sm shrink-0 flex items-center justify-center">
-                            <Megaphone className="w-7 h-7 animate-pulse text-slate-950" />
+                      /* Mode Badge / Banner Teks — flat editorial, nyatu background */
+                      <div className="py-2 max-w-3xl">
+                        {importantAnn.showBadge !== false && (
+                          <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                            {importantAnn.showBadgeIcon !== false && (
+                              <Megaphone className="w-3.5 h-3.5 text-slate-400" />
+                            )}
+                            {importantAnn.badgeText || 'PENGUMUMAN PENTING'}
+                          </p>
+                        )}
+                        <h3 className="mt-2 text-xl sm:text-2xl font-extrabold text-slate-900 leading-tight tracking-tight">
+                          {importantAnn.title}
+                        </h3>
+                        <p className="mt-2 text-sm sm:text-base text-slate-500 leading-relaxed max-w-2xl">
+                          {stripHtmlTags(importantAnn.content)}
+                        </p>
+                        {importantAnn.linkUrl && (
+                          <div className="pt-4">
+                            <a
+                              href={importantAnn.linkUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 bg-slate-900 hover:bg-black text-white font-bold text-xs px-4 py-2.5 rounded-xl transition cursor-pointer"
+                            >
+                              {importantAnn.linkLabel || 'Buka Tautan'} <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
                           </div>
                         )}
-                        <div className="flex-1 space-y-2">
-                          {importantAnn.showBadge !== false && (
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-wider">
-                                {importantAnn.badgeText || 'PENGUMUMAN PENTING'}
-                              </span>
-                            </div>
-                          )}
-                          <h3 className="text-lg sm:text-xl font-black text-slate-900 leading-snug">
-                            {importantAnn.title}
-                          </h3>
-                          <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-                            {stripHtmlTags(importantAnn.content)}
-                          </p>
-                          {importantAnn.linkUrl && (
-                            <div className="pt-2">
-                              <a
-                                href={importantAnn.linkUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 bg-[#10B981] hover:bg-emerald-600 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-xs transition cursor-pointer"
-                              >
-                                {importantAnn.linkLabel || 'Buka Tautan'} <ExternalLink className="w-3.5 h-3.5" />
-                              </a>
-                            </div>
-                          )}
-                        </div>
                       </div>
                     )}
                   </motion.div>
