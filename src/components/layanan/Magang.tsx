@@ -384,13 +384,10 @@ export default function Magang({ lowongan = [], onSelectLowongan }: MagangProps)
   // ===== DAFTAR CARD (LIST MAGANG) =====
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8" id="layanan-magang">
-      {/* Title & Subtitle */}
-      <div className="space-y-1">
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1B365D] tracking-tight">
-          Daftar Program Internship
-        </h2>
-        <p className="text-slate-500 font-medium text-sm sm:text-base">
-          Temukan kesempatan magang industri resmi dari mitra terpercaya CDC UM Kendari.
+      {/* Keterangan Pengantar */}
+      <div>
+        <p className="text-slate-600 font-medium text-sm sm:text-base leading-relaxed">
+          Temukan berbagai kesempatan magang industri resmi dari perusahaan dan instansi mitra terpercaya CDC UM Kendari untuk mengasah keterampilan praktis, memperluas wawasan kerja nyata, serta mengakselerasi kesiapan karir profesional Anda.
         </p>
       </div>
 
