@@ -185,17 +185,23 @@ export default function Login({
         <div className="my-auto py-8 space-y-6 max-w-xl mx-auto w-full px-2 sm:px-6 flex flex-col items-start text-left">
           {/* Official Logos Group */}
           <div className="flex items-center gap-3 sm:gap-4 w-fit">
-            <img
-              src="/logo-umk.png"
-              alt="Logo Universitas Muhammadiyah Kendari"
-              className="h-14 sm:h-18 lg:h-22 w-auto object-contain drop-shadow-md"
-            />
-            <div className="h-10 sm:h-12 w-px bg-white/40"></div>
-            <img
-              src="/logo-cdc-branding-blue.png"
-              alt="Logo Career Development Center UMK"
-              className="h-16 sm:h-20 lg:h-24 w-auto object-contain"
-            />
+            <button
+              onClick={onNavigateHome}
+              className="flex items-center gap-3 sm:gap-4 cursor-pointer group text-left focus-visible:outline-none"
+              title="Kembali ke Beranda"
+            >
+              <img
+                src="/logo-umk.png"
+                alt="Logo Universitas Muhammadiyah Kendari"
+                className="h-14 sm:h-18 lg:h-22 w-auto object-contain drop-shadow-md group-hover:scale-105 transition-transform cursor-pointer"
+              />
+              <div className="h-10 sm:h-12 w-px bg-white/40"></div>
+              <img
+                src="/logo-cdc-branding-blue.png"
+                alt="Logo Career Development Center UMK"
+                className="h-16 sm:h-20 lg:h-24 w-auto object-contain group-hover:scale-105 transition-transform cursor-pointer"
+              />
+            </button>
           </div>
 
           {/* Typography: Title & Subtitle */}
@@ -241,15 +247,21 @@ export default function Login({
 
           {/* Header Title & Branding Logo */}
           <div className="text-center space-y-2">
-            <img
-              src="/logo-cdc-branding-transparent.png"
-              alt="Logo Career Development Center UMK"
-              className={`w-auto object-contain mx-auto transition-all ${
-                isEnteringCredentials
-                  ? 'h-12 sm:h-14 mt-3 sm:mt-4 mb-2'
-                  : 'h-16 sm:h-20 -mt-3 sm:-mt-5 mb-2'
-              }`}
-            />
+            <button
+              onClick={onNavigateHome}
+              className="cursor-pointer group inline-block focus-visible:outline-none"
+              title="Kembali ke Beranda"
+            >
+              <img
+                src="/logo-cdc-branding-transparent.png"
+                alt="Logo Career Development Center UMK"
+                className={`w-auto object-contain mx-auto transition-all group-hover:scale-105 cursor-pointer ${
+                  isEnteringCredentials
+                    ? 'h-12 sm:h-14 mt-3 sm:mt-4 mb-2'
+                    : 'h-16 sm:h-20 -mt-3 sm:-mt-5 mb-2'
+                }`}
+              />
+            </button>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
               LOGIN
             </h2>

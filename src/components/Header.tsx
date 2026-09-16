@@ -423,13 +423,13 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
             {/* ── LOGO / BRANDING ── */}
             <button
               onClick={() => navigate('beranda')}
-              className="flex items-center group focus-visible:outline-none shrink-0"
+              className="flex items-center group focus-visible:outline-none shrink-0 cursor-pointer"
               aria-label="Portal CDC UM Kendari — Beranda"
             >
               <img
                 src="/logo-cdc-branding-transparent.png"
                 alt="CDC Career Development Center Universitas Muhammadiyah Kendari"
-                className="h-10 sm:h-11 md:h-12 w-auto object-contain group-hover:scale-105 transition-transform"
+                className="h-10 sm:h-11 md:h-12 w-auto object-contain group-hover:scale-105 transition-transform cursor-pointer"
               />
             </button>
 

@@ -2123,13 +2123,19 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
         <div className="flex flex-col h-full overflow-hidden">
           {/* Header Branding Sidebar (Logo CDC Terpusat / Centered & Lebih Besar Proporsional - h-20) */}
           <div className="h-20 px-4 border-b border-slate-800/60 flex items-center justify-center relative shrink-0">
-            <img
-              src="/logo-cdc-sidebar-clean.png"
-              alt="Logo CDC UM Kendari"
-              className="h-11 sm:h-12 max-w-[200px] w-auto object-contain block shrink-0 transition-all"
-              onError={(e) => { (e.target as HTMLImageElement).src = '/logo-cdc-branding-light.png'; }}
-            />
-            <button className="absolute right-4 md:hidden text-slate-400 hover:text-white p-1 shrink-0" onClick={() => setIsMobileMenuOpen(false)}>
+            <button
+              onClick={() => setActiveTab('ringkasan')}
+              className="cursor-pointer group flex items-center justify-center"
+              title="Ke Ringkasan Dashboard"
+            >
+              <img
+                src="/logo-cdc-sidebar-clean.png"
+                alt="Logo CDC UM Kendari"
+                className="h-11 sm:h-12 max-w-[200px] w-auto object-contain block shrink-0 transition-all group-hover:scale-105 cursor-pointer"
+                onError={(e) => { (e.target as HTMLImageElement).src = '/logo-cdc-branding-light.png'; }}
+              />
+            </button>
+            <button className="absolute right-4 md:hidden text-slate-400 hover:text-white p-1 shrink-0 cursor-pointer" onClick={() => setIsMobileMenuOpen(false)}>
               <X className="w-5 h-5" />
             </button>
           </div>

@@ -347,17 +347,23 @@ export default function Register({
           <div className="my-auto py-8 space-y-6 max-w-xl mx-auto w-full px-2 sm:px-6 flex flex-col items-start text-left">
             {/* Official Logos Group */}
             <div className="flex items-center gap-3 sm:gap-4 w-fit">
-              <img
-                src="/logo-umk.png"
-                alt="Logo Universitas Muhammadiyah Kendari"
-                className="h-14 sm:h-18 lg:h-22 w-auto object-contain drop-shadow-md"
-              />
-              <div className="h-10 sm:h-12 w-px bg-white/40"></div>
-              <img
-                src="/logo-cdc-branding-blue.png"
-                alt="Logo Career Development Center UMK"
-                className="h-16 sm:h-20 lg:h-24 w-auto object-contain"
-              />
+              <button
+                onClick={onNavigateHome}
+                className="flex items-center gap-3 sm:gap-4 cursor-pointer group text-left focus-visible:outline-none"
+                title="Kembali ke Beranda"
+              >
+                <img
+                  src="/logo-umk.png"
+                  alt="Logo Universitas Muhammadiyah Kendari"
+                  className="h-14 sm:h-18 lg:h-22 w-auto object-contain drop-shadow-md group-hover:scale-105 transition-transform cursor-pointer"
+                />
+                <div className="h-10 sm:h-12 w-px bg-white/40"></div>
+                <img
+                  src="/logo-cdc-branding-blue.png"
+                  alt="Logo Career Development Center UMK"
+                  className="h-16 sm:h-20 lg:h-24 w-auto object-contain group-hover:scale-105 transition-transform cursor-pointer"
+                />
+              </button>
             </div>
 
             <div className="space-y-3 text-left">
@@ -490,7 +496,7 @@ export default function Register({
               <img
                 src="/logo-cdc-branding-transparent.png"
                 alt="Career Development Center - Universitas Muhammadiyah Kendari"
-                className="h-10 sm:h-11 w-auto object-contain"
+                className="h-10 sm:h-11 w-auto object-contain cursor-pointer group-hover:scale-105 transition-transform"
               />
             </button>
           </div>
