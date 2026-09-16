@@ -18,6 +18,7 @@ import {
   sortJobsByNewest
 } from './data';
 import { API_BASE_URL } from './config/api';
+import { slugify } from './utils/shareUtils';
 import PublicLayout from './components/PublicLayout';
 import BeritaDetailView from './components/BeritaDetailView';
 import Register from './components/Register';
@@ -182,9 +183,11 @@ export default function App() {
       }
       setCurrentView('dashboard');
     } else if (path.startsWith('/lowongan/')) {
-      const id = path.replace('/lowongan/', '');
+      const raw = path.replace('/lowongan/', '');
+      const parts = raw.split('/').filter(Boolean);
+      const targetParam = parts[parts.length - 1] || parts[0];
       setCurrentView('public');
-      setViewingLowonganId(id);
+      setViewingLowonganId(targetParam);
       setViewingBeritaSlug(null);
       setViewingProgramId(null);
     } else if (path === '/lowongan') {
@@ -194,9 +197,11 @@ export default function App() {
       setViewingBeritaSlug(null);
       setViewingProgramId(null);
     } else if (path.startsWith('/berita/')) {
-      const slug = path.replace('/berita/', '');
+      const raw = path.replace('/berita/', '');
+      const parts = raw.split('/').filter(Boolean);
+      const targetParam = parts[parts.length - 1] || parts[0];
       setCurrentView('public');
-      setViewingBeritaSlug(slug);
+      setViewingBeritaSlug(targetParam);
       setViewingLowonganId(null);
       setViewingProgramId(null);
     } else if (path === '/berita') {
@@ -206,9 +211,11 @@ export default function App() {
       setViewingBeritaSlug(null);
       setViewingProgramId(null);
     } else if (path.startsWith('/program/')) {
-      const id = path.replace('/program/', '');
+      const raw = path.replace('/program/', '');
+      const parts = raw.split('/').filter(Boolean);
+      const targetParam = parts[parts.length - 1] || parts[0];
       setCurrentView('public');
-      setViewingProgramId(id);
+      setViewingProgramId(targetParam);
       setViewingLowonganId(null);
       setViewingBeritaSlug(null);
     } else if (path.startsWith('/layanan/')) {
@@ -333,47 +340,101 @@ export default function App() {
     navigate(`/register/${type}`);
   };
 
-  const handleSelectLowongan = (id: string) => {
+  const handleSelectLowongan = (id: string, customJudul?: string) => {
     window.scrollTo(0, 0);
-    setViewingLowonganId(id);
+    const targetJob = allLowongan.find(l => l.id === id || l.slug === id || slugify(l.judul) === id) || getFromDB<Lowongan>('lowongan').find(l => l.id === id);
+    const titleSlug = slugify(customJudul || targetJob?.judul || id);
+    const targetId = targetJob?.id || id;
+    setViewingLowonganId(titleSlug || targetId);
     setViewingBeritaSlug(null);
     setViewingProgramId(null);
-    navigate(`/lowongan/${id}`);
+    if (titleSlug) {
+      navigate(`/lowongan/${titleSlug}`);
+    } else {
+      navigate(`/lowongan/${targetId}`);
+    }
   };
 
   const handleSelectBerita = (slug: string) => {
     window.scrollTo(0, 0);
-    setViewingBeritaSlug(slug);
+    const targetBerita = allBerita.find(b => b.slug === slug || slugify(b.title) === slug || b.id === slug);
+    const titleSlug = slugify(targetBerita?.title || slug);
+    const targetSlug = targetBerita?.slug || slug;
+    setViewingBeritaSlug(titleSlug || targetSlug);
     setViewingLowonganId(null);
     setViewingProgramId(null);
-    navigate(`/berita/${slug}`);
+    if (titleSlug) {
+      navigate(`/berita/${titleSlug}`);
+    } else {
+      navigate(`/berita/${targetSlug}`);
+    }
   };
 
-  const handleSelectProgram = (id: string) => {
+  const handleSelectProgram = (id: string, customJudul?: string) => {
     window.scrollTo(0, 0);
-    setViewingProgramId(id);
+    const targetProg = allProgram.find(p => p.id === id || p.slug === id || slugify(p.judul) === id) || allKonten.find(k => k.id === id);
+    const titleSlug = slugify(customJudul || targetProg?.judul || id);
+    const targetId = targetProg?.id || id;
+    setViewingProgramId(titleSlug || targetId);
     setViewingLowonganId(null);
     setViewingBeritaSlug(null);
-    navigate(`/program/${id}`);
+    if (titleSlug) {
+      navigate(`/program/${titleSlug}`);
+    } else {
+      navigate(`/program/${targetId}`);
+    }
   };
 
-  // Find detailed models
+  // Find detailed models with robust slug & title matching
   const selectedLowongan =
-    allLowongan.find(l => l.id === viewingLowonganId) ||
-    (viewingLowonganId ? getFromDB<Lowongan>('lowongan').find(l => l.id === viewingLowonganId) : undefined);
-  const selectedBerita = allBerita.find(b => b.slug === viewingBeritaSlug);
-  const selectedProgram = allProgram.find(p => p.id === viewingProgramId) || allKonten.find(p => p.id === viewingProgramId) || (viewingProgramId ? {
-    id: viewingProgramId,
-    jenis: 'program' as const,
-    judul: 'JOB PREPARATION 2026',
-    body: 'Persiapkan dirimu menghadapi dunia kerja dengan program intensif bersama praktisi HR terbaik.',
-    kategori: 'Program Unggulan',
-    thumbnail: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=800&auto=format&fit=crop',
-    layoutType: 'card' as const,
-    status: 'published' as const,
-    createdAt: '2026-05-10T08:00:00Z',
-    createdByName: 'Admin Website'
-  } : undefined);
+    allLowongan.find(l => l.id === viewingLowonganId || (l.slug && l.slug === viewingLowonganId) || slugify(l.judul) === viewingLowonganId) ||
+    (viewingLowonganId ? getFromDB<Lowongan>('lowongan').find(l => l.id === viewingLowonganId || (l.slug && l.slug === viewingLowonganId) || slugify(l.judul) === viewingLowonganId) : undefined);
+
+  const selectedBerita =
+    allBerita.find(b => b.slug === viewingBeritaSlug || slugify(b.title) === viewingBeritaSlug || b.id === viewingBeritaSlug);
+
+  const selectedProgram =
+    allProgram.find(p => p.id === viewingProgramId || (p.slug && p.slug === viewingProgramId) || slugify(p.judul) === viewingProgramId) ||
+    allKonten.find(p => p.id === viewingProgramId || (p.slug && p.slug === viewingProgramId) || slugify(p.judul) === viewingProgramId) ||
+    (viewingProgramId ? {
+      id: viewingProgramId,
+      jenis: 'program' as const,
+      judul: 'JOB PREPARATION 2026',
+      body: 'Persiapkan dirimu menghadapi dunia kerja dengan program intensif bersama praktisi HR terbaik.',
+      kategori: 'Program Unggulan',
+      thumbnail: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=800&auto=format&fit=crop',
+      layoutType: 'card' as const,
+      status: 'published' as const,
+      createdAt: '2026-05-10T08:00:00Z',
+      createdByName: 'Admin Website'
+    } : undefined);
+
+  // Dynamic Browser Tab Title & Header Synchronization
+  useEffect(() => {
+    if (viewingLowonganId && selectedLowongan) {
+      const instansi = selectedLowongan.namaInstansi ? ` - ${selectedLowongan.namaInstansi}` : '';
+      document.title = `${selectedLowongan.judul}${instansi} | Portal CDC UM Kendari`;
+    } else if (viewingBeritaSlug && selectedBerita) {
+      document.title = `${selectedBerita.title} | Portal CDC UM Kendari`;
+    } else if (viewingProgramId && selectedProgram) {
+      document.title = `${selectedProgram.judul} | Portal CDC UM Kendari`;
+    } else if (currentView === 'login') {
+      document.title = 'Masuk Akun - Portal CDC UM Kendari';
+    } else if (currentView === 'register') {
+      document.title = 'Pendaftaran Akun - Portal CDC UM Kendari';
+    } else if (currentView === 'admin-login') {
+      document.title = 'Login Portal Admin CDC UM Kendari';
+    } else if (currentView === 'dashboard') {
+      if (currentUser?.role === 'admin') document.title = 'Dashboard Admin - Portal CDC UM Kendari';
+      else if (currentUser?.role === 'mitra') document.title = 'Dashboard Mitra Perusahaan - Portal CDC UM Kendari';
+      else document.title = 'Dashboard Mahasiswa & Alumni - Portal CDC UM Kendari';
+    } else {
+      if (publicTab === 'lowongan') document.title = 'Lowongan Kerja & Magang - Portal CDC UM Kendari';
+      else if (publicTab === 'berita') document.title = 'Berita & Artikel Karir - Portal CDC UM Kendari';
+      else if (publicTab.startsWith('presentasi')) document.title = 'Prestasi Mahasiswa UMK - Portal CDC UM Kendari';
+      else document.title = 'Portal CDC UM Kendari - Pusat Karir & Alumni';
+    }
+  }, [viewingLowonganId, viewingBeritaSlug, viewingProgramId, selectedLowongan, selectedBerita, selectedProgram, currentView, publicTab, currentUser]);
 
   return (
     <div className="bg-white min-h-screen font-sans" id="app-root">

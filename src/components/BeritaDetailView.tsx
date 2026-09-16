@@ -95,7 +95,10 @@ export default function BeritaDetailView({
     setComments(loadApprovedComments(berita.slug));
     setMyPendingIds([]);
     setMyPendingNotice(false);
-  }, [berita.slug]);
+    if (berita && berita.title) {
+      document.title = `${berita.title} | Portal CDC UM Kendari`;
+    }
+  }, [berita.slug, berita.title]);
 
   useEffect(() => {
     return () => {
@@ -353,15 +356,15 @@ export default function BeritaDetailView({
                 </div>
               </div>
 
-              {/* FEATURED MAIN COVER IMAGE (Sesuai Screenshot 2) */}
+              {/* FEATURED MAIN COVER IMAGE (Natural Aspect Ratio - tanpa template rasio kaku & tanpa ruang hitam) */}
               {berita.coverImageUrl ? (
-                <div className="w-full aspect-[16/9] sm:aspect-[21/9] rounded-2xl overflow-hidden border border-slate-200/80 bg-slate-900 shadow-sm relative">
+                <div className="w-full rounded-2xl overflow-hidden border border-slate-200/80 shadow-2xs flex justify-center bg-slate-50/50">
                   <img
                     src={berita.coverImageUrl}
                     alt={berita.title}
                     loading="lazy"
                     decoding="async"
-                    className="w-full h-full object-cover"
+                    className="w-full h-auto max-h-[650px] object-contain rounded-2xl"
                   />
                 </div>
               ) : (

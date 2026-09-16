@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ChevronLeft,
   Tag,
@@ -42,6 +42,12 @@ export default function ShareableDetailPage({
   children
 }: ShareableDetailPageProps) {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (title) {
+      document.title = `${title} | Portal CDC UM Kendari`;
+    }
+  }, [title]);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -185,17 +191,15 @@ export default function ShareableDetailPage({
               </div>
             </div>
 
-            {/* FEATURED MAIN COVER IMAGE / POSTER */}
+            {/* FEATURED MAIN COVER IMAGE / POSTER (Natural Aspect Ratio - tanpa template rasio kaku & tanpa ruang hitam) */}
             {imageUrl && (
-              <div className={`w-full rounded-2xl overflow-hidden border border-slate-200/80 bg-slate-950 shadow-sm relative flex items-center justify-center ${
-                posterAspect === '9:16'
-                  ? 'max-w-md mx-auto aspect-[9/16] my-4'
-                  : 'aspect-[16/9] sm:aspect-[21/9]'
-              }`}>
+              <div className="w-full rounded-2xl overflow-hidden border border-slate-200/80 shadow-2xs flex justify-center bg-slate-50/50">
                 <img
                   src={imageUrl}
                   alt={title}
-                  className={`w-full h-full ${posterAspect === '9:16' ? 'object-contain' : 'object-cover'}`}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-auto max-h-[700px] object-contain rounded-2xl"
                 />
               </div>
             )}

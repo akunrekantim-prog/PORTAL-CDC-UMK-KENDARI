@@ -30,6 +30,22 @@ export interface ShareContentOptions {
 }
 
 /**
+ * Generates a clean URL-friendly slug string from any title
+ */
+export function slugify(text: string): string {
+  if (!text) return '';
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')           // Replace spaces with -
+    .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+    .replace(/\-\-+/g, '-')         // Replace multiple - with single -
+    .replace(/^-+/, '')             // Trim - from start of text
+    .replace(/-+$/, '');            // Trim - from end of text
+}
+
+/**
  * Membersihkan tag HTML dan pengulangan judul dari deskripsi/ringkasan
  */
 export function stripHtmlTags(str?: string, titleToFilter?: string): string {

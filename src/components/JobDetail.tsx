@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Lowongan, Mahasiswa } from '../types';
 import { getFromDB, applyForJob, getSavedJobIds, toggleSaveJob, formatDateDisplay, isJobDeadlinePassed, sortJobsByNewest } from '../data';
 import Header from './Header';
@@ -41,6 +41,7 @@ import {
   ShareContentOptions
 } from '../utils/shareUtils';
 import { JobApplicationModal } from './JobApplicationModal';
+import { WhatsAppWaIcon } from './ui/SocialShareBar';
 
 // Helper function to safely convert any input (array, JSON string, multiline string, undefined) to string[]
 const toCleanStringArray = (val: unknown): string[] => {
@@ -143,6 +144,13 @@ export const JobDetail: React.FC<JobDetailProps> = ({
   const activeStudent = studentsList.find(s => s && s.userId === activeUserId) || (activeUserId ? studentsList.find(s => s && s.userId === '2') : undefined);
 
   // React States for Interactivity
+  useEffect(() => {
+    if (job && job.judul) {
+      const instansi = job.namaInstansi ? ` - ${job.namaInstansi}` : '';
+      document.title = `${job.judul}${instansi} | Portal CDC UM Kendari`;
+    }
+  }, [job]);
+
   const [isSaved, setIsSaved] = useState<boolean>(() => {
     return getSavedJobIds(activeUserId || undefined).includes(job.id);
   });
@@ -311,17 +319,17 @@ export const JobDetail: React.FC<JobDetailProps> = ({
             {/* LEFT COLUMN: Main Job Details (lg:col-span-8) */}
             <div className="lg:col-span-8 space-y-6">
 
-              {/* Top Large Banner Image Container (9:16 Portrait Aspect Ratio, Full Width) */}
+              {/* Top Large Banner Image Container (Natural Aspect Ratio - tanpa template rasio kaku & tanpa ruang hitam) */}
               <div
                 onClick={() => setIsLightboxOpen(true)}
-                className="relative w-full aspect-[9/16] rounded-2xl overflow-hidden border border-slate-200 bg-slate-900 shadow-2xs group cursor-pointer flex items-center justify-center"
+                className="relative w-full rounded-2xl overflow-hidden border border-slate-200 bg-slate-50/50 shadow-2xs group cursor-pointer flex justify-center"
               >
                 <img
                   src={coverImage}
                   alt={job.judul}
                   loading="lazy"
                   decoding="async"
-                  className="w-full h-full object-contain group-hover:scale-102 transition-transform duration-500"
+                  className="w-full h-auto max-h-[750px] object-contain rounded-2xl group-hover:scale-102 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-slate-950/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <span className="bg-white/95 backdrop-blur-xs text-slate-800 px-4 py-2 rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5">
@@ -744,7 +752,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                       className="w-9 h-9 rounded-xl bg-slate-50 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600 border border-slate-200 flex items-center justify-center transition cursor-pointer"
                       title="Bagikan via WhatsApp Direct"
                     >
-                      <MessageCircle className="w-4 h-4 text-[#25D366]" />
+                      <WhatsAppWaIcon className="w-5 h-5" />
                     </button>
                   </div>
                 </div>

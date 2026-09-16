@@ -109,6 +109,7 @@ export interface EventLayananItem {
 
 export interface KontenKarir {
   id: string;
+  slug?: string;
   jenis: JenisKonten;
   judul: string;
   body: string;
@@ -180,6 +181,7 @@ export interface Mitra {
 
 export interface Lowongan {
   id: string;
+  slug?: string;
   mitraId?: string;
   createdBy: string; // user.id
   judul: string;

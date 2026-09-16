@@ -2239,8 +2239,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
         </div>
       </header>
 
-      {/* 3. Main Workspace Canvas Area (pt-[60px] untuk menggeser isi ke atas dekat Search Bar) */}
-      <main className="flex-1 md:ml-[250px] pt-[60px] px-4 sm:px-8 pb-12 overflow-y-auto max-w-[1600px] w-full" id="adm-main">
+      {/* 3. Main Workspace Canvas Area (pt-24 / 96px memberikan ruang bersih di bawah Search Bar Header h-20 / 80px tanpa tertimpa) */}
+      <main className="flex-1 md:ml-[250px] pt-24 px-4 sm:px-8 pb-12 overflow-y-auto max-w-[1600px] w-full" id="adm-main">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
