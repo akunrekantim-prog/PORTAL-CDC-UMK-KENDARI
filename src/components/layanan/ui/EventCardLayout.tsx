@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Search, Filter, X, Clock } from 'lucide-react';
 import { formatDateDisplay } from '../../../data';
@@ -7,6 +8,7 @@ import EventDetailView from '../EventDetailView';
 import { useLayanan } from '../LayananContainer';
 import Pagination from './Pagination';
 import { stripHtmlTags } from '../../../markdown';
+import { slugify } from '../../../utils/shareUtils';
 
 // --- Type ---
 type DateFilterType = 'year' | 'month' | 'day' | 'day_month' | 'full';
@@ -64,11 +66,14 @@ const findMatchedEvent = (targetId: string | null | undefined, list: EventLayana
   return list.find(e => {
     const eid = e.id.toLowerCase().trim();
     const eClean = eid.replace(/^kk_/, '').replace(/^kk-/, '');
+    const titleSlug = slugify(e.title);
     return (
       eid === rawId ||
       eClean === cleanId ||
       eid === cleanId ||
       rawId === eClean ||
+      (titleSlug && titleSlug === rawId) ||
+      (titleSlug && titleSlug === cleanId) ||
       (e.title && e.title.toLowerCase().trim() === cleanId) ||
       (e.title && cleanId.length > 3 && e.title.toLowerCase().includes(cleanId))
     );
@@ -172,6 +177,7 @@ export default function EventCardLayout({
   onDetailStateChange,
   setTab
 }: EventCardLayoutProps) {
+  const navigate = useNavigate();
   const { setIsDetailActive } = useLayanan();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy] = useState<'terbaru' | 'terlama' | 'az' | 'za'>('terbaru');
@@ -207,6 +213,9 @@ export default function EventCardLayout({
     if (onDetailStateChange) {
       onDetailStateChange(isDetail);
     }
+    if (selectedEvent) {
+      document.title = `${selectedEvent.title} | Portal CDC UM Kendari`;
+    }
   }, [selectedEvent, setIsDetailActive, onDetailStateChange]);
 
   // Auto-select event jika initialEventId berubah (misal dari Popular Info)
@@ -221,6 +230,8 @@ export default function EventCardLayout({
   const handleSelectEvent = (item: EventLayananItem) => {
     setSelectedEvent(item);
     window.scrollTo(0, 0);
+    const titleSlug = slugify(item.title) || item.id;
+    navigate(`/layanan/${category}/${titleSlug}`);
   };
 
   // Filter logic: Pencarian teks, filter tanggal (day/month/year), & pengurutan
@@ -332,6 +343,7 @@ export default function EventCardLayout({
   const handleBackFromDetail = () => {
     setSelectedEvent(null);
     window.scrollTo(0, 0);
+    navigate(`/layanan/${category}`);
   };
 
   if (selectedEvent) {

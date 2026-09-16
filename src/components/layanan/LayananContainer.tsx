@@ -111,7 +111,7 @@ export const LAYANAN_MENU: LayananMenuOption[] = [
 
 export default function LayananContainer({ currentTab, setTab, children }: LayananContainerProps) {
   const [isDetailActive, setIsDetailActive] = useState(false);
-  const activeOption = LAYANAN_MENU.find(m => m.id === currentTab) || LAYANAN_MENU[0];
+  const activeOption = LAYANAN_MENU.find(m => m.id === currentTab || currentTab.startsWith(m.id + '/')) || LAYANAN_MENU[0];
 
   // Reset status detail ketika berganti sub-tab
   useEffect(() => {

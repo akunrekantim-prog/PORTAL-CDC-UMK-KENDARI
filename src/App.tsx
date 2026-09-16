@@ -64,6 +64,7 @@ export default function App() {
   const [viewingLowonganId, setViewingLowonganId] = useState<string | null>(null);
   const [viewingBeritaSlug, setViewingBeritaSlug] = useState<string | null>(null);
   const [viewingProgramId, setViewingProgramId] = useState<string | null>(null);
+  const [viewingLayananDetailId, setViewingLayananDetailId] = useState<string | null>(null);
 
   // Authentication State
   const [currentUser, setCurrentUser] = useState<UserType | null>(null);
@@ -139,6 +140,7 @@ export default function App() {
       setViewingLowonganId(null);
       setViewingBeritaSlug(null);
       setViewingProgramId(null);
+      setViewingLayananDetailId(null);
     } else if (path.startsWith('/admin')) {
       const parts = path.split('/').filter(Boolean);
       const subTab = parts[1] || 'ringkasan';
@@ -190,12 +192,14 @@ export default function App() {
       setViewingLowonganId(targetParam);
       setViewingBeritaSlug(null);
       setViewingProgramId(null);
+      setViewingLayananDetailId(null);
     } else if (path === '/lowongan') {
       setCurrentView('public');
       setPublicTab('lowongan');
       setViewingLowonganId(null);
       setViewingBeritaSlug(null);
       setViewingProgramId(null);
+      setViewingLayananDetailId(null);
     } else if (path.startsWith('/berita/')) {
       const raw = path.replace('/berita/', '');
       const parts = raw.split('/').filter(Boolean);
@@ -204,12 +208,14 @@ export default function App() {
       setViewingBeritaSlug(targetParam);
       setViewingLowonganId(null);
       setViewingProgramId(null);
+      setViewingLayananDetailId(null);
     } else if (path === '/berita') {
       setCurrentView('public');
       setPublicTab('berita');
       setViewingLowonganId(null);
       setViewingBeritaSlug(null);
       setViewingProgramId(null);
+      setViewingLayananDetailId(null);
     } else if (path.startsWith('/program/')) {
       const raw = path.replace('/program/', '');
       const parts = raw.split('/').filter(Boolean);
@@ -218,18 +224,45 @@ export default function App() {
       setViewingProgramId(targetParam);
       setViewingLowonganId(null);
       setViewingBeritaSlug(null);
+      setViewingLayananDetailId(null);
     } else if (path.startsWith('/layanan/')) {
-      const tab = path.replace('/layanan/', '');
+      const raw = path.replace('/layanan/', '');
+      const parts = raw.split('/').filter(Boolean);
+      const categoryTab = parts[0] || 'workshop';
+      const eventSlug = parts.length > 1 ? parts.slice(1).join('/') : null;
       setCurrentView('public');
-      setPublicTab(tab);
+      setPublicTab(categoryTab);
+      setViewingLayananDetailId(eventSlug);
       setViewingLowonganId(null);
       setViewingBeritaSlug(null);
       setViewingProgramId(null);
     } else if (path.startsWith('/prestasi/')) {
       const subPath = path.replace('/prestasi/', '');
-      const formattedTab = 'presentasi-' + subPath.replace('/', '-');
+      const parts = subPath.split('/').filter(Boolean);
+      let formattedTab = 'presentasi-internasional-akademik';
+      let prestasiSlug: string | null = null;
+
+      if (parts.length >= 3) {
+        formattedTab = `presentasi-${parts[0]}-${parts[1]}`;
+        prestasiSlug = parts[2];
+      } else if (parts.length === 2) {
+        if (['akademik', 'non-akademik'].includes(parts[1])) {
+          formattedTab = `presentasi-${parts[0]}-${parts[1]}`;
+        } else {
+          formattedTab = `presentasi-${parts[0]}-akademik`;
+          prestasiSlug = parts[1];
+        }
+      } else if (parts.length === 1) {
+        if (parts[0].includes('-')) {
+          formattedTab = `presentasi-${parts[0]}`;
+        } else {
+          formattedTab = `presentasi-${parts[0]}-akademik`;
+        }
+      }
+
       setCurrentView('public');
       setPublicTab(formattedTab);
+      setViewingLayananDetailId(prestasiSlug);
       setViewingLowonganId(null);
       setViewingBeritaSlug(null);
       setViewingProgramId(null);
@@ -238,18 +271,21 @@ export default function App() {
       setViewingLowonganId(null);
       setViewingBeritaSlug(null);
       setViewingProgramId(null);
+      setViewingLayananDetailId(null);
     } else if (path.startsWith('/register')) {
       setCurrentView('register');
       setRegisterTab(path.includes('perusahaan') ? 'perusahaan' : 'alumni');
       setViewingLowonganId(null);
       setViewingBeritaSlug(null);
       setViewingProgramId(null);
+      setViewingLayananDetailId(null);
     } else if (path === '/' || path === '/beranda') {
       setCurrentView('public');
       setPublicTab('beranda');
       setViewingLowonganId(null);
       setViewingBeritaSlug(null);
       setViewingProgramId(null);
+      setViewingLayananDetailId(null);
     }
   }, [location.pathname, currentUser, navigate, FAST_AUTH_ENABLED, redirectToLogin]);
 
@@ -522,6 +558,7 @@ export default function App() {
             program={allProgram}
             konten={allKonten}
             pengumuman={allPengumuman}
+            initialEventId={viewingLayananDetailId}
             onSelectLowongan={handleSelectLowongan}
             onSelectBerita={handleSelectBerita}
             onSelectProgram={handleSelectProgram}

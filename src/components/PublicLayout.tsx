@@ -45,9 +45,11 @@ import {
   getCompanyBadgeColor,
   getCompanyInitials
 } from './JobSearchMasterDetail';
+import { useNavigate } from 'react-router-dom';
 import Dropdown from './Dropdown';
 import SocialShareBar, { WhatsAppWaIcon } from './ui/SocialShareBar';
 import { stripHtmlTags } from '../markdown';
+import { slugify } from '../utils/shareUtils';
 
 /* ─── Types ─────────────────────────────────── */
 const PRESTASI_SUB_LABELS: Record<string, string> = {
@@ -63,6 +65,7 @@ interface PublicLayoutProps {
   pengumuman: Pengumuman[];
   program?: KontenKarir[];
   konten?: KontenKarir[];
+  initialEventId?: string | null;
   onSelectLowongan: (id: string) => void;
   onSelectBerita: (slug: string) => void;
   onSelectProgram?: (id: string) => void;
@@ -187,12 +190,14 @@ export default function PublicLayout({
   pengumuman,
   program,
   konten,
+  initialEventId,
   onSelectLowongan,
   onSelectBerita,
   onSelectProgram,
   onNavigateToLogin,
   onNavigateToRegister,
 }: PublicLayoutProps) {
+  const navigate = useNavigate();
   const { t, translateContent } = useLanguage();
   // Gambar Visi & Misi (bisa diubah admin via Manajemen Web → Visi & Misi)
   const [visiMisiUrl, setVisiMisiUrl] = useState<string>(() => getVisiMisiConfig().imageUrl);
@@ -200,6 +205,22 @@ export default function PublicLayout({
   // Event & Prestasi Detail Direct Access State
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [selectedPrestasi, setSelectedPrestasi] = useState<KontenKarir | null>(null);
+
+  const activeEventId = initialEventId || selectedEventId;
+
+  useEffect(() => {
+    if (initialEventId && currentTab.startsWith('presentasi')) {
+      const allPresentasi = getFromDB<KontenKarir>('konten_karir').filter(
+        (k) => k.jenis === 'presentasi' && k.status !== 'draft'
+      );
+      const matched = allPresentasi.find(
+        (p) => p.id === initialEventId || p.slug === initialEventId || slugify(p.judul) === initialEventId
+      );
+      if (matched) {
+        setSelectedPrestasi(matched);
+      }
+    }
+  }, [initialEventId, currentTab]);
 
   // Job Info Search & Filter States
   const [jobKeyword, setJobKeyword] = useState('');
@@ -2147,11 +2168,11 @@ export default function PublicLayout({
           <LayananContainer currentTab={currentTab} setTab={setTab}>
             {currentTab === 'konseling' && <BimbinganKarir />}
             {currentTab === 'tes-minat' && <TesMinat />}
-            {currentTab === 'workshop' && <Workshop konten={konten} initialEventId={selectedEventId} />}
-            {currentTab === 'softskill' && <Softskill konten={konten} initialEventId={selectedEventId} />}
-            {currentTab === 'seminar' && <Seminar konten={konten} initialEventId={selectedEventId} />}
-            {currentTab === 'career-fair' && <CareerFair konten={konten} initialEventId={selectedEventId} />}
-            {currentTab === 'campus-hiring' && <CampusHiring konten={konten} initialEventId={selectedEventId} />}
+            {currentTab === 'workshop' && <Workshop konten={konten} initialEventId={activeEventId} />}
+            {currentTab === 'softskill' && <Softskill konten={konten} initialEventId={activeEventId} />}
+            {currentTab === 'seminar' && <Seminar konten={konten} initialEventId={activeEventId} />}
+            {currentTab === 'career-fair' && <CareerFair konten={konten} initialEventId={activeEventId} />}
+            {currentTab === 'campus-hiring' && <CampusHiring konten={konten} initialEventId={activeEventId} />}
             {currentTab === 'magang' && <Magang lowongan={lowongan} onSelectLowongan={onSelectLowongan} />}
           </LayananContainer>
         )}
@@ -2288,6 +2309,10 @@ export default function PublicLayout({
                             onClick={() => {
                               setSelectedPrestasi(item);
                               window.scrollTo(0, 0);
+                              const scope = (item.kategori || 'internasional').toLowerCase();
+                              const sub = (item.subKategori || 'akademik').toLowerCase();
+                              const titleSlug = slugify(item.judul) || item.id;
+                              navigate(`/prestasi/${scope}/${sub}/${titleSlug}`);
                             }}
                             className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-lg hover:-translate-y-1 hover:border-amber-400 transition-all duration-300 flex flex-col justify-between group cursor-pointer"
                           >
