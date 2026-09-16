@@ -2150,8 +2150,8 @@ export default function PublicLayout({
             {currentTab === 'workshop' && <Workshop konten={konten} initialEventId={selectedEventId} />}
             {currentTab === 'softskill' && <Softskill konten={konten} initialEventId={selectedEventId} />}
             {currentTab === 'seminar' && <Seminar konten={konten} initialEventId={selectedEventId} />}
-            {currentTab === 'career-fair' && <CareerFair />}
-            {currentTab === 'campus-hiring' && <CampusHiring />}
+            {currentTab === 'career-fair' && <CareerFair konten={konten} initialEventId={selectedEventId} />}
+            {currentTab === 'campus-hiring' && <CampusHiring konten={konten} initialEventId={selectedEventId} />}
             {currentTab === 'magang' && <Magang lowongan={lowongan} onSelectLowongan={onSelectLowongan} />}
           </LayananContainer>
         )}

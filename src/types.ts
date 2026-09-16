@@ -91,7 +91,7 @@ export type JenisKonten = 'berita' | 'lowongan' | 'program' | 'pengumuman' | 'wo
 
 export interface EventLayananItem {
   id: string;
-  category: 'workshop' | 'softskill' | 'seminar';
+  category: 'workshop' | 'softskill' | 'seminar' | 'campus-hiring' | 'career-fair' | 'job-fair' | string;
   title: string;
   organizer: string;
   date: string; // YYYY-MM-DD

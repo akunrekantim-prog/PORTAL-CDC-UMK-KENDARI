@@ -20,7 +20,7 @@ interface DateFilter {
 }
 
 interface EventCardLayoutProps {
-  category: 'workshop' | 'softskill' | 'seminar';
+  category: 'workshop' | 'softskill' | 'seminar' | 'campus-hiring' | 'career-fair' | 'job-fair' | string;
   pageTitle: string;
   subtitle: string;
   events: EventLayananItem[];
@@ -41,12 +41,10 @@ const cleanText = (s: string = ''): string => stripHtmlTags(s);
 
 const mapKontenToEvent = (k: KontenKarir): EventLayananItem => ({
   id: `kk_${k.id}`,
-  category: (k.jenis === 'workshop' || k.jenis === 'softskill' || k.jenis === 'seminar')
-    ? k.jenis
-    : 'workshop',
+  category: (k.jenis as string) || 'workshop',
   title: k.judul,
   organizer: k.namaInstansi || 'CDC UM Kendari',
-  date: k.tanggal || k.createdAt.slice(0, 10),
+  date: k.tanggal || (k.createdAt ? k.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10)),
   time: k.waktu,
   location: k.lokasiEvent || '-',
   image: k.thumbnail || 'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=800&auto=format&fit=crop',
@@ -181,7 +179,15 @@ export default function EventCardLayout({
   // Gabungkan seed dummy + hasil input admin yang sudah published
   const allEvents = useMemo(() => {
     const fromKonten = (kontenEvents || [])
-      .filter(k => k.status === 'published' && k.jenis === category)
+      .filter(k => {
+        if (k.status !== 'published') return false;
+        const kj = (k.jenis || '').toLowerCase().trim();
+        const cat = category.toLowerCase().trim();
+        if (kj === cat) return true;
+        if ((cat === 'campus-hiring' || cat === 'campus_hiring') && (kj === 'campus-hiring' || kj === 'campus_hiring')) return true;
+        if ((cat === 'career-fair' || cat === 'job-fair' || cat === 'job_fair') && (kj === 'career-fair' || kj === 'job-fair' || kj === 'job_fair')) return true;
+        return false;
+      })
       .map(mapKontenToEvent);
     return [...fromKonten, ...events];
   }, [events, kontenEvents, category]);
@@ -225,7 +231,14 @@ export default function EventCardLayout({
     // Filter utama: category, text, dan tanggal (jika ada dateFilter)
     let list = allEvents.filter(item => {
       // Category match
-      if (item.category !== category) return false;
+      const itemCat = (item.category || '').toLowerCase().trim();
+      const cat = category.toLowerCase().trim();
+      let isCategoryMatch = itemCat === cat;
+      if ((cat === 'campus-hiring' || cat === 'campus_hiring') && (itemCat === 'campus-hiring' || itemCat === 'campus_hiring')) isCategoryMatch = true;
+      if ((cat === 'career-fair' || cat === 'job-fair' || cat === 'job_fair') && (itemCat === 'career-fair' || itemCat === 'job-fair' || itemCat === 'job_fair')) isCategoryMatch = true;
+      if (!isCategoryMatch && events.includes(item)) isCategoryMatch = true;
+
+      if (!isCategoryMatch) return false;
 
       // Text search match
       const matchesSearch =
