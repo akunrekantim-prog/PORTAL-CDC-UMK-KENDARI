@@ -405,7 +405,7 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
             <button
               type="button"
               onClick={onNavigateToLogin}
-              className="hover:text-orange-300 transition-colors duration-150 whitespace-nowrap cursor-pointer text-sm font-semibold"
+              className="hidden sm:block hover:text-orange-300 transition-colors duration-150 whitespace-nowrap cursor-pointer text-sm font-semibold"
               id="topbar-login-link"
             >
               Login
@@ -746,16 +746,9 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                   setIsMobileOpen(false);
                   onNavigateToLogin();
                 }}
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-[#10006b] font-extrabold text-sm shadow-xs transition cursor-pointer"
+                className="w-full flex items-center justify-center py-3 px-4 rounded-xl bg-[#10006b] hover:bg-[#0c0054] text-white font-bold text-sm shadow-xs transition cursor-pointer"
                 id="mobile-drawer-login-btn"
               >
-                <svg
-                  className="w-4 h-4 fill-none stroke-current"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2.5}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-                </svg>
                 <span>Login</span>
               </button>
             </div>
