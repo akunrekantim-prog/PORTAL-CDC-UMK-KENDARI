@@ -82,16 +82,16 @@ export default function ShareableDetailPage({
   };
 
   return (
-    <div className="bg-white min-h-screen py-8 sm:py-12 font-sans text-slate-800 relative">
+    <div className="bg-white min-h-screen py-6 sm:py-12 font-sans text-slate-800 relative overflow-x-clip">
       {/* Toast Notification */}
       {toastMsg && (
-        <div className="fixed top-24 right-5 z-50 bg-[#1E3A8A] text-white px-5 py-3 rounded-2xl shadow-xl border border-blue-800 flex items-center gap-3 animate-fadeIn text-xs sm:text-sm font-semibold max-w-md">
+        <div className="fixed top-24 left-4 right-4 sm:left-auto sm:right-5 z-50 bg-[#1E3A8A] text-white px-5 py-3 rounded-2xl shadow-xl border border-blue-800 flex items-center gap-3 animate-fadeIn text-xs sm:text-sm font-semibold sm:max-w-md">
           <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
           <span>{toastMsg}</span>
         </div>
       )}
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 min-w-0">
 
         {/* Top Navigation Back Button */}
         <div>
@@ -105,7 +105,7 @@ export default function ShareableDetailPage({
         </div>
 
         {/* Main Grid: Left Floating Share Bar + Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative min-w-0">
 
           {/* STICKY FLOATING SHARE SIDEBAR (DESKTOP - SISI KIRI) */}
           <aside className="hidden lg:flex lg:col-span-1 flex-col items-center gap-3 sticky top-28 self-start pt-2">
@@ -151,43 +151,43 @@ export default function ShareableDetailPage({
           </aside>
 
           {/* MAIN ARTICLE CONTENT (lg:col-span-11) */}
-          <div className="lg:col-span-11 space-y-6">
+          <div className="lg:col-span-11 space-y-6 min-w-0">
 
             {/* BREADCRUMB BAR */}
-            <nav className="flex items-center gap-2 text-xs sm:text-sm text-slate-500 font-medium flex-wrap" aria-label="Breadcrumb">
-              <span>Portal CDC UM Kendari</span>
+            <nav className="flex items-center gap-2 text-xs sm:text-sm text-slate-500 font-medium flex-wrap min-w-0" aria-label="Breadcrumb">
+              <span className="shrink-0">Portal CDC UM Kendari</span>
               <span>&gt;</span>
-              <span className="hover:text-[#0077C6] cursor-pointer" onClick={onBack}>{categoryLabel}</span>
+              <span className="hover:text-[#0077C6] cursor-pointer shrink-0" onClick={onBack}>{categoryLabel}</span>
               <span>&gt;</span>
-              <span className="text-[#0077C6] font-semibold line-clamp-1 max-w-md">{title}</span>
+              <span className="text-[#0077C6] font-semibold line-clamp-1 min-w-0 max-w-full sm:max-w-md break-words">{title}</span>
             </nav>
 
             {/* ARTICLE MAIN TITLE */}
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 leading-tight tracking-tight">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 leading-tight tracking-tight break-words [overflow-wrap:anywhere]">
               {title}
             </h1>
 
             {/* METADATA STRIP WITH GOLD ICONS */}
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs sm:text-sm text-slate-600 font-medium pt-1 pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs sm:text-sm text-slate-600 font-medium pt-1 pb-3 border-b border-slate-100 min-w-0">
+              <div className="flex items-center gap-1.5 min-w-0">
                 <Tag className="w-4 h-4 text-amber-500 shrink-0" />
-                <span>{categoryLabel}</span>
+                <span className="break-words">{categoryLabel}</span>
               </div>
               {metaItems.map((item, idx) => (
-                <div key={idx} className="flex items-center gap-1.5">
+                <div key={idx} className="flex items-center gap-1.5 min-w-0">
                   <Clock className="w-4 h-4 text-amber-500 shrink-0 hidden" />
                   {item}
                 </div>
               ))}
               {uploadDateLabel && (
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 min-w-0">
                   <Clock className="w-4 h-4 text-amber-500 shrink-0" />
-                  <span>Diunggah: {uploadDateLabel}</span>
+                  <span className="break-words">Diunggah: {uploadDateLabel}</span>
                 </div>
               )}
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 min-w-0">
                 <User className="w-4 h-4 text-amber-500 shrink-0" />
-                <span>Oleh: <strong className="font-bold text-slate-800">Admin Website</strong></span>
+                <span className="break-words">Oleh: <strong className="font-bold text-slate-800">Admin Website</strong></span>
               </div>
             </div>
 

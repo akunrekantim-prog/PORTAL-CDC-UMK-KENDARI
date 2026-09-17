@@ -230,6 +230,90 @@ input::-ms-clear {
     margin-top: 1rem !important;
     margin-bottom: 1rem !important;
   }
+
+  .layanan-detail-body iframe,
+  .layanan-detail-body embed,
+  .layanan-detail-body object,
+  .layanan-detail-body video {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .layanan-detail-body table {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .layanan-detail-body pre,
+  .layanan-detail-body code {
+    white-space: pre-wrap !important;
+    word-break: break-word !important;
+    max-width: 100% !important;
+  }
+
+  .layanan-detail-body a {
+    word-break: break-all !important;
+    overflow-wrap: anywhere !important;
+  }
+}
+
+.layanan-detail-body > * {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.layanan-detail-body,
+.layanan-detail-body p,
+.layanan-detail-body li,
+.layanan-detail-body h1,
+.layanan-detail-body h2,
+.layanan-detail-body h3,
+.layanan-detail-body h4,
+.layanan-detail-body h5,
+.layanan-detail-body blockquote,
+.prose-berita,
+.prose-berita p,
+.prose-berita li {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+}
+
+.layanan-detail-body [style],
+.prose-berita [style] {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.layanan-detail-body div[style*="display: flex"],
+.layanan-detail-body div[style*="display:flex"],
+.prose-berita div[style*="display: flex"],
+.prose-berita div[style*="display:flex"] {
+  flex-wrap: wrap !important;
+}
+
+.layanan-detail-body td,
+.layanan-detail-body th,
+.prose-berita td,
+.prose-berita th {
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  white-space: normal !important;
+}
+
+.layanan-detail-body table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.layanan-detail-body iframe[src*="docs.google.com"],
+.layanan-detail-body iframe[src*="forms"] {
+  min-height: 480px;
 }
 
 .prose-berita hr {

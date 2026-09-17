@@ -31,8 +31,8 @@ export default function EventDetailView({
       >
         {/* Pamflet + judul + deskripsi (tanpa status/kuota/penyelenggara/pembicara/lokasi/daftar) */}
         {event.description && (
-          <div className="prose prose-slate max-w-none text-slate-700 text-sm sm:text-base leading-relaxed space-y-6 pt-2">
-            <div className="space-y-4 text-slate-700 leading-relaxed font-normal">
+          <div className="prose prose-slate max-w-full min-w-0 text-slate-700 text-sm sm:text-base leading-relaxed space-y-6 pt-2 overflow-x-clip [overflow-wrap:anywhere] layanan-detail-body">
+            <div className="space-y-4 text-slate-700 leading-relaxed font-normal min-w-0">
               {renderContentMarkdown(event.description)}
             </div>
           </div>

@@ -6,6 +6,50 @@ Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 
 ---
 
+## Tanggal: 17 September 2026
+**Oleh: ARYA APRIAWAN**
+**Fokus Pekerjaan:** Perbaikan Hermes agent yang sering empty response + perapihan tampilan card layout di setiap menu layanan agar rapi saat tampilan mobile.
+
+### Ringkasan Perubahan
+1. **Perbaikan Hermes Agent Empty Response (di luar repo — `C:\Users\aryaz\AppData\Local\hermes\config.yaml`):**
+   - Backup `config.yaml` ke `config.yaml.bak.20260917_emptyfix`.
+   - Tambah `model.context_length: 200000` agar tidak fallback ke 256.000 token menebak.
+   - Tambah `fallback_providers` 2 lapis: `custom/ag/gemini-3.6-flash-medium` via `http://localhost:20128/v1` + `nous/hermes-agent-gpt-5.2` (Portal Nous, sudah login).
+   - Penyebab dari `logs/errors.log` + `logs/agent.log`: model `fulllpintar`/`Combonomacet` via proxy lokal `localhost:20128` (proses `9router custom-server.js`) mengembalikan `finish_reason=stop` kosong (`in=16464 out=0`) dan `No fallback available` sehingga turn langsung mati `empty_response_exhausted`.
+
+2. **Perapihan Card Layout Layanan Mobile:**
+   - `ShareableDetailPage.tsx`: root `overflow-x-clip` + `py-6` mobile, toast `left-4 right-4` di mobile, wrapper `min-w-0`, breadcrumb wrap + judul/metadata `break-words` agar embed/teks panjang tidak luber.
+   - `EventDetailView.tsx`: body dibungkus class `layanan-detail-body` (`max-w-full min-w-0 overflow-x-clip [overflow-wrap:anywhere]`).
+   - `ui/Card.tsx`: padding responsif `p-4 sm:p-6 md:p-8` + `min-w-0 [overflow-wrap:anywhere]`.
+   - `LayananContainer.tsx`: hapus padding ganda saat mode detail (detail sudah punya padding sendiri).
+   - `Magang.tsx`: grid info ringkasan pakai `gap-px bg-slate-200` (ganti `divide-x` yang dobel di mobile), sel `min-w-0`, padding CTA `p-4 sm:p-6`.
+   - Viewer PDF `KalenderKegiatanView` / `LaporanKinerjaView` / `MouStakeholderView` / `SuratKeputusanView`: tinggi mobile `h-[420px]` (desktop tetap `sm:h-[750px]`).
+   - `BimbinganKarir.tsx` / `Keanggotaan.tsx` / `Magang.tsx` (list): padding konsisten `py-6 sm:py-10`.
+   - `index.css`: guard mobile `.layanan-detail-body` + `.prose-berita` — iframe/embed/object/video `width:100%`, tabel jadi `display:block` + scroll-x, pre/code wrap, link `break-all`, `div[style*=display:flex]` dipaksa `flex-wrap`, `td/th` `white-space:normal`.
+
+### File Diubah
+- **[MODIFY]** `src/components/layanan/ui/ShareableDetailPage.tsx`
+- **[MODIFY]** `src/components/layanan/EventDetailView.tsx`
+- **[MODIFY]** `src/components/layanan/ui/Card.tsx`
+- **[MODIFY]** `src/components/layanan/LayananContainer.tsx`
+- **[MODIFY]** `src/components/layanan/Magang.tsx`
+- **[MODIFY]** `src/components/layanan/BimbinganKarir.tsx`
+- **[MODIFY]** `src/components/layanan/Keanggotaan.tsx`
+- **[MODIFY]** `src/components/layanan/KalenderKegiatanView.tsx`
+- **[MODIFY]** `src/components/layanan/LaporanKinerjaView.tsx`
+- **[MODIFY]** `src/components/layanan/MouStakeholderView.tsx`
+- **[MODIFY]** `src/components/layanan/SuratKeputusanView.tsx`
+- **[MODIFY]** `src/index.css`
+- **[MODIFY]** `docs/progres.md` (entri ini)
+- **[CONFIG]** `C:\Users\aryaz\AppData\Local\hermes\config.yaml` (di luar repo, tidak ikut commit)
+
+### Verifikasi
+- ✅ `npm run lint` (`tsc --noEmit`) — 0 error
+- ✅ `hermes config check` — versi 41 valid
+- ✅ `hermes fallback list` — 2 entri fallback terdaftar
+
+---
+
 ## Tanggal: 16 September 2026 (Sesi 4)
 **Oleh: ARYA APRIAWAN**
 **Fokus Pekerjaan:** Penghapusan menu navigasi Register pada navbar utama dan penambahan tombol akses cepat Login di top bar kanan (bersebelahan dengan pengalih bahasa/bendera).

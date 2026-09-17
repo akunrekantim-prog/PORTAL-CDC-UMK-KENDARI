@@ -24,7 +24,7 @@ export function Card({ children, className, hover, accent, onClick }: CardProps)
   return (
     <div
       onClick={onClick}
-      className={`rounded-2xl border border-slate-200/80 bg-white/90 backdrop-blur-sm p-6 md:p-8 shadow-sm ${hoverClass} ${className ?? ''}`}
+      className={`rounded-2xl border border-slate-200/80 bg-white/90 backdrop-blur-sm p-4 sm:p-6 md:p-8 shadow-sm min-w-0 [overflow-wrap:anywhere] ${hoverClass} ${className ?? ''}`}
     >
       {children}
     </div>
