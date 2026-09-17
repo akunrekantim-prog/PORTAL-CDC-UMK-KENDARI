@@ -227,6 +227,7 @@ app.get('/api/public-data', apiLimiter, async (req, res) => {
 });
 
 // POST /api/register — validasi ketat + hash bcrypt
+// POST /api/register — validasi ketat + hash bcrypt + atomic transaction
 app.post('/api/register', registerLimiter, async (req, res) => {
   const { name, email, password, phone, role, nim, namaInstansi, kontakPerson, programStudi, fakultas, tahunLulus, bidangIndustri, alamat, website } = req.body || {};
   if (!isValidEmail(email)) return res.status(400).json({ success: false, message: 'Format email tidak valid.' });
@@ -234,14 +235,33 @@ app.post('/api/register', registerLimiter, async (req, res) => {
   if (!name || !String(name).trim()) return res.status(400).json({ success: false, message: 'Nama wajib diisi.' });
   const normalizedRole = String(role || 'MAHASISWA').toUpperCase();
   if (!['MAHASISWA', 'ALUMNI', 'MITRA', 'ADMIN'].includes(normalizedRole)) return res.status(400).json({ success: false, message: 'Role registrasi tidak valid.' });
+
   try {
     const emailKey = String(email).toLowerCase().trim();
     if (emailKey.length > 254) return res.status(400).json({ success: false, message: 'Email terlalu panjang.' });
+
+    // 1. Pengecekan awal email duplikat
     const existing = await prisma.user.findUnique({ where: { email: emailKey } });
-    if (existing) return res.status(409).json({ success: false, message: 'Pendaftaran gagal. Silakan gunakan data lain atau hubungi admin.' });
+    if (existing) {
+      return res.status(409).json({
+        success: false,
+        message: 'Email ini sudah terdaftar. Silakan gunakan email lain atau masuk ke akun Anda.'
+      });
+    }
+
+    // 2. Pengecekan awal NIM duplikat untuk Mahasiswa
+    const nimClean = nim ? String(nim).toUpperCase().trim().slice(0, 30) : null;
+    if (normalizedRole === 'MAHASISWA' && nimClean) {
+      const existingMhs = await prisma.mahasiswa.findUnique({ where: { nim: nimClean } });
+      if (existingMhs) {
+        return res.status(409).json({
+          success: false,
+          message: 'NIM ini sudah terdaftar di sistem CDC UM Kendari.'
+        });
+      }
+    }
+
     // SECURITY: role ADMIN tidak boleh self-register publik.
-    // Hanya admin login (JWT ADMIN) yang boleh membuat admin baru,
-    // kecuali bootstrap saat belum ada admin sama sekali di database.
     if (normalizedRole === 'ADMIN') {
       let requesterRole = null;
       try {
@@ -257,34 +277,104 @@ app.post('/api/register', registerLimiter, async (req, res) => {
         if (adminCount > 0) {
           return res.status(403).json({ success: false, message: 'Pembuatan akun admin memerlukan otorisasi administrator.' });
         }
-        // else: bootstrap admin pertama — diizinkan sekali saja
       }
     }
+
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await prisma.user.create({
-      data: { name: String(name).trim().slice(0, 100), email: emailKey, password: hashedPassword, phone: phone ? String(phone).slice(0, 20) : null, role: normalizedRole, status: 'PENDING' }
+
+    // 3. Atomic Transaction — Jika profil gagal dibuat, user tidak tersimpan gantung
+    const newUser = await prisma.$transaction(async (tx) => {
+      const createdUser = await tx.user.create({
+        data: {
+          name: String(name).trim().slice(0, 100),
+          email: emailKey,
+          password: hashedPassword,
+          phone: phone ? String(phone).slice(0, 20) : null,
+          role: normalizedRole,
+          status: 'PENDING'
+        }
+      });
+
+      if (normalizedRole === 'MITRA') {
+        const mitraId = `mtr_${Date.now().toString(36)}_${crypto.randomBytes(3).toString('hex')}`;
+        await tx.mitra.create({
+          data: {
+            id: mitraId,
+            userId: createdUser.id,
+            namaInstansi: namaInstansi ? String(namaInstansi).slice(0, 150) : String(name).trim().slice(0, 150),
+            kontakPerson: kontakPerson ? String(kontakPerson).slice(0, 100) : String(name).trim().slice(0, 100),
+            email: emailKey,
+            phone: phone ? String(phone).slice(0, 20) : null,
+            bidangIndustri: bidangIndustri ? String(bidangIndustri).slice(0, 100) : 'Umum',
+            alamat: alamat ? String(alamat).slice(0, 300) : null,
+            website: website ? String(website).slice(0, 2048) : null,
+            statusKerjaSama: 'PENDING'
+          }
+        });
+      } else if (normalizedRole === 'ALUMNI') {
+        const almId = `alm_${Date.now().toString(36)}_${crypto.randomBytes(3).toString('hex')}`;
+        const finalNim = nimClean || `NIM${Date.now().toString(36).toUpperCase()}`;
+        await tx.alumni.create({
+          data: {
+            id: almId,
+            userId: createdUser.id,
+            nim: finalNim,
+            nama: String(name).trim().slice(0, 100),
+            email: emailKey,
+            phone: phone ? String(phone).slice(0, 20) : null,
+            programStudi: programStudi ? String(programStudi).slice(0, 100) : '-',
+            fakultas: fakultas ? String(fakultas).slice(0, 100) : '-',
+            tahunLulus: tahunLulus ? String(tahunLulus).slice(0, 10) : String(new Date().getFullYear()),
+            statusPekerjaan: 'belum_bekerja'
+          }
+        });
+      } else {
+        // MAHASISWA
+        const mhsId = `mhs_${Date.now().toString(36)}_${crypto.randomBytes(3).toString('hex')}`;
+        const finalNim = nimClean || `NIM${Date.now().toString(36).toUpperCase()}`;
+        await tx.mahasiswa.create({
+          data: {
+            id: mhsId,
+            userId: createdUser.id,
+            nim: finalNim,
+            nama: String(name).trim().slice(0, 100),
+            email: emailKey,
+            phone: phone ? String(phone).slice(0, 20) : null,
+            programStudi: programStudi ? String(programStudi).slice(0, 100) : '-',
+            fakultas: fakultas ? String(fakultas).slice(0, 100) : '-',
+            angkatan: tahunLulus ? String(tahunLulus).slice(0, 10) : String(new Date().getFullYear())
+          }
+        });
+      }
+
+      return createdUser;
     });
-    if (normalizedRole === 'MITRA') {
-      const mitraId = `mtr_${Date.now().toString(36)}_${crypto.randomBytes(3).toString('hex')}`;
-      await prisma.mitra.create({
-        data: { id: mitraId, userId: newUser.id, namaInstansi: namaInstansi ? String(namaInstansi).slice(0, 150) : String(name).trim().slice(0, 150), kontakPerson: kontakPerson ? String(kontakPerson).slice(0, 100) : String(name).trim().slice(0, 100), email: emailKey, phone: phone ? String(phone).slice(0, 20) : null, bidangIndustri: bidangIndustri ? String(bidangIndustri).slice(0, 100) : 'Umum', alamat: alamat ? String(alamat).slice(0, 300) : null, website: website ? String(website).slice(0, 2048) : null, statusKerjaSama: 'PENDING' }
-      });
-    } else {
-      const mhsId = `mhs_${Date.now().toString(36)}_${crypto.randomBytes(3).toString('hex')}`;
-      const almId = `alm_${Date.now().toString(36)}_${crypto.randomBytes(3).toString('hex')}`;
-      const nimVal = nim ? String(nim).toUpperCase().slice(0, 30) : `NIM${Date.now().toString(36).toUpperCase()}`;
-      await prisma.mahasiswa.create({
-        data: { id: mhsId, userId: newUser.id, nim: nimVal, nama: String(name).trim().slice(0, 100), email: emailKey, phone: phone ? String(phone).slice(0, 20) : null, programStudi: programStudi ? String(programStudi).slice(0, 100) : '-', fakultas: fakultas ? String(fakultas).slice(0, 100) : '-', angkatan: tahunLulus ? String(tahunLulus).slice(0, 10) : String(new Date().getFullYear()) }
-      });
-      await prisma.alumni.create({
-        data: { id: almId, userId: newUser.id, nim: nimVal, nama: String(name).trim().slice(0, 100), email: emailKey, phone: phone ? String(phone).slice(0, 20) : null, programStudi: programStudi ? String(programStudi).slice(0, 100) : '-', fakultas: fakultas ? String(fakultas).slice(0, 100) : '-', tahunLulus: tahunLulus ? String(tahunLulus).slice(0, 10) : String(new Date().getFullYear()), statusPekerjaan: 'belum_bekerja' }
-      });
-    }
+
     const { password: _, ...userSafe } = newUser;
-    return res.status(201).json({ success: true, message: 'Pendaftaran berhasil. Akun menunggu verifikasi administrator.', user: userSafe });
+    return res.status(201).json({
+      success: true,
+      message: 'Pendaftaran berhasil. Akun Anda telah dibuat.',
+      user: userSafe
+    });
   } catch (error) {
     console.error('[Express Register Error]:', error);
-    res.status(500).json({ success: false, message: 'Internal server error' });
+    if (error && error.code === 'P2002') {
+      const targetStr = JSON.stringify(error.meta?.target || '').toLowerCase();
+      if (targetStr.includes('nim')) {
+        return res.status(409).json({
+          success: false,
+          message: 'NIM ini sudah terdaftar di sistem CDC UM Kendari.'
+        });
+      }
+      return res.status(409).json({
+        success: false,
+        message: 'Email ini sudah terdaftar. Silakan gunakan email lain atau masuk ke akun Anda.'
+      });
+    }
+    return res.status(500).json({
+      success: false,
+      message: 'Terjadi kesalahan pada server saat pendaftaran. Silakan coba lagi.'
+    });
   }
 });
 

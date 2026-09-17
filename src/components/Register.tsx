@@ -621,9 +621,32 @@ export default function Register({
 
                   {/* Error Alert Box */}
                   {errorMsg && (
-                    <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl text-xs flex items-start gap-3 shadow-sm">
-                      <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-                      <div className="flex-1 font-medium whitespace-pre-line leading-relaxed">{errorMsg}</div>
+                    <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl text-xs flex items-start justify-between gap-3 shadow-sm">
+                      <div className="flex items-start gap-3">
+                        <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                        <div className="space-y-1">
+                          <div className="font-semibold text-rose-900 leading-relaxed">{errorMsg}</div>
+                          {errorMsg.toLowerCase().includes('terdaftar') && (
+                            <div className="pt-1">
+                              <button
+                                type="button"
+                                onClick={onNavigateToLogin}
+                                className="inline-flex items-center gap-1 font-bold text-[#0077C6] hover:text-[#005FA0] underline cursor-pointer"
+                              >
+                                Klik di sini untuk Login ke Akun Anda <ArrowRight className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setErrorMsg('')}
+                        className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer shrink-0"
+                        title="Tutup pesan"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
                     </div>
                   )}
 

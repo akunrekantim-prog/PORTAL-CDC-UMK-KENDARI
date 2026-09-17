@@ -165,14 +165,31 @@ export interface BackendRegisterPayload {
 }
 
 export async function registerToBackend(payload: BackendRegisterPayload): Promise<any> {
-  const response = await fetch(`${API_BASE_URL}/register`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch (netErr: any) {
+    throw new Error(
+      'Server pendaftaran tidak terjangkau (Offline). Pastikan server backend Node.js (npm run server di port 5000) telah berjalan.'
+    );
+  }
+
   const result = await response.json().catch(() => ({}));
   if (!response.ok || !result.success) {
-    throw new Error(result.message || 'Pendaftaran gagal. Coba lagi.');
+    if (response.status === 504 || response.status === 502) {
+      throw new Error(
+        'Server backend tidak merespons (Gateway Timeout). Jalankan server backend Node.js (npm run server) di port 5000.'
+      );
+    }
+    throw new Error(
+      result.message ||
+      result.error ||
+      `Pendaftaran gagal (Status ${response.status}). Periksa kembali data Anda dan coba lagi.`
+    );
   }
   return normalizeRecord('users', result.user);
 }
