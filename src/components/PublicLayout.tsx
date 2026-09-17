@@ -635,7 +635,7 @@ export default function PublicLayout({
                       <div className="border-y border-slate-200 py-6 sm:py-7">
                         <div className="flex gap-5">
                           <div className="w-1 self-stretch rounded-full bg-[#1E3A8A] shrink-0" />
-                          <div className="max-w-3xl min-w-0">
+                          <div className="flex-1 min-w-0">
                             {importantAnn.showBadge !== false && (
                               <div className="flex items-center gap-2 flex-wrap text-[11px] font-bold uppercase tracking-[0.14em]">
                                 <span className="flex items-center gap-1.5 text-[#1E3A8A]">
@@ -653,7 +653,7 @@ export default function PublicLayout({
                             <h3 className="mt-2 text-xl sm:text-2xl font-extrabold text-slate-900 leading-tight tracking-tight">
                               {importantAnn.title}
                             </h3>
-                            <p className="mt-2 text-sm sm:text-base text-slate-500 leading-relaxed max-w-2xl">
+                            <p className="mt-2 text-sm sm:text-base text-slate-500 leading-relaxed w-full text-justify">
                               {stripHtmlTags(importantAnn.content)}
                             </p>
                             {importantAnn.linkUrl && (
