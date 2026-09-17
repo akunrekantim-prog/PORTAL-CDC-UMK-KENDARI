@@ -165,7 +165,7 @@ export default function LaporanKinerjaView({ setTab }: LaporanKinerjaViewProps) 
 
             {/* Embedded PDF Preview Box */}
             {activeItem.tipe === 'pdf' && activeItem.pdfUrl ? (
-              <div className="w-full h-[650px] sm:h-[750px] bg-slate-900 rounded-xl overflow-hidden border border-slate-300 shadow-lg relative group">
+              <div className="w-full h-[420px] sm:h-[750px] bg-slate-900 rounded-xl overflow-hidden border border-slate-300 shadow-lg relative group">
                 <iframe
                   src={`${activeItem.pdfUrl}#toolbar=1&navpanes=1&scrollbar=1`}
                   title={activeItem.judul}
