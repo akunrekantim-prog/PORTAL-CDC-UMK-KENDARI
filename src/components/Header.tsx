@@ -306,9 +306,9 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
         className="block text-white text-xs font-medium"
         style={{ backgroundColor: '#10006bff' }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between">
-          {/* Left: utility links */}
-          <div className="hidden sm:flex items-center gap-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex flex-col sm:flex-row items-center justify-between gap-1.5 sm:gap-0">
+          {/* Utility links (Mobile horizontal scroll strip / Desktop left aligned) */}
+          <div className="flex items-center gap-0 overflow-x-auto no-scrollbar w-full sm:w-auto py-0.5 sm:py-0 whitespace-nowrap text-[11px] sm:text-xs shrink-0">
             {TOP_LINKS.map((link, i) => (
               <React.Fragment key={link.label}>
                 <a
@@ -320,7 +320,7 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
                   {getNavText(link.label)}
                 </a>
                 {i < TOP_LINKS.length - 1 && (
-                  <span className="mx-2.5 text-blue-400 select-none">•</span>
+                  <span className="mx-2 sm:mx-2.5 text-blue-400 select-none">•</span>
                 )}
               </React.Fragment>
             ))}
@@ -330,86 +330,88 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
           <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-2.5 sm:gap-3 shrink-0">
             <span className="text-blue-200 font-semibold truncate text-[11px] sm:text-xs">{formattedDate}</span>
 
-            {/* 🇮🇩 / 🇬🇧 DROPDOWN LANGUAGE SWITCHER */}
-            <div className="relative shrink-0" ref={langDropdownRef}>
+            <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+              {/* 🇮🇩 / 🇬🇧 DROPDOWN LANGUAGE SWITCHER */}
+              <div className="relative shrink-0" ref={langDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setIsLangDropdownOpen(prev => !prev)}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#10006b] hover:bg-white border border-white/30 text-xs font-semibold cursor-pointer transition-all duration-200 shadow-xs group"
+                  aria-expanded={isLangDropdownOpen}
+                  aria-haspopup="true"
+                  title="Pilih Bahasa / Change Language"
+                >
+                  <img
+                    src={lang === 'en' ? '/logo bendera inggris.png' : '/logo bendera indo.png'}
+                    alt={lang === 'en' ? 'EN' : 'ID'}
+                    className="w-4.5 h-4.5 object-cover rounded-full shadow-2xs shrink-0"
+                  />
+                  <span className="text-amber-400 group-hover:text-[#10006b] font-extrabold tracking-wider transition-colors duration-200">
+                    {lang === 'en' ? 'EN' : 'ID'}
+                  </span>
+                  <svg
+                    className={`w-3 h-3 text-amber-400 group-hover:text-[#10006b] fill-current transition-all duration-200 ${isLangDropdownOpen ? 'rotate-180' : ''
+                      }`}
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                  </svg>
+                </button>
+
+                {/* Dropdown Popup Menu */}
+                {isLangDropdownOpen && (
+                  <div className="absolute right-0 top-full mt-1.5 w-28 bg-white border border-gray-200 rounded-md shadow-xl py-1 z-[110] overflow-hidden text-xs divide-y divide-gray-100">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLang('en');
+                        setIsLangDropdownOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 text-left font-bold transition-colors ${lang === 'en'
+                          ? 'bg-orange-50 text-[#10006b] font-extrabold'
+                          : 'text-gray-700 hover:bg-gray-50 hover:text-[#10006b]'
+                        }`}
+                    >
+                      <img
+                        src="/logo bendera inggris.png"
+                        alt="EN"
+                        className="w-4.5 h-4.5 object-cover rounded-full shrink-0 shadow-2xs"
+                      />
+                      <span className={lang === 'en' ? 'text-[#10006b]' : 'text-gray-700'}>EN</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLang('id');
+                        setIsLangDropdownOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 text-left font-bold transition-colors ${lang === 'id'
+                          ? 'bg-orange-50 text-[#10006b] font-extrabold'
+                          : 'text-gray-700 hover:bg-gray-50 hover:text-[#10006b]'
+                        }`}
+                    >
+                      <img
+                        src="/logo bendera indo.png"
+                        alt="ID"
+                        className="w-4.5 h-4.5 object-cover rounded-full shrink-0 shadow-2xs"
+                      />
+                      <span className={lang === 'id' ? 'text-[#10006b]' : 'text-gray-700'}>ID</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Menu Login paling kanan */}
               <button
                 type="button"
-                onClick={() => setIsLangDropdownOpen(prev => !prev)}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#10006b] hover:bg-white border border-white/30 text-xs font-semibold cursor-pointer transition-all duration-200 shadow-xs group"
-                aria-expanded={isLangDropdownOpen}
-                aria-haspopup="true"
-                title="Pilih Bahasa / Change Language"
+                onClick={onNavigateToLogin}
+                className="hover:text-orange-300 transition-colors duration-150 whitespace-nowrap cursor-pointer text-xs sm:text-sm font-semibold"
+                id="topbar-login-link"
               >
-                <img
-                  src={lang === 'en' ? '/logo bendera inggris.png' : '/logo bendera indo.png'}
-                  alt={lang === 'en' ? 'EN' : 'ID'}
-                  className="w-4.5 h-4.5 object-cover rounded-full shadow-2xs shrink-0"
-                />
-                <span className="text-amber-400 group-hover:text-[#10006b] font-extrabold tracking-wider transition-colors duration-200">
-                  {lang === 'en' ? 'EN' : 'ID'}
-                </span>
-                <svg
-                  className={`w-3 h-3 text-amber-400 group-hover:text-[#10006b] fill-current transition-all duration-200 ${isLangDropdownOpen ? 'rotate-180' : ''
-                    }`}
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                </svg>
+                Login
               </button>
-
-              {/* Dropdown Popup Menu */}
-              {isLangDropdownOpen && (
-                <div className="absolute right-0 top-full mt-1.5 w-28 bg-white border border-gray-200 rounded-md shadow-xl py-1 z-[110] overflow-hidden text-xs divide-y divide-gray-100">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setLang('en');
-                      setIsLangDropdownOpen(false);
-                    }}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-left font-bold transition-colors ${lang === 'en'
-                        ? 'bg-orange-50 text-[#10006b] font-extrabold'
-                        : 'text-gray-700 hover:bg-gray-50 hover:text-[#10006b]'
-                      }`}
-                  >
-                    <img
-                      src="/logo bendera inggris.png"
-                      alt="EN"
-                      className="w-4.5 h-4.5 object-cover rounded-full shrink-0 shadow-2xs"
-                    />
-                    <span className={lang === 'en' ? 'text-[#10006b]' : 'text-gray-700'}>EN</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setLang('id');
-                      setIsLangDropdownOpen(false);
-                    }}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-left font-bold transition-colors ${lang === 'id'
-                        ? 'bg-orange-50 text-[#10006b] font-extrabold'
-                        : 'text-gray-700 hover:bg-gray-50 hover:text-[#10006b]'
-                      }`}
-                  >
-                    <img
-                      src="/logo bendera indo.png"
-                      alt="ID"
-                      className="w-4.5 h-4.5 object-cover rounded-full shrink-0 shadow-2xs"
-                    />
-                    <span className={lang === 'id' ? 'text-[#10006b]' : 'text-gray-700'}>ID</span>
-                  </button>
-                </div>
-              )}
             </div>
-
-            {/* Menu Login paling kanan (teks murni seperti SIMKATMAWA) */}
-            <button
-              type="button"
-              onClick={onNavigateToLogin}
-              className="hidden sm:block hover:text-orange-300 transition-colors duration-150 whitespace-nowrap cursor-pointer text-sm font-semibold"
-              id="topbar-login-link"
-            >
-              Login
-            </button>
           </div>
         </div>
       </div>
