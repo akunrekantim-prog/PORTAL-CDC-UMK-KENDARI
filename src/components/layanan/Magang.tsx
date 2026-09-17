@@ -213,26 +213,26 @@ export default function Magang({ lowongan = [], onSelectLowongan }: MagangProps)
             {/* 1. RINGKASAN PROGRAM MAGANG */}
             <div className="border border-slate-200 rounded-lg overflow-hidden">
               {/* Info row — flat, no nested cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 divide-x divide-slate-200 border-b border-slate-200 bg-slate-50/60 text-sm">
-                <div className="px-4 py-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-px bg-slate-200 border-b border-slate-200 text-sm overflow-hidden">
+                <div className="px-3 sm:px-4 py-3 bg-slate-50/60 min-w-0">
                   <div className="text-[11px] text-slate-400 mb-0.5">Jenis</div>
                   <div className="font-semibold text-slate-800">Magang</div>
                 </div>
-                <div className="px-4 py-3">
+                <div className="px-3 sm:px-4 py-3 bg-slate-50/60 min-w-0">
                   <div className="text-[11px] text-slate-400 mb-0.5">Kategori</div>
                   <div className="font-semibold text-slate-800 truncate" title={selectedMagang.kategori || 'Umum'}>
                     {selectedMagang.kategori || 'Umum'}
                   </div>
                 </div>
-                <div className="px-4 py-3">
+                <div className="px-3 sm:px-4 py-3 bg-slate-50/60 min-w-0">
                   <div className="text-[11px] text-slate-400 mb-0.5">Kompensasi</div>
-                  <div className="font-semibold text-slate-800">{selectedMagang.gaji || 'Uang Saku'}</div>
+                  <div className="font-semibold text-slate-800 break-words">{selectedMagang.gaji || 'Uang Saku'}</div>
                 </div>
-                <div className="px-4 py-3">
+                <div className="px-3 sm:px-4 py-3 bg-slate-50/60 min-w-0">
                   <div className="text-[11px] text-slate-400 mb-0.5">Kuota</div>
                   <div className="font-semibold text-slate-800">{selectedMagang.kuota ? `${selectedMagang.kuota} orang` : 'Terbuka'}</div>
                 </div>
-                <div className="px-4 py-3 col-span-2 sm:col-span-1">
+                <div className="px-3 sm:px-4 py-3 bg-slate-50/60 min-w-0 col-span-2 sm:col-span-1">
                   <div className="text-[11px] text-slate-400 mb-0.5">Deadline</div>
                   <div className={`font-semibold ${isDeadlinePassed ? 'text-red-600' : 'text-slate-800'}`}>
                     {selectedMagang.deadline ? formatDateDisplay(selectedMagang.deadline) : 'Terbuka'}
@@ -344,7 +344,7 @@ export default function Magang({ lowongan = [], onSelectLowongan }: MagangProps)
             )}
 
             {/* 6. CTA BANNER BAWAH */}
-            <div className="p-6 rounded-2xl bg-gradient-to-r from-blue-900 to-indigo-900 text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-md">
+            <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-blue-900 to-indigo-900 text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-md min-w-0">
               <div className="space-y-1 text-center sm:text-left">
                 <h4 className="font-bold text-base sm:text-lg">
                   Tertarik Magang di {selectedMagang.namaInstansi}?
@@ -383,7 +383,7 @@ export default function Magang({ lowongan = [], onSelectLowongan }: MagangProps)
 
   // ===== DAFTAR CARD (LIST MAGANG) =====
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8" id="layanan-magang">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-8 min-w-0" id="layanan-magang">
       {/* Keterangan Pengantar */}
       <div>
         <p className="text-slate-600 font-medium text-sm sm:text-base leading-relaxed">

@@ -158,7 +158,7 @@ export default function LayananContainer({ currentTab, setTab, children }: Layan
         )}
 
         {/* ── MAIN CONTENT AREA ── */}
-        <div className={`max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 ${isDetailActive ? 'pt-8' : ''}`}>
+        <div className={isDetailActive ? 'w-full' : 'max-w-6xl mx-auto px-4 sm:px-6 lg:px-8'}>
           <AnimatePresence mode="wait">
             <motion.div
               key={currentTab}

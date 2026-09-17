@@ -12,7 +12,7 @@ export default function Keanggotaan() {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12" id="layanan-keanggotaan">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-8 sm:space-y-12 min-w-0" id="layanan-keanggotaan">
 
       {/* ── HEADER TITLE & SUBTITLE ── */}
       <div className="space-y-1">
