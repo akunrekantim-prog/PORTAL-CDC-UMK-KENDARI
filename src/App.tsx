@@ -274,7 +274,14 @@ export default function App() {
       setViewingLayananDetailId(null);
     } else if (path.startsWith('/register')) {
       setCurrentView('register');
-      setRegisterTab(path.includes('perusahaan') ? 'perusahaan' : 'alumni');
+      if (path === '/register/alumni' || path === '/register/mahasiswa') {
+        navigate('/register/alumni-dan-mahasiswa', { replace: true });
+        setRegisterTab('alumni');
+      } else if (path.includes('perusahaan') || path.includes('mitra')) {
+        setRegisterTab('perusahaan');
+      } else {
+        setRegisterTab('alumni');
+      }
       setViewingLowonganId(null);
       setViewingBeritaSlug(null);
       setViewingProgramId(null);
@@ -351,6 +358,14 @@ export default function App() {
   };
 
   const handleSetPublicTab = (tab: string) => {
+    if (tab === 'register-alumni') {
+      handleNavigateToRegister('alumni');
+      return;
+    }
+    if (tab === 'register-perusahaan') {
+      handleNavigateToRegister('perusahaan');
+      return;
+    }
     setPublicTab(tab);
     reloadDatabase();
     if (tab === 'beranda') navigate('/');
@@ -373,7 +388,11 @@ export default function App() {
   const handleNavigateToRegister = (type: 'alumni' | 'perusahaan' = 'alumni') => {
     setRegisterTab(type);
     setCurrentView('register');
-    navigate(`/register/${type}`);
+    if (type === 'alumni') {
+      navigate('/register/alumni-dan-mahasiswa');
+    } else {
+      navigate(`/register/${type}`);
+    }
   };
 
   const handleSelectLowongan = (id: string, customJudul?: string) => {

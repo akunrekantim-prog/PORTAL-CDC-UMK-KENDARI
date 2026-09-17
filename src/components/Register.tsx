@@ -9,6 +9,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Loader2,
   Eye,
@@ -69,8 +70,24 @@ export default function Register({
   onRegisterSuccess,
   onLoginSuccess
 }: RegisterProps) {
-  const [isEnteringForm, setIsEnteringForm] = useState(true);
-  const [activeTab, setActiveTab] = useState<'alumni' | 'perusahaan'>(initialTab);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const isFormRoute =
+    location.pathname.includes('alumni-dan-mahasiswa') ||
+    location.pathname.includes('alumni') ||
+    location.pathname.includes('mahasiswa') ||
+    location.pathname.includes('perusahaan') ||
+    location.pathname.includes('mitra');
+
+  const [isEnteringForm, setIsEnteringForm] = useState(
+    location.pathname === '/register' ? false : true
+  );
+  const [activeTab, setActiveTab] = useState<'alumni' | 'perusahaan'>(
+    location.pathname.includes('perusahaan') || location.pathname.includes('mitra')
+      ? 'perusahaan'
+      : initialTab
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successUser, setSuccessUser] = useState<any | null>(null);
@@ -103,14 +120,24 @@ export default function Register({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-
-  // Sync state if initialTab changes
+  // Sync state if URL or initialTab changes
   useEffect(() => {
-    setActiveTab(initialTab);
-    setIsEnteringForm(true);
+    const path = location.pathname;
+    if (path === '/register') {
+      setIsEnteringForm(false);
+    } else if (path.includes('perusahaan') || path.includes('mitra')) {
+      setActiveTab('perusahaan');
+      setIsEnteringForm(true);
+    } else if (path.includes('alumni') || path.includes('mahasiswa')) {
+      setActiveTab('alumni');
+      setIsEnteringForm(true);
+    } else {
+      setActiveTab(initialTab);
+      setIsEnteringForm(true);
+    }
     setErrorMsg('');
     setSuccessUser(null);
-  }, [initialTab]);
+  }, [location.pathname, initialTab]);
 
   // Alumni / Mahasiswa Form State
   const [alumniForm, setAlumniForm] = useState({
@@ -400,6 +427,7 @@ export default function Register({
                 onClick={() => {
                   setActiveTab('alumni');
                   setIsEnteringForm(true);
+                  navigate('/register/alumni-dan-mahasiswa');
                 }}
                 className="w-full bg-[#0077C6] hover:bg-[#005FA0] active:bg-[#004C80] text-white font-bold py-4 px-6 rounded-2xl text-sm sm:text-base transition duration-150 shadow-md hover:shadow-lg flex items-center justify-center cursor-pointer text-center"
                 id="register-hero-alumni-btn"
@@ -413,6 +441,7 @@ export default function Register({
                 onClick={() => {
                   setActiveTab('perusahaan');
                   setIsEnteringForm(true);
+                  navigate('/register/perusahaan');
                 }}
                 className="w-full py-4 px-6 rounded-2xl text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 font-bold text-sm sm:text-base transition duration-150 shadow-xs hover:shadow-md flex items-center justify-center cursor-pointer text-center"
                 id="register-hero-mitra-btn"
@@ -504,7 +533,10 @@ export default function Register({
           {/* Right link: Back to Hero / Login */}
           <div className="flex items-center gap-4">
             <button
-              onClick={() => setIsEnteringForm(false)}
+              onClick={() => {
+                setIsEnteringForm(false);
+                navigate('/register');
+              }}
               className="text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 transition cursor-pointer flex items-center gap-1.5"
             >
               <ArrowLeft className="w-4 h-4" />

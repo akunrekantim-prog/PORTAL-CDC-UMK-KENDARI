@@ -401,13 +401,11 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
               )}
             </div>
 
-            <span className="text-blue-400 select-none">•</span>
-
             {/* Menu Login paling kanan (teks murni seperti SIMKATMAWA) */}
             <button
               type="button"
               onClick={onNavigateToLogin}
-              className="hover:text-orange-300 transition-colors duration-150 whitespace-nowrap cursor-pointer text-xs font-medium"
+              className="hover:text-orange-300 transition-colors duration-150 whitespace-nowrap cursor-pointer text-sm font-semibold"
               id="topbar-login-link"
             >
               Login
