@@ -480,26 +480,6 @@ export default function Register({
             </button>
           </div>
 
-          {/* Right link: Back to Hero / Login */}
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => {
-                setIsEnteringForm(false);
-                navigate('/register');
-              }}
-              className="text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 transition cursor-pointer flex items-center gap-1.5"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Pilihan Akun</span>
-            </button>
-            <span className="text-slate-200">|</span>
-            <button
-              onClick={onNavigateToLogin}
-              className="text-sm font-bold text-[#00186B] hover:text-[#000E3D] hover:underline transition cursor-pointer"
-            >
-              Login
-            </button>
-          </div>
         </div>
       </header>
 

@@ -21,7 +21,6 @@ import {
   EyeOff,
   AlertCircle,
   HelpCircle,
-  ArrowLeft,
   X,
   Phone
 } from 'lucide-react';
@@ -152,17 +151,8 @@ export default function Login({
       ───────────────────────────────────────────────────────────── */}
       <div className="relative z-10 flex-1 flex flex-col justify-between p-6 sm:p-10 lg:p-14 text-white min-h-[40vh] lg:min-h-screen">
 
-        {/* Top Header Row */}
-        <div className="flex items-center justify-between gap-4">
-          <button
-            onClick={onNavigateHome}
-            className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-white/90 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 px-4 py-2 rounded-xl backdrop-blur-md transition cursor-pointer shadow-xs"
-            id="login-back-home-btn"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Kembali ke Beranda</span>
-          </button>
-        </div>
+        {/* Top Header Row Placeholder */}
+        <div className="h-6"></div>
 
         {/* Main Branding Content */}
         <div className="my-auto py-8 space-y-6 max-w-xl mx-auto w-full px-2 sm:px-6 flex flex-col items-start text-left">
@@ -208,22 +198,8 @@ export default function Login({
       ───────────────────────────────────────────────────────────── */}
       <div className="relative z-10 w-full lg:w-[480px] xl:w-[520px] bg-white shadow-2xl flex flex-col justify-between p-6 sm:p-10 lg:p-12 lg:m-6 xl:m-8 lg:my-auto rounded-none lg:rounded-3xl border border-slate-100 my-auto min-h-screen lg:min-h-0">
 
-        {/* Top Header / Back Trigger */}
-        <div className="w-full">
-          {isEnteringCredentials ? (
-            <button
-              onClick={() => {
-                setIsEnteringCredentials(false);
-                setErrorMessage('');
-              }}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0077C6] hover:text-[#005FA0] hover:underline cursor-pointer mb-2 transition"
-            >
-              <ArrowLeft className="w-4 h-4" /> Kembali ke Pilihan Masuk
-            </button>
-          ) : (
-            <div className="h-6"></div>
-          )}
-        </div>
+        {/* Top Spacer */}
+        <div className="h-6"></div>
 
         {/* Main Content Area */}
         <div className="my-auto py-2 space-y-6">
@@ -301,20 +277,7 @@ export default function Login({
                 <span>Masuk dengan Akun Mitra</span>
               </button>
 
-              {/* Under-Options Registration Link */}
-              <div className="pt-3 text-center text-xs text-slate-600 space-y-2 border-t border-slate-100">
-                <div>
-                  Belum memiliki akun?{' '}
-                  <button
-                    type="button"
-                    onClick={() => onNavigateToRegister?.('alumni')}
-                    className="font-bold text-[#0077C6] hover:text-[#005FA0] hover:underline cursor-pointer"
-                    id="login-hero-goto-register-btn"
-                  >
-                    Daftar Sekarang
-                  </button>
-                </div>
-              </div>
+
 
             </div>
           ) : (
