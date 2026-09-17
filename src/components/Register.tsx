@@ -36,8 +36,6 @@ interface RegisterProps {
   onLoginSuccess?: (user: any) => void;
 }
 
-import { promptGoogleLogin, GoogleLogo } from '../utils/googleAuth';
-
 const INDUSTRI_LIST = [
   'Teknologi Informasi, Software & Telekomunikasi',
   'Perbankan, Keuangan & Asuransi',
@@ -91,30 +89,7 @@ export default function Register({
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successUser, setSuccessUser] = useState<any | null>(null);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  const handleGoogleSuccess = (user: any) => {
-    if (onLoginSuccess) {
-      onLoginSuccess(user);
-    } else if (onRegisterSuccess) {
-      onRegisterSuccess(user);
-    }
-  };
-
-  const handleGoogleLogin = () => {
-    setErrorMsg('');
-    promptGoogleLogin({
-      onSuccess: (user) => {
-        handleGoogleSuccess(user);
-      },
-      onError: (err) => {
-        setErrorMsg(err);
-      },
-      onLoading: (loading) => {
-        setIsGoogleLoading(loading);
-      }
-    });
-  };
 
   // Password Visibility States
   const [showPassword, setShowPassword] = useState(false);
@@ -449,32 +424,7 @@ export default function Register({
                 <span>Daftar Mitra Perusahaan</span>
               </button>
 
-              {/* Divider: or */}
-              <div className="relative flex items-center justify-center py-1">
-                <div className="border-t border-slate-200 w-full"></div>
-                <span className="bg-white px-3 text-xs text-slate-400 font-medium lowercase">
-                  or
-                </span>
-                <div className="border-t border-slate-200 w-full"></div>
-              </div>
 
-              {/* Google Sign-In / Register Button (Direct Official Popup) */}
-              <button
-                type="button"
-                onClick={handleGoogleLogin}
-                disabled={isGoogleLoading}
-                className="w-full bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 font-bold py-3.5 px-4 rounded-xl border border-slate-900 transition duration-150 flex items-center justify-center gap-3 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99] disabled:opacity-60"
-                id="register-hero-google-btn"
-              >
-                {isGoogleLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin text-slate-700" />
-                ) : (
-                  <GoogleLogo className="w-5 h-5" />
-                )}
-                <span className="text-sm sm:text-base font-bold text-slate-900">
-                  {isGoogleLoading ? 'Menghubungkan ke Google...' : 'Sign Up with Google'}
-                </span>
-              </button>
 
               {/* Under-Action Login Link */}
               <div className="text-center text-xs text-slate-600 space-y-3">
@@ -940,32 +890,7 @@ export default function Register({
                         </button>
                       </div>
 
-                      {/* Divider: or */}
-                      <div className="relative flex items-center justify-center py-1">
-                        <div className="border-t border-slate-200 w-full"></div>
-                        <span className="bg-white px-3 text-xs text-slate-400 font-medium lowercase">
-                          or
-                        </span>
-                        <div className="border-t border-slate-200 w-full"></div>
-                      </div>
 
-                      {/* Google Sign-In Button (Direct Official Popup) */}
-                      <button
-                        type="button"
-                        onClick={handleGoogleLogin}
-                        disabled={isGoogleLoading}
-                        className="w-full bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 font-bold py-3 px-4 rounded-xl border border-slate-900 transition duration-150 flex items-center justify-center gap-3 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99] disabled:opacity-60"
-                        id="register-alumni-google-btn"
-                      >
-                        {isGoogleLoading ? (
-                          <Loader2 className="w-5 h-5 animate-spin text-slate-700" />
-                        ) : (
-                          <GoogleLogo className="w-5 h-5" />
-                        )}
-                        <span className="text-sm sm:text-base font-bold text-slate-900">
-                          {isGoogleLoading ? 'Menghubungkan ke Google...' : 'Sign Up with Google'}
-                        </span>
-                      </button>
 
                       {/* Under-Card Link */}
                       <div className="pt-2 text-center text-xs text-slate-600">

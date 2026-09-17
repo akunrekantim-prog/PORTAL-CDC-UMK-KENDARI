@@ -358,12 +358,8 @@ export default function App() {
   };
 
   const handleSetPublicTab = (tab: string) => {
-    if (tab === 'register-alumni') {
-      handleNavigateToRegister('alumni');
-      return;
-    }
-    if (tab === 'register-perusahaan') {
-      handleNavigateToRegister('perusahaan');
+    if (tab === 'register-alumni' || tab === 'register-perusahaan') {
+      handleNavigateToLogin();
       return;
     }
     setPublicTab(tab);
@@ -782,7 +778,7 @@ export default function App() {
               reloadDatabase();
               navigate('/');
             }}
-            onRegisterSuccess={(user) => {
+            onRegisterSuccess={(_user) => {
               reloadDatabase();
             }}
             onLoginSuccess={(user) => {

@@ -28,20 +28,19 @@ import {
 import { getHelpdeskConfig } from '../data';
 import { loginToBackend } from '../services/dbService';
 import { User as UserType, HelpdeskConfig } from '../types';
-import { promptGoogleLogin, GoogleLogo } from '../utils/googleAuth';
 
 interface LoginProps {
   onLoginSuccess: (user: UserType) => void;
-  onNavigateToRegister: (type?: 'alumni' | 'perusahaan') => void;
   onNavigateHome: () => void;
+  onNavigateToRegister?: (type?: 'alumni' | 'perusahaan') => void;
 }
 
 type LoginRole = 'mahasiswa' | 'mitra';
 
 export default function Login({
   onLoginSuccess,
-  onNavigateToRegister,
-  onNavigateHome
+  onNavigateHome,
+  onNavigateToRegister
 }: LoginProps) {
   const [isEnteringCredentials, setIsEnteringCredentials] = useState(false);
   const [selectedRole, setSelectedRole] = useState<LoginRole>('mahasiswa');
@@ -51,23 +50,7 @@ export default function Login({
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showForgotModal, setShowForgotModal] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [helpdeskConfig, setHelpdeskConfig] = useState<HelpdeskConfig>(() => getHelpdeskConfig());
-
-  const handleGoogleLogin = () => {
-    setErrorMessage('');
-    promptGoogleLogin({
-      onSuccess: (user) => {
-        onLoginSuccess(user);
-      },
-      onError: (err) => {
-        setErrorMessage(err);
-      },
-      onLoading: (loading) => {
-        setIsGoogleLoading(loading);
-      }
-    });
-  };
 
   // Reload config when modal is opened
   useEffect(() => {
@@ -318,6 +301,21 @@ export default function Login({
                 <span>Masuk dengan Akun Mitra</span>
               </button>
 
+              {/* Under-Options Registration Link */}
+              <div className="pt-3 text-center text-xs text-slate-600 space-y-2 border-t border-slate-100">
+                <div>
+                  Belum memiliki akun?{' '}
+                  <button
+                    type="button"
+                    onClick={() => onNavigateToRegister?.('alumni')}
+                    className="font-bold text-[#0077C6] hover:text-[#005FA0] hover:underline cursor-pointer"
+                    id="login-hero-goto-register-btn"
+                  >
+                    Daftar Sekarang
+                  </button>
+                </div>
+              </div>
+
             </div>
           ) : (
             /* ─────────────────────────────────────────────────────────────
@@ -401,36 +399,6 @@ export default function Login({
                 </button>
               </div>
 
-              {/* Google Sign-In Button (Only for Mahasiswa / Alumni) */}
-              {selectedRole !== 'mitra' && (
-                <>
-                  <div className="relative flex items-center justify-center py-1">
-                    <div className="border-t border-slate-200 w-full"></div>
-                    <span className="bg-white px-3 text-xs text-slate-400 font-medium lowercase">
-                      or
-                    </span>
-                    <div className="border-t border-slate-200 w-full"></div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleGoogleLogin}
-                    disabled={isGoogleLoading}
-                    className="w-full bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 font-bold py-3 px-4 rounded-xl border border-slate-900 transition duration-150 flex items-center justify-center gap-3 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99] disabled:opacity-60"
-                    id="login-form-google-btn"
-                  >
-                    {isGoogleLoading ? (
-                      <Loader2 className="w-5 h-5 animate-spin text-slate-700" />
-                    ) : (
-                      <GoogleLogo className="w-5 h-5" />
-                    )}
-                    <span className="text-sm sm:text-base font-bold text-slate-900">
-                      {isGoogleLoading ? 'Menghubungkan ke Google...' : 'Log In with Google'}
-                    </span>
-                  </button>
-                </>
-              )}
-
               {/* Divider: ATAU */}
               <div className="relative flex items-center justify-center py-1">
                 <div className="border-t border-slate-200 w-full"></div>
@@ -458,7 +426,7 @@ export default function Login({
                   Belum memiliki akun?{' '}
                   <button
                     type="button"
-                    onClick={() => onNavigateToRegister(selectedRole === 'mitra' ? 'perusahaan' : 'alumni')}
+                    onClick={() => onNavigateToRegister?.(selectedRole === 'mitra' ? 'perusahaan' : 'alumni')}
                     className="font-bold text-[#0077C6] hover:text-[#005FA0] hover:underline cursor-pointer"
                     id="login-goto-register-btn"
                   >

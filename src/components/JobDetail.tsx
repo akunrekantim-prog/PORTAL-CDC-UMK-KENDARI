@@ -398,8 +398,9 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                   ) : (
                     <button
                       onClick={() => {
-                        if (!isLoggedIn && onNavigateToRegister) {
-                          onNavigateToRegister('alumni');
+                        if (!isLoggedIn) {
+                          if (onNavigateToLogin) onNavigateToLogin();
+                          else if (onApply) onApply();
                         } else if (onApply) {
                           onApply();
                         } else {
@@ -700,8 +701,9 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                   ) : (
                     <button
                       onClick={() => {
-                        if (!isLoggedIn && onNavigateToRegister) {
-                          onNavigateToRegister('alumni');
+                        if (!isLoggedIn) {
+                          if (onNavigateToLogin) onNavigateToLogin();
+                          else if (onApply) onApply();
                         } else if (onApply) {
                           onApply();
                         } else {

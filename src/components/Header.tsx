@@ -261,18 +261,7 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
     setOpenDropdown(null);
     setIsMobileOpen(false);
     setMobileExpanded(null);
-    if (tab === 'login') {
-      onNavigateToLogin();
-    } else if (tab === 'register-alumni') {
-      if (onNavigateToRegister) onNavigateToRegister('alumni');
-      else onNavigateToLogin();
-    } else if (tab === 'register-perusahaan') {
-      if (onNavigateToRegister) onNavigateToRegister('perusahaan');
-      else onNavigateToLogin();
-    } else if (isAction && tab.startsWith('register')) {
-      if (onNavigateToRegister) onNavigateToRegister('alumni');
-      else onNavigateToLogin();
-    } else if (isAction) {
+    if (tab === 'login' || tab.startsWith('register') || isAction) {
       onNavigateToLogin();
     } else {
       setTab(tab);

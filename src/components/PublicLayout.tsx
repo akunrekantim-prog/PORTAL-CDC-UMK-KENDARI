@@ -897,8 +897,6 @@ export default function PublicLayout({
                         setTab(item.jenis);
                       } else if (onSelectProgram) {
                         onSelectProgram(item.id);
-                      } else if (onNavigateToRegister) {
-                        onNavigateToRegister('alumni');
                       } else if (onNavigateToLogin) {
                         onNavigateToLogin();
                       }
