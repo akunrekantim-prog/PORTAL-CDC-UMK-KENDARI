@@ -96,7 +96,7 @@ export default function BeritaDetailView({
     setMyPendingIds([]);
     setMyPendingNotice(false);
     if (berita && berita.title) {
-      document.title = `${berita.title} | Portal CDC UM Kendari`;
+      document.title = `${berita.title} | CDC UM Kendari`;
     }
   }, [berita.slug, berita.title]);
 

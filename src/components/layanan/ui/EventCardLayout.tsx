@@ -214,7 +214,7 @@ export default function EventCardLayout({
       onDetailStateChange(isDetail);
     }
     if (selectedEvent) {
-      document.title = `${selectedEvent.title} | Portal CDC UM Kendari`;
+      document.title = `${selectedEvent.title} | CDC UM Kendari`;
     }
   }, [selectedEvent, setIsDetailActive, onDetailStateChange]);
 

@@ -122,28 +122,77 @@ export interface BackendLoginResult {
   expiresIn: number;
 }
 
+import { registerUser, getFromDB } from '../data';
+
 export async function loginToBackend(email: string, password: string): Promise<BackendLoginResult> {
-  const response = await fetch(`${API_BASE_URL}/login`, {
-    method: 'POST',
-    credentials: 'include', // kirim/terima httpOnly auth cookie
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: email.toLowerCase(), password })
-  });
-  const result = await response.json().catch(() => ({}));
-  if (!response.ok || !result.success) {
-    throw new Error(result.message || 'Login gagal. Periksa kredensial Anda.');
-  }
+  let response: Response | null = null;
+  let isStaticFallback = false;
+
   try {
-    localStorage.setItem('cdc_auth_token', result.token);
-    localStorage.setItem('cdc_token_expiry', (Date.now() + result.expiresIn * 1000).toString());
-    localStorage.setItem('cdc_session_id', result.user.id);
+    response = await fetch(`${API_BASE_URL}/login`, {
+      method: 'POST',
+      credentials: 'include', // kirim/terima httpOnly auth cookie
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.toLowerCase(), password })
+    });
+  } catch {
+    isStaticFallback = true;
+  }
+
+  if (response) {
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('text/html')) {
+      isStaticFallback = true;
+    }
+  }
+
+  if (!isStaticFallback && response) {
+    const result = await response.json().catch(() => null);
+    if (result && response.ok && result.success) {
+      try {
+        localStorage.setItem('cdc_auth_token', result.token);
+        localStorage.setItem('cdc_token_expiry', (Date.now() + result.expiresIn * 1000).toString());
+        localStorage.setItem('cdc_session_id', result.user.id);
+      } catch {
+        /* abaikan */
+      }
+      return {
+        user: normalizeRecord('users', result.user),
+        token: result.token,
+        expiresIn: result.expiresIn
+      };
+    }
+    if (result && (result.message || result.error)) {
+      throw new Error(result.message || result.error);
+    }
+  }
+
+  // Static Hosting Fallback (Firebase Hosting / Demo Mode tanpa live Node server)
+  const users = getFromDB<any>('users') || [];
+  const matchedUser = users.find(
+    (u: any) => u && u.email && u.email.toLowerCase() === email.toLowerCase()
+  );
+
+  if (!matchedUser) {
+    throw new Error('Akun dengan email ini belum terdaftar. Silakan mendaftar terlebih dahulu.');
+  }
+
+  if (matchedUser.password && matchedUser.password !== password) {
+    throw new Error('Kata sandi yang Anda masukkan salah. Silakan coba lagi.');
+  }
+
+  try {
+    localStorage.setItem('cdc_auth_token', 'demo_token_' + matchedUser.id);
+    localStorage.setItem('cdc_token_expiry', (Date.now() + 86400 * 1000).toString());
+    localStorage.setItem('cdc_session_id', matchedUser.id);
   } catch {
     /* abaikan */
   }
+
   return {
-    user: normalizeRecord('users', result.user),
-    token: result.token,
-    expiresIn: result.expiresIn
+    user: normalizeRecord('users', matchedUser),
+    token: 'demo_token_' + matchedUser.id,
+    expiresIn: 86400
   };
 }
 
@@ -165,33 +214,68 @@ export interface BackendRegisterPayload {
 }
 
 export async function registerToBackend(payload: BackendRegisterPayload): Promise<any> {
-  let response: Response;
+  let response: Response | null = null;
+  let isStaticFallback = false;
+
   try {
     response = await fetch(`${API_BASE_URL}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-  } catch (netErr: any) {
-    throw new Error(
-      'Server pendaftaran tidak terjangkau (Offline). Pastikan server backend Node.js (npm run server di port 5000) telah berjalan.'
-    );
+  } catch {
+    isStaticFallback = true;
   }
 
-  const result = await response.json().catch(() => ({}));
-  if (!response.ok || !result.success) {
-    if (response.status === 504 || response.status === 502) {
-      throw new Error(
-        'Server backend tidak merespons (Gateway Timeout). Jalankan server backend Node.js (npm run server) di port 5000.'
-      );
+  if (response) {
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('text/html')) {
+      isStaticFallback = true;
     }
-    throw new Error(
-      result.message ||
-      result.error ||
-      `Pendaftaran gagal (Status ${response.status}). Periksa kembali data Anda dan coba lagi.`
-    );
   }
-  return normalizeRecord('users', result.user);
+
+  if (!isStaticFallback && response) {
+    const result = await response.json().catch(() => null);
+    if (result && response.ok && result.success) {
+      return normalizeRecord('users', result.user);
+    }
+    if (result && (result.message || result.error)) {
+      if (response.status === 504 || response.status === 502) {
+        throw new Error('Server backend tidak merespons (Gateway Timeout).');
+      }
+      throw new Error(result.message || result.error);
+    }
+  }
+
+  // Mode Fallback Static Hosting (Firebase Hosting Preview)
+  const isMitra = payload.role === 'MITRA';
+  const isAlumni = payload.role === 'ALUMNI';
+  const userRole = isMitra ? 'mitra' : 'alumni';
+
+  const registeredUser = registerUser(userRole, {
+    name: payload.name,
+    email: payload.email,
+    password: payload.password,
+    phone: payload.phone || '',
+    nim: payload.nim || '2026' + Math.floor(1000 + Math.random() * 9000),
+    programStudi: payload.programStudi || 'Informatika',
+    fakultas: payload.fakultas || 'Teknik',
+    tahunLulus: payload.tahunLulus || '2026',
+    userStatusType: isAlumni ? 'Alumni' : 'Mahasiswa',
+    namaInstansi: payload.namaInstansi || payload.name,
+    kontakPerson: payload.kontakPerson || payload.name,
+    bidangIndustri: payload.bidangIndustri || 'Teknologi Informasi',
+    alamat: payload.alamat || '',
+    website: payload.website || ''
+  } as any);
+
+  try {
+    localStorage.setItem('cdc_session_id', registeredUser.id);
+  } catch {
+    /* abaikan */
+  }
+
+  return normalizeRecord('users', registeredUser);
 }
 
 /* ── Boot data ──────────────────────────────────────────────────────

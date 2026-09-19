@@ -291,7 +291,7 @@ app.post('/api/register', registerLimiter, async (req, res) => {
           password: hashedPassword,
           phone: phone ? String(phone).slice(0, 20) : null,
           role: normalizedRole,
-          status: 'PENDING'
+          status: (normalizedRole === 'MAHASISWA' || normalizedRole === 'ALUMNI') ? 'ACTIVE' : 'PENDING'
         }
       });
 

@@ -464,26 +464,26 @@ export default function App() {
   useEffect(() => {
     if (viewingLowonganId && selectedLowongan) {
       const instansi = selectedLowongan.namaInstansi ? ` - ${selectedLowongan.namaInstansi}` : '';
-      document.title = `${selectedLowongan.judul}${instansi} | Portal CDC UM Kendari`;
+      document.title = `${selectedLowongan.judul}${instansi} | CDC UM Kendari`;
     } else if (viewingBeritaSlug && selectedBerita) {
-      document.title = `${selectedBerita.title} | Portal CDC UM Kendari`;
+      document.title = `${selectedBerita.title} | CDC UM Kendari`;
     } else if (viewingProgramId && selectedProgram) {
-      document.title = `${selectedProgram.judul} | Portal CDC UM Kendari`;
+      document.title = `${selectedProgram.judul} | CDC UM Kendari`;
     } else if (currentView === 'login') {
-      document.title = 'Masuk Akun - Portal CDC UM Kendari';
+      document.title = 'Masuk Akun - CDC UM Kendari';
     } else if (currentView === 'register') {
-      document.title = 'Pendaftaran Akun - Portal CDC UM Kendari';
+      document.title = 'Pendaftaran Akun - CDC UM Kendari';
     } else if (currentView === 'admin-login') {
       document.title = 'Login Portal Admin CDC UM Kendari';
     } else if (currentView === 'dashboard') {
-      if (currentUser?.role === 'admin') document.title = 'Dashboard Admin - Portal CDC UM Kendari';
-      else if (currentUser?.role === 'mitra') document.title = 'Dashboard Mitra Perusahaan - Portal CDC UM Kendari';
-      else document.title = 'Dashboard Mahasiswa & Alumni - Portal CDC UM Kendari';
+      if (currentUser?.role === 'admin') document.title = 'Dashboard Admin - CDC UM Kendari';
+      else if (currentUser?.role === 'mitra') document.title = 'Dashboard Mitra Perusahaan - CDC UM Kendari';
+      else document.title = 'Dashboard Mahasiswa & Alumni - CDC UM Kendari';
     } else {
-      if (publicTab === 'lowongan') document.title = 'Lowongan Kerja & Magang - Portal CDC UM Kendari';
-      else if (publicTab === 'berita') document.title = 'Berita & Artikel Karir - Portal CDC UM Kendari';
-      else if (publicTab.startsWith('presentasi')) document.title = 'Prestasi Mahasiswa UMK - Portal CDC UM Kendari';
-      else document.title = 'Portal CDC UM Kendari - Pusat Karir & Alumni';
+      if (publicTab === 'lowongan') document.title = 'Lowongan Kerja & Magang - CDC UM Kendari';
+      else if (publicTab === 'berita') document.title = 'Berita & Artikel Karir - CDC UM Kendari';
+      else if (publicTab.startsWith('presentasi')) document.title = 'Prestasi Mahasiswa UMK - CDC UM Kendari';
+      else document.title = 'CDC UM Kendari - Pusat Karir & Alumni';
     }
   }, [viewingLowonganId, viewingBeritaSlug, viewingProgramId, selectedLowongan, selectedBerita, selectedProgram, currentView, publicTab, currentUser]);
 

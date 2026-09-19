@@ -45,7 +45,7 @@ export default function ShareableDetailPage({
 
   useEffect(() => {
     if (title) {
-      document.title = `${title} | Portal CDC UM Kendari`;
+      document.title = `${title} | CDC UM Kendari`;
     }
   }, [title]);
 
@@ -155,7 +155,7 @@ export default function ShareableDetailPage({
 
             {/* BREADCRUMB BAR */}
             <nav className="flex items-center gap-2 text-xs sm:text-sm text-slate-500 font-medium flex-wrap min-w-0" aria-label="Breadcrumb">
-              <span className="shrink-0">Portal CDC UM Kendari</span>
+              <span className="shrink-0">CDC UM Kendari</span>
               <span>&gt;</span>
               <span className="hover:text-[#0077C6] cursor-pointer shrink-0" onClick={onBack}>{categoryLabel}</span>
               <span>&gt;</span>

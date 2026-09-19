@@ -61,7 +61,7 @@ export default function PrestasiDetailView({
 
   useEffect(() => {
     if (prestasi && prestasi.judul) {
-      document.title = `${prestasi.judul} - Prestasi Mahasiswa | Portal CDC UM Kendari`;
+      document.title = `${prestasi.judul} - Prestasi Mahasiswa | CDC UM Kendari`;
     }
   }, [prestasi]);
 

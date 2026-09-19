@@ -49,7 +49,18 @@ import {
   syncLowonganToSupabase,
   syncPengajuanToSupabase,
   syncTracerStudyToSupabase,
-  syncKontenKarirToSupabase
+  syncKontenKarirToSupabase,
+  syncBeritaToSupabase,
+  syncPengumumanToSupabase,
+  syncSurveiLulusanToSupabase,
+  syncSuratKeputusanToSupabase,
+  syncKalenderKegiatanToSupabase,
+  syncLaporanKinerjaToSupabase,
+  syncMouStakeholderToSupabase,
+  syncGaleriItemToSupabase,
+  syncSocialMediaToSupabase,
+  syncKomentarBeritaToSupabase,
+  syncUploadedDocumentToSupabase
 } from './services/dbService';
 
 // Daftar Fakultas Resmi Universitas Muhammadiyah Kendari (UM Kendari)
@@ -2329,6 +2340,50 @@ export function saveToDB<T>(key: DBKey, data: T[]) {
         for (const item of data as any[]) {
           await syncKontenKarirToSupabase(item);
         }
+      } else if (key === 'berita' && Array.isArray(data)) {
+        for (const item of data as any[]) {
+          await syncBeritaToSupabase(item);
+        }
+      } else if (key === 'pengumuman' && Array.isArray(data)) {
+        for (const item of data as any[]) {
+          await syncPengumumanToSupabase(item);
+        }
+      } else if (key === 'surat_keputusan' && Array.isArray(data)) {
+        for (const item of data as any[]) {
+          await syncSuratKeputusanToSupabase(item);
+        }
+      } else if (key === 'kalender_kegiatan' && Array.isArray(data)) {
+        for (const item of data as any[]) {
+          await syncKalenderKegiatanToSupabase(item);
+        }
+      } else if (key === 'laporan_kinerja' && Array.isArray(data)) {
+        for (const item of data as any[]) {
+          await syncLaporanKinerjaToSupabase(item);
+        }
+      } else if (key === 'mou_stakeholder' && Array.isArray(data)) {
+        for (const item of data as any[]) {
+          await syncMouStakeholderToSupabase(item);
+        }
+      } else if (key === 'galeri_items' && Array.isArray(data)) {
+        for (const item of data as any[]) {
+          await syncGaleriItemToSupabase(item);
+        }
+      } else if (key === 'social_media' && Array.isArray(data)) {
+        for (const item of data as any[]) {
+          await syncSocialMediaToSupabase(item);
+        }
+      } else if (key === 'komentar_berita' && Array.isArray(data)) {
+        for (const item of data as any[]) {
+          await syncKomentarBeritaToSupabase(item);
+        }
+      } else if (key === 'survei_lulusan' && Array.isArray(data)) {
+        for (const item of data as any[]) {
+          await syncSurveiLulusanToSupabase(item);
+        }
+      } else if (key === 'uploaded_documents' && Array.isArray(data)) {
+        for (const item of data as any[]) {
+          await syncUploadedDocumentToSupabase(item);
+        }
       }
     } catch (e) {
       console.warn('[Sync Error]', key, e);
@@ -3608,67 +3663,39 @@ export function getSuratKeputusan(): SuratKeputusan[] {
 }
 
 export function saveSuratKeputusan(items: SuratKeputusan[]): void {
-  localStorage.setItem('cdc_umk_surat_keputusan', JSON.stringify(items));
+  saveToDB('surat_keputusan', items);
 }
 
 export function getKalenderKegiatan(): KalenderKegiatan[] {
-  const saved = localStorage.getItem('cdc_umk_kalender_kegiatan');
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-    } catch { }
-  }
-  return SEED_KALENDER_KEGIATAN;
+  return getFromDB<KalenderKegiatan>('kalender_kegiatan');
 }
 
 export function saveKalenderKegiatan(items: KalenderKegiatan[]): void {
-  localStorage.setItem('cdc_umk_kalender_kegiatan', JSON.stringify(items));
+  saveToDB('kalender_kegiatan', items);
 }
 
 export function getLaporanKinerja(): LaporanKinerja[] {
-  const saved = localStorage.getItem('cdc_umk_laporan_kinerja');
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-    } catch { }
-  }
-  return SEED_LAPORAN_KINERJA;
+  return getFromDB<LaporanKinerja>('laporan_kinerja');
 }
 
 export function saveLaporanKinerja(items: LaporanKinerja[]): void {
-  localStorage.setItem('cdc_umk_laporan_kinerja', JSON.stringify(items));
+  saveToDB('laporan_kinerja', items);
 }
 
 export function getMouStakeholder(): MouStakeholder[] {
-  const saved = localStorage.getItem('cdc_umk_mou_stakeholder');
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-    } catch { }
-  }
-  return SEED_MOU_STAKEHOLDER;
+  return getFromDB<MouStakeholder>('mou_stakeholder');
 }
 
 export function saveMouStakeholder(items: MouStakeholder[]): void {
-  localStorage.setItem('cdc_umk_mou_stakeholder', JSON.stringify(items));
+  saveToDB('mou_stakeholder', items);
 }
 
 export function getGaleriItems(): GaleriItem[] {
-  const saved = localStorage.getItem('cdc_umk_galeri_items');
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-    } catch { }
-  }
-  return SEED_GALERI_ITEMS;
+  return getFromDB<GaleriItem>('galeri_items');
 }
 
 export function saveGaleriItems(items: GaleriItem[]): void {
-  localStorage.setItem('cdc_umk_galeri_items', JSON.stringify(items));
+  saveToDB('galeri_items', items);
 }
 
 /* ─────────────────────────────────────────────────────────────────

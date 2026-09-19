@@ -147,7 +147,7 @@ export const JobDetail: React.FC<JobDetailProps> = ({
   useEffect(() => {
     if (job && job.judul) {
       const instansi = job.namaInstansi ? ` - ${job.namaInstansi}` : '';
-      document.title = `${job.judul}${instansi} | Portal CDC UM Kendari`;
+      document.title = `${job.judul}${instansi} | CDC UM Kendari`;
     }
   }, [job]);
 

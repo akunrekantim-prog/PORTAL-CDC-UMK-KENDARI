@@ -162,7 +162,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 
-type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'admin' | 'keanggotaan' | 'visi-misi' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'media-sosial' | 'komentar' | 'konseling' | 'hero-slider' | 'campus-hiring' | 'job-fair' | 'statistik-beranda';
+type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'mahasiswa-alumni' | 'keanggotaan' | 'visi-misi' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'media-sosial' | 'komentar' | 'konseling' | 'hero-slider' | 'campus-hiring' | 'job-fair' | 'statistik-beranda';
 
 interface AdminDashboardProps {
   user: UserType;
@@ -724,8 +724,9 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
     { group: 'DASHBOARD', items: [{ id: 'ringkasan', label: 'Ringkasan Laporan', icon: <LayoutDashboard className="w-4 h-4" /> }] },
     { group: 'KONTEN KARIR', items: [{ id: 'konten', label: 'Konten Karir', icon: <FileText className="w-4 h-4" /> }] },
     {
-      group: 'MANAJEMEN MITRA',
+      group: 'MANAJEMEN ANGGOTA',
       items: [
+        { id: 'mahasiswa-alumni', label: 'Data Mahasiswa & Alumni', icon: <GraduationCap className="w-4 h-4" /> },
         { id: 'mitra', label: 'Approval & List Mitra', icon: <Building2 className="w-4 h-4" /> }
       ]
     },
@@ -749,8 +750,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
         { id: 'laporan', label: 'Laporan Kinerja', icon: <FileText className="w-4 h-4" /> },
         { id: 'mou', label: 'MOU Stakeholder', icon: <FileText className="w-4 h-4" /> },
         { id: 'galeri', label: 'Galeri Kegiatan', icon: <Film className="w-4 h-4" /> },
-        { id: 'konseling', label: 'Bimbingan & Konseling', icon: <HeartHandshake className="w-4 h-4" /> },
-        { id: 'admin', label: 'Kelola Admin', icon: <UserCog className="w-4 h-4" /> }
+        { id: 'konseling', label: 'Bimbingan & Konseling', icon: <HeartHandshake className="w-4 h-4" /> }
       ]
     }
   ];
@@ -893,77 +893,54 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
     return matchQ && matchS;
   });
 
-  /* =========================================================
-   *  MANAJEMEN ADMIN
-   * =======================================================*/
-  const adminUsers = allUsers.filter((u) => u.role === 'admin');
-  const [showAddAdmin, setShowAddAdmin] = useState(false);
-  const [aName, setAName] = useState('');
-  const [aEmail, setAEmail] = useState('');
-  const [aPass, setAPass] = useState('');
-  const [aEmailError, setAEmailError] = useState('');
 
-  const handleAddAdmin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!aName || !aEmail) {
-      triggerToast('error', 'Nama dan email wajib diisi.');
-      return;
-    }
-    if (!aPass || aPass.length < 8 || !/[A-Z]/.test(aPass) || !/[a-z]/.test(aPass) || !/[0-9]/.test(aPass)) {
-      triggerToast('error', 'Password wajib min. 8 karakter, mengandung huruf besar, huruf kecil, dan angka.');
-      return;
-    }
-    const existing = getFromDB<UserType>('users').find((u) => u.email.toLowerCase() === aEmail.toLowerCase());
-    if (existing) {
-      setAEmailError('Email sudah terdaftar.');
-      return;
-    }
-    // SECURITY: password TIDAK disimpan di browser/localStorage — kirim ke backend agar di-hash bcrypt.
-    registerToBackend({ name: aName, email: aEmail, password: aPass, role: 'ADMIN' as any })
-      .then((created) => {
-        const createdAny = created as any;
-        const createdUser = createdAny?.user ?? createdAny;
-        const newAdmin: UserType = {
-          id: createdUser?.id ?? `usr_admin_${Date.now()}`,
-          name: createdUser?.name ?? aName,
-          email: createdUser?.email ?? aEmail,
-          role: 'admin',
-          status: createdUser?.status ? String(createdUser.status).toLowerCase() : 'active',
-          createdAt: createdUser?.createdAt ?? new Date().toISOString()
-        } as UserType;
-        insertToDB<UserType>('users', newAdmin);
-        setAName(''); setAEmail(''); setAPass(''); setShowAddAdmin(false);
-        reloadAll();
-        triggerToast('success', `Admin "${aName}" ditambahkan.`);
-      })
-      .catch((err: any) => {
-        triggerToast('error', err?.message || 'Gagal menambahkan admin via server.');
-      });
+
+  /* =========================================================
+   *  MANAJEMEN MAHASISWA & ALUMNI
+   * =======================================================*/
+  const [mhsQuery, setMhsQuery] = useState('');
+  const [mhsRoleFilter, setMhsRoleFilter] = useState<'semua' | 'mahasiswa' | 'alumni'>('semua');
+  const [mhsStatusFilter, setMhsStatusFilter] = useState<'semua' | 'pending' | 'active' | 'inactive'>('semua');
+  const [selectedUserMhs, setSelectedUserMhs] = useState<UserType | null>(null);
+
+  const mhsAlumniUsers = allUsers.filter((u) => u.role === 'mahasiswa' || u.role === 'alumni' || u.role === 'user');
+
+  const filteredMhsAlumni = mhsAlumniUsers.filter((u) => {
+    const q = mhsQuery.trim().toLowerCase();
+    const mhsProfile = students.find((s) => s.userId === u.id || (s.email && s.email.toLowerCase() === u.email.toLowerCase()));
+    const almProfile = alumni.find((a) => a.userId === u.id || (a.email && a.email.toLowerCase() === u.email.toLowerCase()));
+    const nimStr = (mhsProfile?.nim || almProfile?.nim || '').toLowerCase();
+    const prodiStr = (mhsProfile?.programStudi || almProfile?.programStudi || '').toLowerCase();
+
+    const matchQ = !q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || nimStr.includes(q) || prodiStr.includes(q);
+    const matchR = mhsRoleFilter === 'semua' || u.role === mhsRoleFilter;
+    const matchS = mhsStatusFilter === 'semua' || u.status === mhsStatusFilter;
+    return matchQ && matchR && matchS;
+  });
+
+  const handleApproveUserMhs = (u: UserType) => {
+    updateInDB<UserType>('users', { ...u, status: 'active' });
+    reloadAll();
+    triggerToast('success', `Akun ${u.role === 'alumni' ? 'Alumni' : 'Mahasiswa'} "${u.name}" telah disetujui & diaktifkan.`);
   };
 
-  const handleDisableAdmin = (u: UserType) => {
+  const handleToggleStatusUserMhs = (u: UserType) => {
     const nextStatus = u.status === 'active' ? 'inactive' : 'active';
     updateInDB<UserType>('users', { ...u, status: nextStatus });
-    if (u.role === 'mitra') {
-      const allM = getFromDB<Mitra>('mitra');
-      const targetM = allM.find((m) => m.userId === u.id || m.email.toLowerCase() === u.email.toLowerCase());
-      if (targetM) {
-        updateInDB<Mitra>('mitra', { ...targetM, statusKerjaSama: nextStatus === 'active' ? 'aktif' : 'nonaktif' });
-      }
-    }
     reloadAll();
     triggerToast('success', nextStatus === 'active' ? `Akun "${u.name}" diaktifkan.` : `Akun "${u.name}" dinonaktifkan.`);
   };
 
-  const handleDeleteAdmin = (u: UserType) => {
-    if (adminUsers.length <= 1) {
-      triggerToast('error', 'Minimal harus ada 1 admin.');
-      return;
-    }
-    if (confirm(`Hapus admin "${u.name}"?`)) {
+  const handleDeleteUserMhs = (u: UserType) => {
+    if (confirm(`Hapus akun "${u.name}"? Data profil mahasiswa/alumni terkait juga akan dihapus.`)) {
       deleteInDB('users', u.id);
+      const mhs = students.find((s) => s.userId === u.id || (s.email && s.email.toLowerCase() === u.email.toLowerCase()));
+      if (mhs) deleteInDB('mahasiswa', mhs.id);
+      const alm = alumni.find((a) => a.userId === u.id || (a.email && a.email.toLowerCase() === u.email.toLowerCase()));
+      if (alm) deleteInDB('alumni', alm.id);
+      if (selectedUserMhs?.id === u.id) setSelectedUserMhs(null);
       reloadAll();
-      triggerToast('success', 'Admin dihapus.');
+      triggerToast('success', 'Akun berhasil dihapus.');
     }
   };
 
@@ -4251,68 +4228,251 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
               </div>
             )}
 
-            {/* ============== MANAJEMEN ADMIN ============== */}
-            {activeTab === 'admin' && (
-              <div className="space-y-6" id="adm-admin">
+
+
+            {/* ============== MANAJEMEN MAHASISWA & ALUMNI ============== */}
+            {activeTab === 'mahasiswa-alumni' && (
+              <div className="space-y-6" id="adm-mahasiswa-alumni">
                 <div className="flex items-center justify-between flex-wrap gap-3 border-b border-slate-200/80 pb-4">
                   <div>
                     <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-                      <UserCog className="w-6 h-6 text-[#1B365D]" /> Kelola Akun Administrator
+                      <GraduationCap className="w-6 h-6 text-[#1B365D]" /> Data & Persetujuan Akun Mahasiswa / Alumni
                     </h1>
-                    <p className="text-xs text-slate-500 mt-1">Pengelolaan akun pengelola portal dan hak akses admin CDC UM Kendari</p>
+                    <p className="text-xs text-slate-500 mt-1">Pengelolaan akun pendaftar, verifikasi status anggota, dan riwayat profil mahasiswa/alumni CDC UM Kendari</p>
                   </div>
-                  <button
-                    onClick={() => setShowAddAdmin(!showAddAdmin)}
-                    className="bg-[#1B365D] hover:bg-[#0077C6] text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-xs transition cursor-pointer"
-                  >
-                    <Plus className="w-4 h-4" /> Tambah Admin Baru
-                  </button>
                 </div>
 
-                {showAddAdmin && (
-                  <form onSubmit={handleAddAdmin} className="bg-white rounded-3xl border border-slate-200 shadow-md p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Nama Lengkap Admin *</label>
-                      <input value={aName} onChange={(e) => setAName(e.target.value)} required className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-[#1B365D]/20 focus:border-[#1B365D]" placeholder="Nama admin" />
+                {/* Summary Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex items-center justify-between">
+                    <div>
+                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Mahasiswa Aktif</div>
+                      <div className="text-2xl font-black text-slate-900 mt-1">{mhsAlumniUsers.filter((u) => u.role === 'mahasiswa').length}</div>
                     </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Email Resmi *</label>
-                      <input value={aEmail} onChange={(e) => { setAEmail(e.target.value); setAEmailError(''); }} required className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-[#1B365D]/20 focus:border-[#1B365D]" placeholder="email@umkendari.ac.id" />
-                      {aEmailError && <div className="text-rose-500 text-[11px] font-bold">{aEmailError}</div>}
+                    <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#0077C6] flex items-center justify-center font-bold">
+                      <GraduationCap className="w-6 h-6" />
                     </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Password (Wajib, min 8 + besar/kecil/angka)</label>
-                      <input value={aPass} onChange={(e) => setAPass(e.target.value)} type="password" required minLength={8} autoComplete="new-password" className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-[#1B365D]/20 focus:border-[#1B365D]" placeholder="Min. 8 karakter, huruf besar + kecil + angka" />
-                    </div>
-                    <div className="flex items-end gap-2">
-                      <button type="submit" className="bg-[#1B365D] hover:bg-[#0077C6] text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-xs cursor-pointer">Simpan Admin Baru</button>
-                      <button type="button" onClick={() => setShowAddAdmin(false)} className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer">Batal</button>
-                    </div>
-                  </form>
-                )}
+                  </div>
 
+                  <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex items-center justify-between">
+                    <div>
+                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Alumni Terdaftar</div>
+                      <div className="text-2xl font-black text-slate-900 mt-1">{mhsAlumniUsers.filter((u) => u.role === 'alumni').length}</div>
+                    </div>
+                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                      <Users className="w-6 h-6" />
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex items-center justify-between">
+                    <div>
+                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Menunggu Persetujuan</div>
+                      <div className="text-2xl font-black text-amber-600 mt-1">{mhsAlumniUsers.filter((u) => u.status === 'pending').length}</div>
+                    </div>
+                    <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                      <Clock className="w-6 h-6" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Controls & Search */}
+                <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs flex flex-wrap items-center justify-between gap-3">
+                  <div className="relative flex-1 min-w-[240px]">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                    <input
+                      type="text"
+                      value={mhsQuery}
+                      onChange={(e) => setMhsQuery(e.target.value)}
+                      placeholder="Cari Nama, Email, NIM, atau Prodi..."
+                      className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1B365D]"
+                    />
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <select
+                      value={mhsRoleFilter}
+                      onChange={(e) => setMhsRoleFilter(e.target.value as any)}
+                      className="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl px-3 py-2 font-medium focus:outline-none focus:border-[#1B365D] cursor-pointer"
+                    >
+                      <option value="semua">Semua Kategori (Mahasiswa & Alumni)</option>
+                      <option value="mahasiswa">Hanya Mahasiswa</option>
+                      <option value="alumni">Hanya Alumni</option>
+                    </select>
+
+                    <select
+                      value={mhsStatusFilter}
+                      onChange={(e) => setMhsStatusFilter(e.target.value as any)}
+                      className="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl px-3 py-2 font-medium focus:outline-none focus:border-[#1B365D] cursor-pointer"
+                    >
+                      <option value="semua">Semua Status</option>
+                      <option value="pending">Menunggu (Pending)</option>
+                      <option value="active">Aktif</option>
+                      <option value="inactive">Nonaktif</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Table List */}
                 <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
                   <div className="grid grid-cols-12 gap-2 px-5 py-3.5 bg-slate-50 border-b border-slate-200/80 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
-                    <div className="col-span-5">Nama / Email Admin</div>
-                    <div className="col-span-3">Status Akun</div>
-                    <div className="col-span-4 text-right">Aksi</div>
+                    <div className="col-span-4">Mahasiswa / Alumni</div>
+                    <div className="col-span-3">NIM & Akademik</div>
+                    <div className="col-span-2">Status Akun</div>
+                    <div className="col-span-3 text-right">Aksi</div>
                   </div>
-                  {adminUsers.length === 0 ? (
-                    <div className="p-8 text-center text-slate-400">Tidak ada admin.</div>
-                  ) : adminUsers.map((u) => (
-                    <div key={u.id} className="grid grid-cols-12 gap-2 px-4 py-3 border-t border-slate-100 items-center">
-                      <div className="col-span-5 min-w-0">
-                        <div className="font-semibold text-slate-800 truncate">{u.name}{u.id === user.id && <span className="ml-1 text-[10px] text-blue-600">(anda)</span>}</div>
-                        <div className="text-[11px] text-slate-400 truncate">{u.email}</div>
-                      </div>
-                      <div className="col-span-3">{statusBadge(u.status, { active: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Active' }, inactive: { bg: 'bg-slate-100', text: 'text-slate-600', label: 'Inactive' }, pending: { bg: 'bg-amber-50', text: 'text-amber-700', label: 'Pending' }, rejected: { bg: 'bg-rose-50', text: 'text-rose-700', label: 'Rejected' } })}</div>
-                      <div className="col-span-4 flex justify-end gap-1.5">
-                        <button onClick={() => handleDisableAdmin(u)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-lg text-xs font-bold">{u.status === 'active' ? 'Nonaktifkan' : 'Aktifkan'}</button>
-                        <button onClick={() => handleDeleteAdmin(u)} disabled={u.id === user.id} className="bg-rose-50 hover:bg-rose-100 text-rose-600 disabled:opacity-40 px-2.5 py-1 rounded-lg text-xs font-bold">Hapus</button>
+
+                  {filteredMhsAlumni.length === 0 ? (
+                    <div className="p-10 text-center text-slate-400 text-xs">
+                      Tidak ada data akun Mahasiswa / Alumni yang cocok dengan filter pencarian.
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-slate-100">
+                      {filteredMhsAlumni.map((u) => {
+                        const mhsProfile = students.find((s) => s.userId === u.id || (s.email && s.email.toLowerCase() === u.email.toLowerCase()));
+                        const almProfile = alumni.find((a) => a.userId === u.id || (a.email && a.email.toLowerCase() === u.email.toLowerCase()));
+                        const isAlumni = u.role === 'alumni' || !!almProfile;
+
+                        return (
+                          <div key={u.id} className="grid grid-cols-12 gap-2 px-5 py-3.5 items-center hover:bg-slate-50/50 transition">
+                            <div className="col-span-4 min-w-0 flex items-center gap-3">
+                              <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs text-white shrink-0 ${isAlumni ? 'bg-indigo-600' : 'bg-[#0077C6]'}`}>
+                                {u.name.trim().charAt(0).toUpperCase()}
+                              </div>
+                              <div className="min-w-0">
+                                <div className="font-bold text-slate-800 text-xs truncate flex items-center gap-1.5">
+                                  <span>{u.name}</span>
+                                  <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md ${isAlumni ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-blue-50 text-blue-700 border border-blue-200'}`}>
+                                    {isAlumni ? 'Alumni' : 'Mahasiswa'}
+                                  </span>
+                                </div>
+                                <div className="text-[11px] text-slate-400 truncate">{u.email} {u.phone ? `· ${u.phone}` : ''}</div>
+                              </div>
+                            </div>
+
+                            <div className="col-span-3 text-xs text-slate-600 min-w-0">
+                              <div className="font-semibold text-slate-800">{mhsProfile?.nim || almProfile?.nim || '-'}</div>
+                              <div className="text-[11px] text-slate-400 truncate">
+                                {mhsProfile?.programStudi || almProfile?.programStudi || '-'} ({mhsProfile?.fakultas || almProfile?.fakultas || '-'})
+                              </div>
+                            </div>
+
+                            <div className="col-span-2">
+                              {statusBadge(u.status, {
+                                active: { bg: 'bg-emerald-50', text: 'text-emerald-700', label: 'Aktif' },
+                                inactive: { bg: 'bg-slate-100', text: 'text-slate-600', label: 'Nonaktif' },
+                                pending: { bg: 'bg-amber-50', text: 'text-amber-700', label: 'Pending' },
+                                rejected: { bg: 'bg-rose-50', text: 'text-rose-700', label: 'Ditolak' }
+                              })}
+                            </div>
+
+                            <div className="col-span-3 flex justify-end items-center gap-1.5">
+                              {u.status === 'pending' && (
+                                <button
+                                  onClick={() => handleApproveUserMhs(u)}
+                                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer shadow-xs transition"
+                                  title="Setujui Akun"
+                                >
+                                  <Check className="w-3.5 h-3.5" /> Setujui
+                                </button>
+                              )}
+
+                              <button
+                                onClick={() => setSelectedUserMhs(u)}
+                                className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer transition"
+                              >
+                                <Eye className="w-3.5 h-3.5" /> Detail
+                              </button>
+
+                              <button
+                                onClick={() => handleToggleStatusUserMhs(u)}
+                                className={`px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer transition ${u.status === 'active' ? 'bg-amber-50 hover:bg-amber-100 text-amber-700' : 'bg-blue-50 hover:bg-blue-100 text-blue-700'}`}
+                              >
+                                {u.status === 'active' ? <Ban className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />}
+                                {u.status === 'active' ? 'Ban' : 'Aktifkan'}
+                              </button>
+
+                              <button
+                                onClick={() => handleDeleteUserMhs(u)}
+                                className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition"
+                                title="Hapus Akun"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Modal Detail User */}
+                {selectedUserMhs && (() => {
+                  const mhsProfile = students.find((s) => s.userId === selectedUserMhs.id || (s.email && s.email.toLowerCase() === selectedUserMhs.email.toLowerCase()));
+                  const almProfile = alumni.find((a) => a.userId === selectedUserMhs.id || (a.email && a.email.toLowerCase() === selectedUserMhs.email.toLowerCase()));
+                  const isAlumni = selectedUserMhs.role === 'alumni' || !!almProfile;
+
+                  return (
+                    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setSelectedUserMhs(null)}>
+                      <div className="bg-white rounded-2xl max-w-lg w-full max-h-[85vh] overflow-auto no-scrollbar shadow-2xl space-y-4" onClick={(e) => e.stopPropagation()}>
+                        {/* Header */}
+                        <div className="flex items-center gap-3 p-5 border-b border-slate-100 sticky top-0 bg-white">
+                          <div className={`w-12 h-12 rounded-2xl text-white flex items-center justify-center font-extrabold text-xl ${isAlumni ? 'bg-indigo-600' : 'bg-[#0077C6]'}`}>
+                            {selectedUserMhs.name.trim().charAt(0).toUpperCase()}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-extrabold text-slate-900 text-lg tracking-tight truncate">{selectedUserMhs.name}</h3>
+                            <div className="text-[11px] text-slate-400">
+                              {isAlumni ? 'Alumni' : 'Mahasiswa Aktif'} · Status:{' '}
+                              <span className="font-semibold text-slate-700 capitalize">{selectedUserMhs.status}</span>
+                            </div>
+                          </div>
+                          <button onClick={() => setSelectedUserMhs(null)} className="text-slate-400 hover:text-slate-700 cursor-pointer"><X className="w-5 h-5" /></button>
+                        </div>
+
+                        {/* Details */}
+                        <div className="p-5 grid grid-cols-2 gap-x-4 gap-y-3 text-xs sm:text-sm">
+                          <div><div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Email</div><div className="text-slate-800 font-medium truncate">{selectedUserMhs.email}</div></div>
+                          <div><div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">No. Telepon / WA</div><div className="text-slate-800 font-medium">{selectedUserMhs.phone || '-'}</div></div>
+                          <div><div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">NIM</div><div className="text-slate-800 font-bold">{mhsProfile?.nim || almProfile?.nim || '-'}</div></div>
+                          <div><div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Fakultas</div><div className="text-slate-800 font-medium">{mhsProfile?.fakultas || almProfile?.fakultas || '-'}</div></div>
+                          <div><div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Program Studi</div><div className="text-slate-800 font-medium">{mhsProfile?.programStudi || almProfile?.programStudi || '-'}</div></div>
+                          <div><div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">{isAlumni ? 'Tahun Lulus' : 'Angkatan'}</div><div className="text-slate-800 font-medium">{mhsProfile?.angkatan || almProfile?.tahunLulus || '-'}</div></div>
+                          {almProfile && (
+                            <div className="col-span-2 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                              <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Status Karir Alumni</div>
+                              <div className="text-slate-800 font-semibold capitalize mt-0.5">{almProfile.statusPekerjaan?.replace(/_/g, ' ') || '-'}</div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Modal Footer Actions */}
+                        <div className="flex items-center gap-2 p-5 border-t border-slate-100">
+                          {selectedUserMhs.status === 'pending' && (
+                            <button
+                              onClick={() => { handleApproveUserMhs(selectedUserMhs); setSelectedUserMhs(null); }}
+                              className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-xs font-bold cursor-pointer transition"
+                            >
+                              Setujui Akun
+                            </button>
+                          )}
+                          <button
+                            onClick={() => { handleToggleStatusUserMhs(selectedUserMhs); setSelectedUserMhs(null); }}
+                            className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl text-xs font-bold cursor-pointer transition"
+                          >
+                            {selectedUserMhs.status === 'active' ? 'Nonaktifkan Akun' : 'Aktifkan Akun'}
+                          </button>
+                          <button
+                            onClick={() => { handleDeleteUserMhs(selectedUserMhs); }}
+                            className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer transition"
+                          >
+                            Hapus
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  );
+                })()}
               </div>
             )}
 
@@ -8619,7 +8779,6 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                   { id: 'mou', group: 'Kerjasama', label: 'MOU & Kerja Sama Stakeholder', icon: HeartHandshake, action: () => { setActiveTab('mou'); setIsCmdPaletteOpen(false); } },
                   { id: 'komentar', group: 'Interaksi Publik', label: 'Moderasi Komentar & Diskusi Berita', icon: MessageSquare, badge: pendingKomentarCount > 0 ? `${pendingKomentarCount} Baru` : undefined, action: () => { setActiveTab('komentar'); setIsCmdPaletteOpen(false); } },
                   { id: 'media-sosial', group: 'Interaksi Publik', label: 'Pengaturan Link & Widget Media Sosial', icon: Globe, action: () => { setActiveTab('media-sosial'); setIsCmdPaletteOpen(false); } },
-                  { id: 'admin', group: 'Sistem Admin', label: 'Kelola Hak Akses Super Admin', icon: UserCog, action: () => { setActiveTab('admin'); setIsCmdPaletteOpen(false); } },
                   { id: 'logout', group: 'Sistem', label: 'Keluar Akun Admin (Sign Out)', icon: LogOut, action: () => { setIsCmdPaletteOpen(false); onLogout(); } }
                 ]
                   .filter((item) => item.label.toLowerCase().includes(cmdSearchQuery.toLowerCase()) || item.group.toLowerCase().includes(cmdSearchQuery.toLowerCase()))
