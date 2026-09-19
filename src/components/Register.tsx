@@ -61,6 +61,13 @@ export function isPasswordValid(password: string): boolean {
   );
 }
 
+export function isUmkendariEmailValid(email: string): boolean {
+  const clean = email.trim().toLowerCase();
+  if (!clean.endsWith('@umkendari.ac.id')) return false;
+  const userPart = clean.slice(0, -'@umkendari.ac.id'.length);
+  return !!userPart && !userPart.includes('@') && /^[a-zA-Z0-9._-]+$/.test(userPart);
+}
+
 export default function Register({
   initialTab = 'alumni',
   onNavigateToLogin,
@@ -162,6 +169,8 @@ export default function Register({
   };
 
   const validateAlumni = (): boolean => {
+    const emailToCheck = alumniForm.email.trim().toLowerCase();
+
     if (
       !alumniForm.name.trim() ||
       !alumniForm.nim.trim() ||
@@ -169,15 +178,20 @@ export default function Register({
       !alumniForm.programStudi ||
       !alumniForm.tahunLulus ||
       (alumniForm.userType === 'Alumni' && !alumniForm.statusPekerjaan) ||
-      !alumniForm.email.trim() ||
+      !emailToCheck ||
       !alumniForm.phone.trim() ||
       !alumniForm.password
     ) {
       setErrorMsg('Harap lengkapi seluruh kolom yang bertanda bintang (*).');
       return false;
     }
-    if (!alumniForm.email.includes('@') || !alumniForm.email.includes('.')) {
-      setErrorMsg('Format alamat email tidak valid.');
+    if (!emailToCheck.endsWith('@umkendari.ac.id')) {
+      setErrorMsg('Email aktif wajib menggunakan email resmi kampus (@umkendari.ac.id). Contoh: nama@umkendari.ac.id');
+      return false;
+    }
+    const emailUserPart = emailToCheck.slice(0, -'@umkendari.ac.id'.length);
+    if (!emailUserPart || emailUserPart.includes('@') || !/^[a-zA-Z0-9._-]+$/.test(emailUserPart)) {
+      setErrorMsg('Format email @umkendari.ac.id tidak valid.');
       return false;
     }
     if (!isPasswordValid(alumniForm.password)) {
@@ -223,16 +237,18 @@ export default function Register({
   const handleSubmitAlumni = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
+
     if (!validateAlumni()) return;
 
     setIsLoading(true);
     try {
+      const finalEmail = alumniForm.email.trim().toLowerCase();
       const role = alumniForm.userType === 'Mahasiswa' ? 'MAHASISWA' : 'ALUMNI';
       let user: any;
       try {
         user = await registerToBackend({
           name: alumniForm.name.trim(),
-          email: alumniForm.email.trim(),
+          email: finalEmail,
           password: alumniForm.password,
           phone: alumniForm.phone.trim(),
           role: role as any,
@@ -745,14 +761,14 @@ export default function Register({
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div className="space-y-1.5">
                           <label className="text-xs sm:text-[13px] font-semibold text-slate-700">
-                            Email Aktif <span className="text-red-500">*</span>
+                            Email Aktif <span className="text-red-500">*</span> (@umkendari.ac.id)
                           </label>
                           <input
                             type="email"
                             required
                             value={alumniForm.email}
                             onChange={(e) => setAlumniForm({ ...alumniForm, email: e.target.value })}
-                            placeholder="Masukkan email"
+                            placeholder="nama@umkendari.ac.id"
                             className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B] transition"
                           />
                         </div>

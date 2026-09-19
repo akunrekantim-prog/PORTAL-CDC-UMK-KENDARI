@@ -236,8 +236,15 @@ app.post('/api/register', registerLimiter, async (req, res) => {
   const normalizedRole = String(role || 'MAHASISWA').toUpperCase();
   if (!['MAHASISWA', 'ALUMNI', 'MITRA', 'ADMIN'].includes(normalizedRole)) return res.status(400).json({ success: false, message: 'Role registrasi tidak valid.' });
 
+  const emailKey = String(email || '').toLowerCase().trim();
+  if (['MAHASISWA', 'ALUMNI'].includes(normalizedRole) && !emailKey.endsWith('@umkendari.ac.id')) {
+    return res.status(400).json({
+      success: false,
+      message: 'Pendaftaran Mahasiswa dan Alumni wajib menggunakan email resmi institusi (@umkendari.ac.id).'
+    });
+  }
+
   try {
-    const emailKey = String(email).toLowerCase().trim();
     if (emailKey.length > 254) return res.status(400).json({ success: false, message: 'Email terlalu panjang.' });
 
     // 1. Pengecekan awal email duplikat

@@ -63,6 +63,21 @@ import {
   syncUploadedDocumentToSupabase
 } from './services/dbService';
 
+// Default Foto Profil bergaya WhatsApp (Abu-abu netral dengan siluet kepala & bahu putih)
+export const DEFAULT_AVATAR_WA = '/default-avatar-wa.svg';
+
+/**
+ * Mengembalikan foto profil valid, atau foto profil default WhatsApp jika kosong / foto dummy lama
+ */
+export function getCleanPhotoUrl(url?: string | null): string {
+  if (!url || typeof url !== 'string' || !url.trim()) return DEFAULT_AVATAR_WA;
+  // Jika masih menggunakan foto dummy lama Unsplash, alihkan ke foto profil default WhatsApp
+  if (url.includes('photo-1534528741775-53994a69daeb') || url.includes('photo-1560250097-0b93528c311a')) {
+    return DEFAULT_AVATAR_WA;
+  }
+  return url;
+}
+
 // Daftar Fakultas Resmi Universitas Muhammadiyah Kendari (UM Kendari)
 export const FAKULTAS_LIST: string[] = [
   'Fakultas Teknik',
@@ -2454,6 +2469,14 @@ export function registerUser(
 ): User {
   const users = getFromDB<User>('users');
 
+  // Check if alumni/mahasiswa email uses @umkendari.ac.id
+  if (role === 'alumni') {
+    const cleanEmail = payload.email.trim().toLowerCase();
+    if (!cleanEmail.endsWith('@umkendari.ac.id')) {
+      throw new Error('Pendaftaran mahasiswa/alumni wajib menggunakan email resmi kampus (@umkendari.ac.id).');
+    }
+  }
+
   // Check if email already exists
   const exists = users.some(u => u.email.toLowerCase() === payload.email.toLowerCase());
   if (exists) {
@@ -2487,9 +2510,7 @@ export function registerUser(
     role: role === 'alumni' ? 'user' : 'mitra',
     userStatusType: role === 'alumni' ? ((payload as RegisterAlumniPayload).userStatusType || 'Mahasiswa') : undefined,
     status: 'active', // Active by default so testing is smooth and immediate
-    photoUrl: role === 'alumni'
-      ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop'
-      : 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=200&auto=format&fit=crop',
+    photoUrl: DEFAULT_AVATAR_WA,
     createdAt: now
   };
 
@@ -2625,7 +2646,7 @@ export function loginOrRegisterWithGoogle(googleAccount: {
     role: 'user',
     userStatusType: 'Mahasiswa',
     status: 'active',
-    photoUrl: googleAccount.photoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
+    photoUrl: googleAccount.photoUrl || DEFAULT_AVATAR_WA,
     createdAt: now,
     lastLoginAt: now
   };
@@ -2722,7 +2743,8 @@ export function updateUserProfile(userId: string, profileData: Partial<Mahasiswa
       ...userObj,
       name: profileData.nama || userObj.name,
       email: profileData.email || userObj.email,
-      photoUrl: profileData.photoUrl || userObj.photoUrl
+      photoUrl: profileData.photoUrl || userObj.photoUrl,
+      userStatusType: profileData.userStatusType || userObj.userStatusType
     };
     updateInDB<User>('users', updatedUser);
   }

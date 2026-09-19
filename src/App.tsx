@@ -478,7 +478,8 @@ export default function App() {
     } else if (currentView === 'dashboard') {
       if (currentUser?.role === 'admin') document.title = 'Dashboard Admin - CDC UM Kendari';
       else if (currentUser?.role === 'mitra') document.title = 'Dashboard Mitra Perusahaan - CDC UM Kendari';
-      else document.title = 'Dashboard Mahasiswa & Alumni - CDC UM Kendari';
+      else if (currentUser?.userStatusType === 'Alumni') document.title = 'Dashboard Alumni - CDC UM Kendari';
+      else document.title = 'Dashboard Mahasiswa - CDC UM Kendari';
     } else {
       if (publicTab === 'lowongan') document.title = 'Lowongan Kerja & Magang - CDC UM Kendari';
       else if (publicTab === 'berita') document.title = 'Berita & Artikel Karir - CDC UM Kendari';
