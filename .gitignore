@@ -4,8 +4,17 @@ dist/
 coverage/
 .DS_Store
 *.log
-.env*
+
+# Environment files — JANGAN push ke GitHub (isi ke Railway Dashboard)
+.env
+.env.local
+.env.production
+.env.development
 !.env.example
+
+# Prisma — WAJIB masuk git (schema & migrations)
+# !prisma/
+
 .bak/
 # Strix pentest artifacts (tool output, internal state)
 strix_runs/

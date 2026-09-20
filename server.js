@@ -68,12 +68,17 @@ if (isProd) {
 }
 
 // ── CORS — whitelist ketat ───────────────────────────────────────
+// FRONTEND_URL  = URL utama (Firebase Hosting: https://cdc-um-kendari.web.app)
+// FRONTEND_URL_2 = URL alternatif (Firebase: https://cdc-um-kendari.firebaseapp.com)
+// FRONTEND_URL_3 = URL Railway preview / custom domain jika ada
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5000',
   'http://127.0.0.1:3000',
   'http://127.0.0.1:5000',
-  process.env.FRONTEND_URL
+  process.env.FRONTEND_URL,
+  process.env.FRONTEND_URL_2,
+  process.env.FRONTEND_URL_3
 ].filter(Boolean);
 
 if (isProd && !process.env.FRONTEND_URL) {
