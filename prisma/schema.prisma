@@ -119,14 +119,30 @@ model Mahasiswa {
   skills            String[] @default([])
   sendOpportunities String?
   cvName            String?
+  // Field profil tambahan (cross-device sync)
+  userStatusType    String?
+  university        String?
+  gender            String?
+  workRights        String?
+  nationality       String?
+  opportunityType   String?
+  preferredStartDate String?
+  industries        String?
+  locations         String?
+  graduationYear    String?
+  // Data profil tersimpan sebagai JSON (untuk cross-device sync tanpa join)
+  experiences       Json?    @default("[]")
+  certificates      Json?    @default("[]")
+  languages         Json?    @default("[]")
+  qualifications    Json?    @default("[]")
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
   pengajuan      PengajuanMagang[]
   tracerStudy    TracerStudy[]
-  experiences    MahasiswaExperience[]
-  certificates   MahasiswaCertificate[]
-  qualifications MahasiswaQualification[]
+  experiences_rel    MahasiswaExperience[]    @relation("MahasiswaExperienceRelation")
+  certificates_rel   MahasiswaCertificate[]   @relation("MahasiswaCertificateRelation")
+  qualifications_rel MahasiswaQualification[] @relation("MahasiswaQualificationRelation")
   documents      UploadedDocument[]
 
   // Lihat catatan di model User: index ini sudah ada di DB, di-pin dengan `map`
@@ -339,7 +355,7 @@ model SurveiLulusan {
 model MahasiswaExperience {
   id          String    @id @default(uuid())
   mahasiswaId String
-  mahasiswa   Mahasiswa @relation(fields: [mahasiswaId], references: [id], onDelete: Cascade)
+  mahasiswa   Mahasiswa @relation("MahasiswaExperienceRelation", fields: [mahasiswaId], references: [id], onDelete: Cascade)
   position    String
   company     String
   period      String
@@ -352,7 +368,7 @@ model MahasiswaExperience {
 model MahasiswaCertificate {
   id          String    @id @default(uuid())
   mahasiswaId String
-  mahasiswa   Mahasiswa @relation(fields: [mahasiswaId], references: [id], onDelete: Cascade)
+  mahasiswa   Mahasiswa @relation("MahasiswaCertificateRelation", fields: [mahasiswaId], references: [id], onDelete: Cascade)
   name        String
   issuer      String
   year        String
@@ -365,7 +381,7 @@ model MahasiswaCertificate {
 model MahasiswaQualification {
   id          String    @id @default(uuid())
   mahasiswaId String
-  mahasiswa   Mahasiswa @relation(fields: [mahasiswaId], references: [id], onDelete: Cascade)
+  mahasiswa   Mahasiswa @relation("MahasiswaQualificationRelation", fields: [mahasiswaId], references: [id], onDelete: Cascade)
   institution String
   level       String
   year        String

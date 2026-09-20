@@ -498,12 +498,29 @@ const SYNC_FIELDS = {
     angkatan:          'string',
     semester:          'number',
     alamat:            'string',
-    photoUrl:          'string',
+    photoUrl:          'photourl',  // pakai tipe khusus: tolak base64, max 2048 char
     aboutMe:           'text',
     ipk:               'string',
     skills:            'stringArr',
     sendOpportunities: 'string',
     cvName:            'string',
+    // Field profil tambahan — sebelumnya dibuang senyap, sekarang tersimpan ke Supabase
+    userStatusType:    'string',
+    university:        'string',
+    gender:            'string',
+    workRights:        'string',
+    nationality:       'string',
+    opportunityType:   'string',
+    preferredStartDate:'string',
+    industries:        'string',
+    locations:         'string',
+    graduationYear:    'string',
+    // experiences / certificates / languages / qualifications:
+    // Tersimpan sebagai JSON di kolom terpisah (lihat migrasi) SEKALIGUS ke tabel relasi
+    experiences:       'json',
+    certificates:      'json',
+    languages:         'json',
+    qualifications:    'json',
   },
   alumni: {
     userId:          'string',
@@ -702,6 +719,21 @@ const FIELD_RULES = {
   number: (v) => (Number.isFinite(Number(v)) ? Number(v) : null),
   boolean: (v) => !!v,
   stringArr: (v) => (Array.isArray(v) ? v.slice(0, 50).map((x) => String(x).slice(0, 500)) : []),
+  // json: untuk field array/object (experiences, certificates, dll)
+  json: (v) => {
+    if (v == null) return null;
+    if (typeof v === 'string') {
+      try { return JSON.parse(v); } catch { return null; }
+    }
+    return v; // pass-through object/array langsung ke Prisma
+  },
+  // photourl: URL foto — TOLAK base64 (terlalu besar, tidak bisa disimpan di DB)
+  photourl: (v) => {
+    if (!v || v === '') return null;
+    const s = String(v);
+    if (s.startsWith('data:')) return null; // base64 ditolak
+    return s.slice(0, 2048);
+  },
   date: (v) => {
     if (!v) return null;
     const d = new Date(v);
@@ -1325,6 +1357,34 @@ app.use((err, req, res, _next) => {
   res.status(err.status || 500).json({ error: isProd ? 'Internal server error' : (err.message || 'Internal server error') });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   if (!isProd) console.log(`🚀 Express API Backend running on http://localhost:${PORT}`);
+
+  // Auto-migration: tambah kolom profil JSON jika belum ada (idempotent, safe to re-run)
+  // Dijalankan saat startup di Railway agar tidak perlu prisma migrate manual.
+  if (isProd) {
+    try {
+      await prisma.$executeRawUnsafe(`
+        ALTER TABLE "mahasiswas"
+          ADD COLUMN IF NOT EXISTS "userStatusType" TEXT,
+          ADD COLUMN IF NOT EXISTS "university" TEXT,
+          ADD COLUMN IF NOT EXISTS "gender" TEXT,
+          ADD COLUMN IF NOT EXISTS "workRights" TEXT,
+          ADD COLUMN IF NOT EXISTS "nationality" TEXT,
+          ADD COLUMN IF NOT EXISTS "opportunityType" TEXT,
+          ADD COLUMN IF NOT EXISTS "preferredStartDate" TEXT,
+          ADD COLUMN IF NOT EXISTS "industries" TEXT,
+          ADD COLUMN IF NOT EXISTS "locations" TEXT,
+          ADD COLUMN IF NOT EXISTS "graduationYear" TEXT,
+          ADD COLUMN IF NOT EXISTS "experiences" JSONB DEFAULT '[]'::jsonb,
+          ADD COLUMN IF NOT EXISTS "certificates" JSONB DEFAULT '[]'::jsonb,
+          ADD COLUMN IF NOT EXISTS "languages" JSONB DEFAULT '[]'::jsonb,
+          ADD COLUMN IF NOT EXISTS "qualifications" JSONB DEFAULT '[]'::jsonb
+      `);
+      console.log('✅ [Auto-Migration] Kolom profil JSON berhasil ditambahkan ke mahasiswas.');
+    } catch (migErr) {
+      // Jangan crash server — log saja. Jika kolom sudah ada, ALTER IF NOT EXISTS aman.
+      console.warn('⚠️  [Auto-Migration] Warning (bisa diabaikan jika kolom sudah ada):', migErr?.message);
+    }
+  }
 });

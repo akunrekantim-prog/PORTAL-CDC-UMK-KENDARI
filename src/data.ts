@@ -2281,26 +2281,40 @@ export function getFromDB<T>(key: DBKey): T[] {
   if (!_dbInitialized) {
     initializeDB();
   }
+
+  // BUG-003 FIX: Prioritaskan MEMORY_DB (data live dari Supabase) di atas localStorage cache.
+  // Sebelumnya: localStorage SELALU menimpa MEMORY_DB → data lama Device B menutupi data terbaru Supabase.
+  // Sekarang: MEMORY_DB yang sudah terisi dari Supabase (via initializeDB/refreshLiveDatabase) TIDAK ditimpa localStorage.
+  // localStorage hanya dipakai sebagai fallback jika MEMORY_DB kosong (offline / backend tidak bisa dijangkau).
+  const memData = MEMORY_DB[key];
+  if (Array.isArray(memData) && memData.length > 0) {
+    return memData as T[];
+  }
+
+  // Fallback: baca dari localStorage hanya jika MEMORY_DB kosong
   if (typeof window !== 'undefined' && window.localStorage) {
     const storageKey = `cdc_umk_${key}`;
     const saved = localStorage.getItem(storageKey);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
+        if (Array.isArray(parsed) && parsed.length > 0) {
           MEMORY_DB[key] = parsed;
-        }
-        // Self-heal: bila data lama di browser masih memuat password, timpa dgn versi bersih
-        if (key === 'users' && Array.isArray(parsed) && parsed.some((r: any) => r && typeof r === 'object' && 'password' in r)) {
-          try { localStorage.setItem(storageKey, JSON.stringify(sanitizeRecordsForStorage(key, parsed))); } catch { /* quota */ }
+          // Self-heal: bila data lama di browser masih memuat password, timpa dgn versi bersih
+          if (key === 'users' && parsed.some((r: any) => r && typeof r === 'object' && 'password' in r)) {
+            try { localStorage.setItem(storageKey, JSON.stringify(sanitizeRecordsForStorage(key, parsed))); } catch { /* quota */ }
+          }
+          return parsed as T[];
         }
       } catch {
-        // ignore
+        // ignore parse error
       }
     }
   }
+
   return (MEMORY_DB[key] as T[]) || [];
 }
+
 
 // Simpan/Update item ke In-Memory DB & Sinkronisasi Langsung ke Supabase PostgreSQL
 export function saveToDB<T>(key: DBKey, data: T[]) {

@@ -13,6 +13,7 @@ import {
   DEFAULT_AVATAR_WA,
   getCleanPhotoUrl
 } from '../data';
+import { uploadProfilePhoto } from '../config/supabase';
 import {
   Pencil,
   CheckCircle2,
@@ -170,28 +171,43 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
     }
   }, [mahasiswaData, user.name]);
 
-  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+
+  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        triggerToast('Ukuran foto terlalu besar (maksimal 5MB)');
-        return;
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      triggerToast('Ukuran foto terlalu besar (maksimal 5MB)');
+      return;
+    }
+
+    // Tampilkan preview lokal sementara (bukan base64 untuk DB, hanya untuk UI)
+    const localPreview = URL.createObjectURL(file);
+    setAvatarUrl(localPreview);
+    setIsUploadingPhoto(true);
+
+    try {
+      // Upload ke Supabase Storage → dapat URL publik permanen
+      const publicUrl = await uploadProfilePhoto(user.id, file);
+
+      if (publicUrl) {
+        // Simpan URL publik (bukan base64) ke DB — bisa diakses dari semua device
+        await updateUserProfile(user.id, { photoUrl: publicUrl });
+        setAvatarUrl(publicUrl);
+        triggerToast('Foto profil berhasil diunggah dan tersinkronisasi ke semua perangkat!');
+      } else {
+        // Fallback: jika Supabase Storage tidak tersedia, tetap tampilkan preview lokal
+        // tapi beri peringatan bahwa foto tidak akan sinkron ke device lain
+        triggerToast('⚠️ Foto tampil di perangkat ini, tapi belum tersinkronisasi (storage tidak tersedia). Hubungi admin untuk setup Supabase Storage bucket "profile-photos".');
       }
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        if (typeof reader.result === 'string') {
-          const base64Photo = reader.result; // Base64 data URL
-          setAvatarUrl(base64Photo);
-          try {
-            await updateUserProfile(user.id, { photoUrl: base64Photo });
-            triggerToast('Foto profil dari berkas lokal berhasil diunggah (Base64)!');
-          } catch (err: any) {
-            triggerToast(err?.message || 'Gagal mengunggah foto profil. Silakan coba lagi.');
-          }
-          if (onProfileUpdated) onProfileUpdated();
-        }
-      };
-      reader.readAsDataURL(file);
+    } catch (err: any) {
+      triggerToast(err?.message || 'Gagal mengunggah foto profil. Silakan coba lagi.');
+      setAvatarUrl(getCleanPhotoUrl(mahasiswaData?.photoUrl || user.photoUrl) || DEFAULT_AVATAR_WA);
+    } finally {
+      setIsUploadingPhoto(false);
+      URL.revokeObjectURL(localPreview); // cleanup object URL
+      if (onProfileUpdated) onProfileUpdated();
     }
   };
 
