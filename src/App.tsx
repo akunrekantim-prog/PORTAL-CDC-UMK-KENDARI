@@ -733,10 +733,14 @@ export default function App() {
           <Login
             onLoginSuccess={async (user) => {
               setCurrentUser(user);
-              setCurrentView('dashboard');
+              // BUG-004 FIX: Tunggu data live dari Supabase turun DULU sebelum merender Dashboard.
+              // Sebelumnya setCurrentView('dashboard') dipanggil sebelum await, 
+              // sehingga Device B merender Dashboard dengan data cache lama (race condition).
               const { refreshLiveDatabase } = await import('./data');
               await refreshLiveDatabase();
               reloadDatabase();
+              
+              setCurrentView('dashboard');
               if (user.role === 'admin') navigate('/admin/ringkasan');
               else if (user.role === 'mitra') navigate('/mitra/ringkasan');
               else navigate('/mahasiswa/search');

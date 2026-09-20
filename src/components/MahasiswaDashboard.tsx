@@ -44,9 +44,21 @@ interface MahasiswaDashboardProps {
 export default function MahasiswaDashboard({ user, onLogout, allLowongan, activeTab: activeTabProp, onTabChange }: MahasiswaDashboardProps) {
   const [activeTab, setActiveTabInternal] = useState<'search' | 'applications' | 'profile'>(activeTabProp || 'search');
 
-  const setActiveTab = (tab: 'search' | 'applications' | 'profile') => {
+  const setActiveTab = async (tab: 'search' | 'applications' | 'profile') => {
     setActiveTabInternal(tab);
     if (onTabChange) onTabChange(tab);
+
+    if (tab === 'profile') {
+      try {
+        const { refreshLiveDatabase } = await import('../data');
+        await refreshLiveDatabase();
+        // Set timeout to wait slightly for React batching if needed, but synchronous usually works for MEMORY_DB update.
+        // We trigger a re-render of profile by calling loadStudentData which re-reads from MEMORY_DB.
+        loadStudentData();
+      } catch (err) {
+        console.error("Gagal memuat profil terbaru:", err);
+      }
+    }
   };
 
   useEffect(() => {
