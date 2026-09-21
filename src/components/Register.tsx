@@ -800,10 +800,12 @@ export default function Register({
                               required
                               value={alumniForm.password}
                               onChange={(e) => setAlumniForm({ ...alumniForm, password: e.target.value })}
-                              placeholder="Masukkan kata sandi"
+                              placeholder="Contoh: Kampus2024!"
                               className={`w-full rounded-lg border py-2.5 px-3.5 pr-10 text-sm text-slate-800 placeholder:text-slate-400 transition ${
                                 alumniForm.password.length > 0 && !isPasswordValid(alumniForm.password)
                                   ? 'border-rose-500 bg-rose-50/20 focus:border-rose-500 focus:outline-none focus:ring-1 focus:ring-rose-500'
+                                  : alumniForm.password.length > 0 && isPasswordValid(alumniForm.password)
+                                  ? 'border-emerald-500 bg-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500'
                                   : 'border-slate-200 bg-white focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B]'
                               }`}
                             />
@@ -816,10 +818,22 @@ export default function Register({
                               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                             </button>
                           </div>
-                          {alumniForm.password.length > 0 && !isPasswordValid(alumniForm.password) && (
-                            <div className="flex items-start gap-1.5 text-xs text-rose-600 mt-1.5">
-                              <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
-                              <span>Masukkan kombinasi minimal 8 karakter yang terdiri dari huruf besar, huruf kecil, dan angka.</span>
+                          {/* Password strength checklist — real-time */}
+                          {alumniForm.password.length > 0 && (
+                            <div className="mt-2 space-y-1">
+                              {[
+                                { ok: alumniForm.password.length >= 8, label: 'Minimal 8 karakter' },
+                                { ok: /[A-Z]/.test(alumniForm.password), label: 'Huruf kapital (A-Z)' },
+                                { ok: /[a-z]/.test(alumniForm.password), label: 'Huruf kecil (a-z)' },
+                                { ok: /[0-9]/.test(alumniForm.password), label: 'Angka (0-9)' },
+                              ].map(({ ok, label }) => (
+                                <div key={label} className={`flex items-center gap-1.5 text-xs ${ ok ? 'text-emerald-600' : 'text-slate-400' }`}>
+                                  {ok
+                                    ? <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                                    : <div className="w-3.5 h-3.5 rounded-full border-2 border-slate-300 shrink-0" />}
+                                  <span>{label}</span>
+                                </div>
+                              ))}
                             </div>
                           )}
                         </div>
@@ -834,7 +848,7 @@ export default function Register({
                               required
                               value={alumniForm.confirmPassword}
                               onChange={(e) => setAlumniForm({ ...alumniForm, confirmPassword: e.target.value })}
-                              placeholder="Masukkan konfirmasi kata sandi"
+                              placeholder="Ulangi kata sandi"
                               className={`w-full rounded-lg border py-2.5 px-3.5 pr-10 text-sm text-slate-800 placeholder:text-slate-400 transition ${
                                 alumniForm.confirmPassword.length > 0 && alumniForm.password !== alumniForm.confirmPassword
                                   ? 'border-rose-500 bg-rose-50/20 focus:border-rose-500 focus:outline-none focus:ring-1 focus:ring-rose-500'
@@ -1052,10 +1066,12 @@ export default function Register({
                               required
                               value={mitraForm.password}
                               onChange={(e) => setMitraForm({ ...mitraForm, password: e.target.value })}
-                              placeholder="Masukkan kata sandi"
+                              placeholder="Contoh: Mitra2024!"
                               className={`w-full rounded-lg border py-2.5 px-3.5 pr-10 text-sm text-slate-800 placeholder:text-slate-400 transition ${
                                 mitraForm.password.length > 0 && !isPasswordValid(mitraForm.password)
                                   ? 'border-rose-500 bg-rose-50/20 focus:border-rose-500 focus:outline-none focus:ring-1 focus:ring-rose-500'
+                                  : mitraForm.password.length > 0 && isPasswordValid(mitraForm.password)
+                                  ? 'border-emerald-500 bg-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500'
                                   : 'border-slate-200 bg-white focus:border-[#00186B] focus:outline-none focus:ring-1 focus:ring-[#00186B]'
                               }`}
                             />
@@ -1068,10 +1084,22 @@ export default function Register({
                               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                             </button>
                           </div>
-                          {mitraForm.password.length > 0 && !isPasswordValid(mitraForm.password) && (
-                            <div className="flex items-start gap-1.5 text-xs text-rose-600 mt-1.5">
-                              <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
-                              <span>Masukkan kombinasi minimal 8 karakter yang terdiri dari huruf besar, huruf kecil, dan angka.</span>
+                          {/* Password strength checklist — real-time */}
+                          {mitraForm.password.length > 0 && (
+                            <div className="mt-2 space-y-1">
+                              {[
+                                { ok: mitraForm.password.length >= 8, label: 'Minimal 8 karakter' },
+                                { ok: /[A-Z]/.test(mitraForm.password), label: 'Huruf kapital (A-Z)' },
+                                { ok: /[a-z]/.test(mitraForm.password), label: 'Huruf kecil (a-z)' },
+                                { ok: /[0-9]/.test(mitraForm.password), label: 'Angka (0-9)' },
+                              ].map(({ ok, label }) => (
+                                <div key={label} className={`flex items-center gap-1.5 text-xs ${ ok ? 'text-emerald-600' : 'text-slate-400' }`}>
+                                  {ok
+                                    ? <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                                    : <div className="w-3.5 h-3.5 rounded-full border-2 border-slate-300 shrink-0" />}
+                                  <span>{label}</span>
+                                </div>
+                              ))}
                             </div>
                           )}
                         </div>

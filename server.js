@@ -71,18 +71,25 @@ if (isProd) {
 // FRONTEND_URL  = URL utama (Firebase Hosting: https://cdc-um-kendari.web.app)
 // FRONTEND_URL_2 = URL alternatif (Firebase: https://cdc-um-kendari.firebaseapp.com)
 // FRONTEND_URL_3 = URL Railway preview / custom domain jika ada
+//
+// FIX: Firebase Hosting URLs di-hardcode sebagai safety net agar tidak
+// bergantung penuh pada env var FRONTEND_URL yang bisa lupa diset di Railway.
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5000',
   'http://127.0.0.1:3000',
   'http://127.0.0.1:5000',
+  // Firebase Hosting — hardcode sebagai safety net
+  'https://cdc-um-kendari.web.app',
+  'https://cdc-um-kendari.firebaseapp.com',
+  // Custom / Railway env var (override jika berbeda)
   process.env.FRONTEND_URL,
   process.env.FRONTEND_URL_2,
   process.env.FRONTEND_URL_3
 ].filter(Boolean);
 
 if (isProd && !process.env.FRONTEND_URL) {
-  console.warn('⚠️  FRONTEND_URL tidak diset di production — CORS akan menolak origin tak dikenal.');
+  console.warn('⚠️  FRONTEND_URL tidak diset di production — menggunakan fallback hardcode Firebase URLs.');
 }
 
 app.use((req, res, next) => {

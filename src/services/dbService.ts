@@ -241,9 +241,19 @@ export async function registerToBackend(payload: BackendRegisterPayload): Promis
     }
     if (result && (result.message || result.error)) {
       if (response.status === 504 || response.status === 502) {
-        throw new Error('Server backend tidak merespons (Gateway Timeout).');
+        throw new Error('Server backend tidak merespons (Gateway Timeout). Coba lagi dalam beberapa detik.');
       }
       throw new Error(result.message || result.error);
+    }
+    // FIX: Jika response tidak OK dan tidak ada body JSON (misal: CORS, network error)
+    if (!response.ok) {
+      if (response.status === 0) {
+        throw new Error('Permintaan diblokir oleh kebijakan CORS. Hubungi administrator sistem.');
+      }
+      if (response.status === 504 || response.status === 502) {
+        throw new Error('Server backend tidak merespons (Gateway Timeout). Coba lagi dalam beberapa detik.');
+      }
+      throw new Error(`Gagal mendaftar (HTTP ${response.status}). Silakan coba lagi.`);
     }
   }
 
