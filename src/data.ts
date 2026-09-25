@@ -60,7 +60,13 @@ import {
   syncGaleriItemToSupabase,
   syncSocialMediaToSupabase,
   syncKomentarBeritaToSupabase,
-  syncUploadedDocumentToSupabase
+  syncUploadedDocumentToSupabase,
+  syncAnggotaTimToSupabase,
+  syncHeroSlideToSupabase,
+  syncKonselingConfigToSupabase,
+  syncVisiMisiConfigToSupabase,
+  syncCampusHiringToSupabase,
+  syncJobFairToSupabase
 } from './services/dbService';
 
 // Default Foto Profil bergaya WhatsApp (Abu-abu netral dengan siluet kepala & bahu putih)
@@ -2145,6 +2151,16 @@ let _dbInitialized = false;
 // Urutan: /public-data dulu agar beranda selalu live → /all-data kalau ada token.
 // Fallback seed lokal HANYA jika backend tidak terjangkau (network error), TANPA menimpa kolom yang sudah live.
 export async function initializeDB(): Promise<void> {
+  const syncLocalConfigFromData = (data: Record<string, any[]>) => {
+    if (!data) return;
+    if (data.anggota_tims?.length > 0) localStorage.setItem('cdc_umk_keanggotaan_tim', JSON.stringify(data.anggota_tims));
+    if (data.hero_slides?.length > 0) localStorage.setItem('cdc_umk_hero_slides_v5', JSON.stringify(data.hero_slides));
+    if (data.konseling_configs?.length > 0) localStorage.setItem('cdc_umk_konseling_config', JSON.stringify(data.konseling_configs[0]));
+    if (data.visi_misi_configs?.length > 0) localStorage.setItem('cdc_umk_visi_misi_config', JSON.stringify(data.visi_misi_configs[0]));
+    if (data.campus_hirings?.length > 0) localStorage.setItem('cdc_umk_campus_hiring', JSON.stringify(data.campus_hirings));
+    if (data.job_fair_events?.length > 0) localStorage.setItem('cdc_umk_job_fair', JSON.stringify(data.job_fair_events));
+  };
+
   try {
     const liveData = await fetchInitialDatabaseFromSupabase();
     if (liveData) {
@@ -2153,6 +2169,7 @@ export async function initializeDB(): Promise<void> {
           MEMORY_DB[key] = liveData[key];
         }
       });
+      syncLocalConfigFromData(liveData);
       console.log('⚡ [Portal Data Engine] Storage dialihkan 100% ke Supabase PostgreSQL Database!');
       return;
     }
@@ -2163,6 +2180,7 @@ export async function initializeDB(): Promise<void> {
           MEMORY_DB[key] = publicData[key];
         }
       });
+      syncLocalConfigFromData(publicData);
       console.log('⚡ [Portal Data Engine] Konten publik live dari Supabase PostgreSQL (mode tamu).');
     }
   } catch (err) {
@@ -3178,6 +3196,14 @@ export function saveKonselingConfig(config: KonselingConfig): void {
     updatedAt: new Date().toISOString()
   };
   localStorage.setItem('cdc_umk_konseling_config', JSON.stringify(updated));
+  // FIX: sync ke Supabase (fire-and-forget)
+  setTimeout(async () => {
+    try {
+      await syncKonselingConfigToSupabase(updated);
+    } catch (e: any) {
+      console.error('[Sync GAGAL → Supabase] konseling_config:', e?.message || e);
+    }
+  }, 0);
 }
 
 /* =========================================================
@@ -3239,6 +3265,14 @@ export function getVisiMisiConfig(): VisiMisiConfig {
 export function saveVisiMisiConfig(config: VisiMisiConfig): void {
   const updated = { ...config, updatedAt: new Date().toISOString() };
   localStorage.setItem('cdc_umk_visi_misi_config', JSON.stringify(updated));
+  // FIX: sync ke Supabase (fire-and-forget)
+  setTimeout(async () => {
+    try {
+      await syncVisiMisiConfigToSupabase(updated);
+    } catch (e: any) {
+      console.error('[Sync GAGAL → Supabase] visi_misi_config:', e?.message || e);
+    }
+  }, 0);
 }
 
 export const DEFAULT_ANGGOTA_TIM: AnggotaTim[] = [
@@ -3345,6 +3379,16 @@ export function getAnggotaTim(): AnggotaTim[] {
 
 export function saveAnggotaTim(items: AnggotaTim[]): void {
   localStorage.setItem('cdc_umk_keanggotaan_tim', JSON.stringify(items));
+  // FIX: sync setiap anggota ke Supabase (fire-and-forget)
+  setTimeout(async () => {
+    for (const item of items) {
+      try {
+        await syncAnggotaTimToSupabase(item);
+      } catch (e: any) {
+        console.error('[Sync GAGAL → Supabase] anggota_tim id=' + item.id + ':', e?.message || e);
+      }
+    }
+  }, 0);
 }
 
 // Default Seed Hero Slides Beranda Utama (6 Slide Banner Resmi UMK)
@@ -3432,6 +3476,16 @@ export function getHeroSlides(): HeroSlideItem[] {
 
 export function saveHeroSlides(slides: HeroSlideItem[]): void {
   localStorage.setItem('cdc_umk_hero_slides_v5', JSON.stringify(slides));
+  // FIX: sync setiap slide ke Supabase (fire-and-forget)
+  setTimeout(async () => {
+    for (const slide of slides) {
+      try {
+        await syncHeroSlideToSupabase({ ...slide, urutan: (slide as any).order ?? 0 });
+      } catch (e: any) {
+        console.error('[Sync GAGAL → Supabase] hero_slides id=' + slide.id + ':', e?.message || e);
+      }
+    }
+  }, 0);
 }
 
 // Default Seeds for Campus Hiring
@@ -3592,6 +3646,16 @@ export function getCampusHiring(): CampusHiringItem[] {
 
 export function saveCampusHiring(items: CampusHiringItem[]): void {
   localStorage.setItem('cdc_umk_campus_hiring', JSON.stringify(items));
+  // FIX: sync setiap item ke Supabase (fire-and-forget)
+  setTimeout(async () => {
+    for (const item of items) {
+      try {
+        await syncCampusHiringToSupabase(item);
+      } catch (e: any) {
+        console.error('[Sync GAGAL → Supabase] campus_hiring id=' + item.id + ':', e?.message || e);
+      }
+    }
+  }, 0);
 }
 
 // Default Seeds for Job Fair & Career Expo
@@ -3735,6 +3799,16 @@ export function getJobFair(): JobFairItem[] {
 
 export function saveJobFair(items: JobFairItem[]): void {
   localStorage.setItem('cdc_umk_job_fair', JSON.stringify(items));
+  // FIX: sync setiap item ke Supabase (fire-and-forget)
+  setTimeout(async () => {
+    for (const item of items) {
+      try {
+        await syncJobFairToSupabase(item);
+      } catch (e: any) {
+        console.error('[Sync GAGAL → Supabase] job_fair id=' + item.id + ':', e?.message || e);
+      }
+    }
+  }, 0);
 }
 
 // Document Section Database Helpers

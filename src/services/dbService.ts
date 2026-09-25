@@ -447,6 +447,38 @@ export async function syncUploadedDocumentToSupabase(d: any): Promise<any> {
   return sendSyncRequest('uploaded_documents', d);
 }
 
+// ── Sync fungsi untuk entitas config Admin Dashboard ─────────────────────────
+
+/** Sync satu AnggotaTim ke tabel anggota_tims di Supabase */
+export async function syncAnggotaTimToSupabase(item: any): Promise<any> {
+  return sendSyncRequest('anggota_tims', item);
+}
+
+/** Sync satu HeroSlide ke tabel hero_slides di Supabase */
+export async function syncHeroSlideToSupabase(item: any): Promise<any> {
+  return sendSyncRequest('hero_slides', item);
+}
+
+/** Sync KonselingConfig (upsert by id) ke tabel konseling_configs di Supabase */
+export async function syncKonselingConfigToSupabase(config: any): Promise<any> {
+  return sendSyncRequest('konseling_configs', config);
+}
+
+/** Sync VisiMisiConfig (upsert by id) ke tabel visi_misi_configs di Supabase */
+export async function syncVisiMisiConfigToSupabase(config: any): Promise<any> {
+  return sendSyncRequest('visi_misi_configs', config);
+}
+
+/** Sync satu CampusHiringItem ke tabel campus_hirings di Supabase */
+export async function syncCampusHiringToSupabase(item: any): Promise<any> {
+  return sendSyncRequest('campus_hirings', item);
+}
+
+/** Sync satu JobFairItem ke tabel job_fair_events di Supabase */
+export async function syncJobFairToSupabase(item: any): Promise<any> {
+  return sendSyncRequest('job_fair_events', item);
+}
+
 export async function logoutFromBackend(): Promise<void> {
   try {
     await fetch(`${API_BASE_URL}/logout`, { method: 'POST', credentials: 'include' });

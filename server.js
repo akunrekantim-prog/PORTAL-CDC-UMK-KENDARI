@@ -705,6 +705,117 @@ const SYNC_FIELDS = {
     fileSize:    'number',
     category:    'string',
   },
+  // ── Config entitas Admin Dashboard ──
+  anggota_tim: {
+    nama:     'string',
+    jabatan:  'string',
+    fotoUrl:  'string',
+    urutan:   'number',
+    isActive: 'boolean',
+  },
+  anggota_tims: {
+    nama:     'string',
+    jabatan:  'string',
+    fotoUrl:  'string',
+    urutan:   'number',
+    isActive: 'boolean',
+  },
+  hero_slide: {
+    title:     'string',
+    imageUrl:  'string',
+    targetUrl: 'string',
+    alt:       'string',
+    isActive:  'boolean',
+    urutan:    'number',
+  },
+  hero_slides: {
+    title:     'string',
+    imageUrl:  'string',
+    targetUrl: 'string',
+    alt:       'string',
+    isActive:  'boolean',
+    urutan:    'number',
+  },
+  konseling_config: {
+    published:              'boolean',
+    title:                  'string',
+    subtitle:               'string',
+    posterUrl:              'string',
+    posterAlt:              'string',
+    narasiWa:               'text',
+    adminWaNumber:          'string',
+    adminWaDefaultMessage:  'text',
+    infoItems:              'json',
+    jadwalItems:            'json',
+  },
+  konseling_configs: {
+    published:              'boolean',
+    title:                  'string',
+    subtitle:               'string',
+    posterUrl:              'string',
+    posterAlt:              'string',
+    narasiWa:               'text',
+    adminWaNumber:          'string',
+    adminWaDefaultMessage:  'text',
+    infoItems:              'json',
+    jadwalItems:            'json',
+  },
+  visi_misi_config: {
+    imageUrl: 'string',
+  },
+  visi_misi_configs: {
+    imageUrl: 'string',
+  },
+  campus_hiring: {
+    judul:           'string',
+    namaPerusahaan:  'string',
+    logoPerusahaan:  'string',
+    bannerUrl:       'string',
+    tanggal:         'string',
+    waktu:           'string',
+    lokasi:          'string',
+    tipe:            'string',
+    persyaratan:     'stringArr',
+    posisiBuka:      'stringArr',
+    kuota:           'number',
+    terdaftarCount:  'number',
+    deskripsi:       'text',
+    status:          'string',
+  },
+  campus_hirings: {
+    judul:           'string',
+    namaPerusahaan:  'string',
+    logoPerusahaan:  'string',
+    bannerUrl:       'string',
+    tanggal:         'string',
+    waktu:           'string',
+    lokasi:          'string',
+    tipe:            'string',
+    persyaratan:     'stringArr',
+    posisiBuka:      'stringArr',
+    kuota:           'number',
+    terdaftarCount:  'number',
+    deskripsi:       'text',
+    status:          'string',
+  },
+  job_fair_event: {
+    judul:       'string',
+    bannerUrl:   'string',
+    tanggal:     'string',
+    waktu:       'string',
+    lokasi:      'string',
+    deskripsi:   'text',
+    status:      'string',
+  },
+  job_fair_events: {
+    judul:       'string',
+    bannerUrl:   'string',
+    tanggal:     'string',
+    waktu:       'string',
+    lokasi:      'string',
+    deskripsi:   'text',
+    status:      'string',
+  },
 };
 
 // ── Sanitasi & allowlist field untuk /api/sync/:entity ────────────
@@ -833,7 +944,7 @@ app.post('/api/sync/:entity', authenticateToken, writeLimiter, async (req, res) 
   const requesterId = req.user?.id;
 
   // Validasi entity whitelist — 21 entity (10 lama + 11 tambahan 100% Supabase)
-  const allowedEntities = new Set(['users','user','mahasiswa','alumni','mitra','lowongan','pengajuan_magang','tracer_study','tracer_studies','konten_karir','berita','pengumuman','survei_lulusan','survei_lulusans','surat_keputusan','kalender_kegiatan','laporan_kinerja','mou_stakeholder','galeri_items','galeri_item','social_media','social_media_items','komentar_berita','komentar_beritas','uploaded_documents']);
+  const allowedEntities = new Set(['users','user','mahasiswa','alumni','mitra','lowongan','pengajuan_magang','tracer_study','tracer_studies','konten_karir','berita','pengumuman','survei_lulusan','survei_lulusans','surat_keputusan','kalender_kegiatan','laporan_kinerja','mou_stakeholder','galeri_items','galeri_item','social_media','social_media_items','komentar_berita','komentar_beritas','uploaded_documents','anggota_tim','anggota_tims','hero_slide','hero_slides','konseling_config','konseling_configs','visi_misi_config','visi_misi_configs','campus_hiring','campus_hirings','job_fair_event','job_fair_events']);
   if (!allowedEntities.has(entity)) return res.status(400).json({ error: `Entity '${String(entity).slice(0,50)}' tidak didukung.` });
 
   // Payload size guard (sudah 2mb di parser, tambah check field length)
@@ -1296,6 +1407,77 @@ app.post('/api/sync/:entity', authenticateToken, writeLimiter, async (req, res) 
         update: udData,
         create: { id: payload.id, userId: ownerId, mahasiswaId: mhsIdVal,
                   ...createDefaults('uploaded_documents'), ...udData }
+      });
+      return res.json({ success: true, result });
+    }
+
+    // ── Config entitas Admin Dashboard ─────────────────────────────────
+    if (entity === 'anggota_tim' || entity === 'anggota_tims') {
+      if (r !== 'ADMIN') return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+      const { data } = buildSyncData('anggota_tims', payload);
+      const result = await prisma.anggotaTim.upsert({
+        where: { id: payload.id || '' },
+        update: data,
+        create: { id: payload.id || `angt_${Date.now().toString(36)}`, ...data }
+      });
+      return res.json({ success: true, result });
+    }
+
+    if (entity === 'hero_slide' || entity === 'hero_slides') {
+      if (r !== 'ADMIN') return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+      const { data } = buildSyncData('hero_slides', payload);
+      // Normalisasi field: frontend pakai 'order', schema pakai 'urutan'
+      if (payload.order != null && data.urutan == null) data.urutan = Number(payload.order) || 0;
+      const result = await prisma.heroSlide.upsert({
+        where: { id: payload.id || '' },
+        update: data,
+        create: { id: payload.id || `slide_${Date.now().toString(36)}`, ...data }
+      });
+      return res.json({ success: true, result });
+    }
+
+    if (entity === 'konseling_config' || entity === 'konseling_configs') {
+      if (r !== 'ADMIN') return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+      const { data } = buildSyncData('konseling_configs', payload);
+      const cfgId = payload.id || 'konseling_config_default';
+      const result = await prisma.konselingConfig.upsert({
+        where: { id: cfgId },
+        update: data,
+        create: { id: cfgId, ...data }
+      });
+      return res.json({ success: true, result });
+    }
+
+    if (entity === 'visi_misi_config' || entity === 'visi_misi_configs') {
+      if (r !== 'ADMIN') return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+      const { data } = buildSyncData('visi_misi_configs', payload);
+      const vmId = payload.id || 'visi_misi_default';
+      const result = await prisma.visiMisiConfig.upsert({
+        where: { id: vmId },
+        update: data,
+        create: { id: vmId, ...data }
+      });
+      return res.json({ success: true, result });
+    }
+
+    if (entity === 'campus_hiring' || entity === 'campus_hirings') {
+      if (r !== 'ADMIN') return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+      const { data } = buildSyncData('campus_hirings', payload);
+      const result = await prisma.campusHiring.upsert({
+        where: { id: payload.id || '' },
+        update: data,
+        create: { id: payload.id || `ch_${Date.now().toString(36)}`, ...data }
+      });
+      return res.json({ success: true, result });
+    }
+
+    if (entity === 'job_fair_event' || entity === 'job_fair_events') {
+      if (r !== 'ADMIN') return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+      const { data } = buildSyncData('job_fair_events', payload);
+      const result = await prisma.jobFairEvent.upsert({
+        where: { id: payload.id || '' },
+        update: data,
+        create: { id: payload.id || `jf_${Date.now().toString(36)}`, ...data }
       });
       return res.json({ success: true, result });
     }
