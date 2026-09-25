@@ -6,6 +6,7 @@ import {
 } from '../types';
 import {
   updateUserProfile,
+  updateInDB,
   getFromDB,
   getSavedJobIds,
   getValidSavedJobs,
@@ -325,33 +326,63 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
   };
 
   const saveProfileData = async (partial: Partial<Mahasiswa>) => {
+    // FIX Bug #3: deteksi apakah user login via token demo (fallback static) atau JWT asli
+    const token = typeof localStorage !== 'undefined' ? localStorage.getItem('cdc_auth_token') : null;
+    const isDemoMode = token && (token.startsWith('demo_token_') || token.startsWith('google_token_'));
+
+    if (isDemoMode) {
+      // Pada demo/Google token: tetap update MEMORY_DB lokal agar UX smooth,
+      // tapi beri peringatan bahwa data TIDAK disinkronkan ke server database
+      triggerToast('⚠️ Sesi demo aktif. Data tersimpan sementara di browser. Login ulang dengan akun resmi agar tersimpan ke database.');
+      // Update lokal saja menggunakan static import (tanpa sync ke Supabase)
+      try {
+        const students = getFromDB<Mahasiswa>('mahasiswa');
+        const student = students.find(s => s.userId === user.id);
+        const mergedPartial = {
+          nama: partial.nama !== undefined ? partial.nama : `${firstName} ${lastName}`.trim(),
+          nim: partial.nim !== undefined ? partial.nim : nim,
+          email: partial.email !== undefined ? partial.email : email,
+          phone: partial.phone !== undefined ? partial.phone : mobile,
+          aboutMe: partial.aboutMe !== undefined ? partial.aboutMe : aboutMe,
+          ...partial
+        };
+        if (student) {
+          updateInDB<Mahasiswa>('mahasiswa', { ...student, ...mergedPartial });
+        }
+      } catch { /* abaikan */ }
+      if (onProfileUpdated) onProfileUpdated();
+      return null;
+    }
+
     try {
       const updated = await updateUserProfile(user.id, {
-      nama: partial.nama !== undefined ? partial.nama : `${firstName} ${lastName}`.trim(),
-      nim: partial.nim !== undefined ? partial.nim : nim,
-      email: partial.email !== undefined ? partial.email : email,
-      phone: partial.phone !== undefined ? partial.phone : mobile,
-      nationality: partial.nationality !== undefined ? partial.nationality : nationality,
-      opportunityType: partial.opportunityType !== undefined ? partial.opportunityType : opportunityType,
-      preferredStartDate: partial.preferredStartDate !== undefined ? partial.preferredStartDate : opportunityStartDate,
-      aboutMe: partial.aboutMe !== undefined ? partial.aboutMe : aboutMe,
-      userStatusType: partial.userStatusType !== undefined ? partial.userStatusType : userStatusType,
-      qualifications: partial.qualifications !== undefined ? partial.qualifications : qualifications,
-      skills: partial.skills !== undefined ? partial.skills : skills,
-      experiences: partial.experiences !== undefined ? partial.experiences : experiences,
-      certificates: partial.certificates !== undefined ? partial.certificates : certificates,
-      languages: partial.languages !== undefined ? partial.languages : languagesList,
-      gender: partial.gender !== undefined ? partial.gender : gender,
-      workRights: partial.workRights !== undefined ? partial.workRights : workRights,
-      industries: partial.industries !== undefined ? partial.industries : industries,
-      locations: partial.locations !== undefined ? partial.locations : locations,
-      university: partial.university !== undefined ? partial.university : university,
-      ...partial
-    });
-    if (onProfileUpdated) onProfileUpdated();
-    return updated;
+        nama: partial.nama !== undefined ? partial.nama : `${firstName} ${lastName}`.trim(),
+        nim: partial.nim !== undefined ? partial.nim : nim,
+        email: partial.email !== undefined ? partial.email : email,
+        phone: partial.phone !== undefined ? partial.phone : mobile,
+        nationality: partial.nationality !== undefined ? partial.nationality : nationality,
+        opportunityType: partial.opportunityType !== undefined ? partial.opportunityType : opportunityType,
+        preferredStartDate: partial.preferredStartDate !== undefined ? partial.preferredStartDate : opportunityStartDate,
+        aboutMe: partial.aboutMe !== undefined ? partial.aboutMe : aboutMe,
+        userStatusType: partial.userStatusType !== undefined ? partial.userStatusType : userStatusType,
+        qualifications: partial.qualifications !== undefined ? partial.qualifications : qualifications,
+        skills: partial.skills !== undefined ? partial.skills : skills,
+        experiences: partial.experiences !== undefined ? partial.experiences : experiences,
+        certificates: partial.certificates !== undefined ? partial.certificates : certificates,
+        languages: partial.languages !== undefined ? partial.languages : languagesList,
+        gender: partial.gender !== undefined ? partial.gender : gender,
+        workRights: partial.workRights !== undefined ? partial.workRights : workRights,
+        industries: partial.industries !== undefined ? partial.industries : industries,
+        locations: partial.locations !== undefined ? partial.locations : locations,
+        university: partial.university !== undefined ? partial.university : university,
+        ...partial
+      });
+      // FIX Fase 5: refresh data dari server setelah berhasil simpan
+      if (onProfileUpdated) onProfileUpdated();
+      return updated;
     } catch (err: any) {
-      triggerToast(err?.message || 'Gagal menyimpan profil. Silakan coba lagi.');
+      // Tampilkan pesan error spesifik dari updateUserProfile (termasuk pesan 403/401)
+      triggerToast(err?.message || 'Gagal menyimpan profil. Pastikan server aktif dan coba lagi.');
       return null;
     }
   };

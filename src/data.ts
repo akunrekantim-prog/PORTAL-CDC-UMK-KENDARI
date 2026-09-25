@@ -2414,8 +2414,15 @@ export function saveToDB<T>(key: DBKey, data: T[]) {
           await syncUploadedDocumentToSupabase(item);
         }
       }
-    } catch (e) {
-      console.warn('[Sync Error]', key, e);
+    } catch (e: any) {
+      // FIX Bug #2: log error lebih informatif agar mudah di-debug via DevTools Console
+      const msg = e?.message || String(e);
+      const isAuthError = msg.includes('403') || msg.includes('401') || msg.includes('token') || msg.includes('Belum login');
+      if (isAuthError) {
+        console.error(`[Sync GAGAL → Supabase] entity=${key}: Sesi/token tidak valid. Silakan login ulang.`, msg);
+      } else {
+        console.error(`[Sync GAGAL → Supabase] entity=${key}:`, msg);
+      }
     }
   }, 0);
 }
@@ -2722,16 +2729,26 @@ export function loginOrRegisterWithGoogle(googleAccount: {
   return { user: newUser, isNew: true };
 }
 
-export function updateUserProfile(userId: string, profileData: Partial<Mahasiswa>) {
+export async function updateUserProfile(userId: string, profileData: Partial<Mahasiswa>): Promise<Mahasiswa> {
   const students = getFromDB<Mahasiswa>('mahasiswa');
   let student = students.find(s => s.userId === userId);
   let updatedStudent: Mahasiswa;
 
   if (student) {
     updatedStudent = { ...student, ...profileData };
-    updateInDB<Mahasiswa>('mahasiswa', updatedStudent);
+    // Tulis ke MEMORY_DB + localStorage (tanpa trigger saveToDB agar tidak double-sync)
+    const allStudents = getFromDB<Mahasiswa>('mahasiswa');
+    const idx = allStudents.findIndex(s => s.id === updatedStudent.id);
+    if (idx !== -1) allStudents[idx] = updatedStudent;
+    else allStudents.push(updatedStudent);
+    (MEMORY_DB as any)['mahasiswa'] = allStudents;
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem('cdc_umk_mahasiswa', JSON.stringify(allStudents));
+      }
+    } catch { /* quota */ }
   } else {
-    // If no existing record, create one
+    // Jika belum ada record, buat baru
     const newStudent: Mahasiswa = {
       id: `mhs_${Date.now()}`,
       userId: userId,
@@ -2749,11 +2766,12 @@ export function updateUserProfile(userId: string, profileData: Partial<Mahasiswa
     updatedStudent = newStudent;
   }
 
-  // Also sync name, email, photoUrl with users table
+  // Sync nama, email, photoUrl ke tabel users
   const users = getFromDB<User>('users');
   const userObj = users.find(u => u.id === userId);
+  let updatedUser: User | undefined;
   if (userObj) {
-    const updatedUser: User = {
+    updatedUser = {
       ...userObj,
       name: profileData.nama || userObj.name,
       email: profileData.email || userObj.email,
@@ -2761,6 +2779,39 @@ export function updateUserProfile(userId: string, profileData: Partial<Mahasiswa
       userStatusType: profileData.userStatusType || userObj.userStatusType
     };
     updateInDB<User>('users', updatedUser);
+  }
+
+  // FIX Bug #5: Sync ke tabel alumni jika user adalah alumni
+  const alumniList = getFromDB<Alumni>('alumni');
+  const alumniRecord = alumniList.find(a => a.userId === userId);
+  if (alumniRecord) {
+    const updatedAlumni: Alumni = {
+      ...alumniRecord,
+      nama: profileData.nama || alumniRecord.nama,
+      email: profileData.email || alumniRecord.email,
+      phone: profileData.phone || alumniRecord.phone,
+    };
+    updateInDB<Alumni>('alumni', updatedAlumni);
+    // Sync alumni ke Supabase (best-effort, tidak throw jika gagal)
+    syncAlumniToSupabase(updatedAlumni).catch(err =>
+      console.warn('[updateUserProfile] Alumni sync gagal (non-fatal):', err?.message || err)
+    );
+  }
+
+  // FIX Bug #1: Sync LANGSUNG ke Supabase dan TUNGGU hasilnya
+  // Jika gagal, lempar error agar caller (saveProfileData) bisa menampilkan toast merah
+  try {
+    await syncMahasiswaToSupabase(updatedStudent);
+    if (updatedUser) {
+      await syncUserToSupabase(updatedUser);
+    }
+  } catch (err: any) {
+    const msg = err?.message || String(err);
+    // Deteksi token demo — beri pesan yang jelas
+    if (msg.includes('403') || msg.includes('401') || msg.includes('token') || msg.includes('Belum login')) {
+      throw new Error('Sesi login tidak valid atau telah berakhir. Silakan logout lalu login ulang agar data tersimpan ke database.');
+    }
+    throw new Error(`Gagal menyimpan ke database: ${msg}. Pastikan server berjalan dan Anda sudah login ulang.`);
   }
 
   return updatedStudent;

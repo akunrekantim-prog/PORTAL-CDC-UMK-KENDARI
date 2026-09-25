@@ -488,7 +488,14 @@ export default function MahasiswaDashboard({ user, onLogout, allLowongan, active
                 <StudentProfileView
                   user={user}
                   mahasiswaData={mahasiswaData}
-                  onProfileUpdated={loadStudentData}
+                  onProfileUpdated={async () => {
+                    // FIX Fase 5: tarik ulang data dari Supabase setelah profil disimpan
+                    try {
+                      const { refreshLiveDatabase } = await import('../data');
+                      await refreshLiveDatabase();
+                    } catch { /* abaikan jika offline */ }
+                    loadStudentData();
+                  }}
                   onSelectJob={(job) => setSelectedJobForDetail(job)}
                 />
               )}

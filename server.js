@@ -870,9 +870,17 @@ app.post('/api/sync/:entity', authenticateToken, writeLimiter, async (req, res) 
 
     if (entity === 'mahasiswa') {
       if (r !== 'ADMIN' && (!payload.userId || payload.userId !== requesterId)) return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
-      const existingMhs = await prisma.mahasiswa.findFirst({ where: { OR: [{ id: payload.id }, { nim: payload.nim }] } });
-      const mhsWhere = existingMhs ? { id: existingMhs.id } : { id: payload.id };
+      // FIX Bug #4: cari berdasarkan id ATAU userId (bukan nim — bisa null/kosong dan menyebabkan false-match)
+      const lookupConditions = [];
+      if (payload.id) lookupConditions.push({ id: payload.id });
+      if (payload.userId) lookupConditions.push({ userId: payload.userId });
+      const existingMhs = lookupConditions.length > 0
+        ? await prisma.mahasiswa.findFirst({ where: { OR: lookupConditions } })
+        : null;
+      const mhsId = existingMhs ? existingMhs.id : (payload.id || `mhs_${Date.now().toString(36)}`);
+      const mhsWhere = { id: mhsId };
       const { data, ignored } = buildSyncData('mahasiswa', payload);
+      if (ignored.length > 0) console.warn('[Sync mahasiswa] Field tidak dikenal (ignored):', ignored);
       if ('semester' in data) {
         if (data.semester == null) delete data.semester;
         else data.semester = Math.min(14, Math.max(1, data.semester));
@@ -884,10 +892,11 @@ app.post('/api/sync/:entity', authenticateToken, writeLimiter, async (req, res) 
       const result = await prisma.mahasiswa.upsert({
         where: mhsWhere,
         update: data,
-        create: { id: payload.id, ...data }
+        create: { id: mhsId, ...data }
       });
-      return res.json({ success: true, result });
+      return res.json({ success: true, result, ignoredFields: ignored });
     }
+
 
     if (entity === 'alumni') {
       if (r !== 'ADMIN' && (!payload.userId || payload.userId !== requesterId)) return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
