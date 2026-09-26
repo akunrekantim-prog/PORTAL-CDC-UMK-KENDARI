@@ -67,38 +67,58 @@ if (isProd) {
   });
 }
 
-// ── CORS — whitelist ketat ───────────────────────────────────────
-// FRONTEND_URL  = URL utama (Firebase Hosting: https://cdc-um-kendari.web.app)
-// FRONTEND_URL_2 = URL alternatif (Firebase: https://cdc-um-kendari.firebaseapp.com)
-// FRONTEND_URL_3 = URL Railway preview / custom domain jika ada
-//
-// FIX: Firebase Hosting URLs di-hardcode sebagai safety net agar tidak
-// bergantung penuh pada env var FRONTEND_URL yang bisa lupa diset di Railway.
-const allowedOrigins = [
+// ── CORS — whitelist & pattern matching dinamis ─────────────────
+const envOrigins = (process.env.ALLOWED_ORIGINS || `${process.env.FRONTEND_URL || ''},${process.env.FRONTEND_URL_2 || ''},${process.env.FRONTEND_URL_3 || ''}`)
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+const baseAllowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5000',
   'http://127.0.0.1:3000',
   'http://127.0.0.1:5000',
-  // Firebase Hosting — hardcode sebagai safety net
   'https://cdc-um-kendari.web.app',
   'https://cdc-um-kendari.firebaseapp.com',
-  // Custom / Railway env var (override jika berbeda)
-  process.env.FRONTEND_URL,
-  process.env.FRONTEND_URL_2,
-  process.env.FRONTEND_URL_3
-].filter(Boolean);
+  'https://portal-cdc-umk-kendari-production.up.railway.app',
+  ...envOrigins
+];
+
+// Regexp pattern match untuk domain hosting terpercaya (Vercel, Firebase, Railway, Cloudflare, Kampus)
+const allowedDomainPatterns = [
+  /\.vercel\.app$/i,
+  /\.web\.app$/i,
+  /\.firebaseapp\.com$/i,
+  /\.up\.railway\.app$/i,
+  /\.pages\.dev$/i,
+  /\.github\.io$/i,
+  /\.umkendari\.ac\.id$/i
+];
+
+function isOriginAllowed(origin) {
+  if (!origin) return true; // Allow non-browser / same-origin requests
+  if (baseAllowedOrigins.includes('*') || process.env.ALLOW_ALL_ORIGINS === 'true') return true;
+  if (baseAllowedOrigins.includes(origin)) return true;
+  try {
+    const hostname = new URL(origin).hostname;
+    return allowedDomainPatterns.some((pattern) => pattern.test(hostname));
+  } catch {
+    return false;
+  }
+}
 
 if (isProd && !process.env.FRONTEND_URL) {
-  console.warn('⚠️  FRONTEND_URL tidak diset di production — menggunakan fallback hardcode Firebase URLs.');
+  console.warn('⚠️ FRONTEND_URL tidak diset di production — menggunakan fallback dynamic domain patterns.');
 }
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  if (origin && allowedOrigins.includes(origin)) {
+  if (origin && isOriginAllowed(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
     res.header('Access-Control-Allow-Credentials', 'true');
+  } else if (!origin) {
+    res.header('Access-Control-Allow-Origin', '*');
   }
-  // Jika origin tidak dikenal: JANGAN set Allow-Origin (browser block)
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Vary', 'Origin');
@@ -418,7 +438,7 @@ app.post('/api/login', loginLimiter, async (req, res) => {
     res.cookie('auth_token', token, {
       httpOnly: true,
       secure: isProd,
-      sameSite: isProd ? 'strict' : 'lax',
+      sameSite: isProd ? 'none' : 'lax',
       maxAge: 24 * 60 * 60 * 1000,
       path: '/'
     });
@@ -430,7 +450,7 @@ app.post('/api/login', loginLimiter, async (req, res) => {
 });
 
 app.post('/api/logout', (req, res) => {
-  res.clearCookie('auth_token', { httpOnly: true, secure: isProd, sameSite: isProd ? 'strict' : 'lax', path: '/' });
+  res.clearCookie('auth_token', { httpOnly: true, secure: isProd, sameSite: isProd ? 'none' : 'lax', path: '/' });
   res.json({ success: true });
 });
 

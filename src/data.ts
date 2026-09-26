@@ -2165,7 +2165,7 @@ export async function initializeDB(): Promise<void> {
     const liveData = await fetchInitialDatabaseFromSupabase();
     if (liveData) {
       Object.keys(liveData).forEach(key => {
-        if (Array.isArray(liveData[key]) && liveData[key].length > 0) {
+        if (Array.isArray(liveData[key])) {
           MEMORY_DB[key] = liveData[key];
         }
       });
@@ -2271,7 +2271,7 @@ export async function refreshLiveDatabase(): Promise<boolean> {
     const liveData = await fetchInitialDatabaseFromSupabase();
     if (!liveData) return false;
     Object.keys(liveData).forEach(key => {
-      if (Array.isArray(liveData[key]) && liveData[key].length > 0) {
+      if (Array.isArray(liveData[key])) {
         MEMORY_DB[key] = liveData[key];
       }
     });
@@ -2301,11 +2301,10 @@ export function getFromDB<T>(key: DBKey): T[] {
   }
 
   // BUG-003 FIX: Prioritaskan MEMORY_DB (data live dari Supabase) di atas localStorage cache.
-  // Sebelumnya: localStorage SELALU menimpa MEMORY_DB → data lama Device B menutupi data terbaru Supabase.
-  // Sekarang: MEMORY_DB yang sudah terisi dari Supabase (via initializeDB/refreshLiveDatabase) TIDAK ditimpa localStorage.
-  // localStorage hanya dipakai sebagai fallback jika MEMORY_DB kosong (offline / backend tidak bisa dijangkau).
+  // MEMORY_DB yang sudah terisi dari Supabase (via initializeDB/refreshLiveDatabase) TIDAK ditimpa localStorage.
+  // localStorage hanya dipakai sebagai fallback jika MEMORY_DB belum terisi.
   const memData = MEMORY_DB[key];
-  if (Array.isArray(memData) && memData.length > 0) {
+  if (Array.isArray(memData)) {
     return memData as T[];
   }
 

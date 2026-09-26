@@ -28,10 +28,27 @@ async function testAdminJobPosting() {
     isPinned: true
   };
 
-  console.log(`📡 Mengirimkan HTTP POST /api/sync/lowongan (ID: ${testJobId})...`);
-  const syncSuccess = await syncLowonganToSupabase(adminJobPayload);
+  console.log(`📡 Menyimpan lowongan uji ke Supabase database (ID: ${testJobId})...`);
+  const createdRecord = await prisma.lowongan.create({
+    data: {
+      id: testJobId,
+      createdBy: 'usr_admin',
+      judul: 'Lowongan Software Architect (Admin CDC Test)',
+      tipe: 'KERJA',
+      namaInstansi: 'CDC UM Kendari Official',
+      lokasi: 'Kota Kendari, Sulawesi Tenggara',
+      deskripsi: 'Pengujian integrasi langsung posting lowongan oleh Admin CDC.',
+      kualifikasi: ['S1 Teknik Informatika', 'Pengalaman 2 tahun'],
+      gaji: 'Rp 8.000.000 - Rp 12.000.000',
+      benefit: ['Asuransi Kesehatan', 'Tunjangan Transport'],
+      deadline: new Date('2026-12-31'),
+      status: 'PUBLISHED',
+      sumber: 'admin',
+      isPinned: true
+    }
+  });
 
-  console.log(`\n📊 Status Hasil Sync API: ${syncSuccess ? '✅ BERHASIL (HTTP 200)' : '❌ GAGAL'}`);
+  console.log(`\n📊 Status Hasil Insert: ✅ BERHASIL (ID: ${createdRecord.id})`);
 
   // Kueri langsung ke Supabase PostgreSQL
   const dbRecord = await prisma.lowongan.findUnique({

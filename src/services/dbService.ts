@@ -167,6 +167,10 @@ export async function loginToBackend(email: string, password: string): Promise<B
     }
   }
 
+  if (isStaticFallback && API_BASE_URL.startsWith('http')) {
+    console.warn(`⚠️ [Backend Auth Warning] Tidak dapat menembak endpoint produksi (${API_BASE_URL}/login). Memeriksa fallback lokal.`);
+  }
+
   // Static Hosting Fallback (Firebase Hosting / Demo Mode tanpa live Node server)
   const users = getFromDB<any>('users') || [];
   const matchedUser = users.find(
@@ -174,6 +178,9 @@ export async function loginToBackend(email: string, password: string): Promise<B
   );
 
   if (!matchedUser) {
+    if (API_BASE_URL.startsWith('http') && !response) {
+      throw new Error(`Gagal terhubung ke backend server (${API_BASE_URL}). Pastikan server backend sedang aktif dan domain frontend (${typeof window !== 'undefined' ? window.location.origin : ''}) diizinkan CORS.`);
+    }
     throw new Error('Akun dengan email ini belum terdaftar. Silakan mendaftar terlebih dahulu.');
   }
 
