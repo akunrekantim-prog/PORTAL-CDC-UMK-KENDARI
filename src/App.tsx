@@ -68,6 +68,17 @@ export default function App() {
 
   // Authentication State
   const [currentUser, setCurrentUser] = useState<UserType | null>(null);
+  // FIX #4-GUARD: Cegah URL watcher redirect ke login saat session restore sedang berjalan async.
+  const [isSessionRestoring, setIsSessionRestoring] = useState<boolean>(() => {
+    // Cek awal: jika ada token & session_id, kemungkinan ada sesi yang bisa di-restore
+    try {
+      const hasToken = !!localStorage.getItem('cdc_auth_token');
+      const hasSession = !!localStorage.getItem('cdc_session_id');
+      return hasToken && hasSession;
+    } catch {
+      return false;
+    }
+  });
 
   // Local database States for passing to sub-components
   const [allLowongan, setAllLowongan] = useState<Lowongan[]>([]);
@@ -92,13 +103,41 @@ export default function App() {
     penulis: k.penulis
   });
 
-  // Load baseline database
+  // Load baseline database + Session Restore
+  // FIX #4: Jika token tersimpan di localStorage, restore currentUser dari MEMORY_DB
+  // agar admin tidak dipaksa login ulang setelah refresh halaman.
   useEffect(() => {
     async function loadData() {
       await initializeDB();
       reloadDatabase();
+
+      // Session Restore: cek token & session_id di localStorage
+      try {
+        const sessionId = localStorage.getItem('cdc_session_id');
+        const token = localStorage.getItem('cdc_auth_token');
+        const expiry = Number(localStorage.getItem('cdc_token_expiry') || '0');
+        const isTokenValid = token && (!expiry || Date.now() < expiry);
+
+        if (sessionId && isTokenValid) {
+          const users = getFromDB<UserType>('users');
+          const restoredUser = users.find((u) => u.id === sessionId);
+          if (restoredUser && (restoredUser.status === 'active' || restoredUser.status === 'pending')) {
+            setCurrentUser(restoredUser);
+            // Setelah restore user, coba tarik data live penuh dari Supabase
+            const { refreshLiveDatabase } = await import('./data');
+            await refreshLiveDatabase();
+            reloadDatabase();
+          }
+        }
+      } catch {
+        // abaikan — session restore gagal tidak fatal
+      } finally {
+        // Selalu matikan flag restoring agar URL watcher bisa berjalan normal
+        setIsSessionRestoring(false);
+      }
     }
     loadData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const reloadDatabase = () => {
@@ -146,6 +185,9 @@ export default function App() {
       const subTab = parts[1] || 'ringkasan';
       setAdminActiveTab(subTab);
       if (!currentUser || currentUser.role !== 'admin') {
+        // FIX #4-GUARD: Jangan redirect ke login jika session restore masih berjalan.
+        // Redirect hanya dieksekusi setelah isSessionRestoring = false.
+        if (isSessionRestoring) return;
         if (FAST_AUTH_ENABLED) {
           handleFastRoleSwitch('admin', false);
         } else {
@@ -160,6 +202,8 @@ export default function App() {
       const subTab = parts[1] || 'ringkasan';
       setMitraActiveTab(subTab);
       if (!currentUser || currentUser.role !== 'mitra') {
+        // FIX #4-GUARD: Jangan redirect ke login jika session restore masih berjalan.
+        if (isSessionRestoring) return;
         if (FAST_AUTH_ENABLED) {
           handleFastRoleSwitch('mitra', false);
         } else {
@@ -176,6 +220,8 @@ export default function App() {
       if (subTab === 'lowongan') subTab = 'search';
       setMahasiswaActiveTab(subTab as any);
       if (!currentUser || !['user', 'mahasiswa', 'alumni', 'job_seeker'].includes(currentUser.role)) {
+        // FIX #4-GUARD: Jangan redirect ke login jika session restore masih berjalan.
+        if (isSessionRestoring) return;
         if (FAST_AUTH_ENABLED) {
           handleFastRoleSwitch('user', false);
         } else {
@@ -294,7 +340,7 @@ export default function App() {
       setViewingProgramId(null);
       setViewingLayananDetailId(null);
     }
-  }, [location.pathname, currentUser, navigate, FAST_AUTH_ENABLED, redirectToLogin]);
+  }, [location.pathname, currentUser, isSessionRestoring, navigate, FAST_AUTH_ENABLED, redirectToLogin]);
 
   // Quick Access Role Switcher — DEV ONLY, tanpa synthetic fallback user.
   const handleFastRoleSwitch = (role: 'admin' | 'user' | 'mitra' | 'public' | 'mahasiswa', shouldNavigate = true) => {
@@ -759,10 +805,13 @@ export default function App() {
           <AdminLogin
             onLoginSuccess={async (user) => {
               setCurrentUser(user);
-              setCurrentView('dashboard');
+              // FIX #1: Tunggu refreshLiveDatabase selesai DULU sebelum render Dashboard.
+              // Sebelumnya setCurrentView('dashboard') dipanggil sebelum await sehingga
+              // AdminDashboard di-mount & reloadAll() berjalan saat MEMORY_DB masih kosong.
               const { refreshLiveDatabase } = await import('./data');
               await refreshLiveDatabase();
               reloadDatabase();
+              setCurrentView('dashboard');
               navigate('/admin/ringkasan');
             }}
             onNavigateHome={() => {

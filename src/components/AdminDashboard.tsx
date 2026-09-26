@@ -697,7 +697,18 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
   };
 
   useEffect(() => {
-    reloadAll();
+    // FIX #2: Tarik data live dari Supabase DULU sebelum render state.
+    // reloadAll() lama hanya baca MEMORY_DB yang saat mount mungkin masih kosong/lama.
+    const bootstrap = async () => {
+      try {
+        const { refreshLiveDatabase } = await import('../data');
+        await refreshLiveDatabase();
+      } catch {
+        // Abaikan — jika gagal (offline/tidak ada token), tetap lanjut dengan MEMORY_DB
+      }
+      reloadAll();
+    };
+    bootstrap();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

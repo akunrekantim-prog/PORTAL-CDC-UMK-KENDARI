@@ -94,6 +94,8 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
         } catch { /* abaikan */ }
         localStorage.setItem('cdc_session_id', matched.id);
         localStorage.setItem('cdc_auth_token', `admin_token_${matched.id}`);
+        // FIX #3: Selalu set token_expiry agar getAuthToken() tidak menganggap token expired.
+        localStorage.setItem('cdc_token_expiry', (Date.now() + 86400 * 1000).toString());
         user = updatedMatched;
       }
 
