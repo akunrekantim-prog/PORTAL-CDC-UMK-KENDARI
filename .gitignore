@@ -27,3 +27,7 @@ playwright/.cache/
 # Firebase cache
 .firebase/
 
+# AI agent tool folders (local only)
+.kilo/
+.hermes/
+

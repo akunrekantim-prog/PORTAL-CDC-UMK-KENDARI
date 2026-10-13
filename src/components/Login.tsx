@@ -140,7 +140,7 @@ export default function Login({
           alt="Gedung Rektorat Universitas Muhammadiyah Kendari"
           className="w-full h-full object-cover object-center"
           onError={(e) => {
-            (e.target as HTMLImageElement).src = '/bg-gedung-umk.png';
+            (e.target as HTMLImageElement).src = '/logo umk.png';
           }}
         />
         <div className="absolute inset-0 bg-black/75 backdrop-blur-[0.5px]" />

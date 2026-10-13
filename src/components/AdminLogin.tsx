@@ -135,7 +135,7 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
           alt="Gedung UMK"
           className="w-full h-full object-cover object-center filter blur-[2px] scale-105"
           onError={(e) => {
-            (e.target as HTMLImageElement).src = '/bg-gedung-umk.png';
+            (e.target as HTMLImageElement).src = '/logo umk.png';
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-br from-[#0c004d]/90 via-slate-950/92 to-[#1a0033]/95 backdrop-blur-sm" />
