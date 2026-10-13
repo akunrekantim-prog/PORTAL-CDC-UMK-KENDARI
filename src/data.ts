@@ -2154,7 +2154,13 @@ export async function initializeDB(): Promise<void> {
   const syncLocalConfigFromData = (data: Record<string, any[]>) => {
     if (!data) return;
     if (data.anggota_tims?.length > 0) localStorage.setItem('cdc_umk_keanggotaan_tim', JSON.stringify(data.anggota_tims));
-    if (data.hero_slides?.length > 0) localStorage.setItem('cdc_umk_hero_slides_v5', JSON.stringify(data.hero_slides));
+    if (data.hero_slides?.length > 0) {
+      const validSlides = data.hero_slides.filter((s: any) => s.imageUrl && !s.imageUrl.includes('/images/hero-'));
+      if (validSlides.length > 0) {
+        localStorage.setItem('cdc_umk_hero_slides_v5', JSON.stringify(validSlides));
+        try { window.dispatchEvent(new CustomEvent('cdc_hero_slides_updated', { detail: validSlides })); } catch { }
+      }
+    }
     if (data.konseling_configs?.length > 0) localStorage.setItem('cdc_umk_konseling_config', JSON.stringify(data.konseling_configs[0]));
     if (data.visi_misi_configs?.length > 0) localStorage.setItem('cdc_umk_visi_misi_config', JSON.stringify(data.visi_misi_configs[0]));
     if (data.campus_hirings?.length > 0) localStorage.setItem('cdc_umk_campus_hiring', JSON.stringify(data.campus_hirings));
@@ -2167,6 +2173,10 @@ export async function initializeDB(): Promise<void> {
       Object.keys(liveData).forEach(key => {
         if (Array.isArray(liveData[key])) {
           MEMORY_DB[key] = liveData[key];
+          try {
+            const storageKey = `cdc_umk_${key}`;
+            localStorage.setItem(storageKey, JSON.stringify(sanitizeRecordsForStorage(key as DBKey, liveData[key])));
+          } catch { /* abaikan jika storage penuh */ }
         }
       });
       syncLocalConfigFromData(liveData);
@@ -2273,6 +2283,10 @@ export async function refreshLiveDatabase(): Promise<boolean> {
     Object.keys(liveData).forEach(key => {
       if (Array.isArray(liveData[key])) {
         MEMORY_DB[key] = liveData[key];
+        try {
+          const storageKey = `cdc_umk_${key}`;
+          localStorage.setItem(storageKey, JSON.stringify(sanitizeRecordsForStorage(key as DBKey, liveData[key])));
+        } catch { /* abaikan jika storage penuh */ }
       }
     });
     return true;
@@ -3279,95 +3293,106 @@ export const DEFAULT_ANGGOTA_TIM: AnggotaTim[] = [
     id: 'tim_1',
     nama: 'drh. Retno Murwanti, M.P., Ph.D.',
     jabatan: 'Kepala Kantor Alumni',
-    fotoUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=600&auto=format&fit=crop',
+    photoUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=600&auto=format&fit=crop',
     urutan: 1
   },
   {
     id: 'tim_2',
     nama: 'Ariani Ratna Budiati, S.S., M.A.',
     jabatan: 'Ketua Tim Kerja Program & Hubungan Alumni',
-    fotoUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=600&auto=format&fit=crop',
+    photoUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=600&auto=format&fit=crop',
     urutan: 2
   },
   {
     id: 'tim_3',
     nama: 'Merryta Andriani, S.E., Akt.',
     jabatan: 'Ketua Tim Kerja Pengembangan Karier Lulusan',
-    fotoUrl: 'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?q=80&w=600&auto=format&fit=crop',
+    photoUrl: 'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?q=80&w=600&auto=format&fit=crop',
     urutan: 3
   },
   {
     id: 'tim_4',
     nama: 'Nindi Mabruri Asnan, S.I.P., M.A.',
     jabatan: 'Pengelola Alumni',
-    fotoUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=600&auto=format&fit=crop',
+    photoUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=600&auto=format&fit=crop',
     urutan: 4
   },
   {
     id: 'tim_5',
     nama: 'Lusiawati Dewi Nurvitasari, S.Pd.',
     jabatan: 'Pengelola Alumni',
-    fotoUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=600&auto=format&fit=crop',
+    photoUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=600&auto=format&fit=crop',
     urutan: 5
   },
   {
     id: 'tim_6',
     nama: 'Dewi Novyantari, S.Ant.',
     jabatan: 'Pengelola Alumni',
-    fotoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=600&auto=format&fit=crop',
+    photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=600&auto=format&fit=crop',
     urutan: 6
   },
   {
     id: 'tim_7',
     nama: 'Saputro Eko Rahmatulloh, S.Kom.',
     jabatan: 'Pengolah Layanan Teknologi Informasi dan Komputer',
-    fotoUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=600&auto=format&fit=crop',
+    photoUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=600&auto=format&fit=crop',
     urutan: 7
   },
   {
     id: 'tim_8',
     nama: 'Ira Shavilla Sudjono',
     jabatan: 'Asisten Program',
-    fotoUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=600&auto=format&fit=crop',
+    photoUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=600&auto=format&fit=crop',
     urutan: 8
   },
   {
     id: 'tim_9',
     nama: 'Shafna Puspita Prastya',
     jabatan: 'Asisten Program',
-    fotoUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=600&auto=format&fit=crop',
+    photoUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=600&auto=format&fit=crop',
     urutan: 9
   },
   {
     id: 'tim_10',
     nama: 'Andreas Hanches Parlindungan S',
     jabatan: 'Asisten Program',
-    fotoUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=600&auto=format&fit=crop',
+    photoUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=600&auto=format&fit=crop',
     urutan: 10
   },
   {
     id: 'tim_11',
     nama: 'Ni Luh Putu Swandewi',
     jabatan: 'Asisten Program',
-    fotoUrl: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=600&auto=format&fit=crop',
+    photoUrl: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=600&auto=format&fit=crop',
     urutan: 11
   },
   {
     id: 'tim_12',
     nama: 'Ahmad Lutfi Alfajar',
     jabatan: 'Asisten Program',
-    fotoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop',
+    photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop',
     urutan: 12
   }
 ];
 
 export function getAnggotaTim(): AnggotaTim[] {
+  // 1. Cek MEMORY_DB (telah diisi oleh fetchPublicDatabase / Supabase live)
+  if (MEMORY_DB['anggota_tims'] && MEMORY_DB['anggota_tims'].length > 0) {
+    return MEMORY_DB['anggota_tims'] as AnggotaTim[];
+  }
+  
+  // 2. Fallback: LocalStorage (jika boot database gagal)
   const saved = localStorage.getItem('cdc_umk_keanggotaan_tim');
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+        return parsed.map((item: any) => {
+          if (!item.photoUrl && item.fotoUrl) {
+            return { ...item, photoUrl: item.fotoUrl };
+          }
+          return item;
+        });
       }
     } catch (e) {
       console.error('Error parsing anggota tim:', e);
@@ -3376,18 +3401,47 @@ export function getAnggotaTim(): AnggotaTim[] {
   return DEFAULT_ANGGOTA_TIM;
 }
 
-export function saveAnggotaTim(items: AnggotaTim[]): void {
-  localStorage.setItem('cdc_umk_keanggotaan_tim', JSON.stringify(items));
-  // FIX: sync setiap anggota ke Supabase (fire-and-forget)
-  setTimeout(async () => {
-    for (const item of items) {
-      try {
-        await syncAnggotaTimToSupabase(item);
-      } catch (e: any) {
-        console.error('[Sync GAGAL → Supabase] anggota_tim id=' + item.id + ':', e?.message || e);
-      }
+export async function saveAnggotaTim(items: AnggotaTim[]): Promise<boolean> {
+  // 1. Update MEMORY_DB seketika agar langsung aktif di runtime
+  MEMORY_DB['anggota_tims'] = items;
+
+  // 2. Simpan ke LocalStorage sebagai offline fallback
+  try {
+    localStorage.setItem('cdc_umk_keanggotaan_tim', JSON.stringify(items));
+  } catch (err) {
+    console.warn('[Storage] Gagal menyimpan ke localStorage (quota exceeded):', err);
+  }
+
+  // 3. Sync setiap anggota ke Supabase
+  let allSuccess = true;
+  for (const item of items) {
+    try {
+      await syncAnggotaTimToSupabase(item);
+    } catch (e: any) {
+      allSuccess = false;
+      console.error('[Sync GAGAL → Supabase] anggota_tim id=' + item.id + ':', e?.message || e);
     }
-  }, 0);
+  }
+  return allSuccess;
+}
+
+export async function deleteAnggotaTim(id: string): Promise<boolean> {
+  const current = getAnggotaTim();
+  const filtered = current.filter((item) => item.id !== id);
+  MEMORY_DB['anggota_tims'] = filtered;
+  try {
+    localStorage.setItem('cdc_umk_keanggotaan_tim', JSON.stringify(filtered));
+  } catch (err) {
+    console.warn('[Storage] Gagal update localStorage saat hapus:', err);
+  }
+
+  try {
+    await deleteFromSupabase('anggota_tims', id);
+    return true;
+  } catch (err: any) {
+    console.error('[Delete GAGAL → Supabase] anggota_tims id=' + id + ':', err?.message || err);
+    return false;
+  }
 }
 
 // Default Seed Hero Slides Beranda Utama (6 Slide Banner Resmi UMK)
@@ -3460,7 +3514,11 @@ export function getHeroSlides(): HeroSlideItem[] {
     try {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        // Auto-heal: filter data lama yang masih mengarah ke path broken /images/hero-
+        const valid = parsed.filter((s: any) => s.imageUrl && !s.imageUrl.includes('/images/hero-'));
+        if (valid.length > 0) {
+          return valid.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        }
       }
     } catch (e) {
       console.error('Error parsing hero slides:', e);
@@ -3475,6 +3533,7 @@ export function getHeroSlides(): HeroSlideItem[] {
 
 export function saveHeroSlides(slides: HeroSlideItem[]): void {
   localStorage.setItem('cdc_umk_hero_slides_v5', JSON.stringify(slides));
+  try { window.dispatchEvent(new CustomEvent('cdc_hero_slides_updated', { detail: slides })); } catch { }
   // FIX: sync setiap slide ke Supabase (fire-and-forget)
   setTimeout(async () => {
     for (const slide of slides) {

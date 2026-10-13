@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
-  ChevronLeft,
   Tag,
   Clock,
   User,
@@ -254,17 +253,6 @@ export default function BeritaDetailView({
       {/* Main Body */}
       <main className="flex-grow py-8 sm:py-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-
-          {/* Top Navigation Back Button */}
-          <div>
-            <button
-              onClick={onBack}
-              className="inline-flex items-center gap-1.5 text-[#0077C6] hover:text-[#1E3A8A] font-bold text-xs sm:text-sm transition group cursor-pointer"
-            >
-              <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-              <span>Kembali ke Berita &amp; Artikel</span>
-            </button>
-          </div>
 
           {/* Main Grid: Left Floating Share Bar + Content */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative">

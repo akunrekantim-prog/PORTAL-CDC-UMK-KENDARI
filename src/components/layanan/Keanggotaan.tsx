@@ -38,12 +38,12 @@ export default function Keanggotaan() {
             >
               {/* Photo Frame */}
               <div
-                onClick={() => setZoomFoto(item.fotoUrl)}
+                onClick={() => setZoomFoto(item.photoUrl || item.fotoUrl || null)}
                 className="w-full aspect-square relative rounded-2xl overflow-hidden bg-slate-100 border border-slate-200/90 shadow-sm cursor-pointer group-hover:shadow-md transition-all"
               >
-                {item.fotoUrl ? (
+                {(item.photoUrl || item.fotoUrl) ? (
                   <img
-                    src={item.fotoUrl}
+                    src={item.photoUrl || item.fotoUrl}
                     alt={item.nama}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     onError={(e) => {
@@ -57,7 +57,7 @@ export default function Keanggotaan() {
                 )}
 
                 {/* Hover overlay zoom */}
-                {item.fotoUrl && (
+                {(item.photoUrl || item.fotoUrl) && (
                   <div className="absolute inset-0 bg-slate-900/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                     <div className="p-2.5 rounded-full bg-white/90 text-slate-900 shadow-md">
                       <ZoomIn className="w-4 h-4 text-[#F26522]" />

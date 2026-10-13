@@ -112,7 +112,9 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
 
       // Success: Save session & trigger callback
       localStorage.setItem('cdc_session_id', user.id);
-      localStorage.setItem('cdc_auth_token', `admin_token_${user.id}`);
+      if (!localStorage.getItem('cdc_auth_token')) {
+        localStorage.setItem('cdc_auth_token', `admin_token_${user.id}`);
+      }
       onLoginSuccess(user);
     } catch (err: any) {
       setErrorMessage(err.message || 'Gagal menghubungkan ke server autentikasi.');

@@ -485,8 +485,13 @@ export interface AnggotaTim {
   id: string;
   nama: string;
   jabatan: string;
-  fotoUrl: string;
+  photoUrl: string;
+  /** @deprecated Alias lama untuk photoUrl — gunakan photoUrl */
+  fotoUrl?: string;
+  email?: string;
+  bio?: string;
   urutan?: number;
+  isActive?: boolean;
 }
 
 export interface SocialMediaItem {

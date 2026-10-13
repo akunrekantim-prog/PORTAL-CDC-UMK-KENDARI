@@ -271,7 +271,7 @@ test.describe('QA Sweep 1c: Menu desktop — link eksternal (tanpa navigasi kelu
 
     const validLinks: Array<{ label: string; host: string }> = [
       { label: 'ICCN', host: 'indonesiacareercenter.id' },
-      { label: 'Website UM Kendari', host: 'umkendari.ac.id' },
+      { label: 'Website UMKENDARI', host: 'umkendari.ac.id' },
       { label: 'SIMBELMAWA', host: 'simbelmawa.kemdiktisaintek.go.id' },
       { label: 'SIMKATMAWA', host: 'simkatmawa.kemdikbud.go.id' },
     ];

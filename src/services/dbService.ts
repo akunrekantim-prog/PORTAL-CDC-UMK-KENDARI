@@ -100,6 +100,107 @@ function normalizeRecord(entity: string, row: any): any {
     else out.posterUrl = u;
     if (!out.kategoriSection && typeof out.kategori === 'string') out.kategoriSection = out.kategori;
   }
+  // Normalisasi anggota_tims: DB memakai `photoUrl`, data localStorage lama memakai `fotoUrl`.
+  // Pastikan keduanya terisi agar komponen yang masih mereferensi salah satu nama tetap bekerja.
+  if (entity === 'anggota_tims' || entity === 'anggota_tim') {
+    if (!out.photoUrl && out.fotoUrl) out.photoUrl = out.fotoUrl;
+    if (!out.fotoUrl && out.photoUrl) out.fotoUrl = out.photoUrl;
+  }
+  // Normalisasi HeroSlide: DB pakai judul/linkUrl/subjudul/urutan, frontend pakai title/targetUrl/alt/order
+  if (entity === 'hero_slides' || entity === 'hero_slide') {
+    if (!out.title && out.judul)        out.title     = out.judul;
+    if (!out.judul && out.title)        out.judul     = out.title;
+    if (!out.targetUrl && out.linkUrl)  out.targetUrl = out.linkUrl;
+    if (!out.linkUrl && out.targetUrl)  out.linkUrl   = out.targetUrl;
+    if (!out.alt && out.subjudul)       out.alt       = out.subjudul;
+    if (out.order == null && out.urutan != null) out.order = out.urutan;
+    if (out.urutan == null && out.order != null) out.urutan = out.order;
+  }
+  // Normalisasi SuratKeputusan: DB hanya punya fileUrl, frontend butuh pdfUrl/linkUrl/tipe
+  if (entity === 'surat_keputusan' || entity === 'surat_keputusans') {
+    if (out.fileUrl && !out.pdfUrl) {
+      const fu = String(out.fileUrl);
+      out.tipe = fu.startsWith('http') && !fu.includes('.pdf') ? 'link' : 'pdf';
+      if (out.tipe === 'pdf') out.pdfUrl = fu;
+      else out.linkUrl = fu;
+    }
+  }
+  // Normalisasi LaporanKinerja: DB pakai fileUrl, frontend butuh pdfUrl/linkUrl/tipe/kategori
+  if (entity === 'laporan_kinerja' || entity === 'laporan_kinerjas') {
+    if (out.fileUrl && !out.pdfUrl) {
+      const fu = String(out.fileUrl);
+      out.tipe = fu.startsWith('http') && !fu.includes('.pdf') ? 'link' : 'pdf';
+      if (out.tipe === 'pdf') out.pdfUrl = fu;
+      else out.linkUrl = fu;
+    }
+    if (!out.kategori && out.periode) out.kategori = out.periode;
+  }
+  // Normalisasi KalenderKegiatan: DB simpan tanggalMulai, frontend butuh posterUrl/pdfUrl/displayType
+  // Jika frontend menyimpan url gambar/pdf di `warna` (workaround lama), ekstrak kembali
+  if (entity === 'kalender_kegiatan' || entity === 'kalender_kegiatans') {
+    if (!out.displayType) out.displayType = 'poster';
+    // Jika deskripsi menyimpan JSON payload (posterUrl/pdfUrl), parse kembali
+    if (typeof out.deskripsi === 'string' && out.deskripsi.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(out.deskripsi);
+        if (parsed.posterUrl) { out.posterUrl = parsed.posterUrl; out.displayType = 'poster'; }
+        if (parsed.pdfUrl) { out.pdfUrl = parsed.pdfUrl; out.displayType = 'pdf'; }
+        if (parsed.linkUrl) out.linkUrl = parsed.linkUrl;
+        if (parsed.displayType) out.displayType = parsed.displayType;
+        if (parsed.deskripsi) out.deskripsi = parsed.deskripsi;
+      } catch { /* abaikan */ }
+    }
+  }
+  // Normalisasi MouStakeholder: DB pakai namaInstansi/jenisMou, frontend pakai judul/kategori
+  if (entity === 'mou_stakeholder' || entity === 'mou_stakeholders') {
+    if (!out.judul && out.namaInstansi)   out.judul    = out.namaInstansi;
+    if (!out.namaInstansi && out.judul)   out.namaInstansi = out.judul;
+    if (!out.kategori && out.jenisMou)    out.kategori = out.jenisMou;
+    if (!out.jenisMou && out.kategori)    out.jenisMou = out.kategori;
+    if (!out.displayType) out.displayType = 'poster';
+    if (out.logoUrl && !out.posterUrl)    out.posterUrl = out.logoUrl;
+  }
+  // Workaround Config: DB disimpan sebagai JSON string di field text
+  if (entity === 'konseling_configs' || entity === 'konseling_config') {
+    if (typeof out.deskripsi === 'string' && out.deskripsi.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(out.deskripsi);
+        Object.assign(out, parsed);
+      } catch { /* abaikan */ }
+    }
+  }
+  if (entity === 'visi_misi_configs' || entity === 'visi_misi_config') {
+    if (typeof out.visi === 'string' && out.visi.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(out.visi);
+        Object.assign(out, parsed);
+      } catch { /* abaikan */ }
+    }
+  }
+  if (entity === 'pengajuan_magang' || entity === 'pengajuan_magangs') {
+    if (typeof out.catatanAdmin === 'string' && out.catatanAdmin.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(out.catatanAdmin);
+        Object.assign(out, parsed);
+      } catch { /* abaikan */ }
+    }
+  }
+  if (entity === 'campus_hiring' || entity === 'campus_hirings' || entity === 'job_fair_event' || entity === 'job_fair_events') {
+    if (typeof out.deskripsi === 'string' && out.deskripsi.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(out.deskripsi);
+        Object.assign(out, parsed);
+      } catch { /* abaikan */ }
+    }
+  }
+  // Normalisasi Berita: DB pakai judul/body, frontend pakai title/content
+  if (entity === 'beritas' || entity === 'berita') {
+    if (!out.title && out.judul)   out.title   = out.judul;
+    if (!out.judul && out.title)   out.judul   = out.title;
+    if (!out.content && out.body)  out.content = out.body;
+    if (!out.body && out.content)  out.body    = out.content;
+    if (!out.coverImageUrl && out.thumbnail) out.coverImageUrl = out.thumbnail;
+  }
   return out;
 }
 

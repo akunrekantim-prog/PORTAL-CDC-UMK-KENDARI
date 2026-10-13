@@ -147,7 +147,7 @@ const NAV_ITEMS: NavItem[] = [
 ───────────────────────────────────────────────────────────────── */
 const TOP_LINKS = [
   { label: 'ICCN', href: 'https://indonesiacareercenter.id/' },
-  { label: 'Website UM Kendari', href: 'https://umkendari.ac.id/' },
+  { label: 'Website UMKENDARI', href: 'https://umkendari.ac.id/' },
   { label: 'SIMBELMAWA', href: 'https://simbelmawa.kemdiktisaintek.go.id/' },
   { label: 'SIMKATMAWA', href: 'https://simkatmawa.kemdikbud.go.id/' },
 ];
@@ -212,7 +212,7 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
       'Register Mitra': 'nav.registermitra',
       'Job Info': 'nav.jobinfo',
       'Lowongan Terbaru': 'nav.lowonganterbaru',
-      'Website UM Kendari': 'top.website'
+      'Website UMKENDARI': 'top.website'
     };
     const k = keyMap[label];
     return k ? t(k, label) : label;

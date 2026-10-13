@@ -59,6 +59,7 @@ import {
   saveVisiMisiConfig,
   getAnggotaTim,
   saveAnggotaTim,
+  deleteAnggotaTim,
   getHelpdeskConfig,
   saveHelpdeskConfig,
   getKomentarBerita,
@@ -76,6 +77,7 @@ import {
   saveStatistikConfig,
   trackAndGetVisitorCount
 } from '../data';
+import { uploadTeamMemberPhoto } from '../config/supabase';
 import { registerToBackend } from '../services/dbService';
 import {
   LayoutDashboard,
@@ -159,7 +161,8 @@ import {
   ArrowUpRight,
   Zap,
   Sliders,
-  ShieldCheck
+  ShieldCheck,
+  RefreshCw
 } from 'lucide-react';
 
 type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'mahasiswa-alumni' | 'keanggotaan' | 'visi-misi' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'media-sosial' | 'komentar' | 'konseling' | 'hero-slider' | 'campus-hiring' | 'job-fair' | 'statistik-beranda';
@@ -521,6 +524,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
   const [angNama, setAngNama] = useState('');
   const [angJabatan, setAngJabatan] = useState('');
   const [angFotoUrl, setAngFotoUrl] = useState('');
+  const [isUploadingAngFoto, setIsUploadingAngFoto] = useState(false);
+  const [isSavingAnggota, setIsSavingAnggota] = useState(false);
 
   // Form states Kelola Media Sosial
   const [socMedList, setSocMedList] = useState<SocialMediaItem[]>([]);
@@ -913,6 +918,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
   const [mhsRoleFilter, setMhsRoleFilter] = useState<'semua' | 'mahasiswa' | 'alumni'>('semua');
   const [mhsStatusFilter, setMhsStatusFilter] = useState<'semua' | 'pending' | 'active' | 'inactive'>('semua');
   const [selectedUserMhs, setSelectedUserMhs] = useState<UserType | null>(null);
+  const [isSyncingMhs, setIsSyncingMhs] = useState(false);
 
   const mhsAlumniUsers = allUsers.filter((u) => u.role === 'mahasiswa' || u.role === 'alumni' || u.role === 'user');
 
@@ -4251,6 +4257,31 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                     </h1>
                     <p className="text-xs text-slate-500 mt-1">Pengelolaan akun pendaftar, verifikasi status anggota, dan riwayat profil mahasiswa/alumni CDC UM Kendari</p>
                   </div>
+                  <button
+                    onClick={async () => {
+                      setIsSyncingMhs(true);
+                      try {
+                        const { refreshLiveDatabase } = await import('../data');
+                        const ok = await refreshLiveDatabase();
+                        reloadAll();
+                        if (ok) {
+                          triggerToast('success', 'Data Mahasiswa & Alumni berhasil disinkronkan dengan database Supabase!');
+                        } else {
+                          triggerToast('error', 'Gagal menyinkronkan data: respon server kosong atau sesi kedaluwarsa.');
+                        }
+                      } catch (err: any) {
+                        triggerToast('error', 'Gagal menyinkronkan data: ' + (err?.message || err));
+                      } finally {
+                        setIsSyncingMhs(false);
+                      }
+                    }}
+                    disabled={isSyncingMhs}
+                    className="flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 shadow-xs cursor-pointer transition disabled:opacity-50"
+                    title="Ambil data riil terbaru dari database Supabase"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 text-[#1B365D] ${isSyncingMhs ? 'animate-spin' : ''}`} />
+                    {isSyncingMhs ? 'Menyinkronkan...' : 'Sinkronkan Database'}
+                  </button>
                 </div>
 
                 {/* Summary Cards */}
@@ -7626,43 +7657,62 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
               KELOLA KEANGGOTAAN & TIM CDC
           ══════════════════════════════════════════ */}
             {activeTab === 'keanggotaan' && (() => {
-              const handleSaveAnggota = (e: React.FormEvent) => {
+              const handleSaveAnggota = async (e: React.FormEvent) => {
                 e.preventDefault();
                 if (!angNama.trim() || !angJabatan.trim()) {
                   triggerToast('error', 'Nama lengkap dan Jabatan/Posisi wajib diisi.');
                   return;
                 }
 
-                let updatedList = [...anggotaList];
-                if (editAnggotaId) {
-                  updatedList = updatedList.map((item) =>
-                    item.id === editAnggotaId
-                      ? { ...item, nama: angNama, jabatan: angJabatan, fotoUrl: angFotoUrl }
-                      : item
-                  );
-                } else {
-                  const newMember: AnggotaTim = {
-                    id: `tim_${Date.now()}`,
-                    nama: angNama,
-                    jabatan: angJabatan,
-                    fotoUrl: angFotoUrl,
-                    urutan: updatedList.length + 1
-                  };
-                  updatedList.push(newMember);
-                }
+                setIsSavingAnggota(true);
+                try {
+                  let updatedList = [...anggotaList];
+                  let targetItem: AnggotaTim;
+                  if (editAnggotaId) {
+                    const existing = updatedList.find((item) => item.id === editAnggotaId);
+                    targetItem = {
+                      ...(existing || { id: editAnggotaId, urutan: 1 }),
+                      nama: angNama.trim(),
+                      jabatan: angJabatan.trim(),
+                      photoUrl: angFotoUrl.trim()
+                    };
+                    updatedList = updatedList.map((item) =>
+                      item.id === editAnggotaId ? targetItem : item
+                    );
+                  } else {
+                    targetItem = {
+                      id: `tim_${Date.now()}`,
+                      nama: angNama.trim(),
+                      jabatan: angJabatan.trim(),
+                      photoUrl: angFotoUrl.trim(),
+                      urutan: updatedList.length + 1,
+                      isActive: true
+                    };
+                    updatedList.push(targetItem);
+                  }
 
-                saveAnggotaTim(updatedList);
-                setAnggotaList(updatedList);
-                setShowAnggotaModal(false);
-                triggerToast('success', editAnggotaId ? 'Data anggota tim berhasil diperbarui.' : 'Anggota tim baru berhasil ditambahkan.');
+                  setAnggotaList(updatedList);
+                  await saveAnggotaTim(updatedList);
+                  setShowAnggotaModal(false);
+                  triggerToast('success', editAnggotaId ? 'Data anggota tim berhasil diperbarui & disimpan.' : 'Anggota tim baru berhasil ditambahkan & disimpan.');
+                } catch (err: any) {
+                  console.error('Error simpan anggota tim:', err);
+                  triggerToast('error', 'Gagal menyimpan anggota tim: ' + (err?.message || 'Error'));
+                } finally {
+                  setIsSavingAnggota(false);
+                }
               };
 
-              const handleDeleteAnggota = (id: string) => {
+              const handleDeleteAnggota = async (id: string) => {
                 if (confirm('Hapus anggota tim ini dari struktur keanggotaan CDC?')) {
                   const updatedList = anggotaList.filter((item) => item.id !== id);
-                  saveAnggotaTim(updatedList);
                   setAnggotaList(updatedList);
-                  triggerToast('success', 'Anggota tim berhasil dihapus.');
+                  const ok = await deleteAnggotaTim(id);
+                  if (ok) {
+                    triggerToast('success', 'Anggota tim berhasil dihapus dari database.');
+                  } else {
+                    triggerToast('error', 'Anggota tim dihapus dari tampilan lokal, namun gagal sinkron ke database.');
+                  }
                 }
               };
 
@@ -7671,6 +7721,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                 setAngNama('');
                 setAngJabatan('');
                 setAngFotoUrl('');
+                setIsUploadingAngFoto(false);
                 setShowAnggotaModal(true);
               };
 
@@ -7678,19 +7729,44 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                 setEditAnggotaId(item.id);
                 setAngNama(item.nama);
                 setAngJabatan(item.jabatan);
-                setAngFotoUrl(item.fotoUrl || '');
+                setAngFotoUrl(item.photoUrl || item.fotoUrl || '');
+                setIsUploadingAngFoto(false);
                 setShowAnggotaModal(true);
               };
 
               const handleAnggotaFotoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
+
+                if (file.size > 5 * 1024 * 1024) {
+                  triggerToast('error', 'Ukuran foto terlalu besar (maksimal 5MB).');
+                  return;
+                }
+
+                setIsUploadingAngFoto(true);
                 try {
-                  const compressed = await compressImageAdaptive(file);
-                  setAngFotoUrl(compressed);
-                  triggerToast('success', 'Foto profil berhasil diunggah & dikompres!');
+                  // Coba upload ke Supabase Storage terlebih dahulu
+                  const uploadedUrl = await uploadTeamMemberPhoto(file);
+                  if (uploadedUrl) {
+                    setAngFotoUrl(uploadedUrl);
+                    triggerToast('success', 'Foto profil berhasil diunggah ke Supabase Storage!');
+                  } else {
+                    // Fallback: kompresi adaptif base64
+                    const compressed = await compressImageAdaptive(file);
+                    setAngFotoUrl(compressed);
+                    triggerToast('success', 'Foto profil berhasil dikompres & siap disimpan!');
+                  }
                 } catch (err: any) {
-                  triggerToast('error', 'Gagal memuat foto profil.');
+                  console.error('Upload foto profil error:', err);
+                  try {
+                    const compressed = await compressImageAdaptive(file);
+                    setAngFotoUrl(compressed);
+                    triggerToast('success', 'Foto profil berhasil dikompres & siap disimpan!');
+                  } catch {
+                    triggerToast('error', 'Gagal memproses foto profil.');
+                  }
+                } finally {
+                  setIsUploadingAngFoto(false);
                 }
               };
 
@@ -7730,8 +7806,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                         >
                           <div className="space-y-3 text-center flex flex-col items-center">
                             <div className="w-full aspect-square relative rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
-                              {item.fotoUrl ? (
-                                <img src={item.fotoUrl} alt={item.nama} className="w-full h-full object-cover" />
+                              {(item.photoUrl || item.fotoUrl) ? (
+                                <img src={item.photoUrl || item.fotoUrl} alt={item.nama} className="w-full h-full object-cover" />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center text-slate-300">
                                   <Users className="w-12 h-12" />
@@ -7803,19 +7879,26 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
 
                           <div className="space-y-2">
                             <label className="block text-xs font-bold text-slate-700">Foto Profil (Berkas / URL)</label>
-                            <div className="flex flex-col sm:flex-row gap-3">
+                            <div className="flex flex-col sm:flex-row gap-3 items-center">
                               <input
                                 type="file"
                                 accept="image/*"
+                                disabled={isUploadingAngFoto || isSavingAnggota}
                                 onChange={handleAnggotaFotoFileChange}
-                                className="text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                                className="text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer disabled:opacity-50"
                               />
+                              {isUploadingAngFoto && (
+                                <span className="text-xs text-blue-600 font-semibold animate-pulse">
+                                  Mengunggah foto...
+                                </span>
+                              )}
                             </div>
                             <input
                               type="text"
+                              disabled={isUploadingAngFoto || isSavingAnggota}
                               value={angFotoUrl}
                               onChange={(e) => setAngFotoUrl(e.target.value)}
-                              className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500"
+                              className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100"
                               placeholder="Atau masukkan URL foto (https://...)"
                             />
                           </div>
@@ -7831,16 +7914,25 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                           <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
                             <button
                               type="button"
+                              disabled={isUploadingAngFoto || isSavingAnggota}
                               onClick={() => setShowAnggotaModal(false)}
-                              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-50"
                             >
                               Batal
                             </button>
                             <button
                               type="submit"
-                              className="px-5 py-2 rounded-xl text-xs font-bold bg-[#1E3A8A] hover:bg-blue-900 text-white shadow-md"
+                              disabled={isUploadingAngFoto || isSavingAnggota}
+                              className="px-5 py-2 rounded-xl text-xs font-bold bg-[#1E3A8A] hover:bg-blue-900 text-white shadow-md disabled:opacity-50 flex items-center gap-2"
                             >
-                              Simpan Anggota
+                              {isSavingAnggota ? (
+                                <>
+                                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />
+                                  Menyimpan...
+                                </>
+                              ) : (
+                                'Simpan Anggota'
+                              )}
                             </button>
                           </div>
                         </form>

@@ -62,3 +62,49 @@ export async function uploadProfilePhoto(userId: string, file: File): Promise<st
     return null;
   }
 }
+
+/**
+ * Upload foto anggota tim CDC ke Supabase Storage bucket 'profile-photos' subfolder 'team'.
+ * Mengembalikan URL publik permanen HTTPS yang bisa disimpan ke DB.
+ *
+ * @param file - File gambar yang akan diupload
+ * @returns URL publik foto, atau null jika gagal
+ */
+export async function uploadTeamMemberPhoto(file: File): Promise<string | null> {
+  if (!supabase) {
+    console.warn('[Supabase Storage] Client tidak terinisialisasi — fallback ke kompresi lokal');
+    return null;
+  }
+
+  try {
+    const ext = file.type === 'image/png' ? 'png'
+      : file.type === 'image/webp' ? 'webp'
+      : file.type === 'image/gif' ? 'gif'
+      : 'jpg';
+
+    const filePath = `team/member_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
+
+    const { data, error } = await supabase.storage
+      .from('profile-photos')
+      .upload(filePath, file, {
+        upsert: true,
+        contentType: file.type,
+        cacheControl: '3600'
+      });
+
+    if (error) {
+      console.error('[Supabase Storage] Upload foto tim gagal:', error.message);
+      return null;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from('profile-photos')
+      .getPublicUrl(data.path);
+
+    return urlData?.publicUrl || null;
+  } catch (err) {
+    console.error('[Supabase Storage] Exception upload foto tim:', err);
+    return null;
+  }
+}
+

@@ -50,7 +50,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'nav.mitrapanel': 'Dashboard Mitra',
 
     // Top links
-    'top.website': 'Website UM Kendari',
+    'top.website': 'Website UMKENDARI',
 
     // Sections & Titles
     'sec.joblistings': 'INFO KARIR CDC TERKINI',
@@ -174,7 +174,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'nav.mitrapanel': 'Employer Dashboard',
 
     // Top links
-    'top.website': 'UM Kendari Website',
+    'top.website': 'UMKENDARI Website',
 
     // Sections & Titles
     'sec.joblistings': 'LATEST CDC CAREER OPPORTUNITIES',

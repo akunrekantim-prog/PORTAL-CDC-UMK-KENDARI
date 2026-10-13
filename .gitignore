@@ -23,3 +23,7 @@ strix_runs/
 test-results/
 playwright-report/
 playwright/.cache/
+
+# Firebase cache
+.firebase/
+

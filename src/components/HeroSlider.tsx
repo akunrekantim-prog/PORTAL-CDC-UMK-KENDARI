@@ -20,8 +20,23 @@ export default function HeroSlider({ setTab }: HeroSliderProps) {
   const SLIDE_DURATION = 5000; // 5 seconds per slide
 
   useEffect(() => {
-    const loaded = getHeroSlides().filter((s) => s.isActive !== false).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-    setSlides(loaded);
+    const refreshSlides = () => {
+      const loaded = getHeroSlides()
+        .filter((s) => s.isActive !== false && s.imageUrl && !s.imageUrl.includes('/images/hero-'))
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      setSlides(loaded.length > 0 ? loaded : getHeroSlides());
+    };
+
+    refreshSlides();
+
+    const handleUpdate = () => refreshSlides();
+    window.addEventListener('cdc_hero_slides_updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+
+    return () => {
+      window.removeEventListener('cdc_hero_slides_updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
   }, []);
 
   const totalSlides = slides.length;
@@ -119,10 +134,10 @@ export default function HeroSlider({ setTab }: HeroSliderProps) {
       onMouseLeave={() => setIsPaused(false)}
     >
       {/* 100% EDGE-TO-EDGE CAROUSEL CONTAINER WITH PERMANENT ASPECT RATIO */}
-      <div className="carousel-inner w-full relative overflow-hidden">
+      <div className="carousel-inner w-full relative overflow-hidden aspect-[1060/408] min-h-[220px] sm:min-h-[320px] md:min-h-[400px]">
         {/* Invisible Height Keeper to guarantee ZERO layout shift / container collapse */}
         <img
-          src={slides[0]?.imageUrl || ''}
+          src={slides[0]?.imageUrl || '/sambutan_rektor_2MB_final.svg'}
           className="w-full h-auto block opacity-0 pointer-events-none select-none aria-hidden"
           alt=""
           aria-hidden="true"
@@ -151,6 +166,9 @@ export default function HeroSlider({ setTab }: HeroSliderProps) {
                 alt={current.alt || current.title}
                 loading={currentSlide === 0 ? "eager" : "lazy"}
                 decoding="async"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = '/sambutan_rektor_2MB_final.svg';
+                }}
               />
             </motion.div>
           </AnimatePresence>

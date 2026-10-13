@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  ChevronLeft,
   Tag,
   Clock,
   User,
@@ -92,17 +91,6 @@ export default function ShareableDetailPage({
       )}
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 min-w-0">
-
-        {/* Top Navigation Back Button */}
-        <div>
-          <button
-            onClick={onBack}
-            className="inline-flex items-center gap-1.5 text-[#0077C6] hover:text-[#1E3A8A] font-bold text-xs sm:text-sm transition group cursor-pointer"
-          >
-            <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-            <span>Kembali ke {categoryLabel}</span>
-          </button>
-        </div>
 
         {/* Main Grid: Left Floating Share Bar + Content */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative min-w-0">
