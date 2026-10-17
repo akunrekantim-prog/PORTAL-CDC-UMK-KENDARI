@@ -30,6 +30,9 @@ interface EventCardLayoutProps {
   initialEventId?: string | null;
   onDetailStateChange?: (isDetail: boolean) => void;
   setTab?: (tab: string) => void;
+  sidebarRight?: React.ReactNode;
+  mobileTopContent?: React.ReactNode;
+  mobileBottomContent?: React.ReactNode;
 }
 
 // --- Constants ---
@@ -175,7 +178,10 @@ export default function EventCardLayout({
   kontenEvents,
   initialEventId,
   onDetailStateChange,
-  setTab
+  setTab,
+  sidebarRight,
+  mobileTopContent,
+  mobileBottomContent
 }: EventCardLayoutProps) {
   const navigate = useNavigate();
   const { setIsDetailActive } = useLayanan();
@@ -329,8 +335,8 @@ export default function EventCardLayout({
     setCurrentPage(1);
   }, [searchQuery]);
 
-  // ===== PAGINATION: maksimal 6 card per halaman =====
-  const CARDS_PER_PAGE = 6;
+  // ===== PAGINATION: 8 card per halaman jika ada sidebar agar sejajar rapi dengan dasar sidebar, atau 6 card jika 3 kolom =====
+  const CARDS_PER_PAGE = sidebarRight ? 8 : 6;
   const totalPages = Math.ceil(filteredEvents.length / CARDS_PER_PAGE);
   const safePage = Math.min(currentPage, Math.max(1, totalPages));
   const pagedEvents = filteredEvents.slice((safePage - 1) * CARDS_PER_PAGE, safePage * CARDS_PER_PAGE);
@@ -368,101 +374,222 @@ export default function EventCardLayout({
         </p>
       )}
 
-      {/* Search Bar (full-width, tanpa Dropdown Periode) */}
-      <div className="space-y-4">
-        <div className="relative max-w-2xl">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari judul kegiatan, materi, atau tanggal..."
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 hover:bg-slate-100/80 focus:bg-white text-slate-800 text-sm rounded-xl border border-slate-200 focus:border-[#0077C6] focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
-              title="Hapus pencarian"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
-
-
-      </div>
-
-      {/* Grid List Event Cards */}
-      {filteredEvents.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {pagedEvents.map((item, idx) => (
-            <motion.div
-              key={item.id}
-              role="button"
-              tabIndex={0}
-              initial={{ opacity: 0, y: 28 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.15 }}
-              transition={{
-                duration: 0.45,
-                delay: (idx % 3) * 0.08,
-                ease: [0.22, 1, 0.36, 1]
-              }}
-              onClick={() => handleSelectEvent(item)}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSelectEvent(item); } }}
-              className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md hover:border-slate-300 transition-all flex flex-col h-full cursor-pointer"
-            >
-              {/* Thumbnail / Poster (Selalu 16:9 di tampilan daftar, tampil penuh di detail saat diklik) */}
-              <div className="relative overflow-hidden border-b border-slate-100 bg-slate-950 flex items-center justify-center aspect-[16/9]">
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
-                  loading="lazy"
-                />
+      {/* Grid Layout: Jika ada sidebarRight, bagi jadi lg:grid-cols-12 */}
+      {sidebarRight ? (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="lg:col-span-8 space-y-6">
+            {/* Mobile Top Content (Tampil duluan sebelum Search Bar & Card di Handphone/Mobile) */}
+            {mobileTopContent && (
+              <div className="block lg:hidden">
+                {mobileTopContent}
               </div>
+            )}
 
-              {/* Card Body — judul + footer keterangan */}
-              <div className="p-5 space-y-2 flex-1 flex flex-col">
-                <h3 className="font-bold text-slate-900 text-lg line-clamp-3 leading-snug group-hover:text-[#0077C6] transition-colors flex-1">
-                  {item.title}
-                </h3>
+            {/* Search Bar */}
+            <div className="space-y-4">
+              <div className="relative w-full max-w-2xl">
+                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Cari judul kegiatan, materi, atau tanggal..."
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 hover:bg-slate-100/80 focus:bg-white text-slate-800 text-sm rounded-xl border border-slate-200 focus:border-[#0077C6] focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                    title="Hapus pencarian"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
 
-                {/* Meta Footer: source + tanggal upload admin */}
-                <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
-                  <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
-                  <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
-                    <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    {formatDateDisplay(item.uploadedAt || item.date)}
-                  </span>
+            {/* Grid List Event Cards (2 kolom di area col-span-8) */}
+            {filteredEvents.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {pagedEvents.map((item, idx) => (
+                  <motion.div
+                    key={item.id}
+                    role="button"
+                    tabIndex={0}
+                    initial={{ opacity: 0, y: 28 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.15 }}
+                    transition={{
+                      duration: 0.45,
+                      delay: (idx % 2) * 0.08,
+                      ease: [0.22, 1, 0.36, 1]
+                    }}
+                    onClick={() => handleSelectEvent(item)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSelectEvent(item); } }}
+                    className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md hover:border-slate-300 transition-all flex flex-col h-full cursor-pointer"
+                  >
+                    {/* Thumbnail / Poster (Selalu 16:9 di tampilan daftar, tampil penuh di detail saat diklik) */}
+                    <div className="relative overflow-hidden border-b border-slate-100 bg-slate-950 flex items-center justify-center aspect-[16/9]">
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                      />
+                    </div>
+
+                    {/* Card Body */}
+                    <div className="p-5 space-y-2 flex-1 flex flex-col">
+                      <h3 className="font-bold text-slate-900 text-lg line-clamp-3 leading-snug group-hover:text-[#0077C6] transition-colors flex-1">
+                        {item.title}
+                      </h3>
+
+                      {/* Meta Footer */}
+                      <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
+                        <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
+                        <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
+                          <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          {formatDateDisplay(item.uploadedAt || item.date)}
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+
+                {/* Navigasi Halaman */}
+                <div className="col-span-full">
+                  <Pagination currentPage={safePage} totalPages={totalPages} onPageChange={handlePageChange} />
                 </div>
               </div>
-            </motion.div>
-          ))}
+            ) : (
+              /* Empty State */
+              <div className="bg-white rounded-xl border border-dashed border-slate-300 p-12 text-center space-y-3">
+                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+                  <Filter className="w-6 h-6" />
+                </div>
+                <h4 className="font-semibold text-slate-800 text-base">Tidak ada kegiatan ditemukan</h4>
+                <p className="text-slate-500 text-xs max-w-sm mx-auto">
+                  Coba ganti kata kunci pencarian atau tanggal kegiatan, lalu atur ulang filter.
+                </p>
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition-colors cursor-pointer"
+                >
+                  Reset Semua Filter
+                </button>
+              </div>
+            )}
 
-          {/* Navigasi Halaman */}
-          <div className="col-span-full">
-            <Pagination currentPage={safePage} totalPages={totalPages} onPageChange={handlePageChange} />
+            {/* Mobile Bottom Content (Tampil setelah Card & Pagination di Handphone/Mobile) */}
+            {mobileBottomContent && (
+              <div className="block lg:hidden pt-4">
+                {mobileBottomContent}
+              </div>
+            )}
           </div>
+
+          {/* Kolom Kanan: Sidebar (Hanya tampil di Desktop jika mobileTopContent aktif) */}
+          <aside className={`lg:col-span-4 space-y-6 lg:sticky lg:top-24 ${mobileTopContent ? 'hidden lg:block' : ''}`}>
+            {sidebarRight}
+          </aside>
         </div>
       ) : (
-        /* Empty State */
-        <div className="bg-white rounded-xl border border-dashed border-slate-300 p-12 text-center space-y-3">
-          <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
-            <Filter className="w-6 h-6" />
+        <>
+          {/* Search Bar (full-width, tanpa Dropdown Periode) */}
+          <div className="space-y-4">
+            <div className="relative max-w-2xl">
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Cari judul kegiatan, materi, atau tanggal..."
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 hover:bg-slate-100/80 focus:bg-white text-slate-800 text-sm rounded-xl border border-slate-200 focus:border-[#0077C6] focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                  title="Hapus pencarian"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           </div>
-          <h4 className="font-semibold text-slate-800 text-base">Tidak ada kegiatan ditemukan</h4>
-          <p className="text-slate-500 text-xs max-w-sm mx-auto">
-            Coba ganti kata kunci pencarian atau tanggal kegiatan, lalu atur ulang filter.
-          </p>
-          <button
-            onClick={() => setSearchQuery('')}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition-colors cursor-pointer"
-          >
-            Reset Semua Filter
-          </button>
-        </div>
+
+          {/* Grid List Event Cards */}
+          {filteredEvents.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {pagedEvents.map((item, idx) => (
+                <motion.div
+                  key={item.id}
+                  role="button"
+                  tabIndex={0}
+                  initial={{ opacity: 0, y: 28 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.15 }}
+                  transition={{
+                    duration: 0.45,
+                    delay: (idx % 3) * 0.08,
+                    ease: [0.22, 1, 0.36, 1]
+                  }}
+                  onClick={() => handleSelectEvent(item)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSelectEvent(item); } }}
+                  className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md hover:border-slate-300 transition-all flex flex-col h-full cursor-pointer"
+                >
+                  {/* Thumbnail / Poster (Selalu 16:9 di tampilan daftar, tampil penuh di detail saat diklik) */}
+                  <div className="relative overflow-hidden border-b border-slate-100 bg-slate-950 flex items-center justify-center aspect-[16/9]">
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                    />
+                  </div>
+
+                  {/* Card Body — judul + footer keterangan */}
+                  <div className="p-5 space-y-2 flex-1 flex flex-col">
+                    <h3 className="font-bold text-slate-900 text-lg line-clamp-3 leading-snug group-hover:text-[#0077C6] transition-colors flex-1">
+                      {item.title}
+                    </h3>
+
+                    {/* Meta Footer: source + tanggal upload admin */}
+                    <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-2.5 border-t border-slate-100/80 mt-2">
+                      <span className="whitespace-nowrap font-medium text-slate-400">by Admin Website</span>
+                      <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-400">
+                        <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        {formatDateDisplay(item.uploadedAt || item.date)}
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+
+              {/* Navigasi Halaman */}
+              <div className="col-span-full">
+                <Pagination currentPage={safePage} totalPages={totalPages} onPageChange={handlePageChange} />
+              </div>
+            </div>
+          ) : (
+            /* Empty State */
+            <div className="bg-white rounded-xl border border-dashed border-slate-300 p-12 text-center space-y-3">
+              <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+                <Filter className="w-6 h-6" />
+              </div>
+              <h4 className="font-semibold text-slate-800 text-base">Tidak ada kegiatan ditemukan</h4>
+              <p className="text-slate-500 text-xs max-w-sm mx-auto">
+                Coba ganti kata kunci pencarian atau tanggal kegiatan, lalu atur ulang filter.
+              </p>
+              <button
+                onClick={() => setSearchQuery('')}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition-colors cursor-pointer"
+              >
+                Reset Semua Filter
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

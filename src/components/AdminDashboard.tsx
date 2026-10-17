@@ -169,8 +169,9 @@ import {
   ShieldCheck,
   RefreshCw
 } from 'lucide-react';
+import InfografisLayananManager from './admin/InfografisLayananManager';
 
-type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'mahasiswa-alumni' | 'lamaran-mahasiswa' | 'keanggotaan' | 'visi-misi' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'media-sosial' | 'komentar' | 'konseling' | 'hero-slider' | 'campus-hiring' | 'job-fair' | 'statistik-beranda';
+type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'mahasiswa-alumni' | 'lamaran-mahasiswa' | 'keanggotaan' | 'visi-misi' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'media-sosial' | 'komentar' | 'konseling' | 'hero-slider' | 'campus-hiring' | 'job-fair' | 'statistik-beranda' | 'infografis-layanan';
 
 interface AdminDashboardProps {
   user: UserType;
@@ -803,7 +804,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
       items: [
         { id: 'media-sosial', label: 'Media Sosial & WA CS', icon: <Globe className="w-4 h-4" /> },
         { id: 'komentar', label: 'Moderasi Komentar Berita', icon: <MessageSquare className="w-4 h-4" /> },
-        { id: 'statistik-beranda', label: 'Statistik Beranda', icon: <TrendingUp className="w-4 h-4" /> }
+        { id: 'statistik-beranda', label: 'Statistik Beranda', icon: <TrendingUp className="w-4 h-4" /> },
+        { id: 'infografis-layanan', label: 'Infografis Layanan', icon: <Layers className="w-4 h-4" /> }
       ]
     },
     {
@@ -7579,6 +7581,13 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
             })()}
 
             {/* ══════════════════════════════════════════
+              KELOLA INFOGRAFIS LAYANAN (CAMPUS HIRING, JOB FAIR, INTERNSHIP, DLL)
+            ══════════════════════════════════════════ */}
+            {activeTab === 'infografis-layanan' && (
+              <InfografisLayananManager onNotify={(type, msg) => triggerToast(type, msg)} />
+            )}
+
+            {/* ══════════════════════════════════════════
               KELOLA CAMPUS HIRING
           ══════════════════════════════════════════ */}
             {activeTab === 'campus-hiring' && (() => {
@@ -9497,6 +9506,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                   { id: 'mou', group: 'Kerjasama', label: 'MOU & Kerja Sama Stakeholder', icon: HeartHandshake, action: () => { setActiveTab('mou'); setIsCmdPaletteOpen(false); } },
                   { id: 'komentar', group: 'Interaksi Publik', label: 'Moderasi Komentar & Diskusi Berita', icon: MessageSquare, badge: pendingKomentarCount > 0 ? `${pendingKomentarCount} Baru` : undefined, action: () => { setActiveTab('komentar'); setIsCmdPaletteOpen(false); } },
                   { id: 'media-sosial', group: 'Interaksi Publik', label: 'Pengaturan Link & Widget Media Sosial', icon: Globe, action: () => { setActiveTab('media-sosial'); setIsCmdPaletteOpen(false); } },
+                  { id: 'infografis-layanan', group: 'Interaksi Publik', label: 'Infografis Layanan (Campus Hiring, Job Fair, dll)', icon: Layers, action: () => { setActiveTab('infografis-layanan'); setIsCmdPaletteOpen(false); } },
                   { id: 'logout', group: 'Sistem', label: 'Keluar Akun Admin (Sign Out)', icon: LogOut, action: () => { setIsCmdPaletteOpen(false); onLogout(); } }
                 ]
                   .filter((item) => item.label.toLowerCase().includes(cmdSearchQuery.toLowerCase()) || item.group.toLowerCase().includes(cmdSearchQuery.toLowerCase()))

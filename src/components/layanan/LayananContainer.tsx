@@ -130,7 +130,7 @@ export default function LayananContainer({ currentTab, setTab, children }: Layan
         {!isDetailActive && (
           <>
             {/* ── BREADCRUMB (BERANDA > SUB MENU) ── */}
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-3">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-3">
               <nav className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
                 <button
                   onClick={() => setTab('beranda')}
@@ -144,21 +144,21 @@ export default function LayananContainer({ currentTab, setTab, children }: Layan
             </div>
 
             {/* ── MAIN TITLE (LARGE BOLD BLACK TITLE) ── */}
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
                 {activeOption.label}
               </h1>
             </div>
 
             {/* ── DYNAMIC SOCIAL SHARE BAR (PERSIS SK CDC) ── */}
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
               <SocialShareBar title={getShareTitle()} />
             </div>
           </>
         )}
 
         {/* ── MAIN CONTENT AREA ── */}
-        <div className={isDetailActive ? 'w-full' : 'max-w-6xl mx-auto px-4 sm:px-6 lg:px-8'}>
+        <div className={isDetailActive ? 'w-full' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'}>
           <AnimatePresence mode="wait">
             <motion.div
               key={currentTab}

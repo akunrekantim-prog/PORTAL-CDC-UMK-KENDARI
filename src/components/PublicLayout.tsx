@@ -2202,7 +2202,7 @@ export default function PublicLayout({
             {currentTab === 'softskill' && <Softskill konten={konten} initialEventId={activeEventId} />}
             {currentTab === 'seminar' && <Seminar konten={konten} initialEventId={activeEventId} />}
             {currentTab === 'career-fair' && <CareerFair konten={konten} initialEventId={activeEventId} />}
-            {currentTab === 'campus-hiring' && <CampusHiring konten={konten} initialEventId={activeEventId} />}
+            {currentTab === 'campus-hiring' && <CampusHiring konten={konten} initialEventId={activeEventId} setTab={setTab} />}
             {currentTab === 'magang' && <Magang lowongan={lowongan} onSelectLowongan={onSelectLowongan} />}
           </LayananContainer>
         )}

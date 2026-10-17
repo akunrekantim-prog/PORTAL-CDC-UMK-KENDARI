@@ -602,3 +602,27 @@ export interface StatistikConfig {
   updatedAt?: string;
 }
 
+export type KategoriInfografis =
+  | 'campus-hiring'
+  | 'career-fair'
+  | 'magang'
+  | 'workshop'
+  | 'seminar'
+  | 'softskill'
+  | 'konseling'
+  | 'lainnya';
+
+export interface InfografisLayananItem {
+  id: string;
+  kategori: KategoriInfografis | string;
+  judul: string;
+  deskripsi?: string;
+  gambarUrl: string;
+  namaFile?: string;
+  urutan: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+

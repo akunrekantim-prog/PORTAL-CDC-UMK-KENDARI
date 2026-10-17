@@ -36,7 +36,9 @@ import {
   CampusHiringItem,
   JobFairItem,
   JobFairCompany,
-  StatistikConfig
+  StatistikConfig,
+  InfografisLayananItem,
+  KategoriInfografis
 } from './types';
 import {
   fetchInitialDatabaseFromSupabase,
@@ -2142,6 +2144,7 @@ const DEFAULT_SEEDS = {
   mou_stakeholder: SEED_MOU_STAKEHOLDER,
   galeri_items: SEED_GALERI_ITEMS,
   social_media: SEED_SOCIAL_MEDIA,
+  infografis_layanan: [],
 };
 
 // In-Memory Database State (100% Bebas LocalStorage)
@@ -3812,22 +3815,41 @@ export const SEED_CAMPUS_HIRING: CampusHiringItem[] = [
     posisiBuka: ['Development Program (DP)', 'Frontliner Syariah', 'Funding & Service Officer'],
     kuota: 100,
     terdaftarCount: 45,
-    deskripsi: 'Career talk inspiratif bersama leadership BSI dilanjutkan direct interview untuk program pengembangan SDM perbankan syariah.',
+  },
+  {
+    id: 'ch_8',
+    judul: 'On-Campus Recruitment PT Vale Indonesia Tbk - Program Graduate Trainee 2026',
+    namaPerusahaan: 'PT Vale Indonesia Tbk',
+    logoPerusahaan: 'https://images.unsplash.com/photo-1541354329998-f4d9a9f9297f?q=80&w=400&auto=format&fit=crop',
+    bannerUrl: '/poster-cdc-web-umk-1.svg',
+    tanggal: '2026-10-30',
+    waktu: '09:00 - 15:00 WITA',
+    lokasi: 'Auditorium Utama UM Kendari',
+    tipe: 'on-campus',
+    persyaratan: [
+      'Lulusan S1/D4 Teknik Pertambangan, Geologi, Mesin, Elektro, & K3 (IPK Min 3.00)',
+      'Fresh graduate atau pengalaman kerja maksimal 2 tahun',
+      'Memiliki motivasi tinggi dan bersedia ditempatkan di site operasional'
+    ],
+    posisiBuka: ['Graduate Mining Engineer Trainee', 'Process Plant Specialist', 'HSE Officer Trainee'],
+    kuota: 100,
+    terdaftarCount: 52,
+    deskripsi: 'Perekrutan terbuka langsung di Kampus UMK untuk program pengembangan talenta muda industri pertambangan nikel berkelanjutan di Sulawesi.',
     status: 'buka',
-    createdAt: new Date().toISOString(),
+    createdAt: new Date().toISOString()
   }
 ];
 
 export function getCampusHiring(): CampusHiringItem[] {
   const fromMem = MEMORY_DB['campus_hiring'] as CampusHiringItem[];
-  if (Array.isArray(fromMem) && fromMem.length > 0) {
+  if (Array.isArray(fromMem) && fromMem.length >= SEED_CAMPUS_HIRING.length) {
     return fromMem;
   }
   const saved = localStorage.getItem('cdc_umk_campus_hiring');
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed) && parsed.length >= SEED_CAMPUS_HIRING.length) {
         return parsed;
       }
     } catch (e) {
@@ -4090,6 +4112,131 @@ export function saveStatistikConfig(config: Partial<StatistikConfig>): Statistik
   return updated;
 }
 
+// ═════════════════════════════════════════════════════════════
+// INFOGRAFIS LAYANAN (CAMPUS HIRING, JOB FAIR, INTERNSHIP, DLL)
+// ═════════════════════════════════════════════════════════════
 
+export const SEED_INFOGRAFIS_LAYANAN: InfografisLayananItem[] = [
+  {
+    id: 'info_ch_1',
+    kategori: 'campus-hiring',
+    judul: 'Campus Hiring - Meet Your Future, Start Your Journey',
+    deskripsi: 'Poster resmi informasi dan panduan alur kegiatan Campus Hiring Universitas Muhammadiyah Kendari.',
+    gambarUrl: '/campus-hiring-infografis.png',
+    namaFile: 'Campus-Hiring-CDC-UMK-1.png',
+    urutan: 1,
+    isActive: true,
+    createdAt: '2026-10-17T08:00:00.000Z'
+  },
+  {
+    id: 'info_ch_2',
+    kategori: 'campus-hiring',
+    judul: 'Recruitment - Find The Right Talent, Build a Better Future',
+    deskripsi: 'Layanan rekrutmen dan seleksi talenta terbaik mahasiswa dan alumni UM Kendari.',
+    gambarUrl: '/campus-hiring-infografis-2.png',
+    namaFile: 'Campus-Hiring-CDC-UMK-2.png',
+    urutan: 2,
+    isActive: true,
+    createdAt: '2026-10-17T09:00:00.000Z'
+  }
+];
 
+export function getInfografisLayanan(kategori?: string): InfografisLayananItem[] {
+  let list: InfografisLayananItem[] = [];
+  const fromMem = MEMORY_DB['infografis_layanan'] as InfografisLayananItem[];
+  if (Array.isArray(fromMem) && fromMem.length > 0) {
+    list = fromMem;
+  } else {
+    const saved = localStorage.getItem('cdc_umk_infografis_layanan');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          list = parsed;
+          MEMORY_DB['infografis_layanan'] = parsed;
+        }
+      } catch (e) {
+        console.error('Error parsing infografis layanan:', e);
+      }
+    }
+    if (list.length === 0) {
+      list = [...SEED_INFOGRAFIS_LAYANAN];
+      MEMORY_DB['infografis_layanan'] = list;
+    }
+  }
 
+  // Filter kategori jika diberikan
+  if (kategori && kategori !== 'semua') {
+    const norm = kategori.toLowerCase().trim();
+    list = list.filter((item) => (item.kategori || '').toLowerCase().trim() === norm);
+  }
+
+  // Urutkan berdasarkan urutan ASC, lalu createdAt ASC
+  return [...list].sort((a, b) => (a.urutan ?? 0) - (b.urutan ?? 0));
+}
+
+export function saveInfografisLayanan(items: InfografisLayananItem[]): void {
+  MEMORY_DB['infografis_layanan'] = items;
+  localStorage.setItem('cdc_umk_infografis_layanan', JSON.stringify(items));
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('cdc_infografis_updated'));
+  }
+}
+
+export function addInfografisLayanan(data: Omit<InfografisLayananItem, 'id' | 'createdAt'>): InfografisLayananItem {
+  const current = getInfografisLayanan();
+  const newItem: InfografisLayananItem = {
+    ...data,
+    id: `info_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    createdAt: new Date().toISOString()
+  };
+  const updated = [...current, newItem];
+  saveInfografisLayanan(updated);
+  return newItem;
+}
+
+export function updateInfografisLayanan(item: InfografisLayananItem): void {
+  const current = getInfografisLayanan();
+  const updated = current.map((i) => (i.id === item.id ? { ...item, updatedAt: new Date().toISOString() } : i));
+  saveInfografisLayanan(updated);
+}
+
+export function deleteInfografisLayanan(id: string): void {
+  const current = getInfografisLayanan();
+  const updated = current.filter((i) => i.id !== id);
+  saveInfografisLayanan(updated);
+}
+
+export function toggleHideInfografisLayanan(id: string): void {
+  const current = getInfografisLayanan();
+  const updated = current.map((i) => (i.id === id ? { ...i, isActive: !i.isActive, updatedAt: new Date().toISOString() } : i));
+  saveInfografisLayanan(updated);
+}
+
+export function reorderInfografisLayanan(id: string, direction: 'up' | 'down'): void {
+  const current = getInfografisLayanan();
+  const target = current.find((i) => i.id === id);
+  if (!target) return;
+
+  // Filter item dalam kategori yang sama
+  const categoryItems = current
+    .filter((i) => i.kategori === target.kategori)
+    .sort((a, b) => (a.urutan ?? 0) - (b.urutan ?? 0));
+
+  const targetIdx = categoryItems.findIndex((i) => i.id === id);
+  if (targetIdx === -1) return;
+
+  if (direction === 'up' && targetIdx > 0) {
+    const swapWith = categoryItems[targetIdx - 1];
+    const tempUrutan = target.urutan;
+    target.urutan = swapWith.urutan;
+    swapWith.urutan = tempUrutan;
+  } else if (direction === 'down' && targetIdx < categoryItems.length - 1) {
+    const swapWith = categoryItems[targetIdx + 1];
+    const tempUrutan = target.urutan;
+    target.urutan = swapWith.urutan;
+    swapWith.urutan = tempUrutan;
+  }
+
+  saveInfografisLayanan([...current]);
+}
