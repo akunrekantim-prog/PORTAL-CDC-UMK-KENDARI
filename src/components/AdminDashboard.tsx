@@ -12,6 +12,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import DOMPurify from 'isomorphic-dompurify';
+import { sanitizeBeritaHtml } from '../markdown';
 import { motion, AnimatePresence } from 'motion/react';
 import ChartArea from './ChartArea';
 import Dropdown from './Dropdown';
@@ -1185,28 +1186,51 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const compressed = await compressImageAdaptive(file);
-        insertFormattedInlineImage(compressed, alignPos);
-      } catch {
-        triggerToast('error', 'Gagal memproses file gambar.');
+        triggerToast('info', 'Mengunggah foto ke Cloud Storage...');
+        const cloudUrl = await uploadContentImage(file, 'berita');
+        if (cloudUrl) {
+          insertFormattedInlineImage(cloudUrl, alignPos);
+        } else {
+          const compressed = await compressImageAdaptive(file);
+          insertFormattedInlineImage(compressed, alignPos);
+        }
+      } catch (err) {
+        console.warn('Gagal upload gambar inline ke storage, fallback ke lokal:', err);
+        try {
+          const compressed = await compressImageAdaptive(file);
+          insertFormattedInlineImage(compressed, alignPos);
+        } catch {
+          triggerToast('error', 'Gagal memproses file gambar.');
+        }
       }
     }
   };
 
   const applyQuote = () => {
-    const ed = beritaEditRef.current; if (!ed) return; ed.focus();
+    const ed = beritaEditRef.current;
+    if (!ed) return;
+    ed.focus();
+
     const sel = window.getSelection();
+    if (savedRangeRef.current && ed.contains(savedRangeRef.current.commonAncestorContainer)) {
+      if (sel) {
+        sel.removeAllRanges();
+        sel.addRange(savedRangeRef.current);
+      }
+    }
+
     if (!sel || !sel.rangeCount) return;
-    const range = sel.getRangeAt(0);
-    range.deleteContents();
-    const openQ = document.createTextNode('“');
-    const closeQ = document.createTextNode('”');
-    const frag = document.createDocumentFragment();
-    frag.appendChild(openQ); frag.appendChild(closeQ);
-    range.insertNode(frag);
-    const r = document.createRange();
-    r.setStart(openQ, 1); r.collapse(true);
-    sel.removeAllRanges(); sel.addRange(r);
+
+    // Cek apakah kursor berada di dalam blockquote untuk toggle balik ke paragraf
+    const anchor = sel.anchorNode;
+    const parentEl = anchor?.nodeType === 1 ? (anchor as HTMLElement) : anchor?.parentElement;
+    const existingBlockquote = parentEl?.closest('blockquote');
+
+    if (existingBlockquote) {
+      document.execCommand('formatBlock', false, 'p');
+    } else {
+      document.execCommand('formatBlock', false, 'blockquote');
+    }
   };
 
   const BULLET_OPTIONS = [
@@ -1335,15 +1359,9 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
   useEffect(() => {
     if (editorOpen && beritaEditRef.current) {
       if (editId) {
-        beritaEditRef.current.innerHTML = DOMPurify.sanitize(eBody || '', {
-          ALLOWED_TAGS: ['p','br','strong','em','u','s','sub','sup','mark','span','a','ul','ol','li','h1','h2','h3','h4','h5','h6','blockquote','hr','code','pre','img','figure','figcaption','div'],
-          ALLOWED_ATTR: ['href','target','rel','src','alt','title','class','style','id'],
-          ALLOW_DATA_ATTR: false,
-          FORBID_TAGS: ['script','style','iframe','object','embed','form','input','button','link','meta'],
-          FORBID_ATTR: ['onerror','onload','onclick','onmouseover','onfocus','onblur','oninput','onsubmit'],
-        });
+        beritaEditRef.current.innerHTML = sanitizeBeritaHtml(eBody || '');
       } else if (!eBody) {
-        // Konten baru jika kosong
+        beritaEditRef.current.innerHTML = '';
       }
     }
   }, [editorOpen, editId]);
@@ -1765,13 +1783,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
     }
     const now = new Date().toISOString();
     const finalBody = isWysiwyg
-      ? DOMPurify.sanitize(sanitizedBody, {
-          ALLOWED_TAGS: ['p','br','strong','em','u','s','sub','sup','mark','span','a','ul','ol','li','h1','h2','h3','h4','h5','h6','blockquote','hr','code','pre','img','figure','figcaption','div'],
-          ALLOWED_ATTR: ['href','target','rel','src','alt','title','class','style','id'],
-          ALLOW_DATA_ATTR: false,
-          FORBID_TAGS: ['script','style','iframe','object','embed','form','input','button','link','meta'],
-          FORBID_ATTR: ['onerror','onload','onclick','onmouseover','onfocus','onblur','oninput','onsubmit'],
-        })
+      ? sanitizeBeritaHtml(sanitizedBody)
       : eBody;
 
     // Pastikan jika thumbnail masih berupa DataURL Base64 lokal, otomatis unggah ke Cloud Storage
@@ -1927,13 +1939,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
     // Jika isi sudah berupa HTML (berita yang diedit via WYSIWYG), sanitize ketat via DOMPurify.
     // Berita lama (markdown) tetap diparse seperti biasa.
     if (/<[a-z][\s\S]*>/i.test(raw)) {
-      const clean = DOMPurify.sanitize(raw, {
-        ALLOWED_TAGS: ['p','br','strong','em','u','s','sub','sup','mark','span','a','ul','ol','li','h1','h2','h3','h4','h5','h6','blockquote','hr','code','pre','img','figure','figcaption','div'],
-        ALLOWED_ATTR: ['href','target','rel','src','alt','title','class','style','id'],
-        ALLOW_DATA_ATTR: false,
-        FORBID_TAGS: ['script','style','iframe','object','embed','form','input','button','link','meta'],
-        FORBID_ATTR: ['onerror','onload','onclick','onmouseover','onfocus','onblur','oninput','onsubmit'],
-      });
+      const clean = sanitizeBeritaHtml(raw);
       return <div className="prose-berita" dangerouslySetInnerHTML={{ __html: clean }} />;
     }
     const out: React.ReactNode[] = [];
@@ -2012,13 +2018,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
   function markdownToHtml(md: string): string {
     if (!md) return '';
     if (/<[a-z][\s\S]*>/i.test(md)) {
-      return DOMPurify.sanitize(md, {
-        ALLOWED_TAGS: ['p','br','strong','em','u','s','sub','sup','mark','span','a','ul','ol','li','h1','h2','h3','h4','h5','h6','blockquote','hr','code','pre','img','figure','figcaption','div'],
-        ALLOWED_ATTR: ['href','target','rel','src','alt','title','class','style','id'],
-        ALLOW_DATA_ATTR: false,
-        FORBID_TAGS: ['script','style','iframe','object','embed','form','input','button','link','meta'],
-        FORBID_ATTR: ['onerror','onload','onclick','onmouseover','onfocus','onblur','oninput','onsubmit'],
-      });
+      return sanitizeBeritaHtml(md);
     }
     const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     const inline = (s: string) =>

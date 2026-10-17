@@ -39,14 +39,39 @@ export function stripHtmlTags(raw?: string): string {
     .trim();
 }
 
-function sanitizeHtml(raw: string): string {
+/**
+ * Sanitasi HTML terpadu untuk isi berita dan konten WYSIWYG
+ * Memastikan semua tag format standar browser (b, i, u, strike, del, blockquote, dll.)
+ * tetap dipertahankan dan aman dari XSS.
+ */
+export function sanitizeBeritaHtml(raw: string): string {
+  if (!raw) return '';
   return DOMPurify.sanitize(raw, {
-    ALLOWED_TAGS: ['p','br','strong','em','u','s','sub','sup','mark','span','a','ul','ol','li','h1','h2','h3','h4','h5','h6','blockquote','hr','code','pre','img','figure','figcaption','div'],
-    ALLOWED_ATTR: ['href','target','rel','src','alt','title','class','style','id'],
+    ALLOWED_TAGS: [
+      'p', 'br',
+      'b', 'strong',
+      'i', 'em',
+      'u',
+      's', 'strike', 'del',
+      'sub', 'sup', 'mark', 'span',
+      'a',
+      'ul', 'ol', 'li',
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'blockquote',
+      'hr',
+      'code', 'pre',
+      'img', 'figure', 'figcaption',
+      'div'
+    ],
+    ALLOWED_ATTR: ['href', 'target', 'rel', 'src', 'alt', 'title', 'class', 'style', 'id', 'type', 'start'],
     ALLOW_DATA_ATTR: false,
-    FORBID_TAGS: ['script','style','iframe','object','embed','form','input','button','link','meta'],
-    FORBID_ATTR: ['onerror','onload','onclick','onmouseover','onfocus','onblur','oninput','onsubmit'],
+    FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed', 'form', 'input', 'button', 'link', 'meta'],
+    FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onfocus', 'onblur', 'oninput', 'onsubmit'],
   });
+}
+
+function sanitizeHtml(raw: string): string {
+  return sanitizeBeritaHtml(raw);
 }
 
 /**
