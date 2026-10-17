@@ -23,6 +23,7 @@ import {
   Mitra,
   Lowongan,
   PengajuanMagang,
+  Berita,
   KontenKarir,
   JenisKonten,
   SuratKeputusan,
@@ -79,6 +80,7 @@ import {
 } from '../data';
 import { uploadTeamMemberPhoto } from '../config/supabase';
 import { registerToBackend } from '../services/dbService';
+import ImageCropperModal from './common/ImageCropperModal';
 import {
   LayoutDashboard,
   FileText,
@@ -102,6 +104,7 @@ import {
   Eye,
   Check,
   X,
+  Crop,
   Upload,
   Ban,
   MapPin,
@@ -165,7 +168,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 
-type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'mahasiswa-alumni' | 'keanggotaan' | 'visi-misi' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'media-sosial' | 'komentar' | 'konseling' | 'hero-slider' | 'campus-hiring' | 'job-fair' | 'statistik-beranda';
+type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'mahasiswa-alumni' | 'lamaran-mahasiswa' | 'keanggotaan' | 'visi-misi' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'media-sosial' | 'komentar' | 'konseling' | 'hero-slider' | 'campus-hiring' | 'job-fair' | 'statistik-beranda';
 
 interface AdminDashboardProps {
   user: UserType;
@@ -294,6 +297,25 @@ async function compressImageAdaptive(file: File): Promise<string> {
 // benar-benar gagal. Mengembalikan 'pruned' = jumlah draft yang dibuang.
 async function saveKontenKarirWithQuota(item: KontenKarir, isEdit: boolean): Promise<number> {
   const tryWrite = () => {
+    if (item.jenis === 'berita') {
+      const beritaItem: any = {
+        id: item.id,
+        title: item.judul,
+        content: item.body,
+        coverImageUrl: item.thumbnail,
+        thumbnail: item.thumbnail,
+        penulis: item.penulis || 'Admin Website',
+        status: item.status || 'published',
+        slug: item.id,
+        kategori: item.kategori || 'Umum',
+        scope: item.scope || 'LOKAL',
+        isPinned: !!item.isPinned,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt
+      };
+      if (isEdit) updateInDB<any>('berita', beritaItem);
+      else insertToDB<any>('berita', beritaItem);
+    }
     if (isEdit) updateInDB<KontenKarir>('konten_karir', item);
     else insertToDB<KontenKarir>('konten_karir', item);
   };
@@ -385,7 +407,28 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
   const [lowongan, setLowongan] = useState<Lowongan[]>([]);
   const [appls, setAppls] = useState<PengajuanMagang[]>([]);
   const [allUsers, setAllUsers] = useState<UserType[]>([]);
-  const [konten, setKonten] = useState<KontenKarir[]>([]);
+  // Satukan konten_karir (workshop, presentasi, softskill, dsb) dan berita (dari tabel beritas)
+  const getUnifiedKonten = (): KontenKarir[] => {
+    const rawKonten = getFromDB<KontenKarir>('konten_karir').filter(k => (k.jenis as string) !== 'berita');
+    const rawBerita = getFromDB<Berita>('berita').map(b => ({
+      id: b.id,
+      jenis: 'berita' as const,
+      judul: b.title || (b as any).judul || '',
+      body: b.content || (b as any).body || '',
+      thumbnail: b.coverImageUrl || (b as any).thumbnail || '',
+      penulis: b.penulis || 'Admin Website',
+      kategori: b.kategori || 'Umum',
+      scope: b.scope || 'LOKAL',
+      status: (b.status || 'published') as any,
+      isPinned: !!(b as any).isPinned,
+      createdAt: b.createdAt || new Date().toISOString(),
+      updatedAt: (b as any).updatedAt || b.createdAt || new Date().toISOString(),
+      showOnHome: true,
+    }));
+    return [...rawBerita, ...rawKonten];
+  };
+
+  const [konten, setKonten] = useState<KontenKarir[]>(getUnifiedKonten);
   const [skItems, setSkItems] = useState<SuratKeputusan[]>([]);
   const [kalItems, setKalItems] = useState<KalenderKegiatan[]>([]);
   const [lapItems, setLapItems] = useState<LaporanKinerja[]>([]);
@@ -526,6 +569,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
   const [angFotoUrl, setAngFotoUrl] = useState('');
   const [isUploadingAngFoto, setIsUploadingAngFoto] = useState(false);
   const [isSavingAnggota, setIsSavingAnggota] = useState(false);
+  const [showAngCropperModal, setShowAngCropperModal] = useState(false);
+  const [cropTempImgSrc, setCropTempImgSrc] = useState<string>('');
 
   // Form states Kelola Media Sosial
   const [socMedList, setSocMedList] = useState<SocialMediaItem[]>([]);
@@ -663,7 +708,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
     setLowongan(getFromDB<Lowongan>('lowongan'));
     setAppls(getFromDB<PengajuanMagang>('pengajuan_magang'));
     setAllUsers(getFromDB<UserType>('users'));
-    setKonten(getFromDB<KontenKarir>('konten_karir'));
+    setKonten(getUnifiedKonten());
     setSkItems(getFromDB<SuratKeputusan>('surat_keputusan'));
     setKalItems(getFromDB<KalenderKegiatan>('kalender_kegiatan'));
     setLapItems(getFromDB<LaporanKinerja>('laporan_kinerja'));
@@ -743,7 +788,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
       group: 'MANAJEMEN ANGGOTA',
       items: [
         { id: 'mahasiswa-alumni', label: 'Data Mahasiswa & Alumni', icon: <GraduationCap className="w-4 h-4" /> },
-        { id: 'mitra', label: 'Approval & List Mitra', icon: <Building2 className="w-4 h-4" /> }
+        { id: 'mitra', label: 'Approval & List Mitra', icon: <Building2 className="w-4 h-4" /> },
+        { id: 'lamaran-mahasiswa', label: 'Moderasi & Lamaran Mahasiswa', icon: <Briefcase className="w-4 h-4" /> }
       ]
     },
     {
@@ -958,6 +1004,36 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
       if (selectedUserMhs?.id === u.id) setSelectedUserMhs(null);
       reloadAll();
       triggerToast('success', 'Akun berhasil dihapus.');
+    }
+  };
+
+  /* =========================================================
+   *  MODERASI & MONITORING LAMARAN MAHASISWA
+   * =======================================================*/
+  const [lamaranQuery, setLamaranQuery] = useState('');
+  const [lamaranStatusFilter, setLamaranStatusFilter] = useState<string>('semua');
+  const [selectedLamaran, setSelectedLamaran] = useState<PengajuanMagang | null>(null);
+
+  const handleUpdateStatusLamaran = (item: PengajuanMagang, newStatus: string) => {
+    const updated: PengajuanMagang = {
+      ...item,
+      status: newStatus as any,
+      updatedAt: new Date().toISOString()
+    };
+    updateInDB<PengajuanMagang>('pengajuan_magang', updated);
+    setAppls((prev) => prev.map((a) => (a.id === item.id ? updated : a)));
+    if (selectedLamaran?.id === item.id) setSelectedLamaran(updated);
+    reloadAll();
+    triggerToast('success', `Status lamaran ${item.namaMahasiswa} berhasil diubah ke ${newStatus.toUpperCase().replace('_', ' ')}.`);
+  };
+
+  const handleDeleteLamaran = (item: PengajuanMagang) => {
+    if (confirm(`Hapus berkas lamaran dari "${item.namaMahasiswa}" untuk posisi "${item.tujuanMagang}"?`)) {
+      deleteInDB('pengajuan_magang', item.id);
+      setAppls((prev) => prev.filter((a) => a.id !== item.id));
+      if (selectedLamaran?.id === item.id) setSelectedLamaran(null);
+      reloadAll();
+      triggerToast('success', 'Lamaran berhasil dihapus.');
     }
   };
 
@@ -1214,7 +1290,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
       setENamaInstansi(item.namaInstansi || '');
       setETipe(item.tipe || 'magang');
       setELinkLamar(item.linkLamar || '');
-      setEKategori(item.kategori || '');
+      setEKategori(item.kategori || (item.jenis === 'berita' ? 'Umum' : ''));
       setEScope(item.scope || 'LOKAL');
       setEGaji(item.gaji || '');
       setEKuota(item.kuota != null ? String(item.kuota) : '');
@@ -1236,7 +1312,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
       setEJenis(jenis || 'berita');
       setEJudul(''); setEBody(''); setEPenulis('Admin Website'); setEThumbnail('');
       setENamaInstansi((jenis === 'workshop' || jenis === 'softskill' || jenis === 'seminar') ? 'CDC UM Kendari' : '');
-      setELinkLamar(''); setEKategori((jenis || 'berita') === 'presentasi' ? 'internasional' : ''); setEScope('LOKAL');
+      setELinkLamar(''); setEKategori((jenis || 'berita') === 'presentasi' ? 'internasional' : ((jenis || 'berita') === 'berita' ? 'Umum' : '')); setEScope('LOKAL');
       setEGaji(''); setEKuota(''); setEDeadline(''); setELinkCta(''); setEStatus('published');
       setETanggal('');
       setESubKategori('akademik'); setENamaMahasiswa(''); setEProdi('');
@@ -1301,6 +1377,18 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
 
   const handleTogglePinKonten = (k: KontenKarir) => {
     const updated = { ...k, isPinned: !k.isPinned };
+    if (k.jenis === 'berita') {
+      const bItem: any = {
+        id: k.id,
+        title: k.judul,
+        content: k.body,
+        coverImageUrl: k.thumbnail,
+        thumbnail: k.thumbnail,
+        isPinned: updated.isPinned,
+        updatedAt: new Date().toISOString()
+      };
+      updateInDB<any>('berita', bItem);
+    }
     updateInDB<KontenKarir>('konten_karir', updated);
     reloadAll();
     if (onReloadData) onReloadData();
@@ -1657,7 +1745,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
         })
       : eBody;
     const base: KontenKarir = {
-      id: editId || `kk_${Date.now()}`,
+      id: editId || (eJenis === 'berita' ? `berita_${Date.now()}` : `kk_${Date.now()}`),
       jenis: eJenis,
       judul: eJudul.trim(),
       body: finalBody,
@@ -1665,7 +1753,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
       namaInstansi: (eJenis === 'lowongan' || eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? (eNamaInstansi.trim() || 'CDC UM Kendari') : undefined,
       tipe: eJenis === 'lowongan' ? eTipe : undefined,
       linkLamar: eJenis === 'lowongan' ? eLinkLamar.trim() : undefined,
-      kategori: (eJenis === 'lowongan' || eJenis === 'program' || eJenis === 'presentasi') ? eKategori.trim() : undefined,
+      kategori: (eJenis === 'lowongan' || eJenis === 'program' || eJenis === 'presentasi' || eJenis === 'berita') ? (eKategori.trim() || 'Umum') : undefined,
       gaji: eJenis === 'lowongan' ? eGaji.trim() : undefined,
       kuota: eJenis === 'lowongan' && eKuota ? Number(eKuota) : undefined,
       deadline: eJenis === 'lowongan' ? eDeadline : undefined,
@@ -1723,6 +1811,9 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
 
   const handleDeleteKonten = (k: KontenKarir) => {
     if (confirm(`Hapus konten "${k.judul}"?`)) {
+      if (k.jenis === 'berita') {
+        deleteInDB('berita', k.id);
+      }
       deleteInDB('konten_karir', k.id);
       reloadAll();
       triggerToast('success', 'Konten dihapus.');
@@ -3044,7 +3135,14 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                           <div key={k.id} className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex items-center gap-4">
                             {THUMB_REQUIRED[k.jenis] && k.thumbnail ? (
                               <button onClick={() => setZoomImage(k.thumbnail!)} className="flex-shrink-0 relative group">
-                                <img src={k.thumbnail} alt="" className={`w-20 object-cover rounded-xl ${k.jenis === 'lowongan' ? 'h-28' : 'h-14'}`} />
+                                <img
+                                  src={k.thumbnail}
+                                  alt=""
+                                  onError={(e) => {
+                                    (e.currentTarget as HTMLImageElement).src = '/bg-gedung-umk.jpg';
+                                  }}
+                                  className={`w-20 object-cover rounded-xl ${k.jenis === 'lowongan' ? 'h-28' : 'h-14'}`}
+                                />
                                 <span className="absolute inset-0 bg-black/0 group-hover:bg-black/30 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition"><ZoomIn className="w-5 h-5 text-white" /></span>
                               </button>
                             ) : (
@@ -3054,6 +3152,18 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                               <div className="flex items-center gap-2 mb-0.5">
                                 {statusBadge(k.status, { draft: { bg: 'bg-slate-100', text: 'text-slate-600', label: 'Draft' }, published: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Published' } })}
                                 <span className="text-[11px] text-slate-400 flex items-center gap-1">{JENIS_ICON[k.jenis]} {JENIS_LABEL[k.jenis]}</span>
+                                {k.jenis === 'berita' && (
+                                  <>
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                                      {k.scope || 'LOKAL'}
+                                    </span>
+                                    {k.kategori && (
+                                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                                        {k.kategori}
+                                      </span>
+                                    )}
+                                  </>
+                                )}
                                 {k.isPinned && k.jenis !== 'lowongan' && (
                                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300">
                                     <Pin className="w-3 h-3 fill-amber-600 text-amber-600" /> Ter-Pin
@@ -3531,7 +3641,19 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                             <input value={ePenulis} onChange={(e) => setEPenulis(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder={user.name} />
                           </div>
                           <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-slate-500">Skala / Cakupan</label>
+                            <label className="text-xs font-medium text-slate-500">Kategori / Rubrik Berita</label>
+                            <Dropdown value={eKategori || 'Umum'} onChange={(v) => setEKategori(v)} className="w-full" options={[
+                              { value: 'Karir & Magang', label: 'Karir & Magang' },
+                              { value: 'Tracer Study & Alumni', label: 'Tracer Study & Alumni' },
+                              { value: 'Prestasi Kampus', label: 'Prestasi Kampus' },
+                              { value: 'Pelatihan & Workshop', label: 'Pelatihan & Workshop' },
+                              { value: 'Kerjasama Mitra', label: 'Kerjasama Mitra' },
+                              { value: 'Pengumuman Kampus', label: 'Pengumuman Kampus' },
+                              { value: 'Umum', label: 'Umum' }
+                            ]} />
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-medium text-slate-500">Skala / Cakupan (Scope)</label>
                             <Dropdown value={eScope} onChange={(v) => setEScope(v as any)} className="w-full" options={[
                               { value: 'LOKAL', label: 'Lokal' },
                               { value: 'REGIONAL', label: 'Regional' },
@@ -4517,6 +4639,300 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                 })()}
               </div>
             )}
+
+            {/* ============== MODERASI & MONITORING LAMARAN MAHASISWA ============== */}
+            {activeTab === 'lamaran-mahasiswa' && (() => {
+              const fmtDate = (iso?: string) =>
+                iso ? new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(iso)) : '-';
+
+              const normStatus = (s?: string) => (s || '').toLowerCase();
+
+              const counts = {
+                semua: appls.length,
+                pending: appls.filter((a) => ['submitted', 'under_review', 'menunggu_review', 'draft'].includes(normStatus(a.status))).length,
+                seleksi: appls.filter((a) => normStatus(a.status) === 'seleksi_administrasi').length,
+                interview: appls.filter((a) => normStatus(a.status) === 'interview').length,
+                accepted: appls.filter((a) => ['accepted', 'diterima', 'ongoing', 'completed'].includes(normStatus(a.status))).length,
+                rejected: appls.filter((a) => ['rejected', 'ditolak'].includes(normStatus(a.status))).length,
+              };
+
+              const filtered = appls.filter((a) => {
+                const q = lamaranQuery.trim().toLowerCase();
+                const matchQ =
+                  !q ||
+                  (a.namaMahasiswa || '').toLowerCase().includes(q) ||
+                  (a.nim || '').toLowerCase().includes(q) ||
+                  (a.programStudi || '').toLowerCase().includes(q) ||
+                  (a.tujuanMagang || '').toLowerCase().includes(q) ||
+                  (a.namaInstansi || '').toLowerCase().includes(q);
+
+                const st = normStatus(a.status);
+                let matchS = true;
+                if (lamaranStatusFilter === 'pending') {
+                  matchS = ['submitted', 'under_review', 'menunggu_review', 'draft'].includes(st);
+                } else if (lamaranStatusFilter === 'seleksi') {
+                  matchS = st === 'seleksi_administrasi';
+                } else if (lamaranStatusFilter === 'interview') {
+                  matchS = st === 'interview';
+                } else if (lamaranStatusFilter === 'accepted') {
+                  matchS = ['accepted', 'diterima', 'ongoing', 'completed'].includes(st);
+                } else if (lamaranStatusFilter === 'rejected') {
+                  matchS = ['rejected', 'ditolak'].includes(st);
+                }
+
+                return matchQ && matchS;
+              });
+
+              const getBadge = (status?: string) => {
+                const s = normStatus(status);
+                if (['submitted', 'under_review', 'menunggu_review', 'draft'].includes(s)) {
+                  return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">Menunggu Review</span>;
+                }
+                if (s === 'seleksi_administrasi') {
+                  return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-100 text-blue-800 border border-blue-200">Seleksi Administrasi</span>;
+                }
+                if (s === 'interview') {
+                  return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-100 text-purple-800 border border-purple-200">Tahap Interview</span>;
+                }
+                if (['accepted', 'diterima', 'ongoing', 'completed'].includes(s)) {
+                  return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">Diterima</span>;
+                }
+                if (['rejected', 'ditolak'].includes(s)) {
+                  return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-200">Ditolak</span>;
+                }
+                return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700">{s || 'SUBMITTED'}</span>;
+              };
+
+              return (
+                <div className="space-y-6" id="adm-lamaran-mahasiswa">
+                  {/* Header Title */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/80">
+                    <div>
+                      <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Moderasi &amp; Lamaran Mahasiswa</h1>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Pantau, verifikasi, dan kelola status seluruh pengajuan magang &amp; lamaran kerja mahasiswa ke mitra industri secara terpusat.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Summary Metric Cards */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                    {[
+                      { id: 'semua', label: 'Total Lamaran', count: counts.semua, color: 'text-slate-800', bg: 'bg-white' },
+                      { id: 'pending', label: 'Menunggu Review', count: counts.pending, color: 'text-amber-700', bg: 'bg-amber-50/60' },
+                      { id: 'seleksi', label: 'Seleksi Adm.', count: counts.seleksi, color: 'text-blue-700', bg: 'bg-blue-50/60' },
+                      { id: 'interview', label: 'Interview', count: counts.interview, color: 'text-purple-700', bg: 'bg-purple-50/60' },
+                      { id: 'accepted', label: 'Diterima', count: counts.accepted, color: 'text-emerald-700', bg: 'bg-emerald-50/60' },
+                      { id: 'rejected', label: 'Ditolak', count: counts.rejected, color: 'text-rose-700', bg: 'bg-rose-50/60' },
+                    ].map((c) => (
+                      <button
+                        key={c.id}
+                        onClick={() => setLamaranStatusFilter(c.id)}
+                        className={`p-4 rounded-2xl border text-left transition cursor-pointer ${
+                          lamaranStatusFilter === c.id
+                            ? 'border-[#1B365D] ring-2 ring-[#1B365D]/20 shadow-sm'
+                            : 'border-slate-200/80 hover:border-slate-300'
+                        } ${c.bg}`}
+                      >
+                        <div className={`text-2xl font-black ${c.color}`}>{c.count}</div>
+                        <div className="text-[11px] font-bold text-slate-600 mt-0.5">{c.label}</div>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Filter & Search Bar */}
+                  <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+                    <div className="relative flex-1 max-w-md">
+                      <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <input
+                        type="text"
+                        value={lamaranQuery}
+                        onChange={(e) => setLamaranQuery(e.target.value)}
+                        placeholder="Cari mahasiswa, NIM, posisi, instansi..."
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 placeholder-slate-400 focus:outline-hidden focus:border-[#0077C6]"
+                      />
+                    </div>
+                    <div className="text-xs text-slate-500 font-semibold self-center">
+                      Menampilkan <strong className="text-slate-800">{filtered.length}</strong> dari {appls.length} berkas lamaran
+                    </div>
+                  </div>
+
+                  {/* Table */}
+                  <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                    {filtered.length === 0 ? (
+                      <div className="p-12 text-center text-slate-400 space-y-2">
+                        <Briefcase className="w-10 h-10 text-slate-300 mx-auto" />
+                        <div className="text-sm font-bold text-slate-600">Tidak ada data lamaran yang cocok</div>
+                        <div className="text-xs text-slate-400">Silakan sesuaikan kata kunci pencarian atau filter status.</div>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="bg-slate-50 text-left text-[11px] uppercase tracking-wider text-slate-500 border-b border-slate-200">
+                              <th className="px-4 py-3 font-bold">Pelamar Mahasiswa</th>
+                              <th className="px-4 py-3 font-bold">Lowongan &amp; Mitra</th>
+                              <th className="px-4 py-3 font-bold">Tanggal Apply</th>
+                              <th className="px-4 py-3 font-bold">Berkas CV</th>
+                              <th className="px-4 py-3 font-bold">Status</th>
+                              <th className="px-4 py-3 font-bold text-right">Moderasi Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {filtered.map((appl) => (
+                              <tr key={appl.id} className="align-middle hover:bg-slate-50/70 transition">
+                                <td className="px-4 py-3.5 whitespace-nowrap">
+                                  <div className="font-extrabold text-slate-900 text-xs">{appl.namaMahasiswa}</div>
+                                  <div className="text-[11px] text-slate-500">{appl.nim || '-'} · {appl.programStudi || '-'}</div>
+                                </td>
+                                <td className="px-4 py-3.5 max-w-xs">
+                                  <div className="font-bold text-slate-800 line-clamp-1">{appl.tujuanMagang}</div>
+                                  <div className="text-[11px] text-[#0077C6] font-semibold">{appl.namaInstansi || 'Mitra Industri'}</div>
+                                </td>
+                                <td className="px-4 py-3.5 whitespace-nowrap text-[11px] text-slate-500">
+                                  {fmtDate(appl.createdAt)}
+                                </td>
+                                <td className="px-4 py-3.5 whitespace-nowrap">
+                                  {appl.berkasUrl ? (
+                                    <a
+                                      href={appl.berkasUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 text-[#0077C6] hover:bg-blue-100 font-bold text-[11px] transition"
+                                    >
+                                      <FileText className="w-3.5 h-3.5" /> Buka CV
+                                    </a>
+                                  ) : (
+                                    <span className="text-slate-400 text-[11px] italic">Tidak ada berkas</span>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3.5 whitespace-nowrap">
+                                  {getBadge(appl.status)}
+                                </td>
+                                <td className="px-4 py-3.5 whitespace-nowrap text-right">
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    <button
+                                      onClick={() => setSelectedLamaran(appl)}
+                                      className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
+                                    >
+                                      Detail
+                                    </button>
+                                    <select
+                                      value={normStatus(appl.status)}
+                                      onChange={(e) => handleUpdateStatusLamaran(appl, e.target.value)}
+                                      className="px-2 py-1 rounded-lg text-[11px] font-bold bg-white border border-slate-200 text-slate-700 hover:border-slate-300 focus:outline-hidden cursor-pointer"
+                                    >
+                                      <option value="submitted">Menunggu Review</option>
+                                      <option value="seleksi_administrasi">Seleksi Adm.</option>
+                                      <option value="interview">Interview</option>
+                                      <option value="accepted">Diterima</option>
+                                      <option value="rejected">Ditolak</option>
+                                    </select>
+                                    <button
+                                      onClick={() => handleDeleteLamaran(appl)}
+                                      className="px-2 py-1.5 rounded-lg text-[11px] font-bold text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                                      title="Hapus berkas lamaran"
+                                    >
+                                      Hapus
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Detail Modal */}
+                  {selectedLamaran && (
+                    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+                      <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                          <div>
+                            <h3 className="text-base font-extrabold text-slate-900">Detail Lamaran Mahasiswa</h3>
+                            <p className="text-xs text-slate-400">Informasi lengkap pengajuan lamaran karir / magang</p>
+                          </div>
+                          <button
+                            onClick={() => setSelectedLamaran(null)}
+                            className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+                          >
+                            <X className="w-5 h-5" />
+                          </button>
+                        </div>
+
+                        <div className="space-y-3 text-xs">
+                          <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-1.5">
+                            <div><strong className="text-slate-700">Nama Pelamar:</strong> {selectedLamaran.namaMahasiswa}</div>
+                            <div><strong className="text-slate-700">NIM:</strong> {selectedLamaran.nim || '-'}</div>
+                            <div><strong className="text-slate-700">Program Studi:</strong> {selectedLamaran.programStudi || '-'}</div>
+                            <div><strong className="text-slate-700">IPK:</strong> {selectedLamaran.ipk || '-'}</div>
+                          </div>
+
+                          <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-1.5">
+                            <div><strong className="text-slate-700">Posisi Lowongan:</strong> {selectedLamaran.tujuanMagang}</div>
+                            <div><strong className="text-slate-700">Instansi Mitra:</strong> {selectedLamaran.namaInstansi || '-'}</div>
+                            <div><strong className="text-slate-700">Tanggal Pengajuan:</strong> {fmtDate(selectedLamaran.createdAt)}</div>
+                            <div className="flex items-center gap-2">
+                              <strong className="text-slate-700">Status Saat Ini:</strong> {getBadge(selectedLamaran.status)}
+                            </div>
+                          </div>
+
+                          {selectedLamaran.catatan && (
+                            <div className="p-3 bg-amber-50/60 rounded-xl border border-amber-200 text-amber-900">
+                              <strong className="block mb-1">Catatan / Surat Pengantar Pelamar:</strong>
+                              <p className="whitespace-pre-line text-[11px] leading-relaxed">{selectedLamaran.catatan}</p>
+                            </div>
+                          )}
+
+                          {selectedLamaran.berkasUrl && (
+                            <div className="pt-1">
+                              <a
+                                href={selectedLamaran.berkasUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#0077C6] hover:bg-[#0055A5] text-white font-bold transition shadow-xs"
+                              >
+                                <Download className="w-4 h-4" /> Buka / Unduh Berkas CV Lengkap
+                              </a>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Modal Action Footer */}
+                        <div className="pt-3 border-t border-slate-100 flex flex-wrap gap-2 justify-end">
+                          <button
+                            onClick={() => handleUpdateStatusLamaran(selectedLamaran, 'seleksi_administrasi')}
+                            className="px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white"
+                          >
+                            Seleksi Adm.
+                          </button>
+                          <button
+                            onClick={() => handleUpdateStatusLamaran(selectedLamaran, 'interview')}
+                            className="px-3 py-1.5 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white"
+                          >
+                            Tahap Interview
+                          </button>
+                          <button
+                            onClick={() => handleUpdateStatusLamaran(selectedLamaran, 'accepted')}
+                            className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white"
+                          >
+                            Terima Pelamar
+                          </button>
+                          <button
+                            onClick={() => handleUpdateStatusLamaran(selectedLamaran, 'rejected')}
+                            className="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white"
+                          >
+                            Tolak
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* ============== MANAJEMEN SURAT KEPUTUSAN CDC ============== */}
             {activeTab === 'sk-cdc' && (() => {
@@ -7721,6 +8137,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                 setAngNama('');
                 setAngJabatan('');
                 setAngFotoUrl('');
+                setCropTempImgSrc('');
+                setShowAngCropperModal(false);
                 setIsUploadingAngFoto(false);
                 setShowAnggotaModal(true);
               };
@@ -7730,43 +8148,77 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                 setAngNama(item.nama);
                 setAngJabatan(item.jabatan);
                 setAngFotoUrl(item.photoUrl || item.fotoUrl || '');
+                setCropTempImgSrc('');
+                setShowAngCropperModal(false);
                 setIsUploadingAngFoto(false);
                 setShowAnggotaModal(true);
               };
 
-              const handleAnggotaFotoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+              const handleAnggotaFotoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
 
-                if (file.size > 5 * 1024 * 1024) {
-                  triggerToast('error', 'Ukuran foto terlalu besar (maksimal 5MB).');
+                if (file.size > 8 * 1024 * 1024) {
+                  triggerToast('error', 'Ukuran foto terlalu besar (maksimal 8MB).');
                   return;
                 }
 
+                // Baca berkas sebagai data URL lalu buka modal crop interaktif
+                const reader = new FileReader();
+                reader.onload = () => {
+                  if (typeof reader.result === 'string') {
+                    setCropTempImgSrc(reader.result);
+                    setShowAngCropperModal(true);
+                  }
+                };
+                reader.onerror = () => {
+                  triggerToast('error', 'Gagal membaca berkas gambar.');
+                };
+                reader.readAsDataURL(file);
+
+                // Reset input agar pengguna bisa memilih kembali berkas yang sama
+                e.target.value = '';
+              };
+
+              const handleOpenCropperForCurrentPhoto = () => {
+                if (!angFotoUrl) {
+                  triggerToast('error', 'Belum ada foto yang dipilih untuk disesuaikan.');
+                  return;
+                }
+                setCropTempImgSrc(angFotoUrl);
+                setShowAngCropperModal(true);
+              };
+
+              const handleCropComplete = async (croppedFile: File, croppedDataUrl: string) => {
+                setShowAngCropperModal(false);
                 setIsUploadingAngFoto(true);
+
                 try {
-                  // Coba upload ke Supabase Storage terlebih dahulu
-                  const uploadedUrl = await uploadTeamMemberPhoto(file);
+                  // Coba upload file hasil crop ke Supabase Storage terlebih dahulu
+                  const uploadedUrl = await uploadTeamMemberPhoto(croppedFile);
                   if (uploadedUrl) {
                     setAngFotoUrl(uploadedUrl);
-                    triggerToast('success', 'Foto profil berhasil diunggah ke Supabase Storage!');
+                    triggerToast('success', 'Foto profil berhasil di-crop & diunggah ke Cloud Storage!');
                   } else {
-                    // Fallback: kompresi adaptif base64
-                    const compressed = await compressImageAdaptive(file);
-                    setAngFotoUrl(compressed);
-                    triggerToast('success', 'Foto profil berhasil dikompres & siap disimpan!');
+                    // Fallback: gunakan data URL canvas yang sudah terkompresi
+                    setAngFotoUrl(croppedDataUrl);
+                    triggerToast('success', 'Foto profil berhasil di-crop & siap disimpan!');
                   }
                 } catch (err: any) {
-                  console.error('Upload foto profil error:', err);
-                  try {
-                    const compressed = await compressImageAdaptive(file);
-                    setAngFotoUrl(compressed);
-                    triggerToast('success', 'Foto profil berhasil dikompres & siap disimpan!');
-                  } catch {
-                    triggerToast('error', 'Gagal memproses foto profil.');
-                  }
+                  console.error('Upload foto profil hasil crop error:', err);
+                  setAngFotoUrl(croppedDataUrl);
+                  triggerToast('success', 'Foto profil berhasil di-crop & siap disimpan!');
                 } finally {
                   setIsUploadingAngFoto(false);
+                }
+              };
+
+              const handleHapusFotoAnggota = () => {
+                if (!angFotoUrl) return;
+                if (confirm('Hapus foto profil ini? Anggota tim akan menggunakan avatar default.')) {
+                  setAngFotoUrl('');
+                  setCropTempImgSrc('');
+                  triggerToast('success', 'Foto profil telah dihapus dari formulir.');
                 }
               };
 
@@ -7877,39 +8329,100 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                             />
                           </div>
 
-                          <div className="space-y-2">
-                            <label className="block text-xs font-bold text-slate-700">Foto Profil (Berkas / URL)</label>
-                            <div className="flex flex-col sm:flex-row gap-3 items-center">
-                              <input
-                                type="file"
-                                accept="image/*"
-                                disabled={isUploadingAngFoto || isSavingAnggota}
-                                onChange={handleAnggotaFotoFileChange}
-                                className="text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer disabled:opacity-50"
-                              />
-                              {isUploadingAngFoto && (
-                                <span className="text-xs text-blue-600 font-semibold animate-pulse">
-                                  Mengunggah foto...
-                                </span>
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <label className="block text-xs font-bold text-slate-700">
+                                Foto Profil <span className="text-[11px] font-normal text-slate-500">(Rasio ideal 1:1 Persegi)</span>
+                              </label>
+                              {angFotoUrl && (
+                                <button
+                                  type="button"
+                                  onClick={handleHapusFotoAnggota}
+                                  className="text-xs font-bold text-rose-600 hover:text-rose-700 hover:underline flex items-center gap-1 transition"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" /> Hapus Foto
+                                </button>
                               )}
                             </div>
-                            <input
-                              type="text"
-                              disabled={isUploadingAngFoto || isSavingAnggota}
-                              value={angFotoUrl}
-                              onChange={(e) => setAngFotoUrl(e.target.value)}
-                              className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100"
-                              placeholder="Atau masukkan URL foto (https://...)"
-                            />
-                          </div>
 
-                          {/* Foto Preview */}
-                          {angFotoUrl && (
-                            <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                              <img src={angFotoUrl} alt="Pratinjau Foto" className="w-12 h-12 rounded-lg object-cover border border-slate-300" />
-                              <span className="text-xs text-slate-600 font-medium">Pratinjau foto profil anggota tim</span>
+                            {/* Pratinjau Foto & Kontrol Crop */}
+                            {angFotoUrl ? (
+                              <div className="flex items-center gap-3.5 p-3.5 bg-slate-50 border border-slate-200 rounded-2xl">
+                                <div className="relative group w-16 h-16 rounded-xl overflow-hidden bg-slate-200 border border-slate-300 shrink-0 shadow-sm">
+                                  <img
+                                    src={angFotoUrl}
+                                    alt="Pratinjau Foto"
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+
+                                <div className="flex-1 min-w-0 space-y-1.5">
+                                  <div className="flex items-center gap-2">
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                      <Check className="w-3 h-3" /> Foto Terpasang
+                                    </span>
+                                  </div>
+                                  <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                                    <button
+                                      type="button"
+                                      onClick={handleOpenCropperForCurrentPhoto}
+                                      disabled={isUploadingAngFoto || isSavingAnggota}
+                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-[#1E3A8A] bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition disabled:opacity-50"
+                                    >
+                                      <Crop className="w-3.5 h-3.5" /> Sesuaikan / Crop Foto
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={handleHapusFotoAnggota}
+                                      disabled={isUploadingAngFoto || isSavingAnggota}
+                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg border border-rose-200 transition disabled:opacity-50"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" /> Hapus
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-3 p-3 bg-slate-50 border border-dashed border-slate-300 rounded-xl text-slate-400 text-xs">
+                                <div className="w-12 h-12 rounded-lg bg-slate-200/70 flex items-center justify-center text-slate-400 shrink-0">
+                                  <Users className="w-6 h-6" />
+                                </div>
+                                <div>
+                                  <p className="font-semibold text-slate-700 text-xs">Belum ada foto profil</p>
+                                  <p className="text-[11px] text-slate-500">Pilih berkas foto di bawah untuk langsung crop &amp; atur posisi wajah.</p>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Pilihan Upload Berkas / Input URL */}
+                            <div className="space-y-2">
+                              <div className="flex flex-col sm:flex-row gap-2.5 items-center">
+                                <label className="w-full sm:w-auto flex-1 cursor-pointer">
+                                  <span className="sr-only">Pilih Berkas Foto</span>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    disabled={isUploadingAngFoto || isSavingAnggota}
+                                    onChange={handleAnggotaFotoFileChange}
+                                    className="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#1E3A8A]/10 file:text-[#1E3A8A] hover:file:bg-[#1E3A8A]/20 cursor-pointer disabled:opacity-50"
+                                  />
+                                </label>
+                                {isUploadingAngFoto && (
+                                  <span className="text-xs text-blue-600 font-semibold animate-pulse shrink-0">
+                                    Memproses foto...
+                                  </span>
+                                )}
+                              </div>
+                              <input
+                                type="text"
+                                disabled={isUploadingAngFoto || isSavingAnggota}
+                                value={angFotoUrl}
+                                onChange={(e) => setAngFotoUrl(e.target.value)}
+                                className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100"
+                                placeholder="Atau masukkan URL foto online (https://...)"
+                              />
                             </div>
-                          )}
+                          </div>
 
                           <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
                             <button
@@ -7938,6 +8451,19 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                         </form>
                       </div>
                     </div>
+                  )}
+
+                  {/* Modal Cropper Foto Anggota Tim */}
+                  {showAngCropperModal && cropTempImgSrc && (
+                    <ImageCropperModal
+                      imageSrc={cropTempImgSrc}
+                      title="Sesuaikan & Crop Foto Profil Anggota Tim"
+                      aspectRatio={1}
+                      outputWidth={600}
+                      outputHeight={600}
+                      onCropComplete={handleCropComplete}
+                      onClose={() => setShowAngCropperModal(false)}
+                    />
                   )}
                 </div>
               );
@@ -8875,6 +9401,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                   { id: 'konten-buat', group: 'Aksi Cepat', label: '+ Buat Konten & Lowongan Karir Baru', icon: Plus, action: () => { setActiveTab('konten'); setKontenSub('pembuatan'); setIsCmdPaletteOpen(false); } },
                   { id: 'mitra-approval', group: 'Manajemen Mitra', label: 'Approval Pendaftaran Mitra Baru', icon: Clock, badge: totalMenunggu > 0 ? `${totalMenunggu} Pending` : undefined, action: () => { setActiveTab('mitra'); setMitraSub('approval'); setIsCmdPaletteOpen(false); } },
                   { id: 'mitra-list', group: 'Manajemen Mitra', label: 'Daftar Mitra Terdaftar & Kerjasama', icon: Building2, action: () => { setActiveTab('mitra'); setMitraSub('list'); setIsCmdPaletteOpen(false); } },
+                  { id: 'lamaran-mahasiswa', group: 'Manajemen Anggota', label: 'Moderasi & Lamaran Mahasiswa', icon: Briefcase, badge: appls.filter(a => ['submitted', 'under_review', 'menunggu_review'].includes((a.status || '').toLowerCase())).length > 0 ? `${appls.filter(a => ['submitted', 'under_review', 'menunggu_review'].includes((a.status || '').toLowerCase())).length} Baru` : undefined, action: () => { setActiveTab('lamaran-mahasiswa'); setIsCmdPaletteOpen(false); } },
                   { id: 'konten-riwayat', group: 'Konten Karir', label: 'Riwayat Konten & Lowongan Publikasi', icon: Layers, action: () => { setActiveTab('konten'); setKontenSub('riwayat'); setIsCmdPaletteOpen(false); } },
                   { id: 'sk-cdc', group: 'Dokumen Resmi', label: 'Surat Keputusan (SK) CDC UMK', icon: FileText, action: () => { setActiveTab('sk-cdc'); setIsCmdPaletteOpen(false); } },
                   { id: 'kalender', group: 'Dokumen Resmi', label: 'Kalender Kegiatan CDC UMK', icon: CalendarDays, action: () => { setActiveTab('kalender'); setIsCmdPaletteOpen(false); } },

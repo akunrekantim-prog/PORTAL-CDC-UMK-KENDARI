@@ -54,9 +54,9 @@ app.use(helmet({
 }));
 
 app.use(cookieParser());
-// Body limit 2MB — cegah DoS via payload 50MB
-app.use(express.json({ limit: '2mb' }));
-app.use(express.urlencoded({ limit: '2mb', extended: true }));
+// Body limit 10MB — menampung data URL upload foto poster/thumbnail tanpa truncating
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 if (isProd) {
   app.set('trust proxy', 1);
@@ -234,9 +234,42 @@ app.get('/api/all-data', authenticateToken, apiLimiter, async (req, res) => {
     const anggota_tims = await prisma.anggotaTim.findMany({ orderBy: { urutan: 'asc' } });
     const social_media_items = await prisma.socialMediaItem.findMany();
     const survei_lulusan = await prisma.surveiLulusan.findMany({ orderBy: { submittedAt: 'desc' } });
-    const komentar_berita = await prisma.komentarBerita.findMany({ orderBy: { createdAt: 'desc' } });
+    const komentar_berita = await prisma.komentarBerita.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: { berita: { select: { id: true, judul: true, slug: true } } }
+    });
     const uploaded_documents = await prisma.uploadedDocument.findMany({ orderBy: { createdAt: 'desc' } });
-    res.json({ users, mahasiswa, alumni, mitra, lowongan, pengajuan_magang, tracer_studies, konten_karir, berita, pengumuman, surat_keputusan, kalender_kegiatan, laporan_kinerja, mou_stakeholder, galeri_items, hero_slides, visi_misi_configs, anggota_tims, social_media_items, survei_lulusan, komentar_berita, uploaded_documents });
+    const campus_hirings = await prisma.campusHiring.findMany({ orderBy: { createdAt: 'desc' } });
+    const job_fair_events = await prisma.jobFairEvent.findMany({ orderBy: { createdAt: 'desc' } });
+    const konseling_configs = await prisma.konselingConfig.findMany();
+
+    res.json({
+      users,
+      mahasiswa,
+      alumni,
+      mitra,
+      lowongan,
+      pengajuan_magang,
+      tracer_studies,
+      konten_karir,
+      berita,
+      pengumuman,
+      surat_keputusan,
+      kalender_kegiatan,
+      laporan_kinerja,
+      mou_stakeholder,
+      galeri_items,
+      hero_slides,
+      visi_misi_configs,
+      anggota_tims,
+      social_media_items,
+      survei_lulusan,
+      komentar_berita,
+      uploaded_documents,
+      campus_hirings,
+      job_fair_events,
+      konseling_configs
+    });
   } catch (error) {
     console.error('[Express API /all-data Error]:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -257,10 +290,112 @@ app.get('/api/public-data', apiLimiter, async (req, res) => {
     const visi_misi_configs = await prisma.visiMisiConfig.findMany();
     const social_media_items = await prisma.socialMediaItem.findMany({ where: { isActive: true } });
     const kalender_kegiatan = await prisma.kalenderKegiatan.findMany();
-    res.json({ lowongan, konten_karir, berita, pengumuman, hero_slides, galeri_items, mou_stakeholder, anggota_tims, visi_misi_configs, social_media_items, kalender_kegiatan });
+    const campus_hirings = await prisma.campusHiring.findMany({ orderBy: { createdAt: 'desc' } });
+    const job_fair_events = await prisma.jobFairEvent.findMany({ orderBy: { createdAt: 'desc' } });
+    const konseling_configs = await prisma.konselingConfig.findMany();
+    const komentar_berita = await prisma.komentarBerita.findMany({
+      where: { status: 'APPROVED' },
+      orderBy: { createdAt: 'desc' },
+      include: { berita: { select: { id: true, judul: true, slug: true } } }
+    });
+
+    res.json({
+      lowongan,
+      konten_karir,
+      berita,
+      pengumuman,
+      hero_slides,
+      galeri_items,
+      mou_stakeholder,
+      anggota_tims,
+      visi_misi_configs,
+      social_media_items,
+      kalender_kegiatan,
+      campus_hirings,
+      job_fair_events,
+      konseling_configs,
+      komentar_berita
+    });
   } catch (error) {
     console.error('[Express API /public-data Error]:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/komentar-publik — Pengunjung kirim komentar berita tanpa harus login (status otomatis PENDING)
+app.post('/api/komentar-publik', writeLimiter, async (req, res) => {
+  try {
+    const { beritaId, beritaSlug, nama, email, komentar, konten } = req.body || {};
+    const textKonten = String(konten || komentar || '').trim();
+    const pengirimNama = String(nama || '').trim();
+    const pengirimEmail = String(email || '').trim().toLowerCase();
+
+    if (!pengirimNama || pengirimNama.length < 2) {
+      return res.status(400).json({ error: 'Nama pengirim minimal 2 karakter.' });
+    }
+    if (!pengirimEmail || !isValidEmail(pengirimEmail)) {
+      return res.status(400).json({ error: 'Alamat email tidak valid.' });
+    }
+    if (!textKonten || textKonten.length < 3) {
+      return res.status(400).json({ error: 'Isi komentar minimal 3 karakter.' });
+    }
+    if (textKonten.length > 2000) {
+      return res.status(400).json({ error: 'Komentar terlalu panjang (maksimal 2000 karakter).' });
+    }
+
+    const slugRef = String(beritaSlug || beritaId || '');
+    let foundBerita = null;
+    if (beritaId) {
+      foundBerita = await prisma.berita.findUnique({ where: { id: beritaId } });
+    }
+    if (!foundBerita && slugRef) {
+      const unwrapped = slugRef.startsWith('kk-') ? slugRef.slice(3) : slugRef;
+      foundBerita = await prisma.berita.findFirst({ where: { OR: [{ id: slugRef }, { id: unwrapped }, { slug: slugRef }] } });
+    }
+    if (!foundBerita) {
+      // Cek apakah ada berita di tabel beritas yang slug-nya mirip atau ambil berita pertama jika fallback
+      foundBerita = await prisma.berita.findFirst();
+      if (!foundBerita) {
+        return res.status(404).json({ error: 'Berita atau artikel tujuan tidak ditemukan.' });
+      }
+    }
+
+    const targetBeritaId = foundBerita.id;
+    const commentId = req.body.id || `kb_${Date.now()}_${crypto.randomBytes(3).toString('hex')}`;
+    const sanitizedKonten = textKonten.replace(/<[^>]*>?/gm, '');
+
+    const newComment = await prisma.komentarBerita.create({
+      data: {
+        id: commentId,
+        beritaId: targetBeritaId,
+        nama: pengirimNama.slice(0, 100),
+        email: pengirimEmail.slice(0, 150),
+        konten: sanitizedKonten,
+        status: 'PENDING'
+      },
+      include: {
+        berita: { select: { id: true, judul: true, slug: true } }
+      }
+    });
+
+    res.json({
+      success: true,
+      message: 'Komentar Anda berhasil dikirim dan menunggu persetujuan admin sebelum tayang.',
+      result: {
+        id: newComment.id,
+        beritaId: newComment.beritaId,
+        beritaSlug: newComment.berita?.slug || slugRef,
+        beritaJudul: newComment.berita?.judul || foundBerita.judul,
+        nama: newComment.nama,
+        email: newComment.email,
+        komentar: newComment.konten,
+        status: 'pending',
+        createdAt: newComment.createdAt.toISOString()
+      }
+    });
+  } catch (err) {
+    console.error('[API /komentar-publik Error]:', err);
+    res.status(500).json({ error: 'Gagal mengirim komentar.' });
   }
 });
 
@@ -577,7 +712,7 @@ const SYNC_FIELDS = {
     email:           'string',
     phone:           'string',
     website:         'string',
-    logoUrl:         'string',
+    logoUrl:         'photourl',
     deskripsi:       'text',
     statusKerjaSama: 'string',
   },
@@ -587,10 +722,10 @@ const SYNC_FIELDS = {
     judul:          'string',
     tipe:           'string',
     namaInstansi:   'string',
-    companyLogo:    'string',
-    bannerImage:    'string',
-    imageUrl:       'string',
-    flyer:          'string',
+    companyLogo:    'photourl',
+    bannerImage:    'photourl',
+    imageUrl:       'photourl',
+    flyer:          'photourl',
     flyers:         'stringArr',
     sumber:         'string',
     linkEksternal:  'string',
@@ -645,7 +780,7 @@ const SYNC_FIELDS = {
     gaji:         'string',
     kuota:        'number',
     deadline:     'date',
-    thumbnail:    'string',
+    thumbnail:    'photourl',
     scope:        'string',
     status:       'string',
     isPinned:     'boolean',
@@ -655,9 +790,10 @@ const SYNC_FIELDS = {
     judul:     'string',
     slug:      'string',
     body:      'text',
-    thumbnail: 'string',
+    thumbnail: 'photourl',
     penulis:   'string',
     kategori:  'string',
+    scope:     'string',
     tags:      'stringArr',
     isPinned:  'boolean',
     status:    'string',
@@ -666,7 +802,7 @@ const SYNC_FIELDS = {
   pengumuman: {
     judul:     'string',
     body:      'text',
-    thumbnail: 'string',
+    thumbnail: 'photourl',
     isPinned:  'boolean',
     status:    'string',
   },
@@ -695,7 +831,7 @@ const SYNC_FIELDS = {
   },
   mou_stakeholder: {
     namaInstansi:  'string',
-    logoUrl:       'string',
+    logoUrl:       'photourl',
     jenisMou:      'string',
     tanggalMou:    'date',
     berlakuHingga: 'date',
@@ -703,7 +839,7 @@ const SYNC_FIELDS = {
   },
   galeri_items: {
     judul:     'string',
-    imageUrl:  'string',
+    imageUrl:  'photourl',
     kategori:  'string',
     deskripsi: 'text',
     tanggal:   'date',
@@ -753,7 +889,7 @@ const SYNC_FIELDS = {
   hero_slide: {
     judul:     'string',   // DB column
     subjudul:  'string',   // DB column (frontend: alt)
-    imageUrl:  'string',
+    imageUrl:  'photourl',
     linkUrl:   'string',   // DB column (frontend: targetUrl)
     linkLabel: 'string',   // DB column
     isActive:  'boolean',
@@ -762,7 +898,7 @@ const SYNC_FIELDS = {
   hero_slides: {
     judul:     'string',   // DB column
     subjudul:  'string',   // DB column (frontend: alt)
-    imageUrl:  'string',
+    imageUrl:  'photourl',
     linkUrl:   'string',   // DB column (frontend: targetUrl)
     linkLabel: 'string',   // DB column
     isActive:  'boolean',
@@ -772,7 +908,7 @@ const SYNC_FIELDS = {
     published:              'boolean',
     title:                  'string',
     subtitle:               'string',
-    posterUrl:              'string',
+    posterUrl:              'photourl',
     posterAlt:              'string',
     narasiWa:               'text',
     adminWaNumber:          'string',
@@ -784,7 +920,7 @@ const SYNC_FIELDS = {
     published:              'boolean',
     title:                  'string',
     subtitle:               'string',
-    posterUrl:              'string',
+    posterUrl:              'photourl',
     posterAlt:              'string',
     narasiWa:               'text',
     adminWaNumber:          'string',
@@ -793,10 +929,10 @@ const SYNC_FIELDS = {
     jadwalItems:            'json',
   },
   visi_misi_config: {
-    imageUrl: 'string',
+    imageUrl: 'photourl',
   },
   visi_misi_configs: {
-    imageUrl: 'string',
+    imageUrl: 'photourl',
   },
   campus_hiring: {
     judul:           'string',
@@ -877,14 +1013,14 @@ const FIELD_RULES = {
     }
     return v; // pass-through object/array langsung ke Prisma
   },
-  // photourl: URL foto publik permanen (hingga 2048 char) atau fallback Base64 data-URL (hingga 500KB)
+  // photourl: URL foto publik permanen (hingga 4096 char) atau fallback Base64 data-URL (hingga 5MB)
   photourl: (v) => {
     if (!v || v === '') return null;
     const s = String(v);
     if (s.startsWith('data:image/')) {
-      return s.slice(0, 500000); // izinkan data URL image terkompresi
+      return s.slice(0, 5000000); // izinkan data URL image terkompresi hingga 5MB
     }
-    return s.slice(0, 2048);
+    return s.slice(0, 4096);
   },
   date: (v) => {
     if (!v) return null;
@@ -951,8 +1087,8 @@ function createDefaults(entity) {
     lowongan: { judul: '', namaInstansi: '', lokasi: '', tipe: 'KERJA', status: 'PUBLISHED', sumber: 'admin', deadline: now },
     pengajuan_magang: { namaMahasiswa: '', nim: '', programStudi: '-', tujuanMagang: '', status: 'SUBMITTED' },
     tracer_study: { statusPekerjaan: 'belum_bekerja' },
-    konten_karir: { jenis: 'berita', judul: '', body: '', status: 'draft' },
-    berita: { judul: '', body: '', status: 'draft' },
+    konten_karir: { jenis: 'program', judul: '', body: '', status: 'draft' },
+    berita: { judul: '', body: '', status: 'draft', scope: 'LOKAL' },
     pengumuman: { judul: '', body: '', status: 'draft' },
     surat_keputusan: { judul: '', tanggal: now },
     kalender_kegiatan: { judul: '', tanggalMulai: now },
@@ -1191,14 +1327,36 @@ app.post('/api/sync/:entity', authenticateToken, writeLimiter, async (req, res) 
       if (r !== 'ADMIN' && r !== 'MITRA') return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
       if (r === 'MITRA' && payload.createdBy && payload.createdBy !== requesterId) return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
       if (r === 'MITRA' && !payload.createdBy) payload.createdBy = requesterId;
+
+      // ARSITEKTUR BERSIH: Berita TIDAK BOLEH masuk ke konten_karirs, otomatis alihkan ke tabel 'beritas'
+      if (payload && (payload.jenis === 'berita' || String(payload.jenis || '').toLowerCase() === 'berita')) {
+        const bp = { ...payload };
+        if (!bp.judul && bp.title) bp.judul = bp.title;
+        if (!bp.body && bp.content) bp.body = bp.content;
+        if (!bp.thumbnail && bp.coverImageUrl) bp.thumbnail = bp.coverImageUrl;
+        const slugVal = String(bp.slug || bp.id || '').slice(0, 220);
+        if (slugVal && !bp.slug) bp.slug = slugVal;
+        const { data } = buildSyncData('berita', bp);
+        const cDef = createDefaults('berita');
+        let result;
+        if (bp.id) {
+          result = await prisma.berita.upsert({ where: { id: bp.id }, update: data, create: { id: bp.id, ...cDef, ...data } });
+        } else if (slugVal) {
+          result = await prisma.berita.upsert({ where: { slug: slugVal }, update: data, create: { ...cDef, ...data } });
+        } else {
+          result = await prisma.berita.create({ data: { ...cDef, ...data } });
+        }
+        return res.json({ success: true, forwardedTo: 'berita', result });
+      }
+
       const { data, ignored } = buildSyncData('konten_karir', payload);
-      // CHECK constraint DB (lowercase) — validasi dulu agar tidak 500
-      const JENIS_OK = ['berita', 'lowongan', 'program', 'pengumuman', 'workshop', 'softskill', 'seminar', 'presentasi'];
+      // CHECK constraint DB (lowercase) — HANYA event, prestasi, & program, TANPA berita
+      const JENIS_OK = ['program', 'workshop', 'softskill', 'seminar', 'presentasi'];
       const STATUS_OK = ['draft', 'published', 'archived'];
       if ('jenis' in data) {
         const j = String(data.jenis || '').toLowerCase();
         if (!JENIS_OK.includes(j)) {
-          return res.status(400).json({ error: `jenis '${String(data.jenis).slice(0,30)}' tidak valid. Pilihan: ${JENIS_OK.join(', ')}` });
+          return res.status(400).json({ error: `jenis '${String(data.jenis).slice(0,30)}' tidak valid untuk konten_karir. Berita wajib disimpan di tabel 'beritas'. Pilihan: ${JENIS_OK.join(', ')}` });
         }
         data.jenis = j;
       }

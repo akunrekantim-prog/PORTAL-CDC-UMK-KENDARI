@@ -241,6 +241,7 @@ export interface PengajuanMagang {
   verifiedBy?: string; // user.id
   verifiedAt?: string;
   createdAt: string;
+  updatedAt?: string;
 
   // Multi-stage Interview & Selection Fields
   interviewStatus?: 'pending' | 'scheduled' | 'completed';
@@ -319,11 +320,13 @@ export interface Berita {
   excerpt: string;
   content: string;
   coverImageUrl?: string;
+  thumbnail?: string;
   status: 'draft' | 'published';
   authorId: string;
   publishedAt?: string;
   createdAt: string;
   scope?: 'LOKAL' | 'REGIONAL' | 'NASIONAL' | 'GLOBAL';
+  kategori?: string;
   penulis?: string;
 }
 

@@ -3,17 +3,23 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function check() {
-  const users: any = await prisma.$queryRaw`SELECT count(*) FROM users`;
-  const mahasiswas: any = await prisma.$queryRaw`SELECT count(*) FROM mahasiswas`;
-  const lowongans: any = await prisma.$queryRaw`SELECT count(*) FROM lowongans`;
-  const mitras: any = await prisma.$queryRaw`SELECT count(*) FROM mitras`;
+  const cols: any = await prisma.$queryRaw`
+    SELECT column_name, data_type, is_nullable, column_default
+    FROM information_schema.columns 
+    WHERE table_name = 'beritas'
+    ORDER BY ordinal_position;
+  `;
+  console.log('📋 DAFTAR KOLOM TABEL "beritas" DI SUPABASE:');
+  console.table(cols);
 
-  console.log('📊 DATA DI SUPABASE:');
-  console.log('-------------------');
-  console.log('Users:', users[0].count.toString());
-  console.log('Mahasiswas:', mahasiswas[0].count.toString());
-  console.log('Mitras:', mitras[0].count.toString());
-  console.log('Lowongans:', lowongans[0].count.toString());
+  const sampleRows: any = await prisma.$queryRaw`
+    SELECT id, judul, slug, substring(thumbnail, 1, 50) as thumb_start, length(thumbnail) as thumb_len, status, "createdAt"
+    FROM beritas 
+    ORDER BY "createdAt" DESC
+    LIMIT 10;
+  `;
+  console.log('🔍 SAMPEL BARIS TABEL "beritas":');
+  console.table(sampleRows);
 
   await prisma.$disconnect();
 }

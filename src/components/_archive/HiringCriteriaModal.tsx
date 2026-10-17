@@ -1,6 +1,6 @@
 import React from 'react';
 import { X, CheckCircle2, ShieldCheck, Award, GraduationCap, BookOpen, FileCheck } from 'lucide-react';
-import { Lowongan } from '../types';
+import { Lowongan } from '../../types';
 
 interface HiringCriteriaModalProps {
   isOpen: boolean;

@@ -322,7 +322,7 @@ export default function BeritaDetailView({
                 {/* Categories / Tags */}
                 <div className="flex items-center gap-1.5">
                   <Tag className="w-4 h-4 text-amber-500 shrink-0" />
-                  <span>Berita &amp; Artikel, {berita.scope || 'LOKAL'}</span>
+                  <span>{berita.kategori ? `${berita.kategori} • ` : ''}Tingkat {berita.scope || 'LOKAL'}</span>
                 </div>
 
                 {/* Date & Time */}
@@ -345,13 +345,19 @@ export default function BeritaDetailView({
               </div>
 
               {/* FEATURED MAIN COVER IMAGE (Natural Aspect Ratio - tanpa template rasio kaku & tanpa ruang hitam) */}
-              {berita.coverImageUrl ? (
+              {(berita.coverImageUrl || berita.thumbnail) ? (
                 <div className="w-full rounded-2xl overflow-hidden border border-slate-200/80 shadow-2xs flex justify-center bg-slate-50/50">
                   <img
-                    src={berita.coverImageUrl}
+                    src={berita.coverImageUrl || berita.thumbnail}
                     alt={berita.title}
                     loading="lazy"
                     decoding="async"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      if (!target.src.includes('bg-gedung-umk.jpg')) {
+                        target.src = '/bg-gedung-umk.jpg';
+                      }
+                    }}
                     className="w-full h-auto max-h-[650px] object-contain rounded-2xl"
                   />
                 </div>
@@ -394,17 +400,28 @@ export default function BeritaDetailView({
                         {/* Thumbnail */}
                         <div className="relative h-36 w-full overflow-hidden bg-slate-100">
                           <img
-                            src={item.coverImageUrl || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=800&auto=format&fit=crop'}
+                            src={item.coverImageUrl || item.thumbnail || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=800&auto=format&fit=crop'}
                             alt={item.title}
                             loading="lazy"
                             decoding="async"
+                            onError={(e) => {
+                              const target = e.currentTarget;
+                              if (!target.src.includes('bg-gedung-umk.jpg')) {
+                                target.src = '/bg-gedung-umk.jpg';
+                              }
+                            }}
                             className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                           />
-                          {item.scope && (
-                            <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-bold tracking-wide uppercase">
-                              {item.scope}
+                          <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1">
+                            <span className="px-2.5 py-0.5 rounded-full bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-bold tracking-wide uppercase">
+                              {item.scope || 'LOKAL'}
                             </span>
-                          )}
+                            {item.kategori && item.kategori !== 'Umum' && (
+                              <span className="px-2.5 py-0.5 rounded-full bg-amber-500/90 backdrop-blur-xs text-white text-[10px] font-bold tracking-wide uppercase">
+                                {item.kategori}
+                              </span>
+                            )}
+                          </div>
                         </div>
 
                         {/* Content */}

@@ -66,7 +66,8 @@ import {
   syncKonselingConfigToSupabase,
   syncVisiMisiConfigToSupabase,
   syncCampusHiringToSupabase,
-  syncJobFairToSupabase
+  syncJobFairToSupabase,
+  sendPublicKomentar
 } from './services/dbService';
 
 // Default Foto Profil bergaya WhatsApp (Abu-abu netral dengan siluet kepala & bahu putih)
@@ -2179,6 +2180,25 @@ export async function initializeDB(): Promise<void> {
           } catch { /* abaikan jika storage penuh */ }
         }
       });
+      // Berita hanya ada di tabel 'beritas' di DB; proyeksikan ke MEMORY_DB['konten_karir'] agar admin dashboard dapat menampilkannya
+      if (Array.isArray(liveData.berita)) {
+        const existingKK = ((MEMORY_DB['konten_karir'] || []) as any[]).filter((k: any) => k.jenis !== 'berita');
+        const beritaAsKK = liveData.berita.map((b: any) => ({
+          id: b.id,
+          jenis: 'berita',
+          judul: b.judul || b.title || '',
+          body: b.body || b.content || '',
+          thumbnail: b.thumbnail || b.coverImageUrl || '',
+          penulis: b.penulis || 'Admin Website',
+          status: b.status || 'published',
+          createdAt: b.createdAt,
+          updatedAt: b.updatedAt,
+          kategori: b.kategori || 'Umum',
+          scope: b.scope || 'LOKAL',
+          isPinned: !!b.isPinned
+        }));
+        MEMORY_DB['konten_karir'] = [...existingKK, ...beritaAsKK];
+      }
       syncLocalConfigFromData(liveData);
       console.log('⚡ [Portal Data Engine] Storage dialihkan 100% ke Supabase PostgreSQL Database!');
       return;
@@ -2190,6 +2210,24 @@ export async function initializeDB(): Promise<void> {
           MEMORY_DB[key] = publicData[key];
         }
       });
+      if (Array.isArray(publicData.berita)) {
+        const existingKK = ((MEMORY_DB['konten_karir'] || []) as any[]).filter((k: any) => k.jenis !== 'berita');
+        const beritaAsKK = publicData.berita.map((b: any) => ({
+          id: b.id,
+          jenis: 'berita',
+          judul: b.judul || b.title || '',
+          body: b.body || b.content || '',
+          thumbnail: b.thumbnail || b.coverImageUrl || '',
+          penulis: b.penulis || 'Admin Website',
+          status: b.status || 'published',
+          createdAt: b.createdAt,
+          updatedAt: b.updatedAt,
+          kategori: b.kategori || 'Umum',
+          scope: b.scope || 'LOKAL',
+          isPinned: !!b.isPinned
+        }));
+        MEMORY_DB['konten_karir'] = [...existingKK, ...beritaAsKK];
+      }
       syncLocalConfigFromData(publicData);
       console.log('⚡ [Portal Data Engine] Konten publik live dari Supabase PostgreSQL (mode tamu).');
     }
@@ -2398,7 +2436,28 @@ export function saveToDB<T>(key: DBKey, data: T[]) {
         }
       } else if (key === 'konten_karir' && Array.isArray(data)) {
         for (const item of data as any[]) {
-          await syncKontenKarirToSupabase(item);
+          // Berita HANYA masuk ke tabel 'beritas' di database, TIDAK KE 'konten_karirs'
+          if (item && item.jenis === 'berita') {
+            try {
+              await syncBeritaToSupabase({
+                id: item.id,
+                judul: item.judul,
+                body: item.body,
+                thumbnail: item.thumbnail,
+                penulis: item.penulis || 'Admin Website',
+                status: item.status || 'published',
+                slug: item.id,
+                kategori: item.kategori || 'Umum',
+                scope: item.scope || 'LOKAL',
+                isPinned: !!item.isPinned
+              });
+            } catch (errBerita: any) {
+              console.warn('[Sync Berita]', errBerita?.message || errBerita);
+            }
+          } else {
+            // Konten non-berita (lowongan, program, presentasi, dll) tetap ke 'konten_karirs'
+            await syncKontenKarirToSupabase(item);
+          }
         }
       } else if (key === 'berita' && Array.isArray(data)) {
         for (const item of data as any[]) {
@@ -2482,10 +2541,19 @@ export function updateInDB<T extends { id: string }>(key: DBKey, item: T): T {
 // Helper to delete item
 export function deleteInDB<T extends { id: string }>(key: DBKey, id: string) {
   const current = getFromDB<T>(key);
+  const target = current.find(i => i.id === id) as any;
   const filtered = current.filter(i => i.id !== id);
   MEMORY_DB[key] = filtered;
   saveToDB(key, filtered);
-  deleteFromSupabase(key, id);
+
+  // Jika item yang dihapus dari konten_karir adalah jenis 'berita' atau key === 'berita', HANYA hapus dari tabel 'beritas'
+  if ((key === 'konten_karir' && target && target.jenis === 'berita') || key === 'berita') {
+    deleteFromSupabase('berita', id).catch((err) => {
+      console.warn('[Delete Berita]', err?.message || err);
+    });
+  } else {
+    deleteFromSupabase(key, id);
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────────
@@ -2905,13 +2973,45 @@ export function getKomentarBerita(): KomentarBerita[] {
 
 /** Komentar yang sudah disetujui admin — untuk render publik. */
 export function getApprovedKomentarBerita(slug: string): KomentarBerita[] {
+  const cleanSlug = String(slug || '').toLowerCase();
+  const unwrapped = cleanSlug.startsWith('kk-') ? cleanSlug.slice(3) : cleanSlug;
   return getKomentarBerita()
-    .filter(k => k.beritaSlug === slug && k.status === 'approved')
+    .filter(k => {
+      const bSlug = String(k.beritaSlug || '').toLowerCase();
+      const bId = String((k as any).beritaId || '').toLowerCase();
+      const isMatch = bSlug === cleanSlug || bSlug === unwrapped || bId === cleanSlug || bId === unwrapped;
+      return isMatch && String(k.status || '').toLowerCase() === 'approved';
+    })
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
 }
 
 export function insertKomentarBerita(item: KomentarBerita): KomentarBerita {
-  return insertToDB<KomentarBerita>('komentar_berita', item);
+  const current = getFromDB<KomentarBerita>('komentar_berita');
+  current.unshift(item);
+  MEMORY_DB['komentar_berita'] = current;
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      localStorage.setItem('cdc_umk_komentar_berita', JSON.stringify(sanitizeRecordsForStorage('komentar_berita', current)));
+    } catch { /* quota */ }
+  }
+
+  // Kirim langsung ke backend /api/komentar-publik (terkoneksi langsung ke Supabase PostgreSQL)
+  setTimeout(async () => {
+    try {
+      const res = await sendPublicKomentar({
+        id: item.id,
+        beritaSlug: item.beritaSlug,
+        nama: item.nama,
+        email: item.email,
+        komentar: item.komentar
+      });
+      console.log('✅ [Komentar Publik] Tersimpan ke PostgreSQL:', res);
+    } catch (e: any) {
+      console.warn('[Komentar Publik Sync]', e?.message || e);
+    }
+  }, 0);
+
+  return item;
 }
 
 export function updateKomentarBeritaStatus(id: string, status: StatusKomentar): KomentarBerita | null {
@@ -2920,6 +3020,12 @@ export function updateKomentarBeritaStatus(id: string, status: StatusKomentar): 
   if (idx === -1) return null;
   const updated = { ...all[idx], status };
   updateInDB<KomentarBerita>('komentar_berita', updated);
+
+  // Sync langsung record yang dimoderasi ke Supabase PostgreSQL
+  syncKomentarBeritaToSupabase(updated).catch(err => {
+    console.error('[Moderasi Komentar Sync Error]:', err);
+  });
+
   return updated;
 }
 
@@ -3688,6 +3794,10 @@ export const SEED_CAMPUS_HIRING: CampusHiringItem[] = [
 ];
 
 export function getCampusHiring(): CampusHiringItem[] {
+  const fromMem = MEMORY_DB['campus_hiring'] as CampusHiringItem[];
+  if (Array.isArray(fromMem) && fromMem.length > 0) {
+    return fromMem;
+  }
   const saved = localStorage.getItem('cdc_umk_campus_hiring');
   if (saved) {
     try {
@@ -3841,6 +3951,10 @@ export const SEED_JOB_FAIR: JobFairItem[] = [
 ];
 
 export function getJobFair(): JobFairItem[] {
+  const fromMem = MEMORY_DB['job_fair'] as JobFairItem[];
+  if (Array.isArray(fromMem) && fromMem.length > 0) {
+    return fromMem;
+  }
   const saved = localStorage.getItem('cdc_umk_job_fair');
   if (saved) {
     try {

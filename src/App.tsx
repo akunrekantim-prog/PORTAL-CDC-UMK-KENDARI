@@ -91,15 +91,17 @@ export default function App() {
   const mapKontenBeritaToBerita = (k: KontenKarir): Berita => ({
     id: k.id,
     title: k.judul,
-    slug: `kk-${k.id}`,
+    slug: k.slug || `kk-${k.id}`,
     excerpt: stripHtmlTags(k.body || '').slice(0, 160),
     content: k.body || '',
     coverImageUrl: k.thumbnail,
+    thumbnail: k.thumbnail,
     status: k.status,
     authorId: k.createdBy || 'usr_admin',
     publishedAt: k.createdAt,
     createdAt: k.createdAt,
-    scope: k.scope,
+    scope: k.scope || 'LOKAL',
+    kategori: k.kategori || 'Umum',
     penulis: k.penulis
   });
 
@@ -142,11 +144,32 @@ export default function App() {
 
   const reloadDatabase = () => {
     setAllLowongan(sortJobsByNewest(getFromDB<Lowongan>('lowongan').filter(l => l.status === 'published')));
-    const beritaSeed = getFromDB<Berita>('berita');
-    const kontenBerita = getFromDB<KontenKarir>('konten_karir')
+    const beritaMap = new Map<string, Berita>();
+    // Berita langsung dari tabel beritas
+    getFromDB<Berita>('berita').forEach((b) => {
+      if (b && b.id) {
+        const thumb = b.coverImageUrl || (b as any).thumbnail || '';
+        beritaMap.set(b.id, {
+          ...b,
+          title: b.title || (b as any).judul || '',
+          content: b.content || (b as any).body || '',
+          coverImageUrl: thumb,
+          thumbnail: thumb,
+          scope: b.scope || 'LOKAL',
+          kategori: b.kategori || 'Umum',
+        });
+      }
+    });
+    // Berita dari konten_karir (jika ada yang belum ada di map)
+    getFromDB<KontenKarir>('konten_karir')
       .filter((k) => k.jenis === 'berita' && k.status === 'published')
-      .map(mapKontenBeritaToBerita);
-    setAllBerita([...kontenBerita, ...beritaSeed]);
+      .map(mapKontenBeritaToBerita)
+      .forEach((b) => {
+        if (b && b.id && !beritaMap.has(b.id)) {
+          beritaMap.set(b.id, b);
+        }
+      });
+    setAllBerita(Array.from(beritaMap.values()));
     setAllPengumuman(getFromDB<Pengumuman>('pengumuman'));
     const programList = getFromDB<KontenKarir>('konten_karir')
       .filter((k) => k.jenis === 'program' && k.status === 'published')

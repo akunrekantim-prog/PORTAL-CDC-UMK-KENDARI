@@ -160,6 +160,37 @@ function normalizeRecord(entity: string, row: any): any {
     if (!out.displayType) out.displayType = 'poster';
     if (out.logoUrl && !out.posterUrl)    out.posterUrl = out.logoUrl;
   }
+  // Normalisasi Komentar Berita: DB pakai konten/beritaId, frontend pakai komentar/beritaSlug/beritaJudul
+  if (entity === 'komentar_berita' || entity === 'komentar_beritas') {
+    if (!out.komentar && out.konten) out.komentar = out.konten;
+    if (!out.konten && out.komentar) out.konten = out.komentar;
+    if (!out.beritaSlug) out.beritaSlug = out.berita?.slug || out.beritaId || '';
+    if (!out.beritaJudul && out.berita?.judul) out.beritaJudul = out.berita.judul;
+    if (typeof out.status === 'string') out.status = out.status.toLowerCase();
+  }
+  // Normalisasi Campus Hiring: DB pakai logoUrl/namaInstansi, frontend pakai bannerUrl/namaPerusahaan
+  if (entity === 'campus_hiring' || entity === 'campus_hirings') {
+    if (!out.bannerUrl && out.logoUrl) out.bannerUrl = out.logoUrl;
+    if (!out.logoUrl && out.bannerUrl) out.logoUrl = out.bannerUrl;
+    if (!out.judul && out.namaInstansi) out.judul = out.namaInstansi;
+    if (!out.namaPerusahaan && out.namaInstansi) out.namaPerusahaan = out.namaInstansi;
+    if (typeof out.deskripsi === 'string' && out.deskripsi.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(out.deskripsi);
+        Object.assign(out, parsed);
+      } catch { /* abaikan */ }
+    }
+  }
+  // Normalisasi Job Fair Event
+  if (entity === 'job_fair_event' || entity === 'job_fair_events' || entity === 'job_fair') {
+    if (!out.bannerUrl && out.logoUrl) out.bannerUrl = out.logoUrl;
+    if (typeof out.deskripsi === 'string' && out.deskripsi.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(out.deskripsi);
+        Object.assign(out, parsed);
+      } catch { /* abaikan */ }
+    }
+  }
   // Workaround Config: DB disimpan sebagai JSON string di field text
   if (entity === 'konseling_configs' || entity === 'konseling_config') {
     if (typeof out.deskripsi === 'string' && out.deskripsi.startsWith('{')) {
@@ -185,21 +216,26 @@ function normalizeRecord(entity: string, row: any): any {
       } catch { /* abaikan */ }
     }
   }
-  if (entity === 'campus_hiring' || entity === 'campus_hirings' || entity === 'job_fair_event' || entity === 'job_fair_events') {
-    if (typeof out.deskripsi === 'string' && out.deskripsi.startsWith('{')) {
-      try {
-        const parsed = JSON.parse(out.deskripsi);
-        Object.assign(out, parsed);
-      } catch { /* abaikan */ }
-    }
-  }
   // Normalisasi Berita: DB pakai judul/body, frontend pakai title/content
   if (entity === 'beritas' || entity === 'berita') {
     if (!out.title && out.judul)   out.title   = out.judul;
     if (!out.judul && out.title)   out.judul   = out.title;
     if (!out.content && out.body)  out.content = out.body;
     if (!out.body && out.content)  out.body    = out.content;
+    
+    // Cegah thumbnail/coverImageUrl yang corrupt (misal base64 terpotong < 500 char)
+    const checkCorrupted = (v: any) => typeof v === 'string' && v.startsWith('data:image/') && v.length < 500;
+    if (checkCorrupted(out.thumbnail)) out.thumbnail = null;
+    if (checkCorrupted(out.coverImageUrl)) out.coverImageUrl = null;
+
     if (!out.coverImageUrl && out.thumbnail) out.coverImageUrl = out.thumbnail;
+    if (!out.thumbnail && out.coverImageUrl) out.thumbnail = out.coverImageUrl;
+    if (!out.coverImageUrl) out.coverImageUrl = '/bg-gedung-umk.jpg';
+    if (!out.thumbnail) out.thumbnail = out.coverImageUrl;
+
+    if (!out.slug && out.id) out.slug = out.id;
+    if (!out.scope) out.scope = 'LOKAL';
+    if (!out.kategori) out.kategori = 'Umum';
   }
   return out;
 }
@@ -208,8 +244,18 @@ function normalizeDataset(data: Record<string, any[]>): Record<string, any[]> {
   const out: Record<string, any[]> = {};
   for (const [key, arr] of Object.entries(data || {})) {
     if (!Array.isArray(arr)) continue;
-    // social_media_items (backend) → social_media (DBKey frontend)
-    const mappedKey = key === 'social_media_items' ? 'social_media' : key;
+    // Mapping nama entitas backend ke DBKey frontend
+    const mappedKey = key === 'social_media_items'
+      ? 'social_media'
+      : key === 'campus_hirings'
+        ? 'campus_hiring'
+        : key === 'job_fair_events'
+          ? 'job_fair'
+          : key === 'konseling_configs'
+            ? 'konseling_config'
+            : key === 'komentar_beritas'
+              ? 'komentar_berita'
+              : key;
     out[mappedKey] = arr.map((row) => normalizeRecord(key, row));
   }
   return out;
@@ -585,6 +631,20 @@ export async function syncCampusHiringToSupabase(item: any): Promise<any> {
 /** Sync satu JobFairItem ke tabel job_fair_events di Supabase */
 export async function syncJobFairToSupabase(item: any): Promise<any> {
   return sendSyncRequest('job_fair_events', item);
+}
+
+/** Kirim komentar publik ke endpoint tanpa auth (langsung masuk ke tabel komentar_beritas dengan status PENDING) */
+export async function sendPublicKomentar(payload: any): Promise<any> {
+  const response = await fetch(`${API_BASE_URL}/komentar-publik`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || (data as any).success === false) {
+    throw new Error((data as any).error || (data as any).message || `Gagal mengirim komentar (status ${response.status}).`);
+  }
+  return (data as any).result ?? data;
 }
 
 export async function logoutFromBackend(): Promise<void> {

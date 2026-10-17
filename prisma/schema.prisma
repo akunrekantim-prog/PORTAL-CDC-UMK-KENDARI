@@ -414,6 +414,7 @@ model Berita {
   thumbnail      String?
   penulis        String?
   kategori       String?
+  scope          String?          @default("LOKAL")
   tags           String[]         @default([])
   isPinned       Boolean          @default(false)
   status         String           @default("draft")

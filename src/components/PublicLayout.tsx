@@ -337,8 +337,9 @@ export default function PublicLayout({
       id: b.id,
       title: b.title,
       excerpt: b.excerpt,
-      coverImageUrl: b.coverImageUrl,
+      coverImageUrl: b.coverImageUrl || b.thumbnail,
       badge: b.scope || 'LOKAL',
+      subBadge: b.kategori && b.kategori !== 'Umum' ? b.kategori : undefined,
       badgeBg: 'bg-[#1E3A8A] text-white',
       penulis: b.penulis && !b.penulis.toLowerCase().includes('admin') ? b.penulis : 'Admin Website',
       createdAt: b.createdAt,
@@ -1103,6 +1104,12 @@ export default function PublicLayout({
                                 alt={item.title}
                                 loading="lazy"
                                 decoding="async"
+                                onError={(e) => {
+                                  const target = e.currentTarget;
+                                  if (!target.src.includes('bg-gedung-umk.jpg')) {
+                                    target.src = '/bg-gedung-umk.jpg';
+                                  }
+                                }}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                               />
                             ) : (
@@ -1110,8 +1117,15 @@ export default function PublicLayout({
                                 <BookOpen className="w-10 h-10 text-slate-300" />
                               </div>
                             )}
-                            <div className={`absolute top-3 left-3 text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-md shadow-xs ${item.badgeBg}`}>
-                              {item.badge}
+                            <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 items-center">
+                              <span className={`text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-md shadow-xs ${item.badgeBg}`}>
+                                {item.badge}
+                              </span>
+                              {(item as any).subBadge && (
+                                <span className="bg-amber-500 text-white text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-md shadow-xs">
+                                  {(item as any).subBadge}
+                                </span>
+                              )}
                             </div>
                           </div>
                           <div className="p-5 flex flex-col justify-between flex-1 space-y-2">
@@ -1226,8 +1240,8 @@ export default function PublicLayout({
                   const unpinnedCandidates: PopularDisplayItem[] = [
                     ...publishedBerita.map(b => ({
                       label: b.title,
-                      thumbnail: b.coverImageUrl,
-                      kategori: b.scope || 'Berita',
+                      thumbnail: b.coverImageUrl || b.thumbnail,
+                      kategori: b.kategori && b.kategori !== 'Umum' ? b.kategori : (b.scope ? `Berita ${b.scope}` : 'Berita'),
                       createdAt: b.createdAt,
                       action: () => onSelectBerita(b.slug)
                     })),
@@ -2047,12 +2061,18 @@ export default function PublicLayout({
                         <div>
                           {/* Image Cover */}
                           <div className="aspect-[16/9] bg-slate-100 relative overflow-hidden">
-                            {item.coverImageUrl ? (
+                            {(item.coverImageUrl || item.thumbnail) ? (
                               <img
-                                src={item.coverImageUrl}
+                                src={item.coverImageUrl || item.thumbnail}
                                 alt={item.title}
                                 loading="lazy"
                                 decoding="async"
+                                onError={(e) => {
+                                  const target = e.currentTarget;
+                                  if (!target.src.includes('bg-gedung-umk.jpg')) {
+                                    target.src = '/bg-gedung-umk.jpg';
+                                  }
+                                }}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                               />
                             ) : (
@@ -2060,8 +2080,15 @@ export default function PublicLayout({
                                 <BookOpen className="w-10 h-10 text-slate-300" />
                               </div>
                             )}
-                            <div className="absolute top-3 left-3 bg-[#1E3A8A] text-white text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-md shadow-xs">
-                              {item.scope || 'LOKAL'}
+                            <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 items-center">
+                              <span className="bg-[#1E3A8A] text-white text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-md shadow-xs">
+                                {item.scope || 'LOKAL'}
+                              </span>
+                              {item.kategori && item.kategori !== 'Umum' && (
+                                <span className="bg-amber-500 text-white text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-md shadow-xs">
+                                  {item.kategori}
+                                </span>
+                              )}
                             </div>
                           </div>
 
