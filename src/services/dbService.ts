@@ -223,15 +223,20 @@ function normalizeRecord(entity: string, row: any): any {
     if (!out.content && out.body)  out.content = out.body;
     if (!out.body && out.content)  out.body    = out.content;
     
-    // Cegah thumbnail/coverImageUrl yang corrupt (misal base64 terpotong < 500 char)
-    const checkCorrupted = (v: any) => typeof v === 'string' && v.startsWith('data:image/') && v.length < 500;
+    // FIX #2: Threshold turun dari 500 ke 100.
+    // base64 header saja "data:image/png;base64," = ~22 char, gambar valid sekecil apapun > 100 char.
+    // Threshold 500 sebelumnya membuang thumbnail kecil yang valid (misal ikon/avatar kecil).
+    const checkCorrupted = (v: any) => typeof v === 'string' && v.startsWith('data:image/') && v.length < 100;
     if (checkCorrupted(out.thumbnail)) out.thumbnail = null;
     if (checkCorrupted(out.coverImageUrl)) out.coverImageUrl = null;
 
+    // Sinkronkan kedua alias field agar konsisten
     if (!out.coverImageUrl && out.thumbnail) out.coverImageUrl = out.thumbnail;
     if (!out.thumbnail && out.coverImageUrl) out.thumbnail = out.coverImageUrl;
-    if (!out.coverImageUrl) out.coverImageUrl = '/bg-gedung-umk.jpg';
-    if (!out.thumbnail) out.thumbnail = out.coverImageUrl;
+    // FIX #3: Hapus auto-fallback paksa ke /bg-gedung-umk.jpg.
+    // Sebelumnya setiap berita tanpa thumbnail dipaksa pakai foto gedung sehingga
+    // thumbnail yang diupload user bisa "hilang" tertimpa fallback ini saat refresh.
+    // Biarkan null — komponen penampil (PublicLayout, BeritaDetailView) yang handle fallback visual.
 
     if (!out.slug && out.id) out.slug = out.id;
     if (!out.scope) out.scope = 'LOKAL';

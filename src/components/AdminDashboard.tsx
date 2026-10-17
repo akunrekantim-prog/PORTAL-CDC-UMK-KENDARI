@@ -315,6 +315,10 @@ async function saveKontenKarirWithQuota(item: KontenKarir, isEdit: boolean): Pro
       };
       if (isEdit) updateInDB<any>('berita', beritaItem);
       else insertToDB<any>('berita', beritaItem);
+      // FIX #1: Berita TIDAK boleh masuk ke konten_karir.
+      // Tanpa return ini, berita ikut ditulis ke konten_karir → double-sync ke backend
+      // → server me-forward ulang ke tabel beritas dengan data yang bisa berbeda → thumbnail tertimpa.
+      return;
     }
     if (isEdit) updateInDB<KontenKarir>('konten_karir', item);
     else insertToDB<KontenKarir>('konten_karir', item);
