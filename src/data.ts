@@ -3507,6 +3507,31 @@ export function getAnggotaTim(): AnggotaTim[] {
   return DEFAULT_ANGGOTA_TIM;
 }
 
+/**
+ * Simpan atau perbarui SATU anggota tim ke database Supabase PostgreSQL secara atomik.
+ * Menghindari looping banyak request, mencegah terkena rate limiter, dan melempar error asli jika gagal.
+ */
+export async function saveSingleAnggotaTim(item: AnggotaTim): Promise<AnggotaTim> {
+  const current = getAnggotaTim();
+  const existingIdx = current.findIndex((x) => x.id === item.id);
+  const updatedList = existingIdx >= 0
+    ? current.map((x) => (x.id === item.id ? item : x))
+    : [...current, item];
+
+  // 1. Simpan langsung ke database Supabase PostgreSQL (melempar error jika gagal)
+  const result = await syncAnggotaTimToSupabase(item);
+
+  // 2. Jika sukses, perbarui state runtime dan offline storage
+  MEMORY_DB['anggota_tims'] = updatedList;
+  try {
+    localStorage.setItem('cdc_umk_keanggotaan_tim', JSON.stringify(updatedList));
+  } catch (err) {
+    console.warn('[Storage] Gagal menyimpan ke localStorage:', err);
+  }
+
+  return result || item;
+}
+
 export async function saveAnggotaTim(items: AnggotaTim[]): Promise<boolean> {
   // 1. Update MEMORY_DB seketika agar langsung aktif di runtime
   MEMORY_DB['anggota_tims'] = items;

@@ -61,6 +61,7 @@ import {
   saveVisiMisiConfig,
   getAnggotaTim,
   saveAnggotaTim,
+  saveSingleAnggotaTim,
   deleteAnggotaTim,
   getHelpdeskConfig,
   saveHelpdeskConfig,
@@ -566,7 +567,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
   const [adminWaNum, setAdminWaNum] = useState(getAdminWaPrestasi());
 
   // Form states Keanggotaan & Tim CDC
-  const [anggotaList, setAnggotaList] = useState<AnggotaTim[]>([]);
+  const [anggotaList, setAnggotaList] = useState<AnggotaTim[]>(() => getAnggotaTim());
   const [showAnggotaModal, setShowAnggotaModal] = useState(false);
   const [editAnggotaId, setEditAnggotaId] = useState<string | null>(null);
   const [angNama, setAngNama] = useState('');
@@ -8147,38 +8148,54 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
 
                 setIsSavingAnggota(true);
                 try {
-                  let updatedList = [...anggotaList];
+                  // 1. Pastikan foto terunggah ke Cloud Storage jika masih berupa data URL Base64
+                  let finalPhotoUrl = angFotoUrl.trim();
+                  if (finalPhotoUrl && finalPhotoUrl.startsWith('data:image/')) {
+                    triggerToast('info', 'Mengunggah foto profil ke Cloud Storage...');
+                    try {
+                      const cloudUrl = await uploadDataUrlToStorage(finalPhotoUrl, 'team');
+                      if (cloudUrl) {
+                        finalPhotoUrl = cloudUrl;
+                        setAngFotoUrl(cloudUrl);
+                      }
+                    } catch (uploadErr) {
+                      console.warn('[Storage] Gagal mengunggah base64 foto anggota ke cloud:', uploadErr);
+                    }
+                  }
+
                   let targetItem: AnggotaTim;
                   if (editAnggotaId) {
-                    const existing = updatedList.find((item) => item.id === editAnggotaId);
+                    const existing = anggotaList.find((item) => item.id === editAnggotaId);
                     targetItem = {
                       ...(existing || { id: editAnggotaId, urutan: 1 }),
                       nama: angNama.trim(),
                       jabatan: angJabatan.trim(),
-                      photoUrl: angFotoUrl.trim()
+                      photoUrl: finalPhotoUrl || undefined,
+                      fotoUrl: finalPhotoUrl || undefined
                     };
-                    updatedList = updatedList.map((item) =>
-                      item.id === editAnggotaId ? targetItem : item
-                    );
                   } else {
                     targetItem = {
                       id: `tim_${Date.now()}`,
                       nama: angNama.trim(),
                       jabatan: angJabatan.trim(),
-                      photoUrl: angFotoUrl.trim(),
-                      urutan: updatedList.length + 1,
+                      photoUrl: finalPhotoUrl || undefined,
+                      fotoUrl: finalPhotoUrl || undefined,
+                      urutan: anggotaList.length + 1,
                       isActive: true
                     };
-                    updatedList.push(targetItem);
                   }
 
-                  setAnggotaList(updatedList);
-                  await saveAnggotaTim(updatedList);
+                  // 2. Simpan secara atomik ke database Supabase PostgreSQL (melempar error jika gagal)
+                  await saveSingleAnggotaTim(targetItem);
+
+                  // 3. Sinkronkan tampilan state lokal dari data yang tersimpan
+                  const refreshed = getAnggotaTim();
+                  setAnggotaList(refreshed);
                   setShowAnggotaModal(false);
-                  triggerToast('success', editAnggotaId ? 'Data anggota tim berhasil diperbarui & disimpan.' : 'Anggota tim baru berhasil ditambahkan & disimpan.');
+                  triggerToast('success', editAnggotaId ? 'Data anggota tim berhasil diperbarui & disimpan di database.' : 'Anggota tim baru berhasil ditambahkan & disimpan di database.');
                 } catch (err: any) {
                   console.error('Error simpan anggota tim:', err);
-                  triggerToast('error', 'Gagal menyimpan anggota tim: ' + (err?.message || 'Error'));
+                  triggerToast('error', 'Gagal menyimpan ke database: ' + (err?.message || 'Terjadi kesalahan'));
                 } finally {
                   setIsSavingAnggota(false);
                 }
@@ -8265,9 +8282,15 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                     setAngFotoUrl(uploadedUrl);
                     triggerToast('success', 'Foto profil berhasil di-crop & diunggah ke Cloud Storage!');
                   } else {
-                    // Fallback: gunakan data URL canvas yang sudah terkompresi
-                    setAngFotoUrl(croppedDataUrl);
-                    triggerToast('success', 'Foto profil berhasil di-crop & siap disimpan!');
+                    // Fallback upload data URL ke storage
+                    const cloudUrl = await uploadDataUrlToStorage(croppedDataUrl, 'team');
+                    if (cloudUrl) {
+                      setAngFotoUrl(cloudUrl);
+                      triggerToast('success', 'Foto profil berhasil di-crop & diunggah ke Cloud Storage!');
+                    } else {
+                      setAngFotoUrl(croppedDataUrl);
+                      triggerToast('success', 'Foto profil berhasil di-crop & siap disimpan!');
+                    }
                   }
                 } catch (err: any) {
                   console.error('Upload foto profil hasil crop error:', err);
