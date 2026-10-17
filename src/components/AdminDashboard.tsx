@@ -78,7 +78,7 @@ import {
   saveStatistikConfig,
   trackAndGetVisitorCount
 } from '../data';
-import { uploadTeamMemberPhoto } from '../config/supabase';
+import { uploadTeamMemberPhoto, uploadContentImage, uploadDataUrlToStorage } from '../config/supabase';
 import { registerToBackend } from '../services/dbService';
 import ImageCropperModal from './common/ImageCropperModal';
 import {
@@ -1062,6 +1062,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
   }, [editorOpen, eJenis]);
   const [ePenulis, setEPenulis] = useState('');
   const [eThumbnail, setEThumbnail] = useState('');
+  const [isUploadingThumb, setIsUploadingThumb] = useState(false);
   const [eNamaInstansi, setENamaInstansi] = useState('');
   const [eTipe, setETipe] = useState<'magang' | 'kerja'>('magang');
   const [eLinkLamar, setELinkLamar] = useState('');
@@ -1454,9 +1455,16 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
     const file = e.target.files?.[0];
     if (file) {
       try {
-        // Poster lowongan bisa sedikit lebih besar dari thumbnail konten.
-        const url = await compressImageAdaptive(file);
-        setLPosterUrl(url);
+        const localUrl = await compressImageAdaptive(file);
+        setLPosterUrl(localUrl);
+
+        const cloudUrl = await uploadContentImage(file, 'lowongan');
+        if (cloudUrl) {
+          setLPosterUrl(cloudUrl);
+          triggerToast('success', 'Poster lowongan berhasil diunggah ke Supabase Storage!');
+        } else {
+          triggerToast('info', 'Poster lowongan dikompresi & siap disimpan.');
+        }
       } catch {
         triggerToast('error', 'Gagal memproses poster lowongan.');
       }
@@ -1687,13 +1695,30 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
 
   const handleThumbChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      try {
-        const url = await compressImageAdaptive(file);
-        setEThumbnail(url);
-      } catch (err) {
-        triggerToast('error', 'Gagal memproses gambar thumbnail.');
+    if (!file) return;
+
+    setIsUploadingThumb(true);
+    try {
+      // 1. Tampilkan pratinjau instan dari kompresi lokal agar UI langsung responsif
+      const localCompressedUrl = await compressImageAdaptive(file);
+      setEThumbnail(localCompressedUrl);
+
+      // 2. Unggah langsung ke Supabase Cloud Storage (jauh lebih ringan & permanen)
+      const targetFolder = eJenis === 'berita' ? 'berita' : 'konten';
+      const cloudUrl = await uploadContentImage(file, targetFolder);
+      if (cloudUrl) {
+        setEThumbnail(cloudUrl);
+        triggerToast('success', 'Foto berhasil diunggah ke Supabase Cloud Storage!');
+      } else {
+        triggerToast('info', 'Foto dikompresi lokal & siap disimpan.');
       }
+    } catch (err) {
+      console.error('Error saat upload thumbnail:', err);
+      triggerToast('error', 'Gagal memproses gambar thumbnail.');
+    } finally {
+      setIsUploadingThumb(false);
+      // Reset input agar pengguna bisa memilih kembali file yang sama bila dibutuhkan
+      e.target.value = '';
     }
   };
 
@@ -1748,6 +1773,21 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
           FORBID_ATTR: ['onerror','onload','onclick','onmouseover','onfocus','onblur','oninput','onsubmit'],
         })
       : eBody;
+
+    // Pastikan jika thumbnail masih berupa DataURL Base64 lokal, otomatis unggah ke Cloud Storage
+    let finalThumbnail = THUMB_REQUIRED[eJenis] ? eThumbnail : undefined;
+    if (finalThumbnail && finalThumbnail.startsWith('data:image/')) {
+      try {
+        const cloudUrl = await uploadDataUrlToStorage(finalThumbnail, eJenis === 'berita' ? 'berita' : 'konten');
+        if (cloudUrl) {
+          finalThumbnail = cloudUrl;
+          setEThumbnail(cloudUrl);
+        }
+      } catch (uploadErr) {
+        console.warn('[Storage] Gagal mengunggah base64 ke storage saat simpan:', uploadErr);
+      }
+    }
+
     const base: KontenKarir = {
       id: editId || (eJenis === 'berita' ? `berita_${Date.now()}` : `kk_${Date.now()}`),
       jenis: eJenis,
@@ -1762,7 +1802,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
       kuota: eJenis === 'lowongan' && eKuota ? Number(eKuota) : undefined,
       deadline: eJenis === 'lowongan' ? eDeadline : undefined,
       linkCta: eJenis === 'program' ? (eLinkCta.trim() || undefined) : undefined,
-      thumbnail: THUMB_REQUIRED[eJenis] ? eThumbnail : undefined,
+      thumbnail: finalThumbnail,
       scope: eJenis === 'berita' ? eScope : undefined,
       // Field khusus Presentasi
       subKategori: eJenis === 'presentasi' ? eSubKategori : undefined,
@@ -3836,22 +3876,43 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                           )}
                         </label>
                         <div className="flex items-center gap-3">
-                          <label className="cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1.5">
-                            <ImageIcon className="w-4 h-4" /> Upload Gambar
-                            <input type="file" accept="image/*" className="hidden" onChange={handleThumbChange} />
+                          <label className={`cursor-pointer ${isUploadingThumb ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'} px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1.5 transition`}>
+                            {isUploadingThumb ? (
+                              <>
+                                <span className="w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></span>
+                                Mengunggah ke Cloud...
+                              </>
+                            ) : (
+                              <>
+                                <ImageIcon className="w-4 h-4 text-[#0077C6]" /> Upload Gambar
+                              </>
+                            )}
+                            <input type="file" accept="image/*" className="hidden" disabled={isUploadingThumb} onChange={handleThumbChange} />
                           </label>
                           {eThumbnail ? (
-                            <img src={eThumbnail} alt="" className={`w-16 object-cover rounded-lg ${eJenis === 'lowongan' ? 'h-24' : 'h-10'}`} />
+                            <div className="relative group">
+                              <img src={eThumbnail} alt="" className={`w-16 object-cover rounded-lg border border-slate-200 shadow-sm ${eJenis === 'lowongan' ? 'h-24' : 'h-10'}`} />
+                              {eThumbnail.startsWith('http') && (
+                                <span className="absolute -top-1.5 -right-1.5 bg-emerald-500 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full shadow">Cloud</span>
+                              )}
+                            </div>
                           ) : (
                             <div className="w-16 h-10 bg-slate-100 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 text-xs font-medium">
                               Kosong
                             </div>
                           )}
-                          <span className="text-[10px] text-slate-400 italic">
-                            {eJenis === 'berita' ? 'Recomendasikan: 1200x675px (16:9)' :
-                             eJenis === 'lowongan' ? 'Recomendasikan: 450x800px (9:16)' :
-                             'Gambar kartu beranda'}
-                          </span>
+                          <div className="flex flex-col">
+                            <span className="text-[10px] text-slate-400 italic">
+                              {eJenis === 'berita' ? 'Rekomendasi: 1200x675px (16:9)' :
+                               eJenis === 'lowongan' ? 'Rekomendasi: 450x800px (9:16)' :
+                               'Gambar kartu beranda'}
+                            </span>
+                            {eThumbnail && eThumbnail.startsWith('http') && (
+                              <span className="text-[10px] text-emerald-600 font-medium">
+                                ✓ Tersimpan aman di Supabase Storage
+                              </span>
+                            )}
+                          </div>
                         </div>
                         {!eThumbnail && (
                           <p className="text-[10px] text-rose-500 font-medium mt-0.5">Thumbnail wajib diunggah sebelum disimpan.</p>
