@@ -519,6 +519,7 @@ export type StatusKomentar = 'pending' | 'approved' | 'rejected';
 
 export interface KomentarBerita {
   id: string;
+  beritaId?: string;
   beritaSlug: string; // slug berita tujuan (Berita.slug / KontenKarir -> 'kk-<id>')
   beritaJudul: string; // judul berita (snapshot, agar admin mudah baca)
   nama: string;

@@ -439,7 +439,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
   const [skItems, setSkItems] = useState<SuratKeputusan[]>([]);
   const [kalItems, setKalItems] = useState<KalenderKegiatan[]>([]);
   const [lapItems, setLapItems] = useState<LaporanKinerja[]>([]);
-  const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [toast, setToast] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
   const toastTimerRef = useRef<number | null>(null);
   const [zoomImage, setZoomImage] = useState<string | null>(null);
 
@@ -490,6 +490,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
   const [galeriItems, setGaleriItems] = useState<GaleriItem[]>([]);
   const [komentarList, setKomentarList] = useState<KomentarBerita[]>([]);
   const [komentarFilter, setKomentarFilter] = useState<'semua' | 'pending' | 'approved' | 'rejected'>('pending');
+  const [isRefreshingKomentar, setIsRefreshingKomentar] = useState(false);
   const [cdcClubCfg, setCdcClubCfg] = useState<CdcClubConfig>(getCdcClubConfig());
   const [showGalForm, setShowGalForm] = useState(false);
   const [editGalId, setEditGalId] = useState<string | null>(null);
@@ -769,6 +770,35 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Tarik komentar live dari Supabase saat tab komentar aktif
+  useEffect(() => {
+    if (activeTab === 'komentar') {
+      import('../services/dbService').then(({ fetchDirectKomentarBerita }) => {
+        fetchDirectKomentarBerita().then((fresh) => {
+          if (Array.isArray(fresh) && fresh.length > 0) {
+            setKomentarList(fresh);
+          }
+        });
+      });
+    }
+  }, [activeTab]);
+
+  const handleRefreshKomentarLive = async () => {
+    setIsRefreshingKomentar(true);
+    try {
+      const { fetchDirectKomentarBerita } = await import('../services/dbService');
+      const fresh = await fetchDirectKomentarBerita();
+      if (Array.isArray(fresh)) {
+        setKomentarList(fresh);
+        triggerToast('success', `Berhasil menyinkronkan ${fresh.length} komentar dari Supabase.`);
+      }
+    } catch {
+      triggerToast('error', 'Gagal menyinkronkan komentar dari server.');
+    } finally {
+      setIsRefreshingKomentar(false);
+    }
+  };
+
   useEffect(() => {
     return () => {
       if (toastTimerRef.current) {
@@ -777,7 +807,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
     };
   }, []);
 
-  const triggerToast = (type: 'success' | 'error', text: string) => {
+  const triggerToast = (type: 'success' | 'error' | 'info', text: string) => {
     setToast({ type, text });
     if (toastTimerRef.current) {
       window.clearTimeout(toastTimerRef.current);
@@ -9064,9 +9094,21 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                     approved: komentarList.filter((k) => k.status === 'approved').length,
                     rejected: komentarList.filter((k) => k.status === 'rejected').length,
                   };
-                  const doApprove = (id: string) => { updateKomentarBeritaStatus(id, 'approved'); reloadAll(); triggerToast('success', 'Komentar disetujui & akan tayang di publik.'); };
-                  const doReject = (id: string) => { updateKomentarBeritaStatus(id, 'rejected'); reloadAll(); triggerToast('error', 'Komentar ditolak.'); };
-                  const doDelete = (id: string) => { deleteKomentarBerita(id); reloadAll(); triggerToast('error', 'Komentar dihapus.'); };
+                  const doApprove = (id: string) => {
+                    updateKomentarBeritaStatus(id, 'approved');
+                    setKomentarList(prev => prev.map(k => k.id === id ? { ...k, status: 'approved' } : k));
+                    triggerToast('success', 'Komentar disetujui & akan tayang di publik.');
+                  };
+                  const doReject = (id: string) => {
+                    updateKomentarBeritaStatus(id, 'rejected');
+                    setKomentarList(prev => prev.map(k => k.id === id ? { ...k, status: 'rejected' } : k));
+                    triggerToast('error', 'Komentar ditolak.');
+                  };
+                  const doDelete = (id: string) => {
+                    deleteKomentarBerita(id);
+                    setKomentarList(prev => prev.filter(k => k.id !== id));
+                    triggerToast('error', 'Komentar dihapus.');
+                  };
                   const tabs: { id: typeof komentarFilter; label: string }[] = [
                     { id: 'pending', label: `Menunggu (${counts.pending})` },
                     { id: 'approved', label: `Disetujui (${counts.approved})` },
@@ -9075,9 +9117,19 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                   ];
                   return (
                     <>
-                      <div className="anim-fade-up">
-                        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Moderasi Komentar Berita</h1>
-                        <p className="text-sm text-slate-500 mt-0.5">Komentar dari pengunjung akan tampil di halaman Berita &amp; Artikel hanya setelah Anda menyetujui.</p>
+                      <div className="anim-fade-up flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Moderasi Komentar Berita</h1>
+                          <p className="text-sm text-slate-500 mt-0.5">Komentar dari pengunjung akan tampil di halaman Berita &amp; Artikel hanya setelah Anda menyetujui.</p>
+                        </div>
+                        <button
+                          onClick={handleRefreshKomentarLive}
+                          disabled={isRefreshingKomentar}
+                          className="self-start sm:self-auto inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer"
+                        >
+                          <RefreshCw className={`w-3.5 h-3.5 text-[#1E3A8A] ${isRefreshingKomentar ? 'animate-spin' : ''}`} />
+                          <span>{isRefreshingKomentar ? 'Menyinkronkan...' : 'Segarkan Data Live'}</span>
+                        </button>
                       </div>
 
                       {/* Filter Tabs */}

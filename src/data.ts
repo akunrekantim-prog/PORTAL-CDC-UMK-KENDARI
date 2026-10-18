@@ -69,7 +69,8 @@ import {
   syncVisiMisiConfigToSupabase,
   syncCampusHiringToSupabase,
   syncJobFairToSupabase,
-  sendPublicKomentar
+  sendPublicKomentar,
+  fetchDirectKomentarBerita
 } from './services/dbService';
 
 // Default Foto Profil bergaya WhatsApp (Abu-abu netral dengan siluet kepala & bahu putih)
@@ -2320,17 +2321,30 @@ export function cleanupGoogleUsersEducation() {
 export async function refreshLiveDatabase(): Promise<boolean> {
   try {
     const liveData = await fetchInitialDatabaseFromSupabase();
-    if (!liveData) return false;
-    Object.keys(liveData).forEach(key => {
-      if (Array.isArray(liveData[key])) {
-        MEMORY_DB[key] = liveData[key];
+    if (liveData) {
+      Object.keys(liveData).forEach(key => {
+        if (Array.isArray(liveData[key])) {
+          MEMORY_DB[key] = liveData[key];
+          try {
+            const storageKey = `cdc_umk_${key}`;
+            localStorage.setItem(storageKey, JSON.stringify(sanitizeRecordsForStorage(key as DBKey, liveData[key])));
+          } catch { /* abaikan jika storage penuh */ }
+        }
+      });
+    }
+
+    // Direct fetch untuk komentar_berita agar selalu fresh dari Supabase PostgreSQL
+    try {
+      const directKomentar = await fetchDirectKomentarBerita();
+      if (Array.isArray(directKomentar) && directKomentar.length > 0) {
+        MEMORY_DB['komentar_berita'] = directKomentar;
         try {
-          const storageKey = `cdc_umk_${key}`;
-          localStorage.setItem(storageKey, JSON.stringify(sanitizeRecordsForStorage(key as DBKey, liveData[key])));
-        } catch { /* abaikan jika storage penuh */ }
+          localStorage.setItem('cdc_umk_komentar_berita', JSON.stringify(directKomentar));
+        } catch { /* abaikan */ }
       }
-    });
-    return true;
+    } catch { /* abaikan */ }
+
+    return !!liveData;
   } catch {
     return false;
   }
@@ -2988,7 +3002,7 @@ export function getApprovedKomentarBerita(slug: string): KomentarBerita[] {
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
 }
 
-export function insertKomentarBerita(item: KomentarBerita): KomentarBerita {
+export async function insertKomentarBerita(item: KomentarBerita): Promise<KomentarBerita> {
   const current = getFromDB<KomentarBerita>('komentar_berita');
   current.unshift(item);
   MEMORY_DB['komentar_berita'] = current;
@@ -2998,21 +3012,22 @@ export function insertKomentarBerita(item: KomentarBerita): KomentarBerita {
     } catch { /* quota */ }
   }
 
-  // Kirim langsung ke backend /api/komentar-publik (terkoneksi langsung ke Supabase PostgreSQL)
-  setTimeout(async () => {
-    try {
-      const res = await sendPublicKomentar({
-        id: item.id,
-        beritaSlug: item.beritaSlug,
-        nama: item.nama,
-        email: item.email,
-        komentar: item.komentar
-      });
-      console.log('✅ [Komentar Publik] Tersimpan ke PostgreSQL:', res);
-    } catch (e: any) {
-      console.warn('[Komentar Publik Sync]', e?.message || e);
-    }
-  }, 0);
+  // Kirim langsung ke Supabase PostgreSQL via sendPublicKomentar (Dual-Path)
+  try {
+    const res = await sendPublicKomentar({
+      id: item.id,
+      beritaId: item.beritaId,
+      beritaSlug: item.beritaSlug,
+      beritaJudul: item.beritaJudul,
+      nama: item.nama,
+      email: item.email,
+      komentar: item.komentar
+    });
+    console.log('✅ [Komentar Publik] Berhasil tersimpan ke Supabase PostgreSQL:', res);
+  } catch (e: any) {
+    console.warn('[Komentar Publik Sync Warning]:', e?.message || e);
+    throw e;
+  }
 
   return item;
 }
@@ -3815,6 +3830,8 @@ export const SEED_CAMPUS_HIRING: CampusHiringItem[] = [
     posisiBuka: ['Development Program (DP)', 'Frontliner Syariah', 'Funding & Service Officer'],
     kuota: 100,
     terdaftarCount: 45,
+    status: 'buka',
+    createdAt: new Date().toISOString(),
   },
   {
     id: 'ch_8',

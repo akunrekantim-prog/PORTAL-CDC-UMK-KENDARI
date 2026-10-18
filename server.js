@@ -1710,7 +1710,7 @@ app.delete('/api/:table/:id', authenticateToken, writeLimiter, async (req, res) 
     if (!/^[\w\-\.]+$/.test(id)) return res.status(400).json({ error: 'ID tidak valid.' });
     const r = req.user?.role;
     const requesterId = req.user?.id;
-    const adminOnlyModels = new Set(['user','mahasiswa','alumni','surveiLulusan','berita','pengumuman','galeriItem','kalenderKegiatan','heroSlide','jobFairEvent','jobFairCompany','campusHiring','mouStakeholder','suratKeputusan','laporanKinerja','anggotaTim','socialMediaItem','konselingConfig','visiMisiConfig']);
+    const adminOnlyModels = new Set(['user','mahasiswa','alumni','surveiLulusan','berita','pengumuman','galeriItem','kalenderKegiatan','heroSlide','jobFairEvent','jobFairCompany','campusHiring','mouStakeholder','suratKeputusan','laporanKinerja','anggotaTim','socialMediaItem','konselingConfig','visiMisiConfig','komentarBerita']);
     const ownerModels = new Set(['mitra','lowongan','kontenKarir','pengajuanMagang','tracerStudy']);
     if (adminOnlyModels.has(model) && r !== 'ADMIN') return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
     if (ownerModels.has(model) && r !== 'ADMIN') {

@@ -514,31 +514,57 @@ async function sendSyncRequest(entity: string, payload: any): Promise<any> {
 }
 
 export async function deleteFromSupabase(table: string, id: string): Promise<boolean> {
+  let directDeleted = false;
+
   // Direct Supabase delete fallback untuk tabel anggota_tims
   if (table === 'anggota_tims' && supabase) {
     try {
-      await supabase.from('anggota_tims').delete().eq('id', id);
-      console.log(`✅ [Direct Supabase Delete] Item ${id} dihapus langsung dari tabel anggota_tims`);
+      const { error } = await supabase.from('anggota_tims').delete().eq('id', id);
+      if (!error) {
+        directDeleted = true;
+        console.log(`✅ [Direct Supabase Delete] Item ${id} dihapus langsung dari tabel anggota_tims`);
+      }
     } catch (e) {
       console.warn('[Direct Supabase Delete] exception:', e);
     }
   }
 
+  // Direct Supabase delete fallback untuk tabel komentar_berita / komentar_beritas
+  if ((table === 'komentar_berita' || table === 'komentar_beritas') && supabase) {
+    try {
+      const { error } = await supabase.from('komentar_beritas').delete().eq('id', id);
+      if (!error) {
+        directDeleted = true;
+        console.log(`✅ [Direct Supabase Delete] Komentar ${id} dihapus langsung dari tabel komentar_beritas`);
+      }
+    } catch (e) {
+      console.warn('[Direct Supabase Delete] exception komentar:', e);
+    }
+  }
+
   const headers = authHeaders();
   if (!headers.Authorization) {
+    if (directDeleted) return true;
     throw new Error('Belum login. Hapus dibatalkan agar data tidak hanya hilang lokal.');
   }
-  const response = await fetch(`${API_BASE_URL}/${table}/${id}`, {
-    method: 'DELETE',
-    credentials: 'include',
-    headers
-  });
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({}));
-    throw new Error((data as any).error || `Gagal menghapus ${table}/${id} di Supabase (status ${response.status}).`);
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/${table}/${id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+      headers
+    });
+    if (!response.ok) {
+      if (directDeleted) return true;
+      const data = await response.json().catch(() => ({}));
+      throw new Error((data as any).error || `Gagal menghapus ${table}/${id} di Supabase (status ${response.status}).`);
+    }
+    console.log(`✅ [Supabase API Delete] Item ${id} dihapus dari tabel ${table}`);
+    return true;
+  } catch (err) {
+    if (directDeleted) return true;
+    throw err;
   }
-  console.log(`✅ [Supabase API Delete] Item ${id} dihapus dari tabel ${table}`);
-  return true;
 }
 
 export async function syncUserToSupabase(user: User): Promise<any> {
@@ -610,7 +636,34 @@ export async function syncSocialMediaToSupabase(s: any): Promise<any> {
 }
 
 export async function syncKomentarBeritaToSupabase(k: any): Promise<any> {
-  return sendSyncRequest('komentar_berita', k);
+  const statusUpper = String(k.status || 'PENDING').toUpperCase();
+  let directSuccess = false;
+
+  // 1. Direct Supabase Client update status (Jalur Utama & Fail-safe)
+  if (supabase && k.id) {
+    try {
+      const { error } = await supabase
+        .from('komentar_beritas')
+        .update({ status: statusUpper })
+        .eq('id', k.id);
+      if (!error) {
+        directSuccess = true;
+        console.log(`✅ [Direct Supabase] Status komentar ${k.id} berhasil diperbarui ke ${statusUpper}`);
+      } else {
+        console.warn('[Direct Supabase] Gagal update status komentar:', error.message);
+      }
+    } catch (e) {
+      console.warn('[Direct Supabase] Exception update status komentar:', e);
+    }
+  }
+
+  // 2. Sinkronisasi ke backend API
+  try {
+    return await sendSyncRequest('komentar_berita', { ...k, status: statusUpper });
+  } catch (err) {
+    if (directSuccess) return k;
+    throw err;
+  }
 }
 
 export async function syncUploadedDocumentToSupabase(d: any): Promise<any> {
@@ -699,18 +752,116 @@ export async function syncJobFairToSupabase(item: any): Promise<any> {
   return sendSyncRequest('job_fair_events', item);
 }
 
-/** Kirim komentar publik ke endpoint tanpa auth (langsung masuk ke tabel komentar_beritas dengan status PENDING) */
+/** 
+ * Kirim komentar publik dengan arsitektur Dual-Path:
+ * 1. Simpan langsung ke Supabase PostgreSQL tabel 'komentar_beritas' via Supabase JS SDK (instan, bebas 404/500 backend)
+ * 2. Kirim juga ke Express Backend API (/api/komentar-publik) untuk audit log & sinkronisasi
+ */
 export async function sendPublicKomentar(payload: any): Promise<any> {
-  const response = await fetch(`${API_BASE_URL}/komentar-publik`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok || (data as any).success === false) {
-    throw new Error((data as any).error || (data as any).message || `Gagal mengirim komentar (status ${response.status}).`);
+  const commentId = String(payload.id || `kmt_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`);
+  const textKonten = String(payload.konten || payload.komentar || '').trim();
+  const nama = String(payload.nama || '').trim();
+  const email = String(payload.email || '').trim().toLowerCase();
+  let beritaId = payload.beritaId || null;
+
+  let directSuccess = false;
+  let directResult: any = null;
+
+  // 1. Direct Supabase Client (Jalur Utama & Fail-safe)
+  if (supabase) {
+    try {
+      // Jika beritaId belum ada tapi ada slug, cari id berita terlebih dahulu
+      if (!beritaId && payload.beritaSlug) {
+        const slugRef = String(payload.beritaSlug).trim();
+        const unwrapped = slugRef.startsWith('kk-') ? slugRef.slice(3) : slugRef;
+        const { data: bData } = await supabase
+          .from('beritas')
+          .select('id, judul, slug')
+          .or(`slug.eq.${slugRef},id.eq.${slugRef},slug.eq.${unwrapped},id.eq.${unwrapped}`)
+          .limit(1)
+          .maybeSingle();
+        if (bData && bData.id) {
+          beritaId = bData.id;
+        }
+      }
+
+      if (beritaId) {
+        const { data, error } = await supabase
+          .from('komentar_beritas')
+          .insert({
+            id: commentId,
+            beritaId: beritaId,
+            nama: nama.slice(0, 100),
+            email: email.slice(0, 150),
+            konten: textKonten,
+            status: 'PENDING'
+          })
+          .select('*, berita:beritas(id, judul, slug)');
+
+        if (!error && data && data.length > 0) {
+          directSuccess = true;
+          directResult = normalizeRecord('komentar_berita', data[0]);
+          console.log('✅ [Direct Supabase Sync] Komentar berita tersimpan langsung ke PostgreSQL Supabase:', directResult);
+        } else if (error) {
+          console.warn('[Direct Supabase Sync] Gagal insert komentar:', error.message);
+        }
+      } else {
+        console.warn('[Direct Supabase Sync] Berita tujuan tidak ditemukan untuk slug:', payload.beritaSlug);
+      }
+    } catch (directErr) {
+      console.warn('[Direct Supabase Sync] Exception komentar:', directErr);
+    }
   }
-  return (data as any).result ?? data;
+
+  // 2. Sinkronisasi ke Backend Express API
+  try {
+    const response = await fetch(`${API_BASE_URL}/komentar-publik`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: commentId,
+        beritaId: beritaId,
+        beritaSlug: payload.beritaSlug,
+        nama: nama,
+        email: email,
+        komentar: textKonten
+      })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (response.ok && (data as any).success !== false) {
+      return (data as any).result ?? directResult ?? data;
+    }
+    if (directSuccess) {
+      console.log('ℹ️ [Komentar Publik] Direct Supabase sukses meskipun Backend API mengembalikan status error:', response.status);
+      return directResult;
+    }
+    throw new Error((data as any).error || (data as any).message || `Gagal mengirim komentar (status ${response.status}).`);
+  } catch (apiErr: any) {
+    if (directSuccess) {
+      console.log('ℹ️ [Komentar Publik] Direct Supabase sukses meskipun Backend API offline/404.');
+      return directResult;
+    }
+    throw apiErr;
+  }
+}
+
+/** Tarik data live komentar berita langsung dari Supabase PostgreSQL dengan relasi judul & slug berita */
+export async function fetchDirectKomentarBerita(): Promise<any[]> {
+  if (!supabase) return [];
+  try {
+    const { data, error } = await supabase
+      .from('komentar_beritas')
+      .select('*, berita:beritas(id, judul, slug)')
+      .order('createdAt', { ascending: false });
+    if (error || !data) {
+      if (error) console.warn('[Direct Supabase Komentar Fetch] Error:', error.message);
+      return [];
+    }
+    return data.map(row => normalizeRecord('komentar_berita', row));
+  } catch (e) {
+    console.warn('[Direct Supabase Komentar Fetch] Exception:', e);
+    return [];
+  }
 }
 
 export async function logoutFromBackend(): Promise<void> {

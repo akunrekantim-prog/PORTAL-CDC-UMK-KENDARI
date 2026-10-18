@@ -12,7 +12,8 @@ import {
   Send,
   CornerDownRight,
   Sparkles,
-  Calendar
+  Calendar,
+  Loader2
 } from 'lucide-react';
 import { Berita, KontenKarir } from '../types';
 import Header from './Header';
@@ -87,6 +88,7 @@ export default function BeritaDetailView({
   const [inputNama, setInputNama] = useState('');
   const [inputEmail, setInputEmail] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const toastTimerRef = useRef<number | null>(null);
 
@@ -199,11 +201,13 @@ export default function BeritaDetailView({
       return;
     }
 
+    setIsSubmitting(true);
     // Simpan ke DB dengan status PENDING — baru tayang setelah admin menyetujui.
     const newId = `kmt_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
     try {
       await insertKomentarBerita({
         id: newId,
+        beritaId: berita.id,
         beritaSlug: berita.slug,
         beritaJudul: berita.title,
         nama: inputNama.trim(),
@@ -214,7 +218,10 @@ export default function BeritaDetailView({
       });
     } catch (err: any) {
       showToast(err?.message || 'Gagal mengirim komentar. Silakan coba lagi.');
+      setIsSubmitting(false);
       return;
+    } finally {
+      setIsSubmitting(false);
     }
 
     // Soft-notice di sesi ini: user lihat sendiri bahwa komentarnya menunggu moderasi.
@@ -564,9 +571,18 @@ export default function BeritaDetailView({
                   <div className="pt-2">
                     <button
                       type="submit"
-                      className="bg-[#0B1E48] hover:bg-[#071533] text-white font-extrabold text-xs uppercase tracking-wider px-6 py-3 rounded-md transition shadow-md active:scale-95 cursor-pointer inline-flex items-center gap-2"
+                      disabled={isSubmitting}
+                      className="bg-[#0B1E48] hover:bg-[#071533] disabled:opacity-50 disabled:cursor-not-allowed text-white font-extrabold text-xs uppercase tracking-wider px-6 py-3 rounded-md transition shadow-md active:scale-95 cursor-pointer inline-flex items-center gap-2"
                     >
-                      <Send className="w-3.5 h-3.5" /> KIRIM KOMENTAR
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" /> MENGIRIM...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-3.5 h-3.5" /> KIRIM KOMENTAR
+                        </>
+                      )}
                     </button>
                   </div>
                 </form>
