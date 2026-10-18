@@ -1613,7 +1613,9 @@ app.post('/api/sync/:entity', authenticateToken, writeLimiter, async (req, res) 
       if (r !== 'ADMIN') return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
       const ap = { ...payload };
       if (!ap.photoUrl && ap.fotoUrl) ap.photoUrl = ap.fotoUrl;
+      delete ap.fotoUrl;
       const { data } = buildSyncData('anggota_tims', ap);
+      delete data.fotoUrl;
       const result = await prisma.anggotaTim.upsert({
         where: { id: payload.id || '' },
         update: data,

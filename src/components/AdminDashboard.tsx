@@ -8179,8 +8179,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                       ...(existing || { id: editAnggotaId, urutan: 1 }),
                       nama: angNama.trim(),
                       jabatan: angJabatan.trim(),
-                      photoUrl: finalPhotoUrl || undefined,
-                      fotoUrl: finalPhotoUrl || undefined
+                      photoUrl: finalPhotoUrl || undefined
                     };
                   } else {
                     targetItem = {
@@ -8188,7 +8187,6 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                       nama: angNama.trim(),
                       jabatan: angJabatan.trim(),
                       photoUrl: finalPhotoUrl || undefined,
-                      fotoUrl: finalPhotoUrl || undefined,
                       urutan: anggotaList.length + 1,
                       isActive: true
                     };

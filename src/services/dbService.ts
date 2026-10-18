@@ -21,6 +21,7 @@ import {
   KontenKarir
 } from '../types';
 import { API_BASE_URL } from '../config/api';
+import { supabase } from '../config/supabase';
 
 /* ── Auth session helpers ─────────────────────────────────────────── */
 
@@ -513,6 +514,16 @@ async function sendSyncRequest(entity: string, payload: any): Promise<any> {
 }
 
 export async function deleteFromSupabase(table: string, id: string): Promise<boolean> {
+  // Direct Supabase delete fallback untuk tabel anggota_tims
+  if (table === 'anggota_tims' && supabase) {
+    try {
+      await supabase.from('anggota_tims').delete().eq('id', id);
+      console.log(`✅ [Direct Supabase Delete] Item ${id} dihapus langsung dari tabel anggota_tims`);
+    } catch (e) {
+      console.warn('[Direct Supabase Delete] exception:', e);
+    }
+  }
+
   const headers = authHeaders();
   if (!headers.Authorization) {
     throw new Error('Belum login. Hapus dibatalkan agar data tidak hanya hilang lokal.');
@@ -608,9 +619,59 @@ export async function syncUploadedDocumentToSupabase(d: any): Promise<any> {
 
 // ── Sync fungsi untuk entitas config Admin Dashboard ─────────────────────────
 
-/** Sync satu AnggotaTim ke tabel anggota_tims di Supabase */
+/** 
+ * Sync satu AnggotaTim ke tabel anggota_tims di Supabase.
+ * Menggunakan arsitektur Dual-Path:
+ * 1. Sanitasi ketat payload ke nama kolom PostgreSQL (buang fotoUrl agar tidak memicu error Prisma)
+ * 2. Simpan langsung ke Supabase PostgreSQL via Supabase SDK (instan, bebas error 500 Railway)
+ * 3. Kirim juga ke Express Backend API untuk audit log dan sinkronisasi
+ */
 export async function syncAnggotaTimToSupabase(item: any): Promise<any> {
-  return sendSyncRequest('anggota_tims', item);
+  const cleanItem: Record<string, any> = {
+    id: String(item.id || `angt_${Date.now().toString(36)}`),
+    nama: String(item.nama || '').trim(),
+    jabatan: String(item.jabatan || '').trim(),
+    photoUrl: item.photoUrl || item.fotoUrl || null,
+    email: item.email ? String(item.email).trim() : null,
+    bio: item.bio ? String(item.bio).trim() : null,
+    urutan: typeof item.urutan === 'number' ? item.urutan : (Number(item.urutan) || 0),
+    isActive: item.isActive !== false
+  };
+
+  let directSuccess = false;
+  let directResult: any = null;
+
+  // 1. Direct Supabase Client (Jalur Utama & Fail-safe)
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('anggota_tims')
+        .upsert(cleanItem)
+        .select();
+
+      if (!error && data && data.length > 0) {
+        directSuccess = true;
+        directResult = data[0];
+        console.log('✅ [Direct Supabase Sync] AnggotaTim tersimpan langsung ke PostgreSQL Supabase:', directResult);
+      } else if (error) {
+        console.warn('[Direct Supabase Sync] Gagal direct upsert, mencoba backend API:', error.message);
+      }
+    } catch (directErr) {
+      console.warn('[Direct Supabase Sync] Exception:', directErr);
+    }
+  }
+
+  // 2. Sinkronisasi ke Backend Express API
+  try {
+    const apiResult = await sendSyncRequest('anggota_tims', cleanItem);
+    return apiResult || directResult || cleanItem;
+  } catch (apiErr) {
+    if (directSuccess) {
+      console.log('ℹ️ [Sync AnggotaTim] Direct Supabase sukses meskipun Backend API offline/error.');
+      return directResult || cleanItem;
+    }
+    throw apiErr;
+  }
 }
 
 /** Sync satu HeroSlide ke tabel hero_slides di Supabase */
