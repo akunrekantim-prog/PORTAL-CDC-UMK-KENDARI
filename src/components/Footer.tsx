@@ -178,13 +178,7 @@ export const Footer: React.FC<FooterProps> = ({
       items: [
         { label: 'Berita & Artikel Karir', tab: 'berita' },
         { label: 'Konseling Karir Mahasiswa', tab: 'konseling' },
-        { label: 'Tes Potensi Minat (Klob Meter)', href: 'https://www.klob.id/klob-journey/klob-meter' },
-        { label: 'Workshop Pengembangan Karir', tab: 'workshop' },
-        { label: 'Pelatihan Softskill & Kewirausahaan', tab: 'softskill' },
-        { label: 'Seminar Sukses Berkarir', tab: 'seminar' },
-        { label: 'Job Fair / Bursa Kerja', tab: 'career-fair' },
-        { label: 'Campus Hiring Perusahaan', tab: 'campus-hiring' },
-        { label: 'Program Internship / Magang', tab: 'magang' }
+        { label: 'Event Pengembangan Karir', tab: 'event' }
       ]
     },
     {
@@ -216,6 +210,8 @@ export const Footer: React.FC<FooterProps> = ({
         { label: 'Daftar Akun Mahasiswa / Alumni', tab: 'register-alumni' },
         { label: 'Daftar Akun Mitra Industri', tab: 'register-perusahaan' },
         { label: 'Portal Lowongan Kerja Terbaru', tab: 'lowongan' },
+        { label: 'Program Internship / Magang', tab: 'magang' },
+        { label: 'Tes Potensi Minat (Klob Meter)', href: 'https://www.klob.id/klob-journey/klob-meter' },
         { label: 'APSKAR PTMA Indonesia', href: 'https://apskarptma.or.id/' }
       ]
     }

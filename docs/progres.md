@@ -6,6 +6,69 @@ Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 
 ---
 
+## Tanggal: 19 Oktober 2026
+**Oleh: ARYA APRIAWAN**
+**Fokus Pekerjaan:** Restrukturisasi besar menu Layanan (penyederhanaan menjadi Berita & Artikel, Konseling Karir, dan Event), pembuatan modul terpadu Event Pengembangan Karir dengan filter kategori pencarian ala Berita, serta relokasi menu Internship & Tes Potensi Minat Kerja ke Job Info.
+
+### Ringkasan Perubahan
+1. **Restrukturisasi Menu Navigasi Layanan & Job Info (`Header.tsx`, `Footer.tsx`, `i18n.ts`):**
+   - **Menu Layanan disederhanakan** hanya menjadi 3 pilihan utama di dropdown navigasi:
+     1. **Berita & Artikel** (`/layanan?tab=berita`)
+     2. **Konseling Karir** (`/layanan?tab=konseling`)
+     3. **Event** (`/event` atau `/layanan?tab=event`) — label navbar ringkas: `"Event"`.
+   - **Submenu Layanan yang diintegrasikan ke modul Event**:
+     - Workshop Pengembangan Karir
+     - Pelatihan Softskill & Kewirausahaan
+     - Seminar Sukses Berkarir
+     - Campus Hiring
+     - Job Fair
+   - **Pemindahan Submenu ke Menu Job Info**:
+     - **Internship / Magang** (`/magang` atau `/layanan?tab=magang`) kini menjadi bagian dari dropdown menu Job Info.
+     - **Tes Potensi Minat Kerja** (tautan asesmen Klob Meter) dipindahkan ke dropdown menu Job Info.
+   - Penyesuaian tautan kategori sitemap di footer (`Footer.tsx`) agar sinkron dengan struktur menu Layanan yang baru.
+   - Penambahan terjemahan `nav.event: 'Event'` pada konfigurasi multilingual (`src/i18n.ts`).
+
+2. **Pembuatan Komponen Terpadu Event Pengembangan Karir (`EventView.tsx`):**
+   - Membangun komponen baru `src/components/layanan/EventView.tsx` berbasis fondasi dan desain referensi `CampusHiring.tsx`.
+   - Terintegrasi dengan carousel banner/infografis layanan (`InfografisCarousel`) lengkap dengan autoplay, kontrol navigasi panah, dan indikator titik interaktif.
+   - Memiliki sinkronisasi status modal detail event, fallback thumbnail gambar poster, dan integrasi penuh dengan `EventCardLayout`.
+
+3. **Penyempurnaan Card Layout & Integrasi Filter Kategori Pencarian (`EventCardLayout.tsx`):**
+   - Menghilangkan bilah filter pil terpisah di bagian atas, lalu menyatukan filter kategori langsung ke dalam kotak kontrol pencarian selaras dengan tampilan modern menu Berita & Artikel (`bg-slate-50 border border-slate-200/80 rounded-2xl p-4`).
+   - Menyediakan 7 kategori filter utama secara berurutan:
+     1. **Semua**
+     2. **Seminar**
+     3. **Pelatihan**
+     4. **Workshop**
+     5. **Campus Hiring**
+     6. **Job Fair**
+     7. **Lainnya**
+   - Mengimplementasikan logika pemfilteran kategori pintar (`matchEventCategory`) yang fleksibel memeriksa atribut `category`, `title`, dan `type` pada data event.
+   - Menjaga tampilan kartu responsif dengan badge status, tanggal, lokasi/metode, dan interaksi klik detail yang elegan.
+
+4. **Penyelarasan Routing & Tampilan Halaman (`LayananContainer.tsx`, `PublicLayout.tsx`, `App.tsx`):**
+   - Tab `event` didaftarkan ke `LayananContainer.tsx` dengan judul formal **"Event Pengembangan Karir"** dan jalur breadcrumb `Layanan > Event Pengembangan Karir`.
+   - Menjaga backward compatibility: rute subtab terdahulu (`workshop`, `softskill`, `seminar`, `campus-hiring`, `jobfair`) secara otomatis diarahkan ke tampilan terpadu `EventView`.
+   - Mendaftarkan rute langsung browser `/event` dan `/magang` pada `App.tsx` serta sinkronisasi title dokumen dan query parameter URL.
+
+### File Diubah
+- **[NEW]** `src/components/layanan/EventView.tsx` (modul utama Event Pengembangan Karir)
+- **[MODIFY]** `src/components/layanan/ui/EventCardLayout.tsx` (integrasi filter kategori di bar pencarian)
+- **[MODIFY]** `src/components/layanan/LayananContainer.tsx` (routing & metadata tab Event)
+- **[MODIFY]** `src/components/Header.tsx` (restrukturisasi menu dropdown Layanan & Job Info)
+- **[MODIFY]** `src/components/Footer.tsx` (penyelarasan navigasi footer)
+- **[MODIFY]** `src/components/PublicLayout.tsx` (penanganan view event & magang)
+- **[MODIFY]** `src/App.tsx` (routing langsung `/event` dan `/magang`)
+- **[MODIFY]** `src/i18n.ts` (kamus terjemahan nav.event)
+- **[MODIFY]** `docs/progres.md` (entri progres kerja hari ini)
+
+### Verifikasi & Validasi
+- ✅ `npx tsc --noEmit` — 0 error, build types bersih tanpa masalah.
+- ✅ Vite Development Server aktif dan berjalan normal tanpa runtime crash.
+- ✅ Tampilan UI dan navigasi teruji: dropdown Header ("Event"), judul halaman ("Event Pengembangan Karir"), pencarian + filter kategori, dan carousel infografis berfungsi optimal.
+
+---
+
 ## Tanggal: 17 September 2026
 **Oleh: ARYA APRIAWAN**
 **Fokus Pekerjaan:** Perbaikan Hermes agent yang sering empty response + perapihan tampilan card layout di setiap menu layanan agar rapi saat tampilan mobile.

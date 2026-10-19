@@ -28,6 +28,7 @@ import Seminar from './layanan/Seminar';
 import CareerFair from './layanan/CareerFair';
 import CampusHiring from './layanan/CampusHiring';
 import Magang from './layanan/Magang';
+import EventView from './layanan/EventView';
 import SuratKeputusanView from './layanan/SuratKeputusanView';
 import KalenderKegiatanView from './layanan/KalenderKegiatanView';
 import LaporanKinerjaView from './layanan/LaporanKinerjaView';
@@ -2194,16 +2195,19 @@ export default function PublicLayout({
         {currentTab === 'galeri' && <GaleriView setTab={setTab} />}
 
         {/* ─── LAYANAN SUB-TABS ───────────────────────────────────── */}
-        {['konseling', 'tes-minat', 'workshop', 'softskill', 'seminar', 'career-fair', 'campus-hiring', 'magang'].includes(currentTab) && (
+        {['konseling', 'event', 'tes-minat', 'workshop', 'softskill', 'seminar', 'career-fair', 'campus-hiring', 'magang'].includes(currentTab) && (
           <LayananContainer currentTab={currentTab} setTab={setTab}>
             {currentTab === 'konseling' && <BimbinganKarir />}
             {currentTab === 'tes-minat' && <TesMinat />}
-            {currentTab === 'workshop' && <Workshop konten={konten} initialEventId={activeEventId} />}
-            {currentTab === 'softskill' && <Softskill konten={konten} initialEventId={activeEventId} />}
-            {currentTab === 'seminar' && <Seminar konten={konten} initialEventId={activeEventId} />}
-            {currentTab === 'career-fair' && <CareerFair konten={konten} initialEventId={activeEventId} />}
-            {currentTab === 'campus-hiring' && <CampusHiring konten={konten} initialEventId={activeEventId} setTab={setTab} />}
             {currentTab === 'magang' && <Magang lowongan={lowongan} onSelectLowongan={onSelectLowongan} />}
+            {['event', 'workshop', 'softskill', 'seminar', 'career-fair', 'campus-hiring'].includes(currentTab) && (
+              <EventView
+                konten={konten}
+                initialEventId={activeEventId}
+                initialCategory={currentTab !== 'event' ? currentTab : undefined}
+                setTab={setTab}
+              />
+            )}
           </LayananContainer>
         )}
 

@@ -77,13 +77,7 @@ const NAV_ITEMS: NavItem[] = [
     children: [
       { label: 'Berita & Artikel', tab: 'berita' },
       { label: 'Konseling Karir', tab: 'konseling' },
-      { label: 'Tes Potensi Minat Kerja', href: 'https://www.klob.id/klob-journey/klob-meter' },
-      { label: 'Workshop Pengembangan Karir', tab: 'workshop' },
-      { label: 'Pelatihan Softskill & Kewirausahaan', tab: 'softskill' },
-      { label: 'Seminar Sukses Berkarir', tab: 'seminar' },
-      { label: 'Job Fair', tab: 'career-fair' },
-      { label: 'Campus Hiring', tab: 'campus-hiring' },
-      { label: 'Internship', tab: 'magang' },
+      { label: 'Event', tab: 'event' },
     ],
   },
   {
@@ -137,6 +131,8 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Job Info',
     children: [
       { label: 'Lowongan Terbaru', tab: 'lowongan' },
+      { label: 'Internship', tab: 'magang' },
+      { label: 'Tes Potensi Minat Kerja', href: 'https://www.klob.id/klob-journey/klob-meter' },
       { label: 'APSKAR PTMA', href: 'https://apskarptma.or.id/' },
     ],
   },
@@ -189,6 +185,8 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
       'Layanan': 'nav.layanan',
       'Berita & Artikel': 'nav.berita',
       'Konseling Karir': 'nav.konseling',
+      'Event Pengembangan Karir': 'nav.event',
+      'Event': 'nav.event',
       'Tes Potensi Minat Kerja': 'nav.tesminat',
       'Workshop Pengembangan Karir': 'nav.workshop',
       'Pelatihan Softskill & Kewirausahaan': 'nav.softskill',

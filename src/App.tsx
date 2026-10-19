@@ -294,10 +294,27 @@ export default function App() {
       setViewingLowonganId(null);
       setViewingBeritaSlug(null);
       setViewingLayananDetailId(null);
+    } else if (path === '/event' || path.startsWith('/event/')) {
+      const raw = path.replace('/event/', '').replace('/event', '');
+      const parts = raw.split('/').filter(Boolean);
+      const eventSlug = parts.length > 0 ? parts.join('/') : null;
+      setCurrentView('public');
+      setPublicTab('event');
+      setViewingLayananDetailId(eventSlug);
+      setViewingLowonganId(null);
+      setViewingBeritaSlug(null);
+      setViewingProgramId(null);
+    } else if (path === '/magang' || path.startsWith('/magang/')) {
+      setCurrentView('public');
+      setPublicTab('magang');
+      setViewingLowonganId(null);
+      setViewingBeritaSlug(null);
+      setViewingProgramId(null);
+      setViewingLayananDetailId(null);
     } else if (path.startsWith('/layanan/')) {
       const raw = path.replace('/layanan/', '');
       const parts = raw.split('/').filter(Boolean);
-      const categoryTab = parts[0] || 'workshop';
+      const categoryTab = parts[0] || 'event';
       const eventSlug = parts.length > 1 ? parts.slice(1).join('/') : null;
       setCurrentView('public');
       setPublicTab(categoryTab);
@@ -550,7 +567,10 @@ export default function App() {
       else if (currentUser?.userStatusType === 'Alumni') document.title = 'Dashboard Alumni - CDC UM Kendari';
       else document.title = 'Dashboard Mahasiswa - CDC UM Kendari';
     } else {
-      if (publicTab === 'lowongan') document.title = 'Lowongan Kerja & Magang - CDC UM Kendari';
+      if (publicTab === 'lowongan') document.title = 'Lowongan Kerja - CDC UM Kendari';
+      else if (publicTab === 'magang') document.title = 'Program Internship & Magang - CDC UM Kendari';
+      else if (publicTab === 'event') document.title = 'Event Pengembangan Karir - CDC UM Kendari';
+      else if (publicTab === 'konseling') document.title = 'Konseling Karir - CDC UM Kendari';
       else if (publicTab === 'berita') document.title = 'Berita & Artikel Karir - CDC UM Kendari';
       else if (publicTab.startsWith('presentasi')) document.title = 'Prestasi Mahasiswa UMK - CDC UM Kendari';
       else document.title = 'CDC UM Kendari - Pusat Karir & Alumni';

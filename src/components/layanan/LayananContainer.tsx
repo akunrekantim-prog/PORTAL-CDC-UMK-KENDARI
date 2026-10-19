@@ -37,6 +37,15 @@ export interface LayananMenuOption {
 
 export const LAYANAN_MENU: LayananMenuOption[] = [
   {
+    id: 'event',
+    label: 'Event Pengembangan Karir',
+    shortLabel: 'Event',
+    description: 'Pusat informasi dan pendaftaran seluruh agenda karir, campus hiring, workshop teknis, pelatihan softskill, seminar, hingga job fair CDC UM Kendari.',
+    icon: CalendarDays,
+    badge: 'Agenda',
+    color: 'from-blue-700 to-indigo-600'
+  },
+  {
     id: 'campus-hiring',
     label: 'Campus Hiring - Recruitment',
     shortLabel: 'Campus Hiring',

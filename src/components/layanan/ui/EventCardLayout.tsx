@@ -21,6 +21,11 @@ interface DateFilter {
   pattern: string;
 }
 
+export interface EventCategoryTab {
+  id: string;
+  label: string;
+}
+
 interface EventCardLayoutProps {
   category: 'workshop' | 'softskill' | 'seminar' | 'campus-hiring' | 'career-fair' | 'job-fair' | string;
   pageTitle: string;
@@ -33,6 +38,10 @@ interface EventCardLayoutProps {
   sidebarRight?: React.ReactNode;
   mobileTopContent?: React.ReactNode;
   mobileBottomContent?: React.ReactNode;
+  categoryFilterTabs?: EventCategoryTab[];
+  activeCategoryFilter?: string;
+  onCategoryFilterChange?: (categoryId: string) => void;
+  searchPlaceholder?: string;
 }
 
 // --- Constants ---
@@ -81,6 +90,42 @@ const findMatchedEvent = (targetId: string | null | undefined, list: EventLayana
       (e.title && cleanId.length > 3 && e.title.toLowerCase().includes(cleanId))
     );
   }) || null;
+};
+
+// --- Helper pencocokan kategori event (Seminar, Pelatihan, Workshop, Campus Hiring, Job Fair, Lainnya) ---
+export const matchEventCategory = (itemCat: string = '', targetFilter: string = ''): boolean => {
+  const c = itemCat.toLowerCase().trim();
+  const t = targetFilter.toLowerCase().trim();
+
+  if (t === 'all' || t === 'semua' || !t) return true;
+
+  if (t === 'seminar') {
+    return c === 'seminar' || c === 'webinar';
+  }
+  if (t === 'pelatihan') {
+    return c === 'softskill' || c === 'pelatihan' || c === 'training' || c === 'kewirausahaan';
+  }
+  if (t === 'workshop') {
+    return c === 'workshop' || c === 'bootcamp';
+  }
+  if (t === 'campus-hiring' || t === 'campus_hiring') {
+    return c === 'campus-hiring' || c === 'campus_hiring' || c === 'recruitment';
+  }
+  if (t === 'career-fair' || t === 'job-fair' || t === 'job_fair') {
+    return c === 'career-fair' || c === 'job-fair' || c === 'job_fair' || c === 'bursa-kerja';
+  }
+  if (t === 'lainnya') {
+    const known = [
+      'seminar', 'webinar',
+      'softskill', 'pelatihan', 'training', 'kewirausahaan',
+      'workshop', 'bootcamp',
+      'campus-hiring', 'campus_hiring', 'recruitment',
+      'career-fair', 'job-fair', 'job_fair', 'bursa-kerja'
+    ];
+    return !known.includes(c);
+  }
+
+  return c === t;
 };
 
 // --- Parse search query → deteksi intent tanggal vs teks ---
@@ -181,7 +226,11 @@ export default function EventCardLayout({
   setTab,
   sidebarRight,
   mobileTopContent,
-  mobileBottomContent
+  mobileBottomContent,
+  categoryFilterTabs,
+  activeCategoryFilter,
+  onCategoryFilterChange,
+  searchPlaceholder
 }: EventCardLayoutProps) {
   const navigate = useNavigate();
   const { setIsDetailActive } = useLayanan();
@@ -195,6 +244,7 @@ export default function EventCardLayout({
         if (k.status !== 'published') return false;
         const kj = (k.jenis || '').toLowerCase().trim();
         const cat = category.toLowerCase().trim();
+        if (cat === 'event' || cat === 'all') return true;
         if (kj === cat) return true;
         if ((cat === 'campus-hiring' || cat === 'campus_hiring') && (kj === 'campus-hiring' || kj === 'campus_hiring')) return true;
         if ((cat === 'career-fair' || cat === 'job-fair' || cat === 'job_fair') && (kj === 'career-fair' || kj === 'job-fair' || kj === 'job_fair')) return true;
@@ -251,11 +301,19 @@ export default function EventCardLayout({
       const itemCat = (item.category || '').toLowerCase().trim();
       const cat = category.toLowerCase().trim();
       let isCategoryMatch = itemCat === cat;
+      if (cat === 'event' || cat === 'all') isCategoryMatch = true;
       if ((cat === 'campus-hiring' || cat === 'campus_hiring') && (itemCat === 'campus-hiring' || itemCat === 'campus_hiring')) isCategoryMatch = true;
       if ((cat === 'career-fair' || cat === 'job-fair' || cat === 'job_fair') && (itemCat === 'career-fair' || itemCat === 'job-fair' || itemCat === 'job_fair')) isCategoryMatch = true;
       if (!isCategoryMatch && events.includes(item)) isCategoryMatch = true;
 
       if (!isCategoryMatch) return false;
+
+      // Sub-kategori filter tabs (Seminar, Pelatihan, Workshop, Campus Hiring, Job Fair, Lainnya)
+      if (activeCategoryFilter && activeCategoryFilter !== 'all' && activeCategoryFilter !== 'semua') {
+        if (!matchEventCategory(item.category, activeCategoryFilter)) {
+          return false;
+        }
+      }
 
       // Text search match
       const matchesSearch =
@@ -328,12 +386,12 @@ export default function EventCardLayout({
     });
 
     return list;
-  }, [allEvents, category, searchQuery, sortBy]);
+  }, [allEvents, category, searchQuery, sortBy, activeCategoryFilter]);
 
   // Reset ke halaman 1 saat hasil filter berubah
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery]);
+  }, [searchQuery, activeCategoryFilter]);
 
   // ===== PAGINATION: 8 card per halaman jika ada sidebar agar sejajar rapi dengan dasar sidebar, atau 6 card jika 3 kolom =====
   const CARDS_PER_PAGE = sidebarRight ? 8 : 6;
@@ -374,6 +432,61 @@ export default function EventCardLayout({
         </p>
       )}
 
+      {/* ── CONTROLS BAR: SEARCH & CATEGORY FILTER TABS (PERSIS MENU BERITA & ARTIKEL) ── */}
+      {categoryFilterTabs && categoryFilterTabs.length > 0 && (
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
+          {/* Search Input */}
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              placeholder={searchPlaceholder || "Cari judul event, topik, atau materi..."}
+              className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077C6]/20 focus:border-[#0077C6] transition"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setCurrentPage(1);
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                title="Hapus pencarian"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Category Filter Tabs */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
+            {categoryFilterTabs.map((cat) => {
+              const isActive = activeCategoryFilter === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => {
+                    onCategoryFilterChange?.(cat.id);
+                    setCurrentPage(1);
+                  }}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                    isActive
+                      ? 'bg-[#1E3A8A] text-white shadow-xs'
+                      : 'bg-white text-slate-600 hover:bg-slate-200/70 border border-slate-200'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Grid Layout: Jika ada sidebarRight, bagi jadi lg:grid-cols-12 */}
       {sidebarRight ? (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -385,28 +498,30 @@ export default function EventCardLayout({
               </div>
             )}
 
-            {/* Search Bar */}
-            <div className="space-y-4">
-              <div className="relative w-full max-w-2xl">
-                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Cari judul kegiatan, materi, atau tanggal..."
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 hover:bg-slate-100/80 focus:bg-white text-slate-800 text-sm rounded-xl border border-slate-200 focus:border-[#0077C6] focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
-                    title="Hapus pencarian"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
+            {/* Search Bar biasa (hanya jika TIDAK ada categoryFilterTabs) */}
+            {!categoryFilterTabs && (
+              <div className="space-y-4">
+                <div className="relative w-full max-w-2xl">
+                  <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Cari judul kegiatan, materi, atau tanggal..."
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 hover:bg-slate-100/80 focus:bg-white text-slate-800 text-sm rounded-xl border border-slate-200 focus:border-[#0077C6] focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                      title="Hapus pencarian"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Grid List Event Cards (2 kolom di area col-span-8) */}
             {filteredEvents.length > 0 ? (
@@ -472,7 +587,10 @@ export default function EventCardLayout({
                   Coba ganti kata kunci pencarian atau tanggal kegiatan, lalu atur ulang filter.
                 </p>
                 <button
-                  onClick={() => setSearchQuery('')}
+                  onClick={() => {
+                    setSearchQuery('');
+                    onCategoryFilterChange?.('all');
+                  }}
                   className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition-colors cursor-pointer"
                 >
                   Reset Semua Filter
@@ -495,28 +613,30 @@ export default function EventCardLayout({
         </div>
       ) : (
         <>
-          {/* Search Bar (full-width, tanpa Dropdown Periode) */}
-          <div className="space-y-4">
-            <div className="relative max-w-2xl">
-              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari judul kegiatan, materi, atau tanggal..."
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 hover:bg-slate-100/80 focus:bg-white text-slate-800 text-sm rounded-xl border border-slate-200 focus:border-[#0077C6] focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
-                  title="Hapus pencarian"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
+          {/* Search Bar biasa jika TIDAK ada categoryFilterTabs */}
+          {!categoryFilterTabs && (
+            <div className="space-y-4">
+              <div className="relative max-w-2xl">
+                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Cari judul kegiatan, materi, atau tanggal..."
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 hover:bg-slate-100/80 focus:bg-white text-slate-800 text-sm rounded-xl border border-slate-200 focus:border-[#0077C6] focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                    title="Hapus pencarian"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Grid List Event Cards */}
           {filteredEvents.length > 0 ? (
