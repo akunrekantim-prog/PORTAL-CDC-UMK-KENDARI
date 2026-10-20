@@ -185,7 +185,7 @@ export const Footer: React.FC<FooterProps> = ({
       title: 'Tracer Study & Portal Diktisaintek',
       items: [
         { label: 'Portal Tracer Study UM Kendari', href: 'https://tracerstudy.umkendari.ac.id/' },
-        { label: 'Form Kuesioner Survey Tracer', href: 'https://tracerstudy.umkendari.ac.id/page/survey' },
+        { label: 'Kepuasan Pengguna Lulusan', href: 'https://tracerstudy.umkendari.ac.id/page/survey' },
         { label: 'PKM (Program Kreativitas Mahasiswa)', href: 'https://simbelmawa.kemdiktisaintek.go.id/pkm' },
         { label: 'PPK ORMAWA', href: 'https://ppkormawa.kemdiktisaintek.go.id/' },
         { label: 'P2MW (Program Pembinaan Mahasiswa Wirausaha)', href: 'https://p2mw.kemdiktisaintek.go.id/' },

@@ -85,7 +85,7 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Tracer Study',
     children: [
       { label: 'Tracer Study', href: 'https://tracerstudy.umkendari.ac.id/' },
-      { label: 'Form Kuesioner Tracer Study', href: 'https://tracerstudy.umkendari.ac.id/page/survey' },
+      { label: 'Kepuasan Pengguna Lulusan', href: 'https://tracerstudy.umkendari.ac.id/page/survey' },
     ],
   },
   {
@@ -195,7 +195,7 @@ export default function Header({ currentTab, setTab, onNavigateToLogin, onNaviga
       'Campus Hiring': 'nav.campushiring',
       'Internship': 'nav.magang',
       'Tracer Study': 'nav.tracer',
-      'Form Kuesioner Tracer Study': 'nav.tracerform',
+      'Kepuasan Pengguna Lulusan': 'nav.tracerform',
       'Simbelmawa': 'nav.simbelmawa',
       'Prestasi': 'nav.prestasi',
       'Internasional': 'nav.internasional',
