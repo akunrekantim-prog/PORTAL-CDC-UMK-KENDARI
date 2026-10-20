@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Search, Filter, X, Clock } from 'lucide-react';
-import { formatDateDisplay } from '../../../data';
+import { formatDateDisplay, getFromDB } from '../../../data';
 import { EventLayananItem, KontenKarir } from '../../../types';
 import EventDetailView from '../EventDetailView';
 import { useLayanan } from '../LayananContainer';
@@ -55,41 +55,61 @@ const cleanText = (s: string = ''): string => stripHtmlTags(s);
 
 const mapKontenToEvent = (k: KontenKarir): EventLayananItem => ({
   id: `kk_${k.id}`,
-  category: (k.jenis as string) || 'workshop',
+  slug: k.slug || slugify(k.judul),
+  category: (k.jenis === 'event' && k.kategori ? k.kategori : (k.jenis as string)) || 'workshop',
   title: k.judul,
   organizer: k.namaInstansi || 'CDC UM Kendari',
   date: k.tanggal || (k.createdAt ? k.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10)),
   time: k.waktu,
   location: k.lokasiEvent || '-',
+  fee: k.gaji || 'Gratis',
   image: k.thumbnail || 'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=800&auto=format&fit=crop',
+  posterImage: k.gambarPoster || k.thumbnail,
   description: k.body || '',
   speaker: k.pembicara,
-  quota: k.kuotaEvent,
-  registeredCount: k.terdaftar,
-  registrationLink: k.linkDaftar,
+  quota: k.kuotaEvent || k.kuota,
+  registrationLink: (k.ctaEnabled !== false && (k.linkDaftar || k.linkLamar || k.linkCta)) ? (k.linkDaftar || k.linkLamar || k.linkCta) : undefined,
+  ctaEnabled: k.ctaEnabled !== false && Boolean(k.linkDaftar || k.linkLamar || k.linkCta),
+  ctaLabel: k.ctaLabel || 'Daftar Sekarang',
   status: k.statusEvent || 'buka',
-  uploadedAt: k.createdAt
+  uploadedAt: k.createdAt,
+  isPinned: k.isPinned
 });
 
 const findMatchedEvent = (targetId: string | null | undefined, list: EventLayananItem[]): EventLayananItem | null => {
   if (!targetId) return null;
-  const rawId = targetId.toLowerCase().trim();
+  const decoded = decodeURIComponent(targetId).toLowerCase().trim();
+  const rawId = decoded;
   const cleanId = rawId.replace(/^kk_/, '').replace(/^kk-/, '');
   return list.find(e => {
-    const eid = e.id.toLowerCase().trim();
+    const eid = (e.id || '').toLowerCase().trim();
     const eClean = eid.replace(/^kk_/, '').replace(/^kk-/, '');
-    const titleSlug = slugify(e.title);
+    const titleSlug = (e.slug || slugify(e.title) || '').toLowerCase().trim();
     return (
       eid === rawId ||
       eClean === cleanId ||
       eid === cleanId ||
       rawId === eClean ||
-      (titleSlug && titleSlug === rawId) ||
-      (titleSlug && titleSlug === cleanId) ||
+      (titleSlug && (titleSlug === rawId || titleSlug === cleanId)) ||
       (e.title && e.title.toLowerCase().trim() === cleanId) ||
       (e.title && cleanId.length > 3 && e.title.toLowerCase().includes(cleanId))
     );
   }) || null;
+};
+
+// --- Helper format badge kategori event (Seminar, Pelatihan, Workshop, Campus Hiring, Job Fair, Lainnya) ---
+export const formatCategoryBadge = (cat?: string): string => {
+  if (!cat) return 'EVENT';
+  const c = cat.toLowerCase().trim();
+  if (c === 'campus-hiring' || c === 'campus_hiring' || c === 'recruitment') return 'CAMPUS HIRING';
+  if (c === 'career-fair' || c === 'job-fair' || c === 'job_fair' || c === 'bursa-kerja') return 'JOB FAIR';
+  if (c === 'softskill' || c === 'pelatihan' || c === 'training' || c === 'kewirausahaan') return 'PELATIHAN';
+  if (c === 'workshop' || c === 'bootcamp') return 'WORKSHOP';
+  if (c === 'seminar') return 'SEMINAR';
+  if (c === 'webinar') return 'WEBINAR';
+  if (c === 'lainnya') return 'LAINNYA';
+  if (c === 'event') return 'EVENT';
+  return cat.trim().toUpperCase();
 };
 
 // --- Helper pencocokan kategori event (Seminar, Pelatihan, Workshop, Campus Hiring, Job Fair, Lainnya) ---
@@ -239,17 +259,24 @@ export default function EventCardLayout({
 
   // Gabungkan seed dummy + hasil input admin yang sudah published
   const allEvents = useMemo(() => {
-    const fromKonten = (kontenEvents || [])
+    const sourceKonten = (kontenEvents && kontenEvents.length > 0)
+      ? kontenEvents
+      : getFromDB<KontenKarir>('konten_karir');
+
+    const fromKonten = (sourceKonten || [])
       .filter(k => {
-        if (k.status !== 'published') return false;
+        if (String(k.status || '').toLowerCase() !== 'published') return false;
         const kj = (k.jenis || '').toLowerCase().trim();
         const cat = category.toLowerCase().trim();
-        if (cat === 'event' || cat === 'all') return true;
+        if (cat === 'event' || cat === 'all') {
+          return ['event', 'workshop', 'seminar', 'softskill', 'campus-hiring', 'campus_hiring', 'career-fair', 'job-fair', 'job_fair'].includes(kj);
+        }
         if (kj === cat) return true;
         if ((cat === 'campus-hiring' || cat === 'campus_hiring') && (kj === 'campus-hiring' || kj === 'campus_hiring')) return true;
         if ((cat === 'career-fair' || cat === 'job-fair' || cat === 'job_fair') && (kj === 'career-fair' || kj === 'job-fair' || kj === 'job_fair')) return true;
         return false;
       })
+      .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
       .map(mapKontenToEvent);
     return [...fromKonten, ...events];
   }, [events, kontenEvents, category]);
@@ -359,29 +386,54 @@ export default function EventCardLayout({
       return true;
     });
 
-    // Sorting logic: tanggal kegiatan utama; tie-breaker = waktu upload
-    // terbaru (yang baru diupload admin selalu tampil paling atas)
+    // Sorting logic:
+    // 1. Pinned items selalu di paling atas jika disematkan oleh admin
+    // 2. Default (terbaru): Konten terbaru yang di-upload oleh admin selalu tampil di awal
     list = [...list].sort((a, b) => {
+      // 1. Sematan khusus Admin (isPinned)
+      const aPinned = Boolean((a as any).isPinned);
+      const bPinned = Boolean((b as any).isPinned);
+      if (aPinned !== bPinned) return aPinned ? -1 : 1;
+
       if (sortBy === 'terbaru') {
-        const dateDiff = new Date(b.date).getTime() - new Date(a.date).getTime();
-        if (dateDiff !== 0) return dateDiff;
-        return (
-          new Date(b.uploadedAt || 0).getTime() - new Date(a.uploadedAt || 0).getTime()
-        );
-      }
-      if (sortBy === 'terlama') {
-        const dateDiff = new Date(a.date).getTime() - new Date(b.date).getTime();
-        if (dateDiff !== 0) return dateDiff;
-        return (
-          new Date(a.uploadedAt || 0).getTime() - new Date(b.uploadedAt || 0).getTime()
-        );
-      }
-      if (sortBy === 'az') {
+        const aIsAdmin = a.id.startsWith('kk_');
+        const bIsAdmin = b.id.startsWith('kk_');
+
+        // Konten yang di-upload oleh admin selalu tampil di awal mendahului template seed
+        if (aIsAdmin !== bIsAdmin) {
+          return aIsAdmin ? -1 : 1;
+        }
+
+        // Jika keduanya konten admin: urutkan waktu upload terbaru
+        if (aIsAdmin && bIsAdmin) {
+          const aUpload = a.uploadedAt ? new Date(a.uploadedAt).getTime() : 0;
+          const bUpload = b.uploadedAt ? new Date(b.uploadedAt).getTime() : 0;
+          if (bUpload !== aUpload) return bUpload - aUpload;
+        }
+
+        // Untuk item seed atau jika waktu upload identik: urutkan berdasarkan tanggal kegiatan
+        const aDate = a.date ? new Date(a.date).getTime() : 0;
+        const bDate = b.date ? new Date(b.date).getTime() : 0;
+        if (bDate !== aDate) return bDate - aDate;
         return a.title.localeCompare(b.title);
       }
-      if (sortBy === 'za') {
-        return b.title.localeCompare(a.title);
+
+      if (sortBy === 'terlama') {
+        const aIsAdmin = a.id.startsWith('kk_');
+        const bIsAdmin = b.id.startsWith('kk_');
+        if (aIsAdmin && bIsAdmin) {
+          const aUpload = a.uploadedAt ? new Date(a.uploadedAt).getTime() : 0;
+          const bUpload = b.uploadedAt ? new Date(b.uploadedAt).getTime() : 0;
+          if (aUpload !== bUpload) return aUpload - bUpload;
+        }
+        const aDate = a.date ? new Date(a.date).getTime() : 0;
+        const bDate = b.date ? new Date(b.date).getTime() : 0;
+        if (aDate !== bDate) return aDate - bDate;
+        return a.title.localeCompare(b.title);
       }
+
+      if (sortBy === 'az') return a.title.localeCompare(b.title);
+      if (sortBy === 'za') return b.title.localeCompare(a.title);
       return 0;
     });
 
@@ -414,7 +466,7 @@ export default function EventCardLayout({
     return (
       <EventDetailView
         event={selectedEvent}
-        categoryLabel={pageTitle}
+        categoryLabel={formatCategoryBadge(selectedEvent.category)}
         onBack={handleBackFromDetail}
         setTab={setTab}
       />
@@ -551,6 +603,12 @@ export default function EventCardLayout({
                         className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
                         loading="lazy"
                       />
+                      {/* Badge Kategori di Pojok Kiri Atas (Sesuai Desain Berita / Editorial) */}
+                      <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 items-center pointer-events-none z-10">
+                        <span className="bg-[#1E3A8A] text-white text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-md shadow-xs tracking-wider">
+                          {formatCategoryBadge(item.category)}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Card Body */}
@@ -666,6 +724,12 @@ export default function EventCardLayout({
                       className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
                       loading="lazy"
                     />
+                    {/* Badge Kategori di Pojok Kiri Atas (Sesuai Desain Berita / Editorial) */}
+                    <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 items-center pointer-events-none z-10">
+                      <span className="bg-[#1E3A8A] text-white text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-md shadow-xs tracking-wider">
+                        {formatCategoryBadge(item.category)}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Card Body — judul + footer keterangan */}

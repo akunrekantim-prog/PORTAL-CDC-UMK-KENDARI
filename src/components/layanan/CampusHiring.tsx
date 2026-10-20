@@ -28,12 +28,12 @@ export default function CampusHiring({ konten = [], initialEventId, setTab }: Ca
 
   // Data infografis dinamis dari database/localStorage
   const [infografisItems, setInfografisItems] = useState<InfografisLayananItem[]>(() =>
-    getInfografisLayanan('campus-hiring').filter((i) => i.isActive)
+    getInfografisLayanan().filter((i) => i.isActive)
   );
 
   useEffect(() => {
     const handleUpdate = () => {
-      const live = getInfografisLayanan('campus-hiring').filter((i) => i.isActive);
+      const live = getInfografisLayanan().filter((i) => i.isActive);
       setInfografisItems(live);
       setActiveSlide((prev) => (live.length > 0 ? prev % live.length : 0));
     };

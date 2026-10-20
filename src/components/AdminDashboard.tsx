@@ -186,12 +186,13 @@ type MitraSubTab = 'approval' | 'list';
 const JENIS_LABEL: Record<JenisKonten, string> = {
   berita: 'Berita & Artikel',
   lowongan: 'Lowongan',
+  event: 'Event Pengembangan Karir',
+  presentasi: 'Prestasi',
   program: 'Program & Pengumuman',
   pengumuman: 'Pengumuman Penting',
   workshop: 'Workshop & Pelatihan Karir',
   softskill: 'Pelatihan Softskill & Kewirausahaan',
   seminar: 'Seminar Sukses Berkarir',
-  presentasi: 'Prestasi',
   job_fair: 'Job Fair & Expo',
   campus_hiring: 'Campus Hiring'
 };
@@ -199,12 +200,13 @@ const JENIS_LABEL: Record<JenisKonten, string> = {
 const JENIS_ICON: Record<JenisKonten, React.ReactNode> = {
   berita: <Newspaper className="w-4 h-4" />,
   lowongan: <Briefcase className="w-4 h-4" />,
+  event: <CalendarDays className="w-4 h-4" />,
+  presentasi: <Trophy className="w-4 h-4" />,
   program: <Megaphone className="w-4 h-4" />,
   pengumuman: <Megaphone className="w-4 h-4" />,
   workshop: <GraduationCap className="w-4 h-4" />,
   softskill: <Award className="w-4 h-4" />,
   seminar: <GraduationCap className="w-4 h-4" />,
-  presentasi: <Trophy className="w-4 h-4" />,
   job_fair: <Ticket className="w-4 h-4" />,
   campus_hiring: <Building2 className="w-4 h-4" />
 };
@@ -213,12 +215,13 @@ const JENIS_ICON: Record<JenisKonten, React.ReactNode> = {
 const THUMB_REQUIRED: Record<JenisKonten, boolean> = {
   berita: true,    // 16:9 — wajib upload poster
   lowongan: true,  // 9:16
+  event: true,     // poster pamflet kegiatan (16:9 / 9:16)
+  presentasi: true,  // wajib upload poster/dokumentasi
   program: true,     // thumbnail wajib (header kartu)
   pengumuman: false, // opsional
   workshop: true,   // poster pamflet kegiatan
   softskill: true,  // poster pamflet kegiatan
   seminar: true,    // poster pamflet kegiatan
-  presentasi: true,  // wajib upload poster/dokumentasi
   job_fair: true,   // poster job fair (16:9 / 9:16)
   campus_hiring: true // poster campus hiring (16:9 / 9:16)
 };
@@ -226,15 +229,26 @@ const THUMB_REQUIRED: Record<JenisKonten, boolean> = {
 const CATEGORY_DESCS: Record<JenisKonten, string> = {
   berita: 'Artikel berita terbaru, pers rilis, dan liputan kegiatan kampus.',
   lowongan: 'Poster & informasi lowongan kerja, magang, serta karir alumni.',
+  event: 'Pusat agenda karir: Seminar, Workshop, Pelatihan, Campus Hiring, Job Fair, serta Kelola Infografis / Poster Slider.',
+  presentasi: 'Publikasi piagam & pencapaian prestasi mahasiswa/alumni.',
   program: 'Program unggulan CDC UMK, pelatihan intensif, & informasi karir.',
   pengumuman: 'Pengumuman resmi, banner mendesak, & notifikasi kampus.',
   workshop: 'Workshop pengembangan keterampilan teknis & persiapan karir.',
   softskill: 'Pelatihan karakter, pembinaan softskill, & kewirausahaan.',
   seminar: 'Seminar nasional, talkshow karir, & webinar alumni.',
-  presentasi: 'Publikasi piagam & pencapaian prestasi mahasiswa/alumni.',
   job_fair: 'Upload poster event Bursa Kerja Akbar (Job Fair & Expo).',
   campus_hiring: 'Upload poster rekrutmen & wawancara langsung (Campus Hiring).'
 };
+
+// Daftar kartu kategori utama yang ditampilkan di Admin Dashboard
+const KONTEN_CARD_LIST: JenisKonten[] = [
+  'berita',
+  'lowongan',
+  'event',
+  'presentasi',
+  'program',
+  'pengumuman'
+];
 
 const formatTanggal = (iso?: string) =>
   iso ? new Date(iso).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
@@ -834,8 +848,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
       items: [
         { id: 'media-sosial', label: 'Media Sosial & WA CS', icon: <Globe className="w-4 h-4" /> },
         { id: 'komentar', label: 'Moderasi Komentar Berita', icon: <MessageSquare className="w-4 h-4" /> },
-        { id: 'statistik-beranda', label: 'Statistik Beranda', icon: <TrendingUp className="w-4 h-4" /> },
-        { id: 'infografis-layanan', label: 'Infografis Layanan', icon: <Layers className="w-4 h-4" /> }
+        { id: 'statistik-beranda', label: 'Statistik Beranda', icon: <TrendingUp className="w-4 h-4" /> }
       ]
     },
     {
@@ -1096,6 +1109,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
   }, [editorOpen, eJenis]);
   const [ePenulis, setEPenulis] = useState('');
   const [eThumbnail, setEThumbnail] = useState('');
+  const [ePosterImage, setEPosterImage] = useState('');
+  const [showEventCropperModal, setShowEventCropperModal] = useState(false);
   const [isUploadingThumb, setIsUploadingThumb] = useState(false);
   const [eNamaInstansi, setENamaInstansi] = useState('');
   const [eTipe, setETipe] = useState<'magang' | 'kerja'>('magang');
@@ -1115,7 +1130,11 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
   const [eKuotaEvent, setEKuotaEvent] = useState('');
   const [eTerdaftar, setETerdaftar] = useState('');
   const [eLinkDaftar, setELinkDaftar] = useState('');
+  const [eCtaEnabled, setECtaEnabled] = useState(false);
+  const [eCtaLabel, setECtaLabel] = useState('Daftar Sekarang');
   const [eStatusEvent, setEStatusEvent] = useState<'buka' | 'segera' | 'selesai'>('buka');
+  const [eventSubFilter, setEventSubFilter] = useState<string>('semua');
+  const [eventSubView, setEventSubView] = useState<'riwayat' | 'infografis'>('riwayat');
   // Field khusus Presentasi (konversi dari Prestasi)
   const [eSubKategori, setESubKategori] = useState<'akademik' | 'non-akademik'>('akademik');
   const [eNamaMahasiswa, setENamaMahasiswa] = useState('');
@@ -1344,15 +1363,20 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
     }
     if (item) {
       setEditId(item.id);
-      setEJenis(item.jenis);
+      const mappedJenis = (item.jenis === 'workshop' || item.jenis === 'softskill' || item.jenis === 'seminar') ? 'event' : item.jenis;
+      setEJenis(mappedJenis);
       setEJudul(item.judul);
-      setEBody(item.body);
+      setEBody((item.body || '').replace(/<!--CDC_EVENT_META:.*?-->/g, '').trim());
       setEPenulis(item.penulis || 'Admin Website');
       setEThumbnail(item.thumbnail || '');
-      setENamaInstansi(item.namaInstansi || '');
+      setEPosterImage(item.gambarPoster || item.thumbnail || '');
+      setENamaInstansi(item.namaInstansi || (mappedJenis === 'event' ? 'CDC UM Kendari' : ''));
       setETipe(item.tipe || 'magang');
       setELinkLamar(item.linkLamar || '');
-      setEKategori(item.kategori || (item.jenis === 'berita' ? 'Umum' : ''));
+      setEKategori(
+        item.kategori ||
+        (item.jenis === 'workshop' ? 'Workshop' : item.jenis === 'softskill' ? 'Pelatihan' : item.jenis === 'seminar' ? 'Seminar' : (item.jenis === 'berita' ? 'Umum' : (mappedJenis === 'event' ? 'Seminar' : '')))
+      );
       setEScope(item.scope || 'LOKAL');
       setEGaji(item.gaji || '');
       setEKuota(item.kuota != null ? String(item.kuota) : '');
@@ -1360,6 +1384,15 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
       setELinkCta(item.linkCta || '');
       setEStatus(item.status);
       setETanggal(item.tanggal || '');
+      setEWaktu(item.waktu || '');
+      setELokasiEvent(item.lokasiEvent || '');
+      const rawK = item.kuotaEvent != null ? item.kuotaEvent : (item.kuota != null ? item.kuota : '');
+      const cleanK = (typeof rawK === 'number' && rawK < 0) ? Math.abs(rawK) : rawK;
+      setEKuotaEvent(cleanK !== '' && cleanK != null ? String(cleanK) : '');
+      setELinkDaftar(item.linkDaftar || item.linkLamar || '');
+      setECtaEnabled(item.ctaEnabled === true || Boolean(item.linkDaftar) || Boolean(item.linkLamar));
+      setECtaLabel(item.ctaLabel || 'Daftar Sekarang');
+      setEStatusEvent(item.statusEvent || 'buka');
       setESubKategori(item.subKategori === 'non-akademik' ? 'non-akademik' : 'akademik');
       setENamaMahasiswa(item.namaMahasiswa || '');
       setEProdi(item.prodi || '');
@@ -1372,11 +1405,11 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
     } else {
       setEditId(null);
       setEJenis(jenis || 'berita');
-      setEJudul(''); setEBody(''); setEPenulis('Admin Website'); setEThumbnail('');
-      setENamaInstansi((jenis === 'workshop' || jenis === 'softskill' || jenis === 'seminar') ? 'CDC UM Kendari' : '');
-      setELinkLamar(''); setEKategori((jenis || 'berita') === 'presentasi' ? 'internasional' : ((jenis || 'berita') === 'berita' ? 'Umum' : '')); setEScope('LOKAL');
+      setEJudul(''); setEBody(''); setEPenulis('Admin Website'); setEThumbnail(''); setEPosterImage('');
+      setENamaInstansi((jenis === 'workshop' || jenis === 'softskill' || jenis === 'seminar' || jenis === 'event') ? 'CDC UM Kendari' : '');
+      setELinkLamar(''); setEKategori((jenis || 'berita') === 'presentasi' ? 'internasional' : ((jenis || 'berita') === 'berita' ? 'Umum' : ((jenis || 'berita') === 'event' ? 'Seminar' : ''))); setEScope('LOKAL');
       setEGaji(''); setEKuota(''); setEDeadline(''); setELinkCta(''); setEStatus('published');
-      setETanggal('');
+      setETanggal(''); setEWaktu(''); setELokasiEvent(''); setEPembicara(''); setEKuotaEvent(''); setELinkDaftar(''); setECtaEnabled(false); setECtaLabel('Daftar Sekarang'); setEStatusEvent('buka');
       setESubKategori('akademik'); setENamaMahasiswa(''); setEProdi('');
       setETahunPres(new Date().getFullYear().toString()); setEPeringkat('Juara 1'); setETerverifikasi(true);
       setEIsPinned(false);
@@ -1753,12 +1786,18 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
       // 1. Tampilkan pratinjau instan dari kompresi lokal agar UI langsung responsif
       const localCompressedUrl = await compressImageAdaptive(file);
       setEThumbnail(localCompressedUrl);
+      if (eJenis === 'event') {
+        setEPosterImage(localCompressedUrl);
+      }
 
       // 2. Unggah langsung ke Supabase Cloud Storage (jauh lebih ringan & permanen)
       const targetFolder = eJenis === 'berita' ? 'berita' : 'konten';
       const cloudUrl = await uploadContentImage(file, targetFolder);
       if (cloudUrl) {
         setEThumbnail(cloudUrl);
+        if (eJenis === 'event') {
+          setEPosterImage(cloudUrl);
+        }
         triggerToast('success', 'Foto berhasil diunggah ke Supabase Cloud Storage!');
       } else {
         triggerToast('info', 'Foto dikompresi lokal & siap disimpan.');
@@ -1773,9 +1812,89 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
     }
   };
 
+  const handleEventCropComplete = async (croppedFile: File, croppedDataUrl: string) => {
+    setShowEventCropperModal(false);
+    setEThumbnail(croppedDataUrl);
+    triggerToast('success', 'Thumbnail card event berhasil disesuaikan!');
+    try {
+      const cloudUrl = await uploadDataUrlToStorage(croppedDataUrl, 'konten');
+      if (cloudUrl) {
+        setEThumbnail(cloudUrl);
+      }
+    } catch (uploadErr) {
+      console.warn('[Storage] Gagal mengunggah crop thumbnail event:', uploadErr);
+    }
+  };
+
+  const handleEventQuickFocusCrop = async (focus: 'top' | 'center' | 'bottom') => {
+    const src = ePosterImage || eThumbnail;
+    if (!src) {
+      triggerToast('error', 'Unggah gambar terlebih dahulu.');
+      return;
+    }
+    try {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.src = src;
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
+
+      const targetRatio = 16 / 9;
+      let sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
+      const srcRatio = img.naturalWidth / img.naturalHeight;
+
+      if (srcRatio < targetRatio) {
+        // Gambar lebih vertikal (portrait / 9:16 / 4:3)
+        sw = img.naturalWidth;
+        sh = img.naturalWidth / targetRatio;
+        sx = 0;
+        if (focus === 'top') sy = 0;
+        else if (focus === 'center') sy = Math.max(0, (img.naturalHeight - sh) / 2);
+        else sy = Math.max(0, img.naturalHeight - sh);
+      } else {
+        // Gambar lebih horizontal
+        sh = img.naturalHeight;
+        sw = img.naturalHeight * targetRatio;
+        sy = 0;
+        if (focus === 'top') sx = 0;
+        else if (focus === 'center') sx = Math.max(0, (img.naturalWidth - sw) / 2);
+        else sx = Math.max(0, img.naturalWidth - sw);
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 1200;
+      canvas.height = 675;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, 1200, 675);
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 1200, 675);
+
+      const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.90);
+      setEThumbnail(croppedDataUrl);
+      triggerToast('success', `Thumbnail card diatur dengan fokus: ${focus === 'top' ? 'Atas (Header/Judul)' : focus === 'center' ? 'Tengah' : 'Bawah'}`);
+
+      uploadDataUrlToStorage(croppedDataUrl, 'konten').then((url) => {
+        if (url) setEThumbnail(url);
+      }).catch(() => {});
+    } catch (err) {
+      console.error('Quick crop error:', err);
+      triggerToast('error', 'Gagal memproses crop thumbnail.');
+    }
+  };
+
+  const handleResetEventThumbnail = () => {
+    if (ePosterImage) {
+      setEThumbnail(ePosterImage);
+      triggerToast('info', 'Thumbnail dikembalikan ke gambar poster utuh.');
+    }
+  };
+
   const handleSaveKonten = async () => {
     setSaveError(null);
-    if (!eJudul.trim()) {
+    if (!eJudul.trim() && eJenis !== 'event') {
       setSaveError('Judul wajib diisi.');
       triggerToast('error', 'Judul wajib diisi.');
       return;
@@ -1798,18 +1917,18 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
       triggerToast('error', 'Berita harus memiliki isi konten (teks atau gambar).');
       return;
     }
-    if (THUMB_REQUIRED[eJenis] && !eThumbnail) {
-      setSaveError(`Thumbnail / Poster wajib diunggah untuk ${JENIS_LABEL[eJenis]}. Gunakan panel upload gambar di atas.`);
-      triggerToast('error', `${JENIS_LABEL[eJenis]} wajib upload thumbnail. ` + (eJenis === 'berita' ? 'Tanpa thumbnail, berita tidak akan muncul di beranda.' : ''));
+    if (THUMB_REQUIRED[eJenis] && !eThumbnail && !ePosterImage) {
+      setSaveError(`Gambar/pamflet wajib diunggah untuk ${JENIS_LABEL[eJenis]}. Gunakan tombol "Upload Gambar".`);
+      triggerToast('error', `${JENIS_LABEL[eJenis]} wajib upload gambar/pamflet terlebih dahulu.`);
       return;
     }
     if ((eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') && !eTanggal) {
-      setSaveError('Tanggal Pelaksanaan wajib diisi untuk konten event layanan. Klik ikon kalender dan pilih tanggal.');
-      triggerToast('error', 'Tanggal Pelaksanaan wajib diisi untuk konten event layanan.');
+      setSaveError('Tanggal Pelaksanaan wajib diisi untuk agenda Event. Klik ikon kalender dan pilih tanggal.');
+      triggerToast('error', 'Tanggal Pelaksanaan wajib diisi untuk agenda Event.');
       return;
     }
-    // Validasi tambahan: judul tidak boleh kosong (sudah di baris 1577, tapi beri pesan lebih jelas)
-    if (!eJudul.trim()) {
+    // Validasi tambahan: judul tidak boleh kosong selain event
+    if (!eJudul.trim() && eJenis !== 'event') {
       setSaveError('Judul konten wajib diisi.');
       triggerToast('error', 'Judul konten tidak boleh kosong.');
       return;
@@ -1820,7 +1939,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
       : eBody;
 
     // Pastikan jika thumbnail masih berupa DataURL Base64 lokal, otomatis unggah ke Cloud Storage
-    let finalThumbnail = THUMB_REQUIRED[eJenis] ? eThumbnail : undefined;
+    let finalThumbnail = THUMB_REQUIRED[eJenis] ? (eThumbnail || ePosterImage) : undefined;
     if (finalThumbnail && finalThumbnail.startsWith('data:image/')) {
       try {
         const cloudUrl = await uploadDataUrlToStorage(finalThumbnail, eJenis === 'berita' ? 'berita' : 'konten');
@@ -1833,21 +1952,27 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
       }
     }
 
+    const isEventGroup = ['event', 'workshop', 'softskill', 'seminar'].includes(eJenis);
+    const parsedKuotaEvent = (isEventGroup && eKuotaEvent && eKuotaEvent.trim() !== '')
+      ? Math.max(0, Math.abs(parseInt(eKuotaEvent, 10) || 0))
+      : undefined;
+
     const base: KontenKarir = {
       id: editId || (eJenis === 'berita' ? `berita_${Date.now()}` : `kk_${Date.now()}`),
       jenis: eJenis,
-      judul: eJudul.trim(),
+      judul: eJudul.trim() || (isEventGroup ? (eKategori?.trim() && eKategori !== 'Lainnya' ? `Event ${eKategori.trim()}` : 'Event CDC UM Kendari') : 'Konten'),
       body: finalBody,
       penulis: eJenis === 'berita' ? (ePenulis.trim() || 'Admin Website') : undefined,
-      namaInstansi: (eJenis === 'lowongan' || eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? (eNamaInstansi.trim() || 'CDC UM Kendari') : undefined,
+      namaInstansi: (eJenis === 'lowongan' || isEventGroup) ? (eNamaInstansi.trim() || 'CDC UM Kendari') : undefined,
       tipe: eJenis === 'lowongan' ? eTipe : undefined,
-      linkLamar: eJenis === 'lowongan' ? eLinkLamar.trim() : undefined,
-      kategori: (eJenis === 'lowongan' || eJenis === 'program' || eJenis === 'presentasi' || eJenis === 'berita') ? (eKategori.trim() || 'Umum') : undefined,
-      gaji: eJenis === 'lowongan' ? eGaji.trim() : undefined,
-      kuota: eJenis === 'lowongan' && eKuota ? Number(eKuota) : undefined,
-      deadline: eJenis === 'lowongan' ? eDeadline : undefined,
-      linkCta: eJenis === 'program' ? (eLinkCta.trim() || undefined) : undefined,
+      linkLamar: eJenis === 'lowongan' ? eLinkLamar.trim() : (isEventGroup ? (eLinkDaftar.trim() || eLinkLamar.trim() || undefined) : undefined),
+      kategori: (eJenis === 'lowongan' || eJenis === 'program' || eJenis === 'presentasi' || eJenis === 'berita' || isEventGroup) ? (eKategori.trim() || 'Seminar') : undefined,
+      gaji: eJenis === 'lowongan' ? eGaji.trim() : (isEventGroup ? (eGaji.trim() || undefined) : undefined),
+      kuota: (eJenis === 'lowongan' && eKuota) ? Math.max(0, Math.abs(parseInt(eKuota, 10) || 0)) : (isEventGroup && parsedKuotaEvent !== undefined ? parsedKuotaEvent : undefined),
+      deadline: eJenis === 'lowongan' ? eDeadline : (isEventGroup ? (eDeadline || eTanggal || undefined) : undefined),
+      linkCta: eJenis === 'program' ? (eLinkCta.trim() || undefined) : (isEventGroup ? (eLinkDaftar.trim() || undefined) : undefined),
       thumbnail: finalThumbnail,
+      gambarPoster: isEventGroup ? (ePosterImage || finalThumbnail) : undefined,
       scope: eJenis === 'berita' ? eScope : undefined,
       // Field khusus Presentasi
       subKategori: eJenis === 'presentasi' ? eSubKategori : undefined,
@@ -1861,17 +1986,19 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
       updatedAt: now,
       createdBy: 'usr_admin',
       createdByName: 'Admin Website',
-      // Field khusus event layanan (workshop / softskill / seminar) — permanen: hanya tanggal, sisanya dihapus
-      tanggal: (eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') ? eTanggal : undefined,
-      waktu: undefined,
-      lokasiEvent: undefined,
-      pembicara: undefined,
-      kuotaEvent: undefined,
+      // Field khusus event layanan (event / workshop / softskill / seminar)
+      tanggal: isEventGroup ? eTanggal : undefined,
+      waktu: isEventGroup ? (eWaktu.trim() || undefined) : undefined,
+      lokasiEvent: isEventGroup ? (eLokasiEvent.trim() || undefined) : undefined,
+      pembicara: isEventGroup ? (ePembicara.trim() || undefined) : undefined,
+      kuotaEvent: isEventGroup ? parsedKuotaEvent : undefined,
       terdaftar: undefined,
-      linkDaftar: undefined,
-      statusEvent: undefined,
+      linkDaftar: isEventGroup ? (eCtaEnabled && eLinkDaftar.trim() ? eLinkDaftar.trim() : undefined) : undefined,
+      ctaEnabled: isEventGroup ? eCtaEnabled : undefined,
+      ctaLabel: (isEventGroup && eCtaEnabled) ? (eCtaLabel.trim() || 'Daftar Sekarang') : undefined,
+      statusEvent: isEventGroup ? eStatusEvent : undefined,
       isPinned: eIsPinned,
-      showOnHome: eJenis === 'presentasi' ? eShowOnHome : undefined,
+      showOnHome: (eJenis === 'presentasi' || isEventGroup) ? eShowOnHome : undefined,
       layoutType: eJenis === 'program' ? eLayoutType : undefined
     };
     try {
@@ -2585,16 +2712,24 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                     <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
                       {kontenSub === 'pembuatan'
                         ? `Form Pembuatan ${selectedCategory ? JENIS_LABEL[selectedCategory] : 'Konten'}`
-                        : selectedCategory
-                          ? `Riwayat ${JENIS_LABEL[selectedCategory]}`
-                          : 'Kategori Konten Karir'}
+                        : selectedCategory === 'event'
+                          ? eventSubView === 'infografis'
+                            ? 'Infografis Event Pengembangan Karir'
+                            : 'Riwayat Event Pengembangan Karir'
+                          : selectedCategory
+                            ? `Riwayat ${JENIS_LABEL[selectedCategory]}`
+                            : 'Kategori Konten Karir'}
                     </h1>
                     <p className="text-xs text-slate-500 mt-1">
                       {kontenSub === 'pembuatan'
                         ? 'Lengkapi form dan isi editor di bawah untuk mempublikasikan konten.'
-                        : selectedCategory
-                          ? `Kelola daftar postingan dan riwayat publikasi ${JENIS_LABEL[selectedCategory]} CDC UM Kendari.`
-                          : 'Pilih salah satu kategori konten karir di bawah ini untuk melihat riwayat atau membuat postingan baru.'}
+                        : selectedCategory === 'event'
+                          ? eventSubView === 'infografis'
+                            ? 'Kelola poster infografis carousel yang tampil di slider halaman publik Layanan > Event (tambah, edit, sembunyikan, hapus, dan atur urutan slide).'
+                            : 'Kelola daftar postingan dan riwayat publikasi Event Pengembangan Karir CDC UM Kendari.'
+                          : selectedCategory
+                            ? `Kelola daftar postingan dan riwayat publikasi ${JENIS_LABEL[selectedCategory]} CDC UM Kendari.`
+                            : 'Pilih salah satu kategori konten karir di bawah ini untuk melihat riwayat atau membuat postingan baru.'}
                     </p>
                   </div>
 
@@ -2611,6 +2746,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                             setShowChForm(false);
                           } else if (selectedCategory !== null) {
                             setSelectedCategory(null);
+                            setEventSubView('riwayat');
                           }
                         }}
                         className="bg-white hover:bg-slate-100 text-slate-700 px-4 py-2.5 rounded-xl text-xs font-bold border border-slate-200 transition flex items-center gap-2 cursor-pointer shadow-2xs"
@@ -2623,12 +2759,18 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
 
                 {/* MODE 1: GRID KARTU KATEGORI KONTEN (Saat belum memilih kategori & di tab riwayat) */}
                 {kontenSub === 'riwayat' && selectedCategory === null && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5" id="adm-konten-kategori-grid">
-                    {(Object.keys(JENIS_LABEL) as JenisKonten[]).map((jenis) => {
-                      const count = (konten.filter((k) => k.jenis === jenis).length) 
-                        + (jenis === 'lowongan' ? adminLowongan.length : 0)
-                        + (jenis === 'job_fair' ? getJobFair().length : 0)
-                        + (jenis === 'campus_hiring' ? getCampusHiring().length : 0);
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" id="adm-konten-kategori-grid">
+                    {KONTEN_CARD_LIST.map((jenis) => {
+                      let count = 0;
+                      if (jenis === 'event') {
+                        count = (konten.filter((k) => ['event', 'workshop', 'softskill', 'seminar'].includes(k.jenis)).length) 
+                          + getJobFair().length 
+                          + getCampusHiring().length;
+                      } else if (jenis === 'lowongan') {
+                        count = adminLowongan.length;
+                      } else {
+                        count = konten.filter((k) => k.jenis === jenis).length;
+                      }
                       return (
                         <button
                           key={jenis}
@@ -2636,6 +2778,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                             setSelectedCategory(jenis);
                             setKontenJenisFilter(jenis);
                             setKontenSub('riwayat');
+                            setEventSubFilter('semua');
+                            setEventSubView('riwayat');
                             setShowJfForm(false);
                             setShowChForm(false);
                           }}
@@ -3068,8 +3212,58 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                       </div>
                     )}
 
-                    {/* Filter Search Bar */}
-                    <div className="flex flex-wrap items-center gap-3">
+                    {/* Sub-Navigasi Event Pengembangan Karir jika selectedCategory === 'event' */}
+                    {selectedCategory === 'event' && (
+                      <div className="flex flex-wrap items-center justify-between gap-3 p-2 bg-slate-100/90 rounded-2xl border border-slate-200/80 mb-2">
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setEventSubView('riwayat')}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                              eventSubView === 'riwayat'
+                                ? 'bg-white text-[#0077C6] shadow-sm border border-slate-200/80'
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                            }`}
+                          >
+                            <CalendarDays className="w-4 h-4" />
+                            <span>Riwayat Postingan Event</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEventSubView('infografis')}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                              eventSubView === 'infografis'
+                                ? 'bg-white text-[#0077C6] shadow-sm border border-slate-200/80'
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                            }`}
+                          >
+                            <Layers className="w-4 h-4 text-[#0077C6]" />
+                            <span>Infografis Event</span>
+                          </button>
+                        </div>
+                        <span className="text-[11px] font-semibold text-slate-500 hidden sm:inline px-2">
+                          {eventSubView === 'infografis'
+                            ? 'Kelola slider poster/pamflet di halaman publik Layanan > Event'
+                            : 'Daftar agenda & pendaftaran kegiatan'}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* TAMPILAN JIKA SUB-VIEW INFOGRAFIS DIPILIH */}
+                    {selectedCategory === 'event' && eventSubView === 'infografis' && (
+                      <InfografisLayananManager
+                        embedded
+                        title="Kelola Infografis Event Pengembangan Karir"
+                        subtitle="Poster dan pamphlet infografis yang Anda input di sini akan langsung tampil pada slider / carousel di menu publik Layanan > Event."
+                        onNotify={(type, msg) => triggerToast(type, msg)}
+                      />
+                    )}
+
+                    {/* TAMPILAN JIKA SUB-VIEW RIWAYAT (ATAU KATEGORI LAINNYA) */}
+                    {(selectedCategory !== 'event' || eventSubView === 'riwayat') && (
+                      <>
+                        {/* Filter Search Bar */}
+                        <div className="flex flex-wrap items-center gap-3">
                       <div className="relative flex-1 min-w-[200px]">
                         <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                         <input
@@ -3197,106 +3391,363 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                       );
                     })()}
 
-                    {/* List Postingan Filtered By selectedCategory */}
-                    <div className="space-y-3">
-                      {konten.filter(k => k.jenis === selectedCategory && (!kontenQuery || k.judul.toLowerCase().includes(kontenQuery.toLowerCase()))).length === 0 ? (
-                        <div className="bg-white rounded-3xl p-12 text-center border border-slate-200/80 space-y-3">
-                          <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#0077C6] flex items-center justify-center mx-auto font-bold border border-blue-100">
-                            {JENIS_ICON[selectedCategory]}
+                    {/* Sub-filter Kategori Event jika selectedCategory === 'event' */}
+                    {selectedCategory === 'event' && (
+                      <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+                        {[
+                          { id: 'semua', label: 'Semua Event' },
+                          { id: 'seminar', label: 'Seminar' },
+                          { id: 'workshop', label: 'Workshop' },
+                          { id: 'pelatihan', label: 'Pelatihan' },
+                          { id: 'campus_hiring', label: 'Campus Hiring' },
+                          { id: 'job_fair', label: 'Job Fair' },
+                          { id: 'lainnya', label: 'Lainnya' },
+                        ].map(tab => (
+                          <button
+                            key={tab.id}
+                            type="button"
+                            onClick={() => setEventSubFilter(tab.id)}
+                            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+                              eventSubFilter === tab.id
+                                ? 'bg-[#0077C6] text-white shadow-sm'
+                                : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200'
+                            }`}
+                          >
+                            {tab.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Tampilan Riwayat Event Terpadu jika selectedCategory === 'event' */}
+                    {selectedCategory === 'event' ? (() => {
+                      const allDirectEvents = konten.filter(k => k.jenis === 'event' || k.jenis === 'workshop' || k.jenis === 'softskill' || k.jenis === 'seminar');
+                      const filteredDirect = allDirectEvents.filter(k => {
+                        if (kontenQuery) {
+                          const q = kontenQuery.toLowerCase();
+                          const mQ = k.judul.toLowerCase().includes(q) ||
+                            (k.namaInstansi && k.namaInstansi.toLowerCase().includes(q)) ||
+                            (k.kategori && k.kategori.toLowerCase().includes(q)) ||
+                            (k.pembicara && k.pembicara.toLowerCase().includes(q));
+                          if (!mQ) return false;
+                        }
+                        if (eventSubFilter === 'semua') return true;
+                        const kat = (k.kategori || k.jenis || '').toLowerCase();
+                        const j = k.jenis.toLowerCase();
+                        if (eventSubFilter === 'seminar') {
+                          return kat.includes('seminar') || kat.includes('webinar') || j === 'seminar';
+                        }
+                        if (eventSubFilter === 'workshop') {
+                          return kat.includes('workshop') || j === 'workshop';
+                        }
+                        if (eventSubFilter === 'pelatihan') {
+                          return kat.includes('pelatihan') || kat.includes('softskill') || kat.includes('bootcamp') || j === 'softskill';
+                        }
+                        if (eventSubFilter === 'campus_hiring') {
+                          return kat.includes('campus hiring') || kat.includes('hiring') || kat.includes('recruitment');
+                        }
+                        if (eventSubFilter === 'job_fair') {
+                          return kat.includes('job fair') || kat.includes('expo') || kat.includes('bursa kerja');
+                        }
+                        if (eventSubFilter === 'lainnya') {
+                          const isKnown = kat.includes('seminar') || kat.includes('webinar') || kat.includes('workshop') ||
+                            kat.includes('pelatihan') || kat.includes('softskill') || kat.includes('campus hiring') ||
+                            kat.includes('job fair') || j === 'workshop' || j === 'softskill' || j === 'seminar';
+                          return !isKnown;
+                        }
+                        return true;
+                      });
+
+                      const legacyCh = (eventSubFilter === 'semua' || eventSubFilter === 'campus_hiring')
+                        ? getCampusHiring().filter(item => !kontenQuery || item.judul.toLowerCase().includes(kontenQuery.toLowerCase()) || item.namaPerusahaan.toLowerCase().includes(kontenQuery.toLowerCase()))
+                        : [];
+
+                      const legacyJf = (eventSubFilter === 'semua' || eventSubFilter === 'job_fair')
+                        ? getJobFair().filter(item => !kontenQuery || item.judul.toLowerCase().includes(kontenQuery.toLowerCase()) || (item.lokasi && item.lokasi.toLowerCase().includes(kontenQuery.toLowerCase())))
+                        : [];
+
+                      const totalEvents = filteredDirect.length + legacyCh.length + legacyJf.length;
+
+                      const getCatBadge = (katName: string) => {
+                        const l = (katName || '').toLowerCase();
+                        if (l.includes('seminar') || l.includes('webinar')) {
+                          return 'bg-blue-100 text-blue-800 border-blue-200';
+                        }
+                        if (l.includes('workshop')) {
+                          return 'bg-amber-100 text-amber-800 border-amber-200';
+                        }
+                        if (l.includes('pelatihan') || l.includes('softskill')) {
+                          return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+                        }
+                        if (l.includes('campus hiring') || l.includes('hiring')) {
+                          return 'bg-purple-100 text-purple-800 border-purple-200';
+                        }
+                        if (l.includes('job fair') || l.includes('expo')) {
+                          return 'bg-indigo-100 text-indigo-800 border-indigo-200';
+                        }
+                        return 'bg-slate-100 text-slate-700 border-slate-200';
+                      };
+
+                      if (totalEvents === 0) {
+                        return (
+                          <div className="bg-white rounded-3xl p-12 text-center border border-slate-200/80 space-y-3">
+                            <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#0077C6] flex items-center justify-center mx-auto font-bold border border-blue-100">
+                              <Calendar className="w-6 h-6" />
+                            </div>
+                            <h4 className="text-sm font-bold text-slate-800">Belum ada postingan Event</h4>
+                            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                              {kontenQuery ? 'Tidak ada event yang cocok dengan kata kunci pencarian.' : 'Klik tombol FAB (+) di kanan bawah untuk membuat konten Event baru (Seminar, Pelatihan, Webinar, Lomba, dll).'}
+                            </p>
                           </div>
-                          <h4 className="text-sm font-bold text-slate-800">Belum ada postingan {JENIS_LABEL[selectedCategory]}</h4>
-                          <p className="text-xs text-slate-500 max-w-sm mx-auto">Klik tombol FAB (+) di kanan bawah untuk membuat postingan {JENIS_LABEL[selectedCategory]} pertama Anda.</p>
-                        </div>
-                      ) : (
-                        konten.filter(k => k.jenis === selectedCategory && (!kontenQuery || k.judul.toLowerCase().includes(kontenQuery.toLowerCase()))).map((k) => (
-                          <div key={k.id} className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex items-center gap-4">
-                            {THUMB_REQUIRED[k.jenis] && k.thumbnail ? (
-                              <button onClick={() => setZoomImage(k.thumbnail!)} className="flex-shrink-0 relative group">
-                                <img
-                                  src={k.thumbnail}
-                                  alt=""
-                                  onError={(e) => {
-                                    (e.currentTarget as HTMLImageElement).src = '/bg-gedung-umk.jpg';
-                                  }}
-                                  className={`w-20 object-cover rounded-xl ${k.jenis === 'lowongan' ? 'h-28' : 'h-14'}`}
-                                />
-                                <span className="absolute inset-0 bg-black/0 group-hover:bg-black/30 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition"><ZoomIn className="w-5 h-5 text-white" /></span>
-                              </button>
-                            ) : (
-                              <div className="w-20 h-14 flex-shrink-0 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400">{JENIS_ICON[k.jenis]}</div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-0.5">
-                                {statusBadge(k.status, { draft: { bg: 'bg-slate-100', text: 'text-slate-600', label: 'Draft' }, published: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Published' } })}
-                                <span className="text-[11px] text-slate-400 flex items-center gap-1">{JENIS_ICON[k.jenis]} {JENIS_LABEL[k.jenis]}</span>
-                                {k.jenis === 'berita' && (
-                                  <>
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
-                                      {k.scope || 'LOKAL'}
+                        );
+                      }
+
+                      return (
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between px-1">
+                            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                              Postingan Event &amp; Kegiatan ({totalEvents})
+                            </span>
+                          </div>
+
+                          {/* Event dari tabel konten_karir (Event Hybrid & Legacy Event) */}
+                          {filteredDirect.map((k) => {
+                            const rawCat = k.kategori || (k.jenis === 'workshop' ? 'Workshop' : k.jenis === 'softskill' ? 'Pelatihan' : k.jenis === 'seminar' ? 'Seminar' : 'Event');
+                            const eventStatus = k.statusEvent || 'buka';
+                            return (
+                              <div key={k.id} className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex items-center gap-4 hover:border-slate-300 transition">
+                                {k.thumbnail ? (
+                                  <button onClick={() => setZoomImage(k.thumbnail!)} className="flex-shrink-0 relative group">
+                                    <img
+                                      src={k.thumbnail}
+                                      alt=""
+                                      onError={(e) => {
+                                        (e.currentTarget as HTMLImageElement).src = '/bg-gedung-umk.jpg';
+                                      }}
+                                      className="w-20 h-16 object-cover rounded-xl"
+                                    />
+                                    <span className="absolute inset-0 bg-black/0 group-hover:bg-black/30 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                                      <ZoomIn className="w-5 h-5 text-white" />
                                     </span>
-                                    {k.kategori && (
-                                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                                        {k.kategori}
+                                  </button>
+                                ) : (
+                                  <div className="w-20 h-16 flex-shrink-0 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+                                    <Calendar className="w-6 h-6" />
+                                  </div>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                                    {statusBadge(k.status, { draft: { bg: 'bg-slate-100', text: 'text-slate-600', label: 'Draft' }, published: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Published' } })}
+                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${getCatBadge(rawCat)}`}>
+                                      {rawCat}
+                                    </span>
+                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                      eventStatus === 'selesai'
+                                        ? 'bg-slate-100 text-slate-600'
+                                        : eventStatus === 'segera'
+                                          ? 'bg-amber-100 text-amber-800'
+                                          : 'bg-emerald-100 text-emerald-800'
+                                    }`}>
+                                      {eventStatus === 'selesai' ? 'Selesai' : eventStatus === 'segera' ? 'Segera' : 'Pendaftaran Buka'}
+                                    </span>
+                                    {k.isPinned && (
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300">
+                                        <Pin className="w-3 h-3 fill-amber-600 text-amber-600" /> Ter-Pin
                                       </span>
                                     )}
-                                  </>
-                                )}
-                                {k.isPinned && k.jenis !== 'lowongan' && (
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300">
-                                    <Pin className="w-3 h-3 fill-amber-600 text-amber-600" /> Ter-Pin
-                                  </span>
-                                )}
-                              </div>
-                              <div className="font-bold text-slate-800 truncate">{k.judul}</div>
-                              <div className="text-[11px] text-slate-400">{formatTanggal(k.createdAt)}{k.penulis ? ' · ' + k.penulis : ''}</div>
-                            </div>
-                            <div className="flex gap-1.5 flex-shrink-0">
-                              {k.jenis !== 'lowongan' && (
-                                <button
-                                  type="button"
-                                  title={k.isPinned ? "Lepas Sematan (Unpin)" : "Sematkan ke Popular Info (Pin)"}
-                                  onClick={() => handleTogglePinKonten(k)}
-                                  className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${k.isPinned
-                                    ? 'bg-amber-100 text-amber-800 border border-amber-300'
-                                    : 'bg-slate-100 hover:bg-amber-50 text-slate-600 hover:text-amber-700'
+                                    {k.showOnHome && (
+                                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800">
+                                        Beranda Utama
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="font-bold text-slate-800 truncate text-sm">{k.judul}</div>
+                                  <div className="text-[11px] text-slate-400 flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
+                                    <span>{k.namaInstansi || 'CDC UM Kendari'}</span>
+                                    <span>·</span>
+                                    <span>{k.tanggal || (k.createdAt ? formatTanggal(k.createdAt) : '-')}</span>
+                                    {k.waktu && <><span>·</span><span>{k.waktu}</span></>}
+                                    {k.lokasiEvent && <><span>·</span><span className="truncate max-w-[150px]">{k.lokasiEvent}</span></>}
+                                    {k.gaji && <><span>·</span><span className="font-semibold text-slate-600">{k.gaji}</span></>}
+                                    {(k.kuotaEvent || k.kuota) && <><span>·</span><span className="text-blue-600 font-semibold">{k.kuotaEvent || k.kuota} Kuota</span></>}
+                                  </div>
+                                </div>
+                                <div className="flex gap-1.5 flex-shrink-0">
+                                  <button
+                                    type="button"
+                                    title={k.isPinned ? "Lepas Sematan (Unpin)" : "Sematkan ke Popular Info (Pin)"}
+                                    onClick={() => handleTogglePinKonten(k)}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${k.isPinned
+                                      ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                                      : 'bg-slate-100 hover:bg-amber-50 text-slate-600 hover:text-amber-700'
                                     }`}
-                                >
-                                  <Pin className={`w-3.5 h-3.5 ${k.isPinned ? 'fill-amber-600 text-amber-600' : ''}`} />
-                                  <span>{k.isPinned ? 'Ter-Pin' : 'Pin'}</span>
+                                  >
+                                    <Pin className={`w-3.5 h-3.5 ${k.isPinned ? 'fill-amber-600 text-amber-600' : ''}`} />
+                                    <span>{k.isPinned ? 'Ter-Pin' : 'Pin'}</span>
+                                  </button>
+                                  <button onClick={() => openEditor(k)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Edit3 className="w-3.5 h-3.5" /> Edit</button>
+                                  <button onClick={() => handleDeleteKonten(k)} className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Trash2 className="w-3.5 h-3.5" /> Hapus</button>
+                                </div>
+                              </div>
+                            );
+                          })}
+
+                          {/* Legacy Campus Hiring Items */}
+                          {legacyCh.map((item) => (
+                            <div key={`ch_${item.id}`} className="bg-white rounded-xl border border-blue-200 shadow-sm p-4 flex items-center gap-4 hover:border-blue-300 transition">
+                              {item.bannerUrl || item.logoPerusahaan ? (
+                                <button onClick={() => setZoomImage(item.bannerUrl || item.logoPerusahaan!)} className="flex-shrink-0 relative group">
+                                  <img src={item.bannerUrl || item.logoPerusahaan} alt="" className="w-20 h-16 object-cover rounded-xl bg-slate-950" />
+                                  <span className="absolute inset-0 bg-black/0 group-hover:bg-black/30 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition"><ZoomIn className="w-5 h-5 text-white" /></span>
                                 </button>
+                              ) : (
+                                <div className="w-20 h-16 flex-shrink-0 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600"><Building2 className="w-6 h-6" /></div>
                               )}
-                              <button onClick={() => openEditor(k)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Edit3 className="w-3.5 h-3.5" /> Edit</button>
-                              <button onClick={() => handleDeleteKonten(k)} className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Trash2 className="w-3.5 h-3.5" /> Hapus</button>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200">Campus Hiring (Legacy)</span>
+                                </div>
+                                <div className="font-bold text-slate-800 truncate text-sm">{item.judul}</div>
+                                <div className="text-[11px] text-slate-400">{item.namaPerusahaan} · {item.tanggal} · {item.lokasi}</div>
+                              </div>
+                              <div className="flex gap-1.5 flex-shrink-0">
+                                <button onClick={() => openChModal(item)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Edit3 className="w-3.5 h-3.5" /> Edit</button>
+                                <button onClick={() => handleDeleteCh(item)} className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Trash2 className="w-3.5 h-3.5" /> Hapus</button>
+                              </div>
                             </div>
+                          ))}
+
+                          {/* Legacy Job Fair Items */}
+                          {legacyJf.map((item) => (
+                            <div key={`jf_${item.id}`} className="bg-white rounded-xl border border-emerald-200 shadow-sm p-4 flex items-center gap-4 hover:border-emerald-300 transition">
+                              {item.bannerUrl ? (
+                                <button onClick={() => setZoomImage(item.bannerUrl!)} className="flex-shrink-0 relative group">
+                                  <img src={item.bannerUrl} alt="" className="w-20 h-16 object-cover rounded-xl bg-slate-950" />
+                                  <span className="absolute inset-0 bg-black/0 group-hover:bg-black/30 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition"><ZoomIn className="w-5 h-5 text-white" /></span>
+                                </button>
+                              ) : (
+                                <div className="w-20 h-16 flex-shrink-0 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600"><Ticket className="w-6 h-6" /></div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">Job Fair &amp; Expo (Legacy)</span>
+                                </div>
+                                <div className="font-bold text-slate-800 truncate text-sm">{item.judul}</div>
+                                <div className="text-[11px] text-slate-400">{item.tanggalMulai} · {item.lokasi}</div>
+                              </div>
+                              <div className="flex gap-1.5 flex-shrink-0">
+                                <button onClick={() => openJfModal(item)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Edit3 className="w-3.5 h-3.5" /> Edit</button>
+                                <button onClick={() => handleDeleteJf(item)} className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Trash2 className="w-3.5 h-3.5" /> Hapus</button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })() : (
+                      /* List Postingan Filtered By selectedCategory selain Event */
+                      <div className="space-y-3">
+                        {konten.filter(k => k.jenis === selectedCategory && (!kontenQuery || k.judul.toLowerCase().includes(kontenQuery.toLowerCase()))).length === 0 ? (
+                          <div className="bg-white rounded-3xl p-12 text-center border border-slate-200/80 space-y-3">
+                            <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#0077C6] flex items-center justify-center mx-auto font-bold border border-blue-100">
+                              {JENIS_ICON[selectedCategory]}
+                            </div>
+                            <h4 className="text-sm font-bold text-slate-800">Belum ada postingan {JENIS_LABEL[selectedCategory]}</h4>
+                            <p className="text-xs text-slate-500 max-w-sm mx-auto">Klik tombol FAB (+) di kanan bawah untuk membuat postingan {JENIS_LABEL[selectedCategory]} pertama Anda.</p>
                           </div>
-                        ))
-                      )}
-                    </div>
+                        ) : (
+                          konten.filter(k => k.jenis === selectedCategory && (!kontenQuery || k.judul.toLowerCase().includes(kontenQuery.toLowerCase()))).map((k) => (
+                            <div key={k.id} className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex items-center gap-4">
+                              {THUMB_REQUIRED[k.jenis] && k.thumbnail ? (
+                                <button onClick={() => setZoomImage(k.thumbnail!)} className="flex-shrink-0 relative group">
+                                  <img
+                                    src={k.thumbnail}
+                                    alt=""
+                                    onError={(e) => {
+                                      (e.currentTarget as HTMLImageElement).src = '/bg-gedung-umk.jpg';
+                                    }}
+                                    className={`w-20 object-cover rounded-xl ${k.jenis === 'lowongan' ? 'h-28' : 'h-14'}`}
+                                  />
+                                  <span className="absolute inset-0 bg-black/0 group-hover:bg-black/30 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition"><ZoomIn className="w-5 h-5 text-white" /></span>
+                                </button>
+                              ) : (
+                                <div className="w-20 h-14 flex-shrink-0 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400">{JENIS_ICON[k.jenis]}</div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-0.5">
+                                  {statusBadge(k.status, { draft: { bg: 'bg-slate-100', text: 'text-slate-600', label: 'Draft' }, published: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Published' } })}
+                                  <span className="text-[11px] text-slate-400 flex items-center gap-1">{JENIS_ICON[k.jenis]} {JENIS_LABEL[k.jenis]}</span>
+                                  {k.jenis === 'berita' && (
+                                    <>
+                                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                                        {k.scope || 'LOKAL'}
+                                      </span>
+                                      {k.kategori && (
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                                          {k.kategori}
+                                        </span>
+                                      )}
+                                    </>
+                                  )}
+                                  {k.isPinned && k.jenis !== 'lowongan' && (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300">
+                                      <Pin className="w-3 h-3 fill-amber-600 text-amber-600" /> Ter-Pin
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="font-bold text-slate-800 truncate">{k.judul}</div>
+                                <div className="text-[11px] text-slate-400">{formatTanggal(k.createdAt)}{k.penulis ? ' · ' + k.penulis : ''}</div>
+                              </div>
+                              <div className="flex gap-1.5 flex-shrink-0">
+                                {k.jenis !== 'lowongan' && (
+                                  <button
+                                    type="button"
+                                    title={k.isPinned ? "Lepas Sematan (Unpin)" : "Sematkan ke Popular Info (Pin)"}
+                                    onClick={() => handleTogglePinKonten(k)}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${k.isPinned
+                                      ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                                      : 'bg-slate-100 hover:bg-amber-50 text-slate-600 hover:text-amber-700'
+                                      }`}
+                                  >
+                                    <Pin className={`w-3.5 h-3.5 ${k.isPinned ? 'fill-amber-600 text-amber-600' : ''}`} />
+                                    <span>{k.isPinned ? 'Ter-Pin' : 'Pin'}</span>
+                                  </button>
+                                )}
+                                <button onClick={() => openEditor(k)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Edit3 className="w-3.5 h-3.5" /> Edit</button>
+                                <button onClick={() => handleDeleteKonten(k)} className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Trash2 className="w-3.5 h-3.5" /> Hapus</button>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                      </>
+                    )}
 
                     {/* FLOATING ACTION BUTTON (FAB) + UNTUK PEMBUATAN KONTEN KATEGORI */}
-                    <button
-                      onClick={() => {
-                        if (selectedCategory === 'lowongan') {
-                          openLowonganForm();
-                        } else if (selectedCategory === 'job_fair') {
-                          openJfModal();
-                        } else if (selectedCategory === 'campus_hiring') {
-                          openChModal();
-                        } else {
-                          setEJenis(selectedCategory);
-                          setKontenSub('pembuatan');
-                          setEditId(null);
-                          setEditorOpen(true);
-                        }
-                      }}
-                      title={`Buat ${JENIS_LABEL[selectedCategory]} Baru`}
-                      className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-[#0077C6] hover:bg-blue-600 active:scale-95 text-white rounded-full shadow-2xl hover:shadow-blue-500/30 transition-all duration-200 flex items-center justify-center cursor-pointer group border-2 border-white/20"
-                    >
-                      <Plus className="w-7 h-7 group-hover:rotate-90 transition-transform duration-300" />
-                      <span className="absolute right-16 bg-slate-900 text-white text-xs font-bold px-3.5 py-1.5 rounded-xl shadow-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none border border-slate-800">
-                        + Buat {JENIS_LABEL[selectedCategory]} Baru
-                      </span>
-                    </button>
+                    {selectedCategory !== null && (selectedCategory !== 'event' || eventSubView === 'riwayat') && (
+                      <button
+                        onClick={() => {
+                          if (selectedCategory === 'lowongan') {
+                            openLowonganForm();
+                          } else if (selectedCategory === 'job_fair') {
+                            openJfModal();
+                          } else if (selectedCategory === 'campus_hiring') {
+                            openChModal();
+                          } else if (selectedCategory === 'event') {
+                            openEditor(null, 'event');
+                          } else {
+                            openEditor(null, selectedCategory);
+                          }
+                        }}
+                        title={`Buat ${JENIS_LABEL[selectedCategory]} Baru`}
+                        className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-[#0077C6] hover:bg-blue-600 active:scale-95 text-white rounded-full shadow-2xl hover:shadow-blue-500/30 transition-all duration-200 flex items-center justify-center cursor-pointer group border-2 border-white/20"
+                      >
+                        <Plus className="w-7 h-7 group-hover:rotate-90 transition-transform duration-300" />
+                        <span className="absolute right-16 bg-slate-900 text-white text-xs font-bold px-3.5 py-1.5 rounded-xl shadow-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none border border-slate-800">
+                          + Buat {JENIS_LABEL[selectedCategory]} Baru
+                        </span>
+                      </button>
+                    )}
                   </div>
                 )}
 
@@ -3706,9 +4157,16 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                     )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-slate-500">Judul</label>
-                        <input value={eJudul} onChange={(e) => setEJudul(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" placeholder="Judul konten" />
+                      <div className={`space-y-1.5 ${eJenis === 'event' ? 'md:col-span-2' : ''}`}>
+                        <label className="text-xs font-medium text-slate-500">
+                          Judul {eJenis === 'event' && <span className="text-[11px] text-slate-400 font-normal">(Opsional)</span>}
+                        </label>
+                        <input
+                          value={eJudul}
+                          onChange={(e) => setEJudul(e.target.value)}
+                          className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm"
+                          placeholder={eJenis === 'event' ? 'Judul konten (opsional jika sudah ada pamflet gambar)' : 'Judul konten'}
+                        />
                       </div>
 
                       {eJenis === 'berita' && (
@@ -3820,17 +4278,192 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                         </div>
                       )}
 
-                      {(eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') && (
-                        <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-100 bg-slate-50/60 p-4 rounded-2xl">
-                          <div className="sm:col-span-2 text-xs font-bold text-blue-700 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-200 pb-2">
-                            <GraduationCap className="w-4 h-4 text-blue-600" />
-                            Tanggal Kegiatan ({JENIS_LABEL[eJenis]})
+                      {(eJenis === 'event' || eJenis === 'workshop' || eJenis === 'softskill' || eJenis === 'seminar') && (
+                        <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-100 bg-slate-50/60 p-5 rounded-2xl">
+                          <div className="sm:col-span-2 text-xs font-bold text-blue-700 uppercase tracking-wider flex items-center justify-between border-b border-slate-200 pb-2">
+                            <span className="flex items-center gap-1.5">
+                              <CalendarDays className="w-4 h-4 text-blue-600" />
+                              Detail &amp; Pengaturan Agenda Event
+                            </span>
                           </div>
 
+                          {/* Kategori Event (Dropdown Preset: Seminar, Workshop, Pelatihan, Campus Hiring, Job Fair, Lainnya) */}
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-slate-700">Kategori / Jenis Event</label>
+                            <Dropdown
+                              value={['Seminar', 'Workshop', 'Pelatihan', 'Campus Hiring', 'Job Fair'].includes(eKategori) ? eKategori : 'Lainnya'}
+                              onChange={(v) => {
+                                if (v === 'Lainnya') {
+                                  if (['Seminar', 'Workshop', 'Pelatihan', 'Campus Hiring', 'Job Fair'].includes(eKategori)) {
+                                    setEKategori('');
+                                  }
+                                } else {
+                                  setEKategori(v);
+                                }
+                              }}
+                              className="w-full"
+                              options={[
+                                { value: 'Seminar', label: 'Seminar' },
+                                { value: 'Workshop', label: 'Workshop' },
+                                { value: 'Pelatihan', label: 'Pelatihan' },
+                                { value: 'Campus Hiring', label: 'Campus Hiring' },
+                                { value: 'Job Fair', label: 'Job Fair' },
+                                { value: 'Lainnya', label: 'Lainnya' }
+                              ]}
+                            />
+                            {!['Seminar', 'Workshop', 'Pelatihan', 'Campus Hiring', 'Job Fair'].includes(eKategori) && (
+                              <input
+                                value={eKategori}
+                                onChange={(e) => setEKategori(e.target.value)}
+                                placeholder="Ketik kategori event lainnya..."
+                                className="w-full px-3 py-2 rounded-xl border border-blue-300 bg-white text-xs font-semibold text-blue-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-200 mt-1"
+                              />
+                            )}
+                          </div>
+
+                          {/* Penyelenggara / Mitra Instansi */}
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-slate-700">Penyelenggara / Mitra Kolaborasi</label>
+                            <input
+                              value={eNamaInstansi}
+                              onChange={(e) => setENamaInstansi(e.target.value)}
+                              placeholder="CDC UM Kendari atau nama mitra instansi"
+                              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white"
+                            />
+                          </div>
+
+                          {/* Tanggal Pelaksanaan */}
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-slate-700">Tanggal Pelaksanaan</label>
+                            <input
+                              value={eTanggal}
+                              onChange={(e) => setETanggal(e.target.value)}
+                              type="date"
+                              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white"
+                            />
+                          </div>
+
+                          {/* Waktu Pelaksanaan */}
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-slate-700">Waktu Pelaksanaan</label>
+                            <input
+                              value={eWaktu}
+                              onChange={(e) => setEWaktu(e.target.value)}
+                              placeholder="Contoh: 08:30 - 15:00 WITA"
+                              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white"
+                            />
+                          </div>
+
+                          {/* Lokasi / Tautan Kegiatan */}
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-slate-700">Lokasi / Tautan Pertemuan</label>
+                            <input
+                              value={eLokasiEvent}
+                              onChange={(e) => setELokasiEvent(e.target.value)}
+                              placeholder="Contoh: Gedung E Lt. 3 / Zoom Meeting"
+                              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white"
+                            />
+                          </div>
+
+                          {/* HTM / Biaya */}
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-slate-700">Biaya / HTM</label>
+                            <input
+                              value={eGaji}
+                              onChange={(e) => setEGaji(e.target.value)}
+                              placeholder="Gratis atau Rp 25.000"
+                              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white"
+                            />
+                          </div>
+
+                          {/* Kuota Peserta */}
                           <div className="space-y-1.5 sm:col-span-2">
-                            <label className="text-xs font-medium text-slate-700">Tanggal Pelaksanaan *</label>
-                            <input value={eTanggal} onChange={(e) => setETanggal(e.target.value)} type="date" required className={`w-full px-3 py-2 rounded-xl border text-sm bg-white ${!eTanggal ? 'border-rose-300 bg-rose-50/40 focus:border-rose-400 focus:ring-2 focus:ring-rose-200' : 'border-slate-300'}`} />
-                            {!eTanggal && <p className="text-[11px] text-rose-500 font-medium">Wajib diisi — pilih tanggal kegiatan.</p>}
+                            <label className="text-xs font-bold text-slate-700">Kuota Peserta</label>
+                            <input
+                              value={eKuotaEvent}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (val === '') {
+                                  setEKuotaEvent('');
+                                  return;
+                                }
+                                const num = parseInt(val, 10);
+                                if (!isNaN(num)) {
+                                  setEKuotaEvent(String(Math.abs(num)));
+                                }
+                              }}
+                              onWheel={(e) => (e.target as HTMLInputElement).blur()}
+                              type="number"
+                              min="0"
+                              placeholder="Jumlah kuota (kosongkan jika tanpa batas)"
+                              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white"
+                            />
+                          </div>
+
+                          {/* Tombol Daftar (CTA) — Opsional */}
+                          <div className="space-y-2 sm:col-span-2 bg-blue-50/50 border border-blue-200 rounded-xl p-4">
+                            <div className="flex items-center justify-between gap-3">
+                              <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                <MousePointerClick className="w-4 h-4 text-blue-600" /> Tombol Daftar (CTA) — Opsional
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => setECtaEnabled((v) => !v)}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition cursor-pointer ${eCtaEnabled ? 'bg-blue-600' : 'bg-slate-300'}`}
+                                aria-pressed={eCtaEnabled}
+                              >
+                                <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${eCtaEnabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                              </button>
+                            </div>
+                            <p className="text-[11px] text-slate-500">
+                              Aktifkan untuk menampilkan tombol daftar/registrasi di halaman detail event ini. Jika link tujuan diisi, pendaftar akan diarahkan ke tautan tersebut (misal Google Form, Guidebook, atau WhatsApp).
+                            </p>
+
+                            <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 ${eCtaEnabled ? '' : 'opacity-50 pointer-events-none'}`}>
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-medium text-slate-500">Teks Tombol</label>
+                                <input
+                                  value={eCtaLabel}
+                                  onChange={(e) => setECtaLabel(e.target.value)}
+                                  placeholder="Daftar Sekarang"
+                                  disabled={!eCtaEnabled}
+                                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm disabled:bg-slate-100 bg-white"
+                                />
+                              </div>
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-medium text-slate-500">Link Tujuan (Opsional)</label>
+                                <input
+                                  value={eLinkDaftar}
+                                  onChange={(e) => setELinkDaftar(e.target.value)}
+                                  placeholder="https://forms.gle/... atau https://..."
+                                  disabled={!eCtaEnabled}
+                                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm disabled:bg-slate-100 bg-white"
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Status Event */}
+                          <div className="space-y-1.5 sm:col-span-2">
+                            <label className="text-xs font-bold text-slate-700">Status Pendaftaran Event</label>
+                            <div className="grid grid-cols-2 gap-2">
+                              {(['buka', 'segera'] as const).map((st) => (
+                                <button
+                                  key={st}
+                                  type="button"
+                                  onClick={() => setEStatusEvent(st)}
+                                  className={`py-2 px-3 rounded-xl text-xs font-extrabold capitalize border transition cursor-pointer ${
+                                    eStatusEvent === st
+                                      ? st === 'buka'
+                                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                                        : 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                                  }`}
+                                >
+                                  {st === 'buka' ? '🟢 Buka' : '🟡 Segera Hadir'}
+                                </button>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       )}
@@ -3892,63 +4525,164 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
 
                     {/* Thumbnail */}
                     {THUMB_REQUIRED[eJenis] && (
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-rose-700">
-                          Thumbnail / Poster <span className="text-rose-600">*WAJIB</span>
-                          {eJenis === 'berita' && (
-                            <span className="text-slate-500 font-normal ml-1.5">— poster 16:9 berita (tampil di card beranda)</span>
-                          )}
-                          {eJenis === 'program' && (
-                            <span className="text-slate-500 font-normal ml-1.5">— header kartu program (wajib ditampilkan)</span>
-                          )}
-                          {eJenis === 'lowongan' && (
-                            <span className="text-slate-500 font-normal ml-1.5">— poster 9:16 lowongan (tampil di card info karir)</span>
-                          )}
-                          {eJenis !== 'berita' && eJenis !== 'program' && eJenis !== 'lowongan' && (
-                            <span className="text-slate-500 font-normal ml-1.5">— poster kegiatan event (wajib)</span>
-                          )}
-                        </label>
-                        <div className="flex items-center gap-3">
-                          <label className={`cursor-pointer ${isUploadingThumb ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'} px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1.5 transition`}>
-                            {isUploadingThumb ? (
-                              <>
-                                <span className="w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></span>
-                                Mengunggah ke Cloud...
-                              </>
-                            ) : (
-                              <>
-                                <ImageIcon className="w-4 h-4 text-[#0077C6]" /> Upload Gambar
-                              </>
-                            )}
-                            <input type="file" accept="image/*" className="hidden" disabled={isUploadingThumb} onChange={handleThumbChange} />
-                          </label>
-                          {eThumbnail ? (
-                            <div className="relative group">
-                              <img src={eThumbnail} alt="" className={`w-16 object-cover rounded-lg border border-slate-200 shadow-sm ${eJenis === 'lowongan' ? 'h-24' : 'h-10'}`} />
-                              {eThumbnail.startsWith('http') && (
-                                <span className="absolute -top-1.5 -right-1.5 bg-emerald-500 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full shadow">Cloud</span>
+                      <div className="space-y-2">
+                        {eJenis === 'event' ? (
+                          <div className="space-y-3 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                            <div className="flex items-center justify-between">
+                              <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                <ImageIcon className="w-4 h-4 text-[#0077C6]" />
+                                Thumbnail &amp; Gambar Konten (4:3/9:16/16:9)
+                              </label>
+                              {eThumbnail && ePosterImage && eThumbnail !== ePosterImage && (
+                                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                                  ✓ Thumbnail Card Disesuaikan
+                                </span>
                               )}
                             </div>
-                          ) : (
-                            <div className="w-16 h-10 bg-slate-100 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 text-xs font-medium">
-                              Kosong
+
+                            <div className="flex flex-wrap items-center gap-3">
+                              <label className={`cursor-pointer ${isUploadingThumb ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300'} px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-2xs`}>
+                                {isUploadingThumb ? (
+                                  <>
+                                    <span className="w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></span>
+                                    Mengunggah ke Cloud...
+                                  </>
+                                ) : (
+                                  <>
+                                    <ImageIcon className="w-4 h-4 text-[#0077C6]" /> Upload Gambar
+                                  </>
+                                )}
+                                <input type="file" accept="image/*" className="hidden" disabled={isUploadingThumb} onChange={handleThumbChange} />
+                              </label>
+
+                              {eThumbnail ? (
+                                <div className="flex items-center gap-3">
+                                  <div className="relative group">
+                                    <img src={eThumbnail} alt="Thumbnail Card" className="w-20 h-12 object-cover rounded-lg border border-slate-200 shadow-xs bg-white" />
+                                    <span className="absolute bottom-0.5 right-0.5 bg-black/60 text-white text-[8px] font-bold px-1 rounded">16:9</span>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="w-20 h-12 bg-white border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 text-xs font-medium">
+                                  Kosong
+                                </div>
+                              )}
                             </div>
-                          )}
-                          <div className="flex flex-col">
-                            <span className="text-[10px] text-slate-400 italic">
-                              {eJenis === 'berita' ? 'Rekomendasi: 1200x675px (16:9)' :
-                               eJenis === 'lowongan' ? 'Rekomendasi: 450x800px (9:16)' :
-                               'Gambar kartu beranda'}
-                            </span>
-                            {eThumbnail && eThumbnail.startsWith('http') && (
-                              <span className="text-[10px] text-emerald-600 font-medium">
-                                ✓ Tersimpan aman di Supabase Storage
-                              </span>
+
+                            {/* Setingan Crop Gambar Khusus Thumbnail Card Konten Event */}
+                            {eThumbnail && (
+                              <div className="pt-2.5 border-t border-slate-200/80 space-y-2">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                  <span className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                                    <Crop className="w-3.5 h-3.5 text-blue-600" />
+                                    Atur Crop Thumbnail Card Event (16:9):
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowEventCropperModal(true)}
+                                    className="text-[11px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2.5 py-1 rounded-lg transition flex items-center gap-1 cursor-pointer self-start sm:self-auto"
+                                  >
+                                    <Crop className="w-3.5 h-3.5" />
+                                    Sesuaikan / Crop Bebas (16:9)
+                                  </button>
+                                </div>
+
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                  <span className="text-[10px] text-slate-500 font-medium">Fokus Cepat:</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleEventQuickFocusCrop('top')}
+                                    className="text-[11px] font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 px-2.5 py-1 rounded-lg transition cursor-pointer shadow-2xs"
+                                    title="Fokus atas (cocok untuk poster vertikal 9:16 agar judul dan foto pemateri terlihat)"
+                                  >
+                                    ⬆ Atas
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleEventQuickFocusCrop('center')}
+                                    className="text-[11px] font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 px-2.5 py-1 rounded-lg transition cursor-pointer shadow-2xs"
+                                    title="Fokus tengah"
+                                  >
+                                    ⏹ Tengah
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleEventQuickFocusCrop('bottom')}
+                                    className="text-[11px] font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 px-2.5 py-1 rounded-lg transition cursor-pointer shadow-2xs"
+                                    title="Fokus bawah"
+                                  >
+                                    ⬇ Bawah
+                                  </button>
+                                  {ePosterImage && eThumbnail !== ePosterImage && (
+                                    <button
+                                      type="button"
+                                      onClick={handleResetEventThumbnail}
+                                      className="text-[11px] font-semibold text-rose-600 hover:text-rose-700 bg-white hover:bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-lg transition cursor-pointer ml-auto"
+                                    >
+                                      ↺ Gambar Utuh
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
                             )}
                           </div>
-                        </div>
-                        {!eThumbnail && (
-                          <p className="text-[10px] text-rose-500 font-medium mt-0.5">Thumbnail wajib diunggah sebelum disimpan.</p>
+                        ) : (
+                          <>
+                            <label className="text-xs font-bold text-rose-700">
+                              Thumbnail / Poster <span className="text-rose-600">*WAJIB</span>
+                              {eJenis === 'berita' && (
+                                <span className="text-slate-500 font-normal ml-1.5">— poster 16:9 berita (tampil di card beranda)</span>
+                              )}
+                              {eJenis === 'program' && (
+                                <span className="text-slate-500 font-normal ml-1.5">— header kartu program (wajib ditampilkan)</span>
+                              )}
+                              {eJenis === 'lowongan' && (
+                                <span className="text-slate-500 font-normal ml-1.5">— poster 9:16 lowongan (tampil di card info karir)</span>
+                              )}
+                            </label>
+                            <div className="flex items-center gap-3">
+                              <label className={`cursor-pointer ${isUploadingThumb ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'} px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1.5 transition`}>
+                                {isUploadingThumb ? (
+                                  <>
+                                    <span className="w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></span>
+                                    Mengunggah ke Cloud...
+                                  </>
+                                ) : (
+                                  <>
+                                    <ImageIcon className="w-4 h-4 text-[#0077C6]" /> Upload Gambar
+                                  </>
+                                )}
+                                <input type="file" accept="image/*" className="hidden" disabled={isUploadingThumb} onChange={handleThumbChange} />
+                              </label>
+                              {eThumbnail ? (
+                                <div className="relative group">
+                                  <img src={eThumbnail} alt="" className={`w-16 object-cover rounded-lg border border-slate-200 shadow-sm ${eJenis === 'lowongan' ? 'h-24' : 'h-10'}`} />
+                                  {eThumbnail.startsWith('http') && (
+                                    <span className="absolute -top-1.5 -right-1.5 bg-emerald-500 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full shadow">Cloud</span>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="w-16 h-10 bg-slate-100 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 text-xs font-medium">
+                                  Kosong
+                                </div>
+                              )}
+                              <div className="flex flex-col">
+                                <span className="text-[10px] text-slate-400 italic">
+                                  {eJenis === 'berita' ? 'Rekomendasi: 1200x675px (16:9)' :
+                                   eJenis === 'lowongan' ? 'Rekomendasi: 450x800px (9:16)' :
+                                   'Gambar kartu beranda'}
+                                </span>
+                                {eThumbnail && eThumbnail.startsWith('http') && (
+                                  <span className="text-[10px] text-emerald-600 font-medium">
+                                    ✓ Tersimpan aman di Supabase Storage
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            {!eThumbnail && (
+                              <p className="text-[10px] text-rose-500 font-medium mt-0.5">Thumbnail wajib diunggah sebelum disimpan.</p>
+                            )}
+                          </>
                         )}
                       </div>
                     )}
@@ -3982,9 +4716,33 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                     ) : (
                       <>
                         <div className="space-y-2">
-                          <label className="text-xs font-medium text-slate-500">
-                            Isi Konten (Gaya Medium + Format Word) {eJenis !== 'berita' && '(Opsional — kosongkan jika hanya ingin mengunggah flyer/poster event)'}
-                          </label>
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <label className="text-xs font-medium text-slate-500">
+                              {eJenis === 'event'
+                                ? 'Isi Konten'
+                                : 'Isi Konten (Gaya Medium + Format Word)'}
+                              {eJenis !== 'berita' && eJenis !== 'event' && ' (Opsional — kosongkan jika hanya ingin mengunggah flyer/poster)'}
+                            </label>
+                            {eJenis === 'event' && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (beritaEditRef.current) {
+                                    beritaEditRef.current.focus();
+                                    document.execCommand(
+                                      'insertHTML',
+                                      false,
+                                      '<p><strong>Narasumber / Pemateri:</strong> [Nama Narasumber / Pembicara]</p>'
+                                    );
+                                  }
+                                }}
+                                className="text-[11px] font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-lg border border-blue-200 transition flex items-center gap-1 cursor-pointer"
+                                title="Klik untuk menyisipkan baris narasumber secara cepat di editor"
+                              >
+                                + Sisipkan Format Narasumber
+                              </button>
+                            )}
+                          </div>
                           <div className="flex flex-wrap items-center gap-1.5 border border-slate-200 rounded-t-xl p-2 bg-slate-50 relative">
                             <ToolbarBtn icon={<Bold className="w-4 h-4" />} label="Bold" onMouseDown={(e) => e.preventDefault()} onClick={() => document.execCommand('bold')} />
                             <ToolbarBtn icon={<Italic className="w-4 h-4" />} label="Italic" onMouseDown={(e) => e.preventDefault()} onClick={() => document.execCommand('italic')} />
@@ -9556,7 +10314,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                   { id: 'mou', group: 'Kerjasama', label: 'MOU & Kerja Sama Stakeholder', icon: HeartHandshake, action: () => { setActiveTab('mou'); setIsCmdPaletteOpen(false); } },
                   { id: 'komentar', group: 'Interaksi Publik', label: 'Moderasi Komentar & Diskusi Berita', icon: MessageSquare, badge: pendingKomentarCount > 0 ? `${pendingKomentarCount} Baru` : undefined, action: () => { setActiveTab('komentar'); setIsCmdPaletteOpen(false); } },
                   { id: 'media-sosial', group: 'Interaksi Publik', label: 'Pengaturan Link & Widget Media Sosial', icon: Globe, action: () => { setActiveTab('media-sosial'); setIsCmdPaletteOpen(false); } },
-                  { id: 'infografis-layanan', group: 'Interaksi Publik', label: 'Infografis Layanan (Campus Hiring, Job Fair, dll)', icon: Layers, action: () => { setActiveTab('infografis-layanan'); setIsCmdPaletteOpen(false); } },
+                  { id: 'infografis-event', group: 'Konten Karir', label: 'Infografis Event Pengembangan Karir (Slider Layanan)', icon: Layers, action: () => { setActiveTab('konten'); setSelectedCategory('event'); setEventSubView('infografis'); setIsCmdPaletteOpen(false); } },
                   { id: 'logout', group: 'Sistem', label: 'Keluar Akun Admin (Sign Out)', icon: LogOut, action: () => { setIsCmdPaletteOpen(false); onLogout(); } }
                 ]
                   .filter((item) => item.label.toLowerCase().includes(cmdSearchQuery.toLowerCase()) || item.group.toLowerCase().includes(cmdSearchQuery.toLowerCase()))
@@ -9599,6 +10357,19 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
         <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={() => setZoomImage(null)}>
           <img src={zoomImage} alt="" className="max-h-[90vh] max-w-[90vw] object-contain rounded-xl" />
         </div>
+      )}
+
+      {/* Modal Cropper Thumbnail Card Event (16:9) */}
+      {showEventCropperModal && (ePosterImage || eThumbnail) && (
+        <ImageCropperModal
+          imageSrc={ePosterImage || eThumbnail}
+          title="Sesuaikan & Crop Thumbnail Khusus Card Event (16:9)"
+          aspectRatio={16 / 9}
+          outputWidth={1200}
+          outputHeight={675}
+          onCropComplete={handleEventCropComplete}
+          onClose={() => setShowEventCropperModal(false)}
+        />
       )}
     </div>
   );

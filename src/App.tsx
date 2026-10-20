@@ -142,6 +142,19 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Listen to local database updates and storage events across tabs/components
+  useEffect(() => {
+    const handleUpdate = () => {
+      reloadDatabase();
+    };
+    window.addEventListener('cdc_data_updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener('cdc_data_updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
+
   const reloadDatabase = () => {
     setAllLowongan(sortJobsByNewest(getFromDB<Lowongan>('lowongan').filter(l => l.status === 'published')));
     const beritaMap = new Map<string, Berita>();

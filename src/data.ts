@@ -2148,8 +2148,26 @@ const DEFAULT_SEEDS = {
   infografis_layanan: [],
 };
 
-// In-Memory Database State (100% Bebas LocalStorage)
+// In-Memory Database State (Inisialisasi awal + segera pulihkan dari localStorage jika tersedia)
 const MEMORY_DB: Record<string, any[]> = { ...DEFAULT_SEEDS };
+
+if (typeof window !== 'undefined' && window.localStorage) {
+  try {
+    Object.keys(DEFAULT_SEEDS).forEach((key) => {
+      const storageKey = `cdc_umk_${key}`;
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            MEMORY_DB[key] = parsed;
+          }
+        } catch { }
+      }
+    });
+  } catch { }
+}
+
 let _dbInitialized = false;
 
 // Async initializer: boot publik (tanpa login) + full dataset (kalau ada token).
@@ -2234,7 +2252,11 @@ export async function initializeDB(): Promise<void> {
       }
       syncLocalConfigFromData(publicData);
       console.log('⚡ [Portal Data Engine] Konten publik live dari Supabase PostgreSQL (mode tamu).');
+      return;
     }
+
+    // Jika liveData dan publicData gagal diakses (misal server backend offline)
+    throw new Error('Database backend offline / tidak dapat diakses, menggunakan data lokal.');
   } catch (err) {
     console.warn('[DB Init Exception] Falling back to localStorage:', err);
     // Fallback: gunakan localStorage dengan versioning (disanitasi: tanpa kolom password)
@@ -2409,6 +2431,8 @@ export function saveToDB<T>(key: DBKey, data: T[]) {
   if (typeof window !== 'undefined' && window.localStorage) {
     try {
       localStorage.setItem(`cdc_umk_${key}`, JSON.stringify(sanitizeRecordsForStorage(key, data)));
+      window.dispatchEvent(new CustomEvent(`cdc_${key}_updated`, { detail: data }));
+      window.dispatchEvent(new CustomEvent('cdc_data_updated', { detail: { key, data } }));
     } catch {
       // quota
     }
@@ -4136,7 +4160,7 @@ export function saveStatistikConfig(config: Partial<StatistikConfig>): Statistik
 export const SEED_INFOGRAFIS_LAYANAN: InfografisLayananItem[] = [
   {
     id: 'info_ch_1',
-    kategori: 'campus-hiring',
+    kategori: 'event',
     judul: 'Campus Hiring - Meet Your Future, Start Your Journey',
     deskripsi: 'Poster resmi informasi dan panduan alur kegiatan Campus Hiring Universitas Muhammadiyah Kendari.',
     gambarUrl: '/campus-hiring-infografis.png',
@@ -4147,7 +4171,7 @@ export const SEED_INFOGRAFIS_LAYANAN: InfografisLayananItem[] = [
   },
   {
     id: 'info_ch_2',
-    kategori: 'campus-hiring',
+    kategori: 'event',
     judul: 'Recruitment - Find The Right Talent, Build a Better Future',
     deskripsi: 'Layanan rekrutmen dan seleksi talenta terbaik mahasiswa dan alumni UM Kendari.',
     gambarUrl: '/campus-hiring-infografis-2.png',
@@ -4180,6 +4204,22 @@ export function getInfografisLayanan(kategori?: string): InfografisLayananItem[]
       list = [...SEED_INFOGRAFIS_LAYANAN];
       MEMORY_DB['infografis_layanan'] = list;
     }
+  }
+
+  // Normalisasi seluruh item ke kategori 'event' jika ada data tersimpan kategori lama
+  let hasOldCategory = false;
+  list = list.map((item) => {
+    if (item.kategori !== 'event') {
+      hasOldCategory = true;
+      return { ...item, kategori: 'event' };
+    }
+    return item;
+  });
+  if (hasOldCategory) {
+    MEMORY_DB['infografis_layanan'] = list;
+    try {
+      localStorage.setItem('cdc_umk_infografis_layanan', JSON.stringify(list));
+    } catch { /* ignore */ }
   }
 
   // Filter kategori jika diberikan

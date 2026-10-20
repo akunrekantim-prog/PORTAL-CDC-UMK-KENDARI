@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import EventCardLayout from './ui/EventCardLayout';
-import { getCampusHiring, getInfografisLayanan, SEED_EVENT_LAYANAN, formatDateDisplay } from '../../data';
+import { getCampusHiring, getInfografisLayanan, SEED_EVENT_LAYANAN, formatDateDisplay, getFromDB } from '../../data';
 import { KontenKarir, EventLayananItem, InfografisLayananItem } from '../../types';
 import {
   ZoomIn,
@@ -51,6 +51,32 @@ export default function EventView({
   const [activeSlide, setActiveSlide] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [zoomPoster, setZoomPoster] = useState(false);
+
+  // Live Konten State: Prioritaskan prop, fallback ke getFromDB, dan dengarkan event real-time
+  const [liveKonten, setLiveKonten] = useState<KontenKarir[]>(() => {
+    return (konten && konten.length > 0) ? konten : getFromDB<KontenKarir>('konten_karir');
+  });
+
+  useEffect(() => {
+    if (konten && konten.length > 0) {
+      setLiveKonten(konten);
+    }
+  }, [konten]);
+
+  useEffect(() => {
+    const handleKontenUpdate = () => {
+      const fresh = getFromDB<KontenKarir>('konten_karir');
+      setLiveKonten(fresh);
+    };
+    window.addEventListener('cdc_konten_karir_updated', handleKontenUpdate);
+    window.addEventListener('cdc_data_updated', handleKontenUpdate);
+    window.addEventListener('storage', handleKontenUpdate);
+    return () => {
+      window.removeEventListener('cdc_konten_karir_updated', handleKontenUpdate);
+      window.removeEventListener('cdc_data_updated', handleKontenUpdate);
+      window.removeEventListener('storage', handleKontenUpdate);
+    };
+  }, []);
 
   // Sync category if initialCategory changes
   useEffect(() => {
@@ -187,25 +213,29 @@ export default function EventView({
 
   // ── DATA AGENDA TERBARU UNTUK WIDGET SIDEBAR ──
   const upcomingEvents = useMemo(() => {
-    const fromKonten = (konten || []).filter((k) => {
-      if (k.status !== 'published') return false;
-      const j = (k.jenis || '').toLowerCase().trim();
-      return ['workshop', 'seminar', 'softskill', 'job_fair', 'career-fair', 'campus-hiring', 'campus_hiring'].includes(j);
-    });
+    const fromKonten = (liveKonten || [])
+      .filter((k) => {
+        if (String(k.status || '').toLowerCase() !== 'published') return false;
+        const j = (k.jenis || '').toLowerCase().trim();
+        return ['event', 'workshop', 'seminar', 'softskill', 'job_fair', 'career-fair', 'campus-hiring', 'campus_hiring'].includes(j);
+      })
+      .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
 
     const formatCategory = (cat: string) => {
-      const c = cat.toLowerCase();
-      if (c === 'campus-hiring' || c === 'campus_hiring') return { label: 'Campus Hiring', color: 'bg-sky-50 text-sky-700 border-sky-200' };
-      if (c === 'workshop') return { label: 'Workshop', color: 'bg-rose-50 text-rose-700 border-rose-200' };
-      if (c === 'seminar') return { label: 'Seminar', color: 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200' };
-      if (c === 'softskill') return { label: 'Softskill', color: 'bg-cyan-50 text-cyan-700 border-cyan-200' };
-      if (c === 'career-fair' || c === 'job_fair' || c === 'job-fair') return { label: 'Job Fair', color: 'bg-amber-50 text-amber-700 border-amber-200' };
-      return { label: 'Event', color: 'bg-blue-50 text-blue-700 border-blue-200' };
+      const c = (cat || '').toLowerCase();
+      if (c.includes('campus-hiring') || c.includes('campus_hiring') || c.includes('recruitment')) return { label: 'Campus Hiring', color: 'bg-sky-50 text-sky-700 border-sky-200' };
+      if (c.includes('workshop')) return { label: 'Workshop', color: 'bg-rose-50 text-rose-700 border-rose-200' };
+      if (c.includes('seminar') || c.includes('talkshow')) return { label: 'Seminar', color: 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200' };
+      if (c.includes('webinar')) return { label: 'Webinar', color: 'bg-purple-50 text-purple-700 border-purple-200' };
+      if (c.includes('softskill') || c.includes('pelatihan') || c.includes('bootcamp')) return { label: 'Pelatihan', color: 'bg-cyan-50 text-cyan-700 border-cyan-200' };
+      if (c.includes('career-fair') || c.includes('job_fair') || c.includes('job-fair') || c.includes('expo')) return { label: 'Job Fair', color: 'bg-amber-50 text-amber-700 border-amber-200' };
+      if (c.includes('lomba') || c.includes('perlombaan') || c.includes('kompetisi')) return { label: 'Perlombaan', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+      return { label: cat || 'Event', color: 'bg-blue-50 text-blue-700 border-blue-200' };
     };
 
     const combined = [
       ...fromKonten.map((k) => {
-        const catInfo = formatCategory(k.jenis as string);
+        const catInfo = formatCategory(k.kategori || (k.jenis as string));
         return {
           id: k.id,
           title: k.judul,
@@ -239,7 +269,7 @@ export default function EventView({
     });
 
     return unique.slice(0, 5);
-  }, [konten, allSeedEvents]);
+  }, [liveKonten, allSeedEvents]);
 
   // ── 1. RENDER CAROUSEL INFOGRAFIS ──
   const renderInfografis = (isMobile = false) => {
@@ -293,15 +323,14 @@ export default function EventView({
     );
   };
 
-  // ── 2. RENDER WIDGET SIDEBAR: AGENDA MENDATANG & FILTER CEPAT ──
+  // ── 2. RENDER WIDGET SIDEBAR: EVENT TERKINI ──
   const renderSidebarWidget = () => (
     <div className="space-y-6">
-      {/* Box Agenda Terkini */}
+      {/* Box Event Terkini */}
       <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs space-y-4">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <h4 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-[#0077C6]" />
-            Agenda Terkini
+          <h4 className="font-extrabold text-slate-900 text-sm">
+            Event Terkini
           </h4>
           <span className="text-[10px] font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
             Terbaru
@@ -350,36 +379,6 @@ export default function EventView({
           ))}
         </div>
       </div>
-
-      {/* Filter Cepat Kategori Event */}
-      <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs space-y-3">
-        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-          <Filter className="w-3.5 h-3.5 text-blue-600" />
-          Kategori Agenda
-        </p>
-        <div className="flex flex-wrap gap-1.5">
-          {EVENT_CATEGORIES.map((cat) => {
-            const isActive = selectedCategory === cat.id;
-            return (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => {
-                  setSelectedCategory(cat.id);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                className={`text-[11px] font-semibold px-2.5 py-1.5 rounded-xl border transition-all cursor-pointer ${
-                  isActive
-                    ? 'bg-[#1E3A8A] text-white border-[#1E3A8A] shadow-xs'
-                    : 'bg-slate-50 text-slate-700 border-slate-200/80 hover:bg-slate-100'
-                }`}
-              >
-                {cat.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
     </div>
   );
 
@@ -391,7 +390,7 @@ export default function EventView({
         pageTitle="Event Pengembangan Karir"
         subtitle="Pusat informasi dan pendaftaran seluruh agenda karir, campus hiring, workshop teknis, pelatihan softskill, seminar, hingga job fair CDC UM Kendari."
         events={allSeedEvents}
-        kontenEvents={konten}
+        kontenEvents={liveKonten}
         initialEventId={initialEventId}
         categoryFilterTabs={EVENT_CATEGORIES}
         activeCategoryFilter={selectedCategory}

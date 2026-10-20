@@ -1351,7 +1351,7 @@ app.post('/api/sync/:entity', authenticateToken, writeLimiter, async (req, res) 
 
       const { data, ignored } = buildSyncData('konten_karir', payload);
       // CHECK constraint DB (lowercase) — HANYA event, prestasi, & program, TANPA berita
-      const JENIS_OK = ['program', 'workshop', 'softskill', 'seminar', 'presentasi'];
+      const JENIS_OK = ['program', 'workshop', 'softskill', 'seminar', 'presentasi', 'event'];
       const STATUS_OK = ['draft', 'published', 'archived'];
       if ('jenis' in data) {
         const j = String(data.jenis || '').toLowerCase();

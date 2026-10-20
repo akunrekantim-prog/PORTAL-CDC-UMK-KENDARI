@@ -87,24 +87,30 @@ export interface Mahasiswa {
   university?: string;
 }
 
-export type JenisKonten = 'berita' | 'lowongan' | 'program' | 'pengumuman' | 'workshop' | 'softskill' | 'seminar' | 'presentasi' | 'job_fair' | 'campus_hiring';
+export type JenisKonten = 'berita' | 'lowongan' | 'program' | 'pengumuman' | 'event' | 'workshop' | 'softskill' | 'seminar' | 'presentasi' | 'job_fair' | 'campus_hiring';
 
 export interface EventLayananItem {
   id: string;
+  slug?: string;
   category: 'workshop' | 'softskill' | 'seminar' | 'campus-hiring' | 'career-fair' | 'job-fair' | string;
   title: string;
   organizer: string;
   date: string; // YYYY-MM-DD
   time?: string;
   location: string;
+  fee?: string; // Biaya / HTM (e.g. "Gratis" atau "Rp 200.000")
   image: string;
+  posterImage?: string; // Poster asli uncropped untuk halaman detail
   description: string;
   speaker?: string;
   quota?: number;
   registeredCount?: number;
   registrationLink?: string;
+  ctaEnabled?: boolean;
+  ctaLabel?: string;
   status: 'buka' | 'segera' | 'selesai';
   uploadedAt?: string; // ISO waktu upload (tie-breaker sorting)
+  isPinned?: boolean;
 }
 
 export interface KontenKarir {
@@ -123,6 +129,7 @@ export interface KontenKarir {
   deadline?: string;
   linkCta?: string;
   thumbnail?: string;
+  gambarPoster?: string; // Poster asli resolusi penuh sebelum crop thumbnail card
   scope?: 'LOKAL' | 'REGIONAL' | 'NASIONAL' | 'GLOBAL';
   status: 'draft' | 'published';
   createdAt: string;
@@ -137,6 +144,8 @@ export interface KontenKarir {
   kuotaEvent?: number;
   terdaftar?: number;
   linkDaftar?: string; // URL pendaftaran eksternal
+  ctaEnabled?: boolean;
+  ctaLabel?: string;
   statusEvent?: 'buka' | 'segera' | 'selesai';
   // Field khusus Presentasi (konversi dari Prestasi)
   subKategori?: 'akademik' | 'non-akademik' | 'olahraga' | 'seni'; // kategori Akademik / Non-Akademik / Olahraga / Seni
@@ -603,15 +612,7 @@ export interface StatistikConfig {
   updatedAt?: string;
 }
 
-export type KategoriInfografis =
-  | 'campus-hiring'
-  | 'career-fair'
-  | 'magang'
-  | 'workshop'
-  | 'seminar'
-  | 'softskill'
-  | 'konseling'
-  | 'lainnya';
+export type KategoriInfografis = 'event' | string;
 
 export interface InfografisLayananItem {
   id: string;

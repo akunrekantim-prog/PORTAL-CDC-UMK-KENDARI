@@ -84,8 +84,46 @@ function normalizeRecord(entity: string, row: any): any {
     else if (s === 'inactive' || s === 'rejected' || s === 'nonaktif' || s === 'disabled') out.statusKerjaSama = 'nonaktif';
     else out.statusKerjaSama = 'pending';
   }
-  if (typeof out.tipe === 'string') out.tipe = out.tipe.toLowerCase();
-  if (entity === 'konten_karir' && typeof out.jenis === 'string') out.jenis = out.jenis.toLowerCase();
+  if (entity === 'konten_karir' || entity === 'konten_karirs') {
+    if (typeof out.jenis === 'string') out.jenis = out.jenis.toLowerCase();
+    // Ekstrak metadata event jika tersimpan dalam body
+    if (typeof out.body === 'string' && out.body.includes('<!--CDC_EVENT_META:')) {
+      try {
+        const match = out.body.match(/<!--CDC_EVENT_META:(.*?)-->/);
+        if (match && match[1]) {
+          const meta = JSON.parse(match[1]);
+          if (meta.tanggal && !out.tanggal) out.tanggal = meta.tanggal;
+          if (meta.waktu && !out.waktu) out.waktu = meta.waktu;
+          if (meta.lokasiEvent && !out.lokasiEvent) out.lokasiEvent = meta.lokasiEvent;
+          if (meta.pembicara && !out.pembicara) out.pembicara = meta.pembicara;
+          if (meta.kuotaEvent != null && out.kuotaEvent == null) out.kuotaEvent = Math.max(0, Math.abs(Number(meta.kuotaEvent) || 0));
+          if (meta.linkDaftar && !out.linkDaftar) out.linkDaftar = meta.linkDaftar;
+          if (meta.statusEvent && !out.statusEvent) out.statusEvent = meta.statusEvent;
+          if (meta.ctaEnabled !== undefined && out.ctaEnabled === undefined) out.ctaEnabled = meta.ctaEnabled;
+          if (meta.ctaLabel && !out.ctaLabel) out.ctaLabel = meta.ctaLabel;
+          if (meta.gambarPoster && !out.gambarPoster) out.gambarPoster = meta.gambarPoster;
+        }
+      } catch { /* abaikan */ }
+    }
+    // Fallback: Jika tanggal belum terisi tetapi deadline ada (disimpan dari tanggal di DB)
+    if (!out.tanggal && out.deadline) {
+      out.tanggal = typeof out.deadline === 'string' ? out.deadline.slice(0, 10) : new Date(out.deadline).toISOString().slice(0, 10);
+    }
+    // Fallback: Jika linkDaftar belum terisi tetapi linkLamar ada
+    if (!out.linkDaftar && out.linkLamar) {
+      out.linkDaftar = out.linkLamar;
+    }
+    // Fallback: Jika kuotaEvent belum terisi tetapi kuota ada, dan cegah nilai minus
+    if (out.kuotaEvent == null && out.kuota != null) {
+      out.kuotaEvent = Math.max(0, Math.abs(Number(out.kuota) || 0));
+    }
+    if (typeof out.kuotaEvent === 'number' && out.kuotaEvent < 0) {
+      out.kuotaEvent = Math.abs(out.kuotaEvent);
+    }
+    if (typeof out.kuota === 'number' && out.kuota < 0) {
+      out.kuota = Math.abs(out.kuota);
+    }
+  }
   // BUG-004 fix: backend GaleriItem {imageUrl, kategori} → frontend
   // GaleriItem {tipeMedia, posterUrl/youtubeUrl/pdfUrl, kategoriSection}.
   // Tebak tipeMedia dari konten imageUrl (youtube / pdf-base64 / gambar).
@@ -596,7 +634,44 @@ export async function syncTracerStudyToSupabase(t: TracerStudy): Promise<any> {
 }
 
 export async function syncKontenKarirToSupabase(k: KontenKarir): Promise<any> {
-  return sendSyncRequest('konten_karir', k);
+  const payload: any = { ...k };
+  if (payload.jenis === 'event' || payload.jenis === 'workshop' || payload.jenis === 'softskill' || payload.jenis === 'seminar') {
+    const meta: Record<string, any> = {};
+    if (payload.tanggal) meta.tanggal = payload.tanggal;
+    if (payload.waktu) meta.waktu = payload.waktu;
+    if (payload.lokasiEvent) meta.lokasiEvent = payload.lokasiEvent;
+    if (payload.pembicara) meta.pembicara = payload.pembicara;
+    if (payload.kuotaEvent != null) {
+      meta.kuotaEvent = Math.max(0, Math.abs(Number(payload.kuotaEvent) || 0));
+    }
+    if (payload.linkDaftar) meta.linkDaftar = payload.linkDaftar;
+    if (payload.statusEvent) meta.statusEvent = payload.statusEvent;
+    if (payload.ctaEnabled !== undefined) meta.ctaEnabled = payload.ctaEnabled;
+    if (payload.ctaLabel) meta.ctaLabel = payload.ctaLabel;
+    if (payload.gambarPoster) meta.gambarPoster = payload.gambarPoster;
+
+    // Bersihkan komentar lama jika ada, lalu sertakan meta baru
+    const baseBody = (payload.body || '').replace(/<!--CDC_EVENT_META:.*?-->/g, '').trim();
+    if (Object.keys(meta).length > 0) {
+      payload.body = `${baseBody}\n<!--CDC_EVENT_META:${JSON.stringify(meta)}-->`;
+    } else {
+      payload.body = baseBody;
+    }
+
+    if (!payload.deadline && payload.tanggal) {
+      payload.deadline = payload.tanggal;
+    }
+    if (!payload.linkLamar && payload.linkDaftar) {
+      payload.linkLamar = payload.linkDaftar;
+    }
+    if (payload.kuotaEvent != null) {
+      payload.kuotaEvent = Math.max(0, Math.abs(Number(payload.kuotaEvent) || 0));
+      if (payload.kuota == null || payload.kuota < 0) {
+        payload.kuota = payload.kuotaEvent;
+      }
+    }
+  }
+  return sendSyncRequest('konten_karir', payload);
 }
 
 export async function syncBeritaToSupabase(b: any): Promise<any> {

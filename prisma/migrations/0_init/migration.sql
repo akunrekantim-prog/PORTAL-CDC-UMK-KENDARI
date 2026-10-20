@@ -704,7 +704,7 @@ ALTER TABLE konten_karirs ADD CONSTRAINT konten_karirs_status_check
 
 -- ── konten_karir: enum jenis/scope/tipe ────────────────────────────────────
 ALTER TABLE konten_karirs ADD CONSTRAINT konten_karirs_jenis_check
-  CHECK (jenis IN ('berita','lowongan','program','pengumuman','workshop','softskill','seminar','presentasi'));
+  CHECK (jenis IN ('berita','lowongan','program','pengumuman','workshop','softskill','seminar','presentasi','event'));
 
 ALTER TABLE konten_karirs ADD CONSTRAINT konten_karirs_scope_check
   CHECK (scope IN ('LOKAL','REGIONAL','NASIONAL','GLOBAL'));

@@ -11,8 +11,6 @@ export interface ImageCropperModalProps {
   onClose: () => void;
 }
 
-const VIEWPORT_SIZE = 300; // Ukuran kotak crop di layar (px)
-
 export default function ImageCropperModal({
   imageSrc,
   title = 'Sesuaikan & Crop Foto Profil',
@@ -34,32 +32,48 @@ export default function ImageCropperModal({
   const imgRef = useRef<HTMLImageElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  // Hitung base scale agar gambar minimal memenuhi viewport 1:1
+  // Hitung viewport width & height sesuai aspectRatio (maksimal lebar 380px, tinggi 280px)
+  const { viewportWidth, viewportHeight } = React.useMemo(() => {
+    if (!aspectRatio || Math.abs(aspectRatio - 1) < 0.01) {
+      return { viewportWidth: 300, viewportHeight: 300 };
+    }
+    if (aspectRatio > 1) {
+      const w = 380;
+      const h = Math.round(w / aspectRatio);
+      return { viewportWidth: w, viewportHeight: Math.min(h, 280) };
+    } else {
+      const h = 300;
+      const w = Math.round(h * aspectRatio);
+      return { viewportWidth: w, viewportHeight: h };
+    }
+  }, [aspectRatio]);
+
+  // Hitung base scale agar gambar minimal memenuhi viewport
   const minScale = React.useMemo(() => {
     if (!naturalSize.w || !naturalSize.h) return 1;
-    return Math.max(VIEWPORT_SIZE / naturalSize.w, VIEWPORT_SIZE / naturalSize.h);
-  }, [naturalSize]);
+    return Math.max(viewportWidth / naturalSize.w, viewportHeight / naturalSize.h);
+  }, [naturalSize, viewportWidth, viewportHeight]);
 
   const currentScale = minScale * zoom;
   const dispW = naturalSize.w * currentScale;
   const dispH = naturalSize.h * currentScale;
 
   // Batas maksimum pergeseran agar tidak ada celah kosong dalam kotak crop
-  const maxOffsetX = Math.max(0, (dispW - VIEWPORT_SIZE) / 2);
-  const maxOffsetY = Math.max(0, (dispH - VIEWPORT_SIZE) / 2);
+  const maxOffsetX = Math.max(0, (dispW - viewportWidth) / 2);
+  const maxOffsetY = Math.max(0, (dispH - viewportHeight) / 2);
 
   // Clamp offset dalam batas aman
   const clampOffset = useCallback((x: number, y: number, currentZoom: number) => {
     const scale = minScale * currentZoom;
     const w = naturalSize.w * scale;
     const h = naturalSize.h * scale;
-    const maxX = Math.max(0, (w - VIEWPORT_SIZE) / 2);
-    const maxY = Math.max(0, (h - VIEWPORT_SIZE) / 2);
+    const maxX = Math.max(0, (w - viewportWidth) / 2);
+    const maxY = Math.max(0, (h - viewportHeight) / 2);
     return {
       x: Math.max(-maxX, Math.min(maxX, x)),
       y: Math.max(-maxY, Math.min(maxY, y))
     };
-  }, [minScale, naturalSize]);
+  }, [minScale, naturalSize, viewportWidth, viewportHeight]);
 
   // Load image
   useEffect(() => {
@@ -144,12 +158,13 @@ export default function ImageCropperModal({
       // Hitung koordinat sumber di gambar asli
       const cropCenterX = naturalSize.w / 2 - offset.x / currentScale;
       const cropCenterY = naturalSize.h / 2 - offset.y / currentScale;
-      const cropNaturalSize = VIEWPORT_SIZE / currentScale;
+      const cropNaturalW = viewportWidth / currentScale;
+      const cropNaturalH = viewportHeight / currentScale;
 
-      const sx = cropCenterX - cropNaturalSize / 2;
-      const sy = cropCenterY - cropNaturalSize / 2;
-      const sw = cropNaturalSize;
-      const sh = cropNaturalSize;
+      const sx = Math.max(0, cropCenterX - cropNaturalW / 2);
+      const sy = Math.max(0, cropCenterY - cropNaturalH / 2);
+      const sw = Math.min(naturalSize.w - sx, cropNaturalW);
+      const sh = Math.min(naturalSize.h - sy, cropNaturalH);
 
       // Render ke canvas dengan background putih
       ctx.fillStyle = '#ffffff';
@@ -163,16 +178,16 @@ export default function ImageCropperModal({
             setIsProcessing(false);
             return;
           }
-          const file = new File([blob], `profile_${Date.now()}.jpg`, {
+          const file = new File([blob], `cropped_${Date.now()}.jpg`, {
             type: 'image/jpeg',
             lastModified: Date.now()
           });
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.90);
           setIsProcessing(false);
           onCropComplete(file, dataUrl);
         },
         'image/jpeg',
-        0.88
+        0.90
       );
     } catch (err) {
       console.error('Crop image error:', err);
@@ -182,7 +197,7 @@ export default function ImageCropperModal({
 
   return (
     <div className="fixed inset-0 z-[300] bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-      <div className="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-200 flex flex-col">
+      <div className="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-200 flex flex-col">
         {/* Header Modal */}
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50">
           <div className="flex items-center gap-2">
@@ -191,13 +206,13 @@ export default function ImageCropperModal({
             </div>
             <div>
               <h3 className="text-sm font-bold text-slate-900 leading-none">{title}</h3>
-              <p className="text-[11px] text-slate-500 mt-0.5">Geser foto &amp; atur zoom agar posisi wajah pas</p>
+              <p className="text-[11px] text-slate-500 mt-0.5">Geser foto &amp; atur zoom agar posisi crop pas</p>
             </div>
           </div>
           <button
             onClick={onClose}
             disabled={isProcessing}
-            className="p-1 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-200/60 transition"
+            className="p-1 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-200/60 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -215,9 +230,9 @@ export default function ImageCropperModal({
             onTouchMove={handleTouchMove}
             onTouchEnd={handleMouseUp}
             onWheel={handleWheel}
-            style={{ width: `${VIEWPORT_SIZE}px`, height: `${VIEWPORT_SIZE}px` }}
+            style={{ width: `${viewportWidth}px`, height: `${viewportHeight}px` }}
             className={`relative overflow-hidden cursor-grab active:cursor-grabbing border-2 border-white/60 shadow-inner ${
-              showCircularMask ? 'rounded-full' : 'rounded-2xl'
+              showCircularMask && aspectRatio === 1 ? 'rounded-full' : 'rounded-2xl'
             }`}
           >
             {imageLoaded ? (
@@ -228,8 +243,8 @@ export default function ImageCropperModal({
                 style={{
                   width: `${dispW}px`,
                   height: `${dispH}px`,
-                  transform: `translate(${offset.x + (VIEWPORT_SIZE - dispW) / 2}px, ${
-                    offset.y + (VIEWPORT_SIZE - dispH) / 2
+                  transform: `translate(${offset.x + (viewportWidth - dispW) / 2}px, ${
+                    offset.y + (viewportHeight - dispH) / 2
                   }px)`,
                   transition: isDragging ? 'none' : 'transform 0.05s ease-out'
                 }}
@@ -315,15 +330,42 @@ export default function ImageCropperModal({
             </button>
           </div>
 
-          <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
-            <button
-              type="button"
-              onClick={() => setShowCircularMask(!showCircularMask)}
-              className="text-[11px] font-semibold text-slate-600 hover:text-[#1E3A8A] flex items-center gap-1.5 transition"
-            >
-              <span className="w-3 h-3 rounded-full border border-slate-400 inline-block" />
-              <span>{showCircularMask ? 'Tampilan: Lingkaran' : 'Tampilan: Persegi (1:1)'}</span>
-            </button>
+          <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100 flex-wrap gap-2">
+            {aspectRatio === 1 ? (
+              <button
+                type="button"
+                onClick={() => setShowCircularMask(!showCircularMask)}
+                className="text-[11px] font-semibold text-slate-600 hover:text-[#1E3A8A] flex items-center gap-1.5 transition"
+              >
+                <span className="w-3 h-3 rounded-full border border-slate-400 inline-block" />
+                <span>{showCircularMask ? 'Tampilan: Lingkaran' : 'Tampilan: Persegi (1:1)'}</span>
+              </button>
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] text-slate-500 font-medium">Fokus Cepat:</span>
+                <button
+                  type="button"
+                  onClick={() => setOffset((prev) => clampOffset(prev.x, -maxOffsetY, zoom))}
+                  className="px-2 py-0.5 text-[10px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition"
+                >
+                  Atas
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setOffset((prev) => clampOffset(prev.x, 0, zoom))}
+                  className="px-2 py-0.5 text-[10px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition"
+                >
+                  Tengah
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setOffset((prev) => clampOffset(prev.x, maxOffsetY, zoom))}
+                  className="px-2 py-0.5 text-[10px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition"
+                >
+                  Bawah
+                </button>
+              </div>
+            )}
 
             <span className="text-[11px] text-slate-400">
               Output: {outputWidth}×{outputHeight}px

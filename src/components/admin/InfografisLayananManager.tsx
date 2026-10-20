@@ -30,22 +30,18 @@ import {
 
 interface InfografisLayananManagerProps {
   onNotify?: (type: 'success' | 'error' | 'info', message: string) => void;
+  title?: string;
+  subtitle?: string;
+  embedded?: boolean;
 }
 
 export const KATEGORI_OPTIONS: { id: KategoriInfografis; label: string; color: string; badgeBg: string }[] = [
-  { id: 'campus-hiring', label: 'Campus Hiring', color: 'text-indigo-700 border-indigo-200 bg-indigo-50', badgeBg: 'bg-indigo-600' },
-  { id: 'career-fair', label: 'Job Fair / Career Fair', color: 'text-amber-700 border-amber-200 bg-amber-50', badgeBg: 'bg-amber-600' },
-  { id: 'magang', label: 'Internship / Magang', color: 'text-emerald-700 border-emerald-200 bg-emerald-50', badgeBg: 'bg-emerald-600' },
-  { id: 'workshop', label: 'Workshop Karir', color: 'text-rose-700 border-rose-200 bg-rose-50', badgeBg: 'bg-rose-600' },
-  { id: 'seminar', label: 'Seminar Karir', color: 'text-fuchsia-700 border-fuchsia-200 bg-fuchsia-50', badgeBg: 'bg-fuchsia-600' },
-  { id: 'softskill', label: 'Pelatihan Softskill', color: 'text-cyan-700 border-cyan-200 bg-cyan-50', badgeBg: 'bg-cyan-600' },
-  { id: 'konseling', label: 'Bimbingan & Konseling', color: 'text-purple-700 border-purple-200 bg-purple-50', badgeBg: 'bg-purple-600' },
-  { id: 'lainnya', label: 'Layanan Lainnya', color: 'text-slate-700 border-slate-200 bg-slate-50', badgeBg: 'bg-slate-600' }
+  { id: 'event', label: 'Event Pengembangan Karir', color: 'text-blue-700 border-blue-200 bg-blue-50', badgeBg: 'bg-[#0077C6]' }
 ];
 
-export default function InfografisLayananManager({ onNotify }: InfografisLayananManagerProps) {
+export default function InfografisLayananManager({ onNotify, title, subtitle, embedded }: InfografisLayananManagerProps) {
   const [items, setItems] = useState<InfografisLayananItem[]>([]);
-  const [activeCategoryFilter, setActiveCategoryFilter] = useState<string>('semua');
+  const [statusFilter, setStatusFilter] = useState<'semua' | 'aktif' | 'tersembunyi'>('semua');
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<InfografisLayananItem | null>(null);
@@ -53,7 +49,7 @@ export default function InfografisLayananManager({ onNotify }: InfografisLayanan
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   // Form states
-  const [formKategori, setFormKategori] = useState<KategoriInfografis>('campus-hiring');
+  const [formKategori, setFormKategori] = useState<KategoriInfografis>('event');
   const [formJudul, setFormJudul] = useState('');
   const [formDeskripsi, setFormDeskripsi] = useState('');
   const [formGambarUrl, setFormGambarUrl] = useState('');
@@ -86,31 +82,22 @@ export default function InfografisLayananManager({ onNotify }: InfografisLayanan
   // Filtered items
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
-      const matchCategory =
-        activeCategoryFilter === 'semua' ||
-        (item.kategori || '').toLowerCase() === activeCategoryFilter.toLowerCase();
+      const matchStatus =
+        statusFilter === 'semua' ||
+        (statusFilter === 'aktif' && item.isActive) ||
+        (statusFilter === 'tersembunyi' && !item.isActive);
       const matchSearch =
         !searchQuery ||
         item.judul.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (item.deskripsi || '').toLowerCase().includes(searchQuery.toLowerCase());
-      return matchCategory && matchSearch;
+      return matchStatus && matchSearch;
     });
-  }, [items, activeCategoryFilter, searchQuery]);
-
-  // Statistik per kategori
-  const categoryCounts = useMemo(() => {
-    const map: Record<string, number> = {};
-    items.forEach((i) => {
-      const cat = i.kategori || 'lainnya';
-      map[cat] = (map[cat] || 0) + 1;
-    });
-    return map;
-  }, [items]);
+  }, [items, statusFilter, searchQuery]);
 
   // Buka Modal Tambah
   const handleOpenAdd = () => {
     setEditingItem(null);
-    setFormKategori(activeCategoryFilter !== 'semua' ? (activeCategoryFilter as KategoriInfografis) : 'campus-hiring');
+    setFormKategori('event');
     setFormJudul('');
     setFormDeskripsi('');
     setFormGambarUrl('');
@@ -118,9 +105,7 @@ export default function InfografisLayananManager({ onNotify }: InfografisLayanan
     setFormIsActive(true);
     setUploadMode('file');
 
-    // Default urutan berikutnya dalam kategori yang dipilih
-    const inCategory = items.filter((i) => i.kategori === (activeCategoryFilter !== 'semua' ? activeCategoryFilter : 'campus-hiring'));
-    const nextOrder = inCategory.length > 0 ? Math.max(...inCategory.map((i) => i.urutan ?? 0)) + 1 : 1;
+    const nextOrder = items.length > 0 ? Math.max(...items.map((i) => i.urutan ?? 0)) + 1 : 1;
     setFormUrutan(nextOrder);
 
     setIsModalOpen(true);
@@ -129,7 +114,7 @@ export default function InfografisLayananManager({ onNotify }: InfografisLayanan
   // Buka Modal Edit
   const handleOpenEdit = (item: InfografisLayananItem) => {
     setEditingItem(item);
-    setFormKategori(item.kategori as KategoriInfografis);
+    setFormKategori('event');
     setFormJudul(item.judul);
     setFormDeskripsi(item.deskripsi || '');
     setFormGambarUrl(item.gambarUrl);
@@ -183,7 +168,7 @@ export default function InfografisLayananManager({ onNotify }: InfografisLayanan
       // Update
       const updated: InfografisLayananItem = {
         ...editingItem,
-        kategori: formKategori,
+        kategori: 'event',
         judul: formJudul.trim(),
         deskripsi: formDeskripsi.trim() || undefined,
         gambarUrl: formGambarUrl.trim(),
@@ -196,7 +181,7 @@ export default function InfografisLayananManager({ onNotify }: InfografisLayanan
     } else {
       // Tambah baru
       addInfografisLayanan({
-        kategori: formKategori,
+        kategori: 'event',
         judul: formJudul.trim(),
         deskripsi: formDeskripsi.trim() || undefined,
         gambarUrl: formGambarUrl.trim(),
@@ -204,7 +189,7 @@ export default function InfografisLayananManager({ onNotify }: InfografisLayanan
         urutan: Number(formUrutan) || 1,
         isActive: formIsActive
       });
-      triggerToast('success', `Infografis baru berhasil ditambahkan ke layanan ${formKategori}.`);
+      triggerToast('success', `Infografis "${formJudul}" berhasil ditambahkan.`);
     }
 
     setIsModalOpen(false);
@@ -254,20 +239,20 @@ export default function InfografisLayananManager({ onNotify }: InfografisLayanan
       {/* ── HEADER HALAMAN ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2.5">
+          <h2 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2.5">
             <span className="p-2 rounded-xl bg-blue-50 text-[#0077C6] border border-blue-100 shadow-2xs">
-              <Layers className="w-6 h-6" />
+              <Layers className="w-5 h-5 sm:w-6 sm:h-6" />
             </span>
-            Infografis Layanan CDC
-          </h1>
+            {title || 'Infografis Event Pengembangan Karir'}
+          </h2>
           <p className="text-xs text-slate-500 mt-1">
-            Kelola poster infografis carousel yang tampil di halaman publik (Campus Hiring, Job Fair, Magang, dll.)
+            {subtitle || 'Kelola poster infografis carousel yang tampil di slider halaman publik Layanan > Event (bisa tambah, edit, sembunyikan, hapus, dan atur urutan slide).'}
           </p>
         </div>
 
         <button
           onClick={handleOpenAdd}
-          className="bg-[#0077C6] hover:bg-[#1E3A8A] text-white px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-sm transition-all cursor-pointer hover:shadow-md self-start sm:self-auto"
+          className="bg-[#0077C6] hover:bg-[#1E3A8A] text-white px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-sm transition-all cursor-pointer hover:shadow-md self-start sm:self-auto shrink-0"
         >
           <Plus className="w-4 h-4" /> Tambah Infografis
         </button>
@@ -292,12 +277,14 @@ export default function InfografisLayananManager({ onNotify }: InfografisLayanan
           <p className="text-2xl font-extrabold text-slate-600 mt-1">{hiddenCount}</p>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-          <p className="text-[11px] font-bold text-indigo-600 uppercase tracking-wider">Campus Hiring</p>
-          <p className="text-2xl font-extrabold text-indigo-700 mt-1">{categoryCounts['campus-hiring'] || 0}</p>
+          <p className="text-[11px] font-bold text-[#0077C6] uppercase tracking-wider flex items-center gap-1">
+            <Layers className="w-3.5 h-3.5" /> Target Layanan
+          </p>
+          <p className="text-xs font-black text-slate-800 mt-2 truncate">Event Pengembangan Karir</p>
         </div>
       </div>
 
-      {/* ── FILTER KATEGORI & PENCARIAN ── */}
+      {/* ── PENCARIAN & FILTER STATUS ── */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-3.5">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           {/* Search Box */}
@@ -320,47 +307,39 @@ export default function InfografisLayananManager({ onNotify }: InfografisLayanan
             )}
           </div>
 
-          <span className="text-xs text-slate-400">
-            Menampilkan <strong className="text-slate-700">{filteredItems.length}</strong> infografis
-          </span>
-        </div>
-
-        {/* Category Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
-          <button
-            onClick={() => setActiveCategoryFilter('semua')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
-              activeCategoryFilter === 'semua'
-                ? 'bg-slate-900 text-white shadow-2xs'
-                : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
-            }`}
-          >
-            Semua ({items.length})
-          </button>
-          {KATEGORI_OPTIONS.map((cat) => {
-            const count = categoryCounts[cat.id] || 0;
-            const isActive = activeCategoryFilter === cat.id;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategoryFilter(cat.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 ${
-                  isActive
-                    ? 'bg-[#0077C6] text-white shadow-2xs'
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
-                }`}
-              >
-                <span>{cat.label}</span>
-                <span
-                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                    isActive ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
-                  }`}
-                >
-                  {count}
-                </span>
-              </button>
-            );
-          })}
+          {/* Status Filter Buttons */}
+          <div className="flex items-center gap-1.5 self-start sm:self-auto">
+            <button
+              onClick={() => setStatusFilter('semua')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                statusFilter === 'semua'
+                  ? 'bg-slate-900 text-white shadow-2xs'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+              }`}
+            >
+              Semua ({items.length})
+            </button>
+            <button
+              onClick={() => setStatusFilter('aktif')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1 ${
+                statusFilter === 'aktif'
+                  ? 'bg-emerald-600 text-white shadow-2xs'
+                  : 'bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700'
+              }`}
+            >
+              <Eye className="w-3.5 h-3.5" /> Ditampilkan ({activeCount})
+            </button>
+            <button
+              onClick={() => setStatusFilter('tersembunyi')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1 ${
+                statusFilter === 'tersembunyi'
+                  ? 'bg-slate-700 text-white shadow-2xs'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+              }`}
+            >
+              <EyeOff className="w-3.5 h-3.5" /> Disembunyikan ({hiddenCount})
+            </button>
+          </div>
         </div>
       </div>
 
@@ -372,9 +351,9 @@ export default function InfografisLayananManager({ onNotify }: InfografisLayanan
           </div>
           <h3 className="font-bold text-slate-800 text-sm">Belum Ada Infografis</h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            {activeCategoryFilter !== 'semua'
-              ? `Belum ada poster infografis untuk kategori ${getCategoryMeta(activeCategoryFilter).label}.`
-              : 'Silakan klik tombol "Tambah Infografis" untuk mengunggah poster baru.'}
+            {statusFilter !== 'semua'
+              ? `Belum ada poster infografis dengan status "${statusFilter === 'aktif' ? 'Ditampilkan' : 'Disembunyikan'}".`
+              : 'Silakan klik tombol "Tambah Infografis" untuk mengunggah poster baru untuk Event Pengembangan Karir.'}
           </p>
           <button
             onClick={handleOpenAdd}
@@ -386,7 +365,6 @@ export default function InfografisLayananManager({ onNotify }: InfografisLayanan
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredItems.map((item, idx) => {
-            const catMeta = getCategoryMeta(item.kategori);
             return (
               <div
                 key={item.id}
@@ -409,8 +387,8 @@ export default function InfografisLayananManager({ onNotify }: InfografisLayanan
 
                   {/* Badges Floating Top */}
                   <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-1.5 pointer-events-none">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shadow-xs ${catMeta.color}`}>
-                      {catMeta.label}
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border shadow-xs text-blue-700 border-blue-200 bg-blue-50/95 backdrop-blur-xs">
+                      Event Pengembangan Karir
                     </span>
                     <span className="bg-slate-950/70 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-full border border-white/20">
                       Urutan #{item.urutan ?? idx + 1}
@@ -542,25 +520,18 @@ export default function InfografisLayananManager({ onNotify }: InfografisLayanan
 
             {/* Modal Body Form */}
             <form onSubmit={handleSubmitForm} className="p-5 space-y-4 flex-1">
-              {/* Kategori Layanan */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Kategori Layanan <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  value={formKategori}
-                  onChange={(e) => setFormKategori(e.target.value as KategoriInfografis)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0077C6] focus:bg-white outline-none font-medium"
-                >
-                  {KATEGORI_OPTIONS.map((k) => (
-                    <option key={k.id} value={k.id}>
-                      {k.label} {k.id === 'campus-hiring' ? '(Sudah Aktif)' : ''}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-[11px] text-slate-400 mt-0.5">
-                  Pilih layanan target tempat poster infografis ini akan ditampilkan.
-                </p>
+              {/* Target Kategori Terkunci */}
+              <div className="bg-blue-50/70 border border-blue-200/80 rounded-xl p-3 flex items-center justify-between gap-3">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 block">Kategori Target</span>
+                  <span className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5 mt-0.5">
+                    <Layers className="w-3.5 h-3.5 text-[#0077C6]" />
+                    Event Pengembangan Karir
+                  </span>
+                </div>
+                <span className="text-[10px] bg-blue-100 text-blue-800 font-bold px-2.5 py-0.5 rounded-md border border-blue-300">
+                  Slider Halaman Event
+                </span>
               </div>
 
               {/* Judul Infografis */}
