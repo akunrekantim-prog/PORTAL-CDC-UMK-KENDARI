@@ -111,6 +111,8 @@ export interface EventLayananItem {
   status: 'buka' | 'segera' | 'selesai';
   uploadedAt?: string; // ISO waktu upload (tie-breaker sorting)
   isPinned?: boolean;
+  isDraft?: boolean;
+  postStatus?: 'draft' | 'published';
 }
 
 export interface KontenKarir {

@@ -541,7 +541,13 @@ export default function App() {
     (viewingLowonganId ? getFromDB<Lowongan>('lowongan').find(l => l.id === viewingLowonganId || (l.slug && l.slug === viewingLowonganId) || slugify(l.judul) === viewingLowonganId) : undefined);
 
   const selectedBerita =
-    allBerita.find(b => b.slug === viewingBeritaSlug || slugify(b.title) === viewingBeritaSlug || b.id === viewingBeritaSlug);
+    allBerita.find(b => b.slug === viewingBeritaSlug || slugify(b.title) === viewingBeritaSlug || b.id === viewingBeritaSlug) ||
+    (() => {
+      if (!viewingBeritaSlug) return undefined;
+      const allK = getFromDB<KontenKarir>('konten_karir');
+      const target = allK.find(k => k.jenis === 'berita' && (k.slug === viewingBeritaSlug || slugify(k.judul) === viewingBeritaSlug || k.id === viewingBeritaSlug));
+      return target ? mapKontenBeritaToBerita(target) : undefined;
+    })();
 
   const selectedProgram =
     allProgram.find(p => p.id === viewingProgramId || (p.slug && p.slug === viewingProgramId) || slugify(p.judul) === viewingProgramId) ||

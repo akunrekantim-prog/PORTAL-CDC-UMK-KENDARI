@@ -319,6 +319,19 @@ export default function BeritaDetailView({
                 <span className="text-[#0077C6] font-semibold line-clamp-1 max-w-md">{berita.title}</span>
               </nav>
 
+              {/* DRAFT PREVIEW NOTICE BANNER */}
+              {berita.status === 'draft' && (
+                <div className="bg-amber-50 border border-amber-300 text-amber-900 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between gap-3 shadow-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
+                    <span><strong>Mode Pratinjau Admin:</strong> Artikel berita ini saat ini masih berstatus <u>Draft</u> (hanya Anda yang dapat melihat pratinjau ini).</span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-md bg-amber-200 text-amber-900 text-[10px] font-bold uppercase tracking-wider shrink-0">
+                    Draft
+                  </span>
+                </div>
+              )}
+
               {/* ARTICLE MAIN TITLE */}
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 leading-tight tracking-tight">
                 {berita.title}

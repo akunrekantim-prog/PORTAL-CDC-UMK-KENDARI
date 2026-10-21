@@ -58,6 +58,17 @@ export default function EventDetailView({
         metaItems={[]}
       >
         <div className="space-y-6 pt-1">
+          {event.isDraft && (
+            <div className="bg-amber-50 border border-amber-300 text-amber-900 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between gap-3 shadow-xs">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
+                <span><strong>Mode Pratinjau Admin:</strong> Konten event ini saat ini masih berstatus <u>Draft</u> (hanya Anda yang dapat melihat pratinjau ini).</span>
+              </div>
+              <span className="px-2 py-0.5 rounded-md bg-amber-200 text-amber-900 text-[10px] font-bold uppercase tracking-wider shrink-0">
+                Draft
+              </span>
+            </div>
+          )}
           {/* ── 1. RINGKASAN DETAIL & PENGATURAN AGENDA EVENT (PERSIS MODEL INTERNSHIP / MAGANG) ── */}
           <div className="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
             {/* Info row — flat grid style */}

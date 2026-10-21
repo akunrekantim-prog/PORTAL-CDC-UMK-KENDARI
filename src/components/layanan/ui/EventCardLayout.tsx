@@ -73,7 +73,9 @@ const mapKontenToEvent = (k: KontenKarir): EventLayananItem => ({
   ctaLabel: k.ctaLabel || 'Daftar Sekarang',
   status: k.statusEvent || 'buka',
   uploadedAt: k.createdAt,
-  isPinned: k.isPinned
+  isPinned: k.isPinned,
+  isDraft: String(k.status || '').toLowerCase() === 'draft',
+  postStatus: k.status
 });
 
 const findMatchedEvent = (targetId: string | null | undefined, list: EventLayananItem[]): EventLayananItem | null => {
@@ -265,7 +267,17 @@ export default function EventCardLayout({
 
     const fromKonten = (sourceKonten || [])
       .filter(k => {
-        if (String(k.status || '').toLowerCase() !== 'published') return false;
+        const isPublished = String(k.status || '').toLowerCase() === 'published';
+        if (!isPublished) {
+          const normTarget = initialEventId ? decodeURIComponent(initialEventId).toLowerCase().trim() : '';
+          const match = normTarget && (
+            (k.id && k.id.toLowerCase() === normTarget) ||
+            (k.slug && k.slug.toLowerCase() === normTarget) ||
+            (k.judul && slugify(k.judul).toLowerCase() === normTarget) ||
+            (`kk_${k.id}`.toLowerCase() === normTarget)
+          );
+          if (!match) return false;
+        }
         const kj = (k.jenis || '').toLowerCase().trim();
         const cat = category.toLowerCase().trim();
         if (cat === 'event' || cat === 'all') {
@@ -279,7 +291,7 @@ export default function EventCardLayout({
       .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
       .map(mapKontenToEvent);
     return [...fromKonten, ...events];
-  }, [events, kontenEvents, category]);
+  }, [events, kontenEvents, category, initialEventId]);
 
   // Inisialisasi awal secara sinkron agar tidak berkedip ke Card Layout grid pada render pertama
   const [selectedEvent, setSelectedEvent] = useState<EventLayananItem | null>(() =>

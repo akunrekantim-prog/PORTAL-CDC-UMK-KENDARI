@@ -170,6 +170,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import InfografisLayananManager from './admin/InfografisLayananManager';
+import { slugify } from '../utils/shareUtils';
 
 type AdminTab = 'ringkasan' | 'konten' | 'mitra' | 'mahasiswa-alumni' | 'lamaran-mahasiswa' | 'keanggotaan' | 'visi-misi' | 'sk-cdc' | 'kalender' | 'laporan' | 'mou' | 'galeri' | 'media-sosial' | 'komentar' | 'konseling' | 'hero-slider' | 'campus-hiring' | 'job-fair' | 'statistik-beranda' | 'infografis-layanan';
 
@@ -2036,6 +2037,33 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
     }
   };
 
+  const handlePreviewKonten = (item: any) => {
+    if (!item) return;
+    const rawJenis = (item.jenis || (item.tipe ? 'lowongan' : 'event')).toLowerCase().trim();
+    const slug = item.slug || slugify(item.judul || item.title || '') || item.id;
+
+    let targetUrl = '/';
+    if (['event', 'workshop', 'seminar', 'pelatihan', 'softskill'].includes(rawJenis)) {
+      targetUrl = `/layanan/event/${slug}`;
+    } else if (rawJenis === 'berita') {
+      targetUrl = `/berita/${slug}`;
+    } else if (rawJenis === 'lowongan' || Boolean(item.tipe)) {
+      targetUrl = `/lowongan/${item.id || slug}`;
+    } else if (rawJenis === 'campus-hiring' || rawJenis === 'campus_hiring') {
+      targetUrl = (item.body || item.slug) ? `/layanan/event/${slug}` : `/layanan/campus-hiring`;
+    } else if (rawJenis === 'career-fair' || rawJenis === 'job-fair' || rawJenis === 'job_fair') {
+      targetUrl = (item.body || item.slug) ? `/layanan/event/${slug}` : `/layanan/career-fair`;
+    } else if (rawJenis === 'program') {
+      targetUrl = `/program/${item.id || slug}`;
+    } else if (rawJenis === 'pengumuman') {
+      targetUrl = `/layanan`;
+    } else {
+      targetUrl = `/layanan/event/${slug}`;
+    }
+
+    window.open(targetUrl, '_blank');
+  };
+
   const filteredKonten = konten.filter((k) => {
     const q = kontenQuery.trim().toLowerCase();
     const matchQ = !q || k.judul.toLowerCase().includes(q);
@@ -3295,6 +3323,15 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                               <div className="text-[11px] text-slate-400">{l.namaInstansi} · {formatTanggal(l.createdAt)}</div>
                             </div>
                             <div className="flex gap-1.5 flex-shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => handlePreviewKonten({ ...l, jenis: 'lowongan' })}
+                                className="bg-sky-50 hover:bg-sky-100 text-[#0077C6] border border-sky-200/80 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
+                                title="Buka Halaman Publik di Tab Baru"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>Preview</span>
+                              </button>
                               <button onClick={() => openLowonganForm(l)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Edit3 className="w-3.5 h-3.5" /> Edit</button>
                               <button onClick={() => handleDeleteLowonganAdmin(l)} className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Trash2 className="w-3.5 h-3.5" /> Hapus</button>
                             </div>
@@ -3337,6 +3374,15 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                                   <div className="text-[11px] text-slate-400">{item.tanggalMulai} · {item.lokasi}</div>
                                 </div>
                                 <div className="flex gap-1.5 flex-shrink-0">
+                                  <button
+                                    type="button"
+                                    onClick={() => handlePreviewKonten({ ...item, jenis: 'job-fair' })}
+                                    className="bg-sky-50 hover:bg-sky-100 text-[#0077C6] border border-sky-200/80 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
+                                    title="Buka Halaman Publik di Tab Baru"
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                    <span>Preview</span>
+                                  </button>
                                   <button onClick={() => openJfModal(item)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Edit3 className="w-3.5 h-3.5" /> Edit</button>
                                   <button onClick={() => handleDeleteJf(item)} className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Trash2 className="w-3.5 h-3.5" /> Hapus</button>
                                 </div>
@@ -3381,6 +3427,15 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                                   <div className="text-[11px] text-slate-400">{item.namaPerusahaan} · {item.tanggal}</div>
                                 </div>
                                 <div className="flex gap-1.5 flex-shrink-0">
+                                  <button
+                                    type="button"
+                                    onClick={() => handlePreviewKonten({ ...item, jenis: 'campus-hiring' })}
+                                    className="bg-sky-50 hover:bg-sky-100 text-[#0077C6] border border-sky-200/80 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
+                                    title="Buka Halaman Publik di Tab Baru"
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                    <span>Preview</span>
+                                  </button>
                                   <button onClick={() => openChModal(item)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Edit3 className="w-3.5 h-3.5" /> Edit</button>
                                   <button onClick={() => handleDeleteCh(item)} className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Trash2 className="w-3.5 h-3.5" /> Hapus</button>
                                 </div>
@@ -3575,6 +3630,15 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                                 <div className="flex gap-1.5 flex-shrink-0">
                                   <button
                                     type="button"
+                                    onClick={() => handlePreviewKonten(k)}
+                                    className="bg-sky-50 hover:bg-sky-100 text-[#0077C6] border border-sky-200/80 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
+                                    title="Buka Halaman Publik di Tab Baru"
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                    <span>Preview</span>
+                                  </button>
+                                  <button
+                                    type="button"
                                     title={k.isPinned ? "Lepas Sematan (Unpin)" : "Sematkan ke Popular Info (Pin)"}
                                     onClick={() => handleTogglePinKonten(k)}
                                     className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${k.isPinned
@@ -3611,6 +3675,15 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                                 <div className="text-[11px] text-slate-400">{item.namaPerusahaan} · {item.tanggal} · {item.lokasi}</div>
                               </div>
                               <div className="flex gap-1.5 flex-shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => handlePreviewKonten({ ...item, jenis: 'campus-hiring' })}
+                                  className="bg-sky-50 hover:bg-sky-100 text-[#0077C6] border border-sky-200/80 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
+                                  title="Buka Halaman Publik di Tab Baru"
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                  <span>Preview</span>
+                                </button>
                                 <button onClick={() => openChModal(item)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Edit3 className="w-3.5 h-3.5" /> Edit</button>
                                 <button onClick={() => handleDeleteCh(item)} className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Trash2 className="w-3.5 h-3.5" /> Hapus</button>
                               </div>
@@ -3636,6 +3709,15 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                                 <div className="text-[11px] text-slate-400">{item.tanggalMulai} · {item.lokasi}</div>
                               </div>
                               <div className="flex gap-1.5 flex-shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => handlePreviewKonten({ ...item, jenis: 'job-fair' })}
+                                  className="bg-sky-50 hover:bg-sky-100 text-[#0077C6] border border-sky-200/80 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
+                                  title="Buka Halaman Publik di Tab Baru"
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                  <span>Preview</span>
+                                </button>
                                 <button onClick={() => openJfModal(item)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Edit3 className="w-3.5 h-3.5" /> Edit</button>
                                 <button onClick={() => handleDeleteJf(item)} className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1"><Trash2 className="w-3.5 h-3.5" /> Hapus</button>
                               </div>
@@ -3698,6 +3780,15 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                                 <div className="text-[11px] text-slate-400">{formatTanggal(k.createdAt)}{k.penulis ? ' · ' + k.penulis : ''}</div>
                               </div>
                               <div className="flex gap-1.5 flex-shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => handlePreviewKonten(k)}
+                                  className="bg-sky-50 hover:bg-sky-100 text-[#0077C6] border border-sky-200/80 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
+                                  title="Buka Halaman Publik di Tab Baru"
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                  <span>Preview</span>
+                                </button>
                                 {k.jenis !== 'lowongan' && (
                                   <button
                                     type="button"
