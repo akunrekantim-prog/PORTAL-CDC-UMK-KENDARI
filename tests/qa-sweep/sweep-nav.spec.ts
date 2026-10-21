@@ -236,8 +236,8 @@ test.describe('QA Sweep 1c: Menu desktop — link eksternal (tanpa navigasi kelu
       { parent: 'Tracer Study', child: 'Tracer Study', url: 'https://tracerstudy.umkendari.ac.id/' },
       {
         parent: 'Tracer Study',
-        child: 'Form Kuesioner Tracer Study',
-        url: 'https://tracerstudy.umkendari.ac.id/page/survey',
+        child: 'Kepuasan Pengguna Lulusan',
+        url: 'https://bit.ly/SurveiKepuasanPenggunaLulusanPspUMKendari',
       },
       { parent: 'Simbelmawa', child: 'PKM', url: 'https://simbelmawa.kemdiktisaintek.go.id/pkm' },
       { parent: 'Simbelmawa', child: 'PPK ORMAWA', url: 'https://ppkormawa.kemdiktisaintek.go.id/' },
