@@ -210,69 +210,38 @@ export default function Magang({ lowongan = [], onSelectLowongan }: MagangProps)
           ]}
         >
           <div className="space-y-8 pt-2">
-            {/* 1. RINGKASAN PROGRAM MAGANG */}
-            <div className="border border-slate-200 rounded-lg overflow-hidden">
-              {/* Info row — flat, no nested cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-px bg-slate-200 border-b border-slate-200 text-sm overflow-hidden">
-                <div className="px-3 sm:px-4 py-3 bg-slate-50/60 min-w-0">
-                  <div className="text-[11px] text-slate-400 mb-0.5">Jenis</div>
-                  <div className="font-semibold text-slate-800">Magang</div>
-                </div>
-                <div className="px-3 sm:px-4 py-3 bg-slate-50/60 min-w-0">
-                  <div className="text-[11px] text-slate-400 mb-0.5">Kategori</div>
-                  <div className="font-semibold text-slate-800 truncate" title={selectedMagang.kategori || 'Umum'}>
-                    {selectedMagang.kategori || 'Umum'}
-                  </div>
-                </div>
-                <div className="px-3 sm:px-4 py-3 bg-slate-50/60 min-w-0">
-                  <div className="text-[11px] text-slate-400 mb-0.5">Kompensasi</div>
-                  <div className="font-semibold text-slate-800 break-words">{selectedMagang.gaji || 'Uang Saku'}</div>
-                </div>
-                <div className="px-3 sm:px-4 py-3 bg-slate-50/60 min-w-0">
-                  <div className="text-[11px] text-slate-400 mb-0.5">Kuota</div>
-                  <div className="font-semibold text-slate-800">{selectedMagang.kuota ? `${selectedMagang.kuota} orang` : 'Terbuka'}</div>
-                </div>
-                <div className="px-3 sm:px-4 py-3 bg-slate-50/60 min-w-0 col-span-2 sm:col-span-1">
-                  <div className="text-[11px] text-slate-400 mb-0.5">Deadline</div>
-                  <div className={`font-semibold ${isDeadlinePassed ? 'text-red-600' : 'text-slate-800'}`}>
-                    {selectedMagang.deadline ? formatDateDisplay(selectedMagang.deadline) : 'Terbuka'}
-                  </div>
-                </div>
+            {/* Action buttons (Lamar Magang & Simpan) */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={() => setIsApplyModalOpen(true)}
+                  disabled={isDeadlinePassed}
+                  className={`inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition ${
+                    isDeadlinePassed
+                      ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                      : 'bg-[#0077C6] text-white hover:bg-[#005fa0] active:scale-[0.98] cursor-pointer shadow-xs'
+                  }`}
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  {isDeadlinePassed ? 'Pendaftaran Ditutup' : 'Lamar Magang'}
+                </button>
+
+                <button
+                  onClick={() => handleToggleSave(selectedMagang.id)}
+                  className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition cursor-pointer ${
+                    isSaved
+                      ? 'bg-amber-50 text-amber-700 border-amber-200'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  <Bookmark className={`w-3.5 h-3.5 ${isSaved ? 'fill-amber-500 text-amber-500' : 'text-slate-400'}`} />
+                  {isSaved ? 'Tersimpan' : 'Simpan'}
+                </button>
               </div>
 
-              {/* Action row */}
-              <div className="px-4 py-3 flex flex-wrap items-center justify-between gap-3 bg-white">
-                <div className="flex items-center gap-2.5">
-                  <button
-                    onClick={() => setIsApplyModalOpen(true)}
-                    disabled={isDeadlinePassed}
-                    className={`inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition ${
-                      isDeadlinePassed
-                        ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                        : 'bg-[#0077C6] text-white hover:bg-[#005fa0] active:scale-[0.98] cursor-pointer'
-                    }`}
-                  >
-                    <Send className="w-3.5 h-3.5" />
-                    {isDeadlinePassed ? 'Pendaftaran Ditutup' : 'Lamar Magang'}
-                  </button>
-
-                  <button
-                    onClick={() => handleToggleSave(selectedMagang.id)}
-                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition cursor-pointer ${
-                      isSaved
-                        ? 'bg-amber-50 text-amber-700 border-amber-200'
-                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                    }`}
-                  >
-                    <Bookmark className={`w-3.5 h-3.5 ${isSaved ? 'fill-amber-500 text-amber-500' : 'text-slate-400'}`} />
-                    {isSaved ? 'Tersimpan' : 'Simpan'}
-                  </button>
-                </div>
-
-                <span className="text-xs text-slate-400">
-                  {selectedMagang.namaInstansi}{selectedMagang.lokasi ? ` · ${selectedMagang.lokasi}` : ''}
-                </span>
-              </div>
+              <span className="text-xs text-slate-400">
+                {selectedMagang.namaInstansi}{selectedMagang.lokasi ? ` · ${selectedMagang.lokasi}` : ''}
+              </span>
             </div>
 
             {/* 2. DESKRIPSI PROGRAM MAGANG */}

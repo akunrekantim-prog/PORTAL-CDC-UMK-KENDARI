@@ -170,7 +170,7 @@ export default function ShareableDetailPage({
               {uploadDateLabel && (
                 <div className="flex items-center gap-1.5 min-w-0">
                   <Clock className="w-4 h-4 text-amber-500 shrink-0" />
-                  <span className="break-words">Diunggah: {uploadDateLabel}</span>
+                  <span className="break-words">{uploadDateLabel}</span>
                 </div>
               )}
               <div className="flex items-center gap-1.5 min-w-0">

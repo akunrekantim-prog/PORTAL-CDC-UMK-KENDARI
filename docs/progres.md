@@ -6,6 +6,35 @@ Repo: `D:\PORTAL-CDC-UMK-KENDARI`
 
 ---
 
+## Tanggal: 21 Oktober 2026
+**Oleh: ARYA APRIAWAN**
+**Fokus Pekerjaan:** Penyederhanaan dan perapihan tampilan detail card layout pada menu Layanan (Event Pengembangan Karir dan Magang) agar selaras dengan kesederhanaan dan keanggunan tampilan Berita & Artikel dengan menghapus tabel grid ringkasan kolom yang repetitif.
+
+### Ringkasan Perubahan
+1. **Penyelarasan Tampilan Detail Event Layanan (`EventDetailView.tsx`):**
+   - Menghapus tabel grid 7 kolom (*Kategori Event*, *Penyelenggara*, *Tanggal Pelaksanaan*, *Waktu Pelaksanaan*, *Lokasi Pertemuan*, *Biaya / HTM*, *Kuota Peserta*) yang repetitif di halaman detail kegiatan.
+   - Menghapus baris bawah agenda/lokasi berulang dan judul kaku *"Deskripsi Kegiatan"*, sehingga alur konten mengalir bersih dan elegan: Breadcrumb → Judul → Strip Metadata (Kategori, Tanggal, Penulis) → Pamflet/Poster → Teks Deskripsi Kegiatan (persis format `BeritaDetailView`).
+   - Menyediakan tombol Call-to-Action (*Daftar Sekarang*) yang bersih dan modern di bagian atas dan bawah konten jika tautan registrasi disediakan oleh penyelenggara/admin.
+
+2. **Penyelarasan Metadata Detail Halaman (`ShareableDetailPage.tsx`):**
+   - Menghilangkan awalan statis `"Diunggah: "` pada label tanggal unggah/pelaksanaan sehingga menampilkan informasi tanggal yang lebih ringkas dan harmonis selaras dengan kartu detail Berita & Artikel.
+
+3. **Perapihan Tampilan Detail Magang (`Magang.tsx`):**
+   - Menghilangkan tabel grid 5 kolom (*Jenis*, *Kategori*, *Kompensasi*, *Kuota*, *Deadline*) yang kaku pada halaman detail lowongan magang.
+   - Mempertahankan tombol aksi utama (*Lamar Magang* & *Simpan*) serta informasi penyelenggara/lokasi dalam tata letak yang bersih, ringkas, dan mobile-friendly tanpa nested table/grid yang berlebihan.
+
+### File Diubah
+- **[MODIFY]** `src/components/layanan/EventDetailView.tsx` (penghapusan tabel grid 7 kolom, penyelarasan alur deskripsi konten dan tombol CTA)
+- **[MODIFY]** `src/components/layanan/ui/ShareableDetailPage.tsx` (perapihan label tanggal metadata atas)
+- **[MODIFY]** `src/components/layanan/Magang.tsx` (penghapusan tabel grid 5 kolom ringkasan program)
+- **[MODIFY]** `docs/progres.md` (pencatatan progres pengerjaan tanggal 21 Oktober 2026 atas nama ARYA APRIAWAN)
+
+### Verifikasi & Validasi
+- ✅ `npx tsc --noEmit` — 0 error, build types bersih tanpa masalah.
+- ✅ Penyelarasan visual teruji: layout detail event dan magang kini tampil bersih, konsisten, dan terstandarisasi dengan modul Berita & Artikel.
+
+---
+
 ## Tanggal: 19 Oktober 2026
 **Oleh: ARYA APRIAWAN**
 **Fokus Pekerjaan:** Restrukturisasi besar menu Layanan (penyederhanaan menjadi Berita & Artikel, Konseling Karir, dan Event), pembuatan modul terpadu Event Pengembangan Karir dengan filter kategori pencarian ala Berita, serta relokasi menu Internship & Tes Potensi Minat Kerja ke Job Info.
