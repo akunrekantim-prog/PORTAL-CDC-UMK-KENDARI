@@ -66,6 +66,12 @@ async function loginAdmin(page: Page): Promise<void> {
 
 /** Buka satu item MENU, verifikasi panel render (keyword + konten non-blank). */
 async function openAdmTab(page: Page, id: string, keyword: string): Promise<void> {
+  if (id === 'konseling') {
+    const kontenBtn = page.locator('#adm-tab-konten');
+    await kontenBtn.scrollIntoViewIfNeeded().catch(() => {});
+    await kontenBtn.click();
+    await page.waitForTimeout(500);
+  }
   const btn = page.locator(`#adm-tab-${id}`);
   await btn.scrollIntoViewIfNeeded().catch(() => {});
   await expect(btn, `tombol menu #adm-tab-${id} harus terlihat`).toBeVisible({ timeout: 15000 });

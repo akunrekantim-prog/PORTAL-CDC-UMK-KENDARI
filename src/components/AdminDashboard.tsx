@@ -388,22 +388,35 @@ async function saveLowonganWithQuota(item: Lowongan, isEdit: boolean): Promise<n
 }
 
 export default function AdminDashboard({ user, onLogout, onReloadData, activeTab: activeTabProp, onTabChange }: AdminDashboardProps) {
-  const [activeTab, setActiveTabInternal] = useState<AdminTab>(activeTabProp || 'ringkasan');
+  const [activeTab, setActiveTabInternal] = useState<AdminTab>(activeTabProp === 'konseling' ? 'konten' : (activeTabProp || 'ringkasan'));
   const [kontenSub, setKontenSub] = useState<KontenSubTab>('riwayat');
-  const [selectedCategory, setSelectedCategory] = useState<JenisKonten | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<JenisKonten | 'konseling' | null>(activeTabProp === 'konseling' ? 'konseling' : null);
   const [mitraSub, setMitraSub] = useState<MitraSubTab>('approval');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCmdPaletteOpen, setIsCmdPaletteOpen] = useState(false);
   const [cmdSearchQuery, setCmdSearchQuery] = useState('');
 
   const setActiveTab = (tab: AdminTab) => {
+    if (tab === 'konseling') {
+      setActiveTabInternal('konten');
+      setSelectedCategory('konseling');
+      setKontenSub('riwayat');
+      onTabChange?.('konten');
+      return;
+    }
     setActiveTabInternal(tab);
     onTabChange?.(tab);
   };
 
   useEffect(() => {
     if (activeTabProp && activeTabProp !== activeTab) {
-      setActiveTabInternal(activeTabProp);
+      if (activeTabProp === 'konseling') {
+        setActiveTabInternal('konten');
+        setSelectedCategory('konseling');
+        setKontenSub('riwayat');
+      } else {
+        setActiveTabInternal(activeTabProp);
+      }
     }
   }, [activeTabProp, activeTab]);
 
@@ -863,8 +876,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
         { id: 'kalender', label: 'Kalender Kegiatan', icon: <Calendar className="w-4 h-4" /> },
         { id: 'laporan', label: 'Laporan Kinerja', icon: <FileText className="w-4 h-4" /> },
         { id: 'mou', label: 'MOU Stakeholder', icon: <FileText className="w-4 h-4" /> },
-        { id: 'galeri', label: 'Galeri Kegiatan', icon: <Film className="w-4 h-4" /> },
-        { id: 'konseling', label: 'Bimbingan & Konseling', icon: <HeartHandshake className="w-4 h-4" /> }
+        { id: 'galeri', label: 'Galeri Kegiatan', icon: <Film className="w-4 h-4" /> }
       ]
     }
   ];
@@ -2426,6 +2438,629 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
   };
 
   /* =========================================================
+   *  RENDER KELOLA KONSELING KARIR
+   * =======================================================*/
+  const renderKonselingSection = () => {
+              const handleSaveGeneralConfig = () => {
+                const updated: KonselingConfig = {
+                  ...konselingCfg,
+                  title: kTitle,
+                  subtitle: kSubtitle,
+                  posterUrl: kPosterUrl,
+                  narasiWa: kNarasiWa,
+                  adminWaNumber: kAdminWaNum,
+                  adminWaDefaultMessage: kAdminWaMsg,
+                  published: kPublished
+                };
+                saveKonselingConfig(updated);
+                setKonselingCfg(updated);
+                triggerToast('success', `Pengaturan Konseling Karir berhasil disimpan! (${kPublished ? 'Published' : 'Draft'})`);
+              };
+
+              const handleSaveInfoItem = (e: React.FormEvent) => {
+                e.preventDefault();
+                if (!infoJudul.trim()) {
+                  triggerToast('error', 'Judul penjelasan wajib diisi.');
+                  return;
+                }
+
+                let updatedItems = [...(konselingCfg.infoItems || [])];
+                if (editInfoId) {
+                  updatedItems = updatedItems.map((item) =>
+                    item.id === editInfoId
+                      ? { ...item, judul: infoJudul, deskripsi: infoDeskripsi, linkUrl: infoLinkUrl, linkLabel: infoLinkLabel }
+                      : item
+                  );
+                } else {
+                  const newItem: KonselingInfoItem = {
+                    id: `info_${Date.now()}`,
+                    judul: infoJudul,
+                    deskripsi: infoDeskripsi,
+                    linkUrl: infoLinkUrl,
+                    linkLabel: infoLinkLabel
+                  };
+                  updatedItems.push(newItem);
+                }
+
+                const updatedConfig = { ...konselingCfg, infoItems: updatedItems };
+                saveKonselingConfig(updatedConfig);
+                setKonselingCfg(updatedConfig);
+                setShowInfoModal(false);
+                triggerToast('success', editInfoId ? 'Penjelasan topik berhasil diperbarui.' : 'Penjelasan topik baru ditambahkan.');
+              };
+
+              const handleDeleteInfoItem = (id: string) => {
+                if (confirm('Hapus item penjelasan topik ini?')) {
+                  const updatedItems = (konselingCfg.infoItems || []).filter((item) => item.id !== id);
+                  const updatedConfig = { ...konselingCfg, infoItems: updatedItems };
+                  saveKonselingConfig(updatedConfig);
+                  setKonselingCfg(updatedConfig);
+                  triggerToast('success', 'Penjelasan topik telah dihapus.');
+                }
+              };
+
+              const openAddInfoModal = () => {
+                setEditInfoId(null);
+                setInfoJudul('');
+                setInfoDeskripsi('');
+                setInfoLinkUrl('');
+                setInfoLinkLabel('');
+                setShowInfoModal(true);
+              };
+
+              const openEditInfoModal = (item: KonselingInfoItem) => {
+                setEditInfoId(item.id);
+                setInfoJudul(item.judul);
+                setInfoDeskripsi(item.deskripsi);
+                setInfoLinkUrl(item.linkUrl || '');
+                setInfoLinkLabel(item.linkLabel || '');
+                setShowInfoModal(true);
+              };
+
+              const handleSaveJadwalItem = (e: React.FormEvent) => {
+                e.preventDefault();
+                if (!jdwHari.trim() || !jdwJam.trim()) {
+                  triggerToast('error', 'Hari dan Jam wajib diisi.');
+                  return;
+                }
+
+                let updatedItems = [...(konselingCfg.jadwalItems || [])];
+                if (editJadwalId) {
+                  updatedItems = updatedItems.map((item) =>
+                    item.id === editJadwalId
+                      ? { ...item, hari: jdwHari, jam: jdwJam, lokasi: jdwLokasi, kuotaPerHari: jdwKuota, status: jdwStatus }
+                      : item
+                  );
+                } else {
+                  const newItem: KonselingJadwalItem = {
+                    id: `jdw_${Date.now()}`,
+                    hari: jdwHari,
+                    jam: jdwJam,
+                    lokasi: jdwLokasi,
+                    kuotaPerHari: jdwKuota,
+                    status: jdwStatus
+                  };
+                  updatedItems.push(newItem);
+                }
+
+                const updatedConfig = { ...konselingCfg, jadwalItems: updatedItems };
+                saveKonselingConfig(updatedConfig);
+                setKonselingCfg(updatedConfig);
+                setShowJadwalModal(false);
+                triggerToast('success', editJadwalId ? 'Jadwal konseling berhasil diperbarui.' : 'Jadwal konseling baru ditambahkan.');
+              };
+
+              const handleDeleteJadwalItem = (id: string) => {
+                if (confirm('Hapus entri jadwal konseling ini?')) {
+                  const updatedItems = (konselingCfg.jadwalItems || []).filter((item) => item.id !== id);
+                  const updatedConfig = { ...konselingCfg, jadwalItems: updatedItems };
+                  saveKonselingConfig(updatedConfig);
+                  setKonselingCfg(updatedConfig);
+                  triggerToast('success', 'Jadwal konseling telah dihapus.');
+                }
+              };
+
+              const openAddJadwalModal = () => {
+                setEditJadwalId(null);
+                setJdwHari('');
+                setJdwJam('');
+                setJdwLokasi('');
+                setJdwKuota('');
+                setJdwStatus('buka');
+                setShowJadwalModal(true);
+              };
+
+              const openEditJadwalModal = (item: KonselingJadwalItem) => {
+                setEditJadwalId(item.id);
+                setJdwHari(item.hari);
+                setJdwJam(item.jam);
+                setJdwLokasi(item.lokasi);
+                setJdwKuota(item.kuotaPerHari || '');
+                setJdwStatus(item.status);
+                setShowJadwalModal(true);
+              };
+
+              const handlePosterFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                try {
+                  const compressed = await compressImageAdaptive(file);
+                  setKPosterUrl(compressed);
+                  triggerToast('success', 'Gambar poster berhasil diunggah & dikompres!');
+                } catch (err: any) {
+                  triggerToast('error', 'Gagal memuat gambar poster.');
+                }
+              };
+
+              return (
+                <div className="space-y-8">
+                  {/* Header Title */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <div>
+                      <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                        <HeartHandshake className="w-5 h-5 text-emerald-600" />
+                        Kelola Layanan Konseling Karir
+                      </h2>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Atur poster template, penjelasan topik, jadwal operasional, dan tautan WhatsApp Admin CDC
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={handleSaveGeneralConfig}
+                      className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#000066] hover:bg-blue-900 text-white rounded-xl font-bold text-xs shadow-md transition"
+                    >
+                      <Save className="w-4 h-4" /> Simpan Semua Pengaturan
+                    </button>
+                  </div>
+
+                  {/* Status publikasi (Draft / Published) — seragam dgn Konten Karir */}
+                  <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex items-center justify-between gap-4 flex-wrap">
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                        <HeartHandshake className="w-4 h-4 text-emerald-600" /> Status Publikasi Konseling Karir
+                      </h3>
+                      <p className="text-xs text-slate-500 mt-0.5">Tentukan apakah halaman Konseling Karir tampil di publik (Published) atau disimpan sebagai Draft.</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className={`text-xs font-bold ${!kPublished ? 'text-amber-600' : 'text-slate-400'}`}>Draft</span>
+                      <button
+                        type="button"
+                        onClick={() => setKPublished((v) => !v)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${kPublished ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                      >
+                        <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${kPublished ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                      </button>
+                      <span className={`text-xs font-bold ${kPublished ? 'text-emerald-600' : 'text-slate-400'}`}>Published</span>
+                    </div>
+                  </div>
+
+                  {/* 1. POSTER TEMPLATE & BANNER TITLE */}
+                  <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+                    <div className="border-b border-slate-100 pb-3">
+                      <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                        <ImageIcon className="w-4 h-4 text-emerald-600" /> 1. Poster Template & Banner Utama
+                      </h3>
+                      <p className="text-xs text-slate-500">Atur gambar poster template yang akan ditampilkan di halaman Konseling Karir</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      {/* Left: Input fields */}
+                      <div className="lg:col-span-2 space-y-4">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Judul Banner Utama</label>
+                          <input
+                            type="text"
+                            value={kTitle}
+                            onChange={(e) => setKTitle(e.target.value)}
+                            className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 font-semibold"
+                            placeholder="Layanan Konseling Karir UPT CDC UM Kendari"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Subjudul / Deskripsi Banner</label>
+                          <textarea
+                            rows={2}
+                            value={kSubtitle}
+                            onChange={(e) => setKSubtitle(e.target.value)}
+                            className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                            placeholder="Sesi konsultasi karir personal & pendampingan profesional..."
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="block text-xs font-bold text-slate-700">Unggah Gambar Poster (Berkas / URL)</label>
+                          <div className="flex flex-col sm:flex-row gap-3">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handlePosterFileChange}
+                              className="text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer"
+                            />
+                          </div>
+                          <input
+                            type="text"
+                            value={kPosterUrl}
+                            onChange={(e) => setKPosterUrl(e.target.value)}
+                            className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                            placeholder="Atau masukkan URL Gambar Poster (https://...)"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Right: Poster Preview */}
+                      <div className="space-y-2">
+                        <label className="block text-xs font-bold text-slate-700">Pratinjau Poster</label>
+                        <div className="border border-slate-200 rounded-2xl overflow-hidden bg-slate-900 min-h-[180px] max-h-[220px] flex items-center justify-center p-2">
+                          {kPosterUrl ? (
+                            <img src={kPosterUrl} alt="Poster Pratinjau" className="max-h-[200px] w-auto object-contain rounded-lg" />
+                          ) : (
+                            <span className="text-xs text-slate-400">Belum ada gambar poster</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 2. KELOLA PENJELASAN & TOPIK KONSELING */}
+                  <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-3">
+                      <div>
+                        <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                          <Info className="w-4 h-4 text-emerald-600" /> 2. Penjelasan & Topik Konseling (Dynamic List)
+                        </h3>
+                        <p className="text-xs text-slate-500">Tambah, edit, atau hapus penjelasan topik layanan yang tersedia untuk mahasiswa</p>
+                      </div>
+                      <button
+                        onClick={openAddInfoModal}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition"
+                      >
+                        <Plus className="w-4 h-4" /> Tambah Penjelasan Topik
+                      </button>
+                    </div>
+
+                    <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden">
+                      {(!konselingCfg.infoItems || konselingCfg.infoItems.length === 0) ? (
+                        <div className="p-8 text-center text-xs text-slate-400 font-medium">
+                          Belum ada topik penjelasan yang dibuat. Klik tombol di atas untuk menambah.
+                        </div>
+                      ) : (
+                        konselingCfg.infoItems.map((item, idx) => (
+                          <div key={item.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/60 transition">
+                            <div className="space-y-1 min-w-0 flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="w-5 h-5 rounded-full bg-orange-100 text-[#F26522] font-bold text-[10px] flex items-center justify-center shrink-0">
+                                  {idx + 1}
+                                </span>
+                                <h4 className="text-sm font-bold text-slate-900 truncate">{item.judul}</h4>
+                              </div>
+                              <p className="text-xs text-slate-600 line-clamp-2 pl-7">{item.deskripsi}</p>
+                              {item.linkUrl && (
+                                <p className="text-[11px] text-[#F26522] font-semibold pl-7 flex items-center gap-1">
+                                  <LinkIcon className="w-3 h-3" /> {item.linkLabel || item.linkUrl}
+                                </p>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                              <button
+                                onClick={() => openEditInfoModal(item)}
+                                className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition"
+                                title="Edit Penjelasan"
+                              >
+                                <Edit3 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteInfoItem(item.id)}
+                                className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition"
+                                title="Hapus Penjelasan"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 3. KELOLA JADWAL KONSELING */}
+                  <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-3">
+                      <div>
+                        <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-emerald-600" /> 3. Jadwal Operasional Konseling Karir
+                        </h3>
+                        <p className="text-xs text-slate-500">Atur hari, jam, lokasi, dan status kuota layanan konseling</p>
+                      </div>
+                      <button
+                        onClick={openAddJadwalModal}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition"
+                      >
+                        <Plus className="w-4 h-4" /> Tambah Entri Jadwal
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {(!konselingCfg.jadwalItems || konselingCfg.jadwalItems.length === 0) ? (
+                        <div className="col-span-2 p-8 text-center text-xs text-slate-400 font-medium border border-slate-200 rounded-xl">
+                          Belum ada jadwal operasional. Klik "+ Tambah Entri Jadwal".
+                        </div>
+                      ) : (
+                        konselingCfg.jadwalItems.map((jdw) => (
+                          <div key={jdw.id} className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2 flex flex-col justify-between">
+                            <div className="space-y-1.5">
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-slate-900 text-sm">{jdw.hari}</span>
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${jdw.status === 'buka' ? 'bg-emerald-100 text-emerald-700' : jdw.status === 'penuh' ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-700'
+                                  }`}>
+                                  {jdw.status}
+                                </span>
+                              </div>
+                              <p className="text-xs text-slate-600"><strong>Jam:</strong> {jdw.jam}</p>
+                              <p className="text-xs text-slate-600"><strong>Lokasi:</strong> {jdw.lokasi}</p>
+                              {jdw.kuotaPerHari && <p className="text-xs text-slate-600"><strong>Kuota:</strong> {jdw.kuotaPerHari}</p>}
+                            </div>
+
+                            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
+                              <button
+                                onClick={() => openEditJadwalModal(jdw)}
+                                className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-200 rounded-lg transition"
+                                title="Edit Jadwal"
+                              >
+                                <Edit3 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteJadwalItem(jdw.id)}
+                                className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-100 rounded-lg transition"
+                                title="Hapus Jadwal"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 4. PENGATURAN WA ADMIN & NARASI */}
+                  <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+                    <div className="border-b border-slate-100 pb-3">
+                      <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                        <MessageCircle className="w-4 h-4 text-emerald-600" /> 4. Pengaturan Kontak WhatsApp Admin & Narasi
+                      </h3>
+                      <p className="text-xs text-slate-500">Tentukan teks narasi ajakan serta nomor WA tujuan pendaftaran konseling</p>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">Teks Narasi Hubungi Admin</label>
+                        <textarea
+                          rows={2}
+                          value={kNarasiWa}
+                          onChange={(e) => setKNarasiWa(e.target.value)}
+                          className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                          placeholder="Ingin menjadwalkan sesi konseling karir? Silakan hubungi Admin..."
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Nomor WhatsApp Admin (mis. 6285299887766)</label>
+                          <input
+                            type="text"
+                            value={kAdminWaNum}
+                            onChange={(e) => setKAdminWaNum(e.target.value)}
+                            className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 font-semibold"
+                            placeholder="6285299887766"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Template Pesan Pembuka WA</label>
+                          <input
+                            type="text"
+                            value={kAdminWaMsg}
+                            onChange={(e) => setKAdminWaMsg(e.target.value)}
+                            className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                            placeholder="Halo Admin CDC UM Kendari, saya ingin berkonsultasi..."
+                          />
+                        </div>
+                      </div>
+
+                      <div className="pt-2 flex justify-end">
+                        <button
+                          onClick={handleSaveGeneralConfig}
+                          className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-md transition"
+                        >
+                          <Save className="w-4 h-4" /> Simpan Kontak & Narasi WA
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ── MODAL ADD / EDIT INFO ITEM ── */}
+                  {showInfoModal && (
+                    <div className="fixed inset-0 z-[250] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+                      <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                          <h3 className="text-base font-bold text-slate-900">
+                            {editInfoId ? 'Edit Penjelasan Topik' : 'Tambah Penjelasan Topik Baru'}
+                          </h3>
+                          <button onClick={() => setShowInfoModal(false)} className="p-1 text-slate-400 hover:text-slate-700 rounded-lg">
+                            <X className="w-5 h-5" />
+                          </button>
+                        </div>
+
+                        <form onSubmit={handleSaveInfoItem} className="space-y-4">
+                          <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1">Judul Topik / Penjelasan <span className="text-rose-500">*</span></label>
+                            <input
+                              type="text"
+                              required
+                              value={infoJudul}
+                              onChange={(e) => setInfoJudul(e.target.value)}
+                              className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 font-semibold"
+                              placeholder="Contoh: Review CV & Portofolio"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1">Deskripsi Penjelasan</label>
+                            <textarea
+                              rows={4}
+                              value={infoDeskripsi}
+                              onChange={(e) => setInfoDeskripsi(e.target.value)}
+                              className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                              placeholder="Uraian detail mengenai topik konseling..."
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-xs font-bold text-slate-700 mb-1">Tautan Terkait (Opsional)</label>
+                              <input
+                                type="text"
+                                value={infoLinkUrl}
+                                onChange={(e) => setInfoLinkUrl(e.target.value)}
+                                className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                                placeholder="https://..."
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-bold text-slate-700 mb-1">Label Tombol Tautan</label>
+                              <input
+                                type="text"
+                                value={infoLinkLabel}
+                                onChange={(e) => setInfoLinkLabel(e.target.value)}
+                                className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                                placeholder="Contoh: Buka Panduan CV"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
+                            <button
+                              type="button"
+                              onClick={() => setShowInfoModal(false)}
+                              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                            >
+                              Batal
+                            </button>
+                            <button
+                              type="submit"
+                              className="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md"
+                            >
+                              Simpan Topik
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ── MODAL ADD / EDIT JADWAL ITEM ── */}
+                  {showJadwalModal && (
+                    <div className="fixed inset-0 z-[250] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+                      <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                          <h3 className="text-base font-bold text-slate-900">
+                            {editJadwalId ? 'Edit Entri Jadwal' : 'Tambah Entri Jadwal Baru'}
+                          </h3>
+                          <button onClick={() => setShowJadwalModal(false)} className="p-1 text-slate-400 hover:text-slate-700 rounded-lg">
+                            <X className="w-5 h-5" />
+                          </button>
+                        </div>
+
+                        <form onSubmit={handleSaveJadwalItem} className="space-y-4">
+                          <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1">Hari Pelaksanaan <span className="text-rose-500">*</span></label>
+                            <input
+                              type="text"
+                              required
+                              value={jdwHari}
+                              onChange={(e) => setJdwHari(e.target.value)}
+                              className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 font-semibold"
+                              placeholder="Contoh: Senin - Kamis"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1">Jam Pelaksanaan <span className="text-rose-500">*</span></label>
+                            <input
+                              type="text"
+                              required
+                              value={jdwJam}
+                              onChange={(e) => setJdwJam(e.target.value)}
+                              className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                              placeholder="Contoh: 09.00 - 15.00 WITA"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1">Lokasi Konseling</label>
+                            <input
+                              type="text"
+                              value={jdwLokasi}
+                              onChange={(e) => setJdwLokasi(e.target.value)}
+                              className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                              placeholder="Ruang Konseling CDC UMK, Gedung Rektorat Lt. 2"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-xs font-bold text-slate-700 mb-1">Kuota Per Hari</label>
+                              <input
+                                type="text"
+                                value={jdwKuota}
+                                onChange={(e) => setJdwKuota(e.target.value)}
+                                className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                                placeholder="Contoh: 5 Sesi / Hari"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-bold text-slate-700 mb-1">Status Sesi</label>
+                              <select
+                                value={jdwStatus}
+                                onChange={(e) => setJdwStatus(e.target.value as any)}
+                                className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 font-bold"
+                              >
+                                <option value="buka">Buka (Tersedia)</option>
+                                <option value="penuh">Penuh</option>
+                                <option value="tutup">Tutup</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
+                            <button
+                              type="button"
+                              onClick={() => setShowJadwalModal(false)}
+                              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                            >
+                              Batal
+                            </button>
+                            <button
+                              type="submit"
+                              className="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md"
+                            >
+                              Simpan Jadwal
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+  };
+
+  /* =========================================================
    *  LAYOUT
    * =======================================================*/
   return (
@@ -2729,35 +3364,50 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80">
                   <div>
                     <div className="flex items-center gap-2 text-xs font-bold text-[#0077C6] uppercase tracking-wider mb-1">
-                      <span>Konten Karir</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedCategory(null);
+                          setKontenSub('riwayat');
+                        }}
+                        className="hover:underline cursor-pointer"
+                      >
+                        Konten Karir
+                      </button>
                       {selectedCategory && (
                         <>
                           <span className="text-slate-300">/</span>
-                          <span className="text-slate-700">{JENIS_LABEL[selectedCategory]}</span>
+                          <span className="text-slate-700">
+                            {selectedCategory === 'konseling' ? 'Bimbingan & Konseling' : JENIS_LABEL[selectedCategory]}
+                          </span>
                         </>
                       )}
                     </div>
                     <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
                       {kontenSub === 'pembuatan'
-                        ? `Form Pembuatan ${selectedCategory ? JENIS_LABEL[selectedCategory] : 'Konten'}`
-                        : selectedCategory === 'event'
-                          ? eventSubView === 'infografis'
-                            ? 'Infografis Event Pengembangan Karir'
-                            : 'Riwayat Event Pengembangan Karir'
-                          : selectedCategory
-                            ? `Riwayat ${JENIS_LABEL[selectedCategory]}`
-                            : 'Kategori Konten Karir'}
+                        ? `Form Pembuatan ${selectedCategory && selectedCategory !== 'konseling' ? JENIS_LABEL[selectedCategory] : 'Konten'}`
+                        : selectedCategory === 'konseling'
+                          ? 'Kelola Layanan Bimbingan & Konseling'
+                          : selectedCategory === 'event'
+                            ? eventSubView === 'infografis'
+                              ? 'Infografis Event Pengembangan Karir'
+                              : 'Riwayat Event Pengembangan Karir'
+                            : selectedCategory
+                              ? `Riwayat ${JENIS_LABEL[selectedCategory]}`
+                              : 'Kategori Konten Karir'}
                     </h1>
                     <p className="text-xs text-slate-500 mt-1">
                       {kontenSub === 'pembuatan'
                         ? 'Lengkapi form dan isi editor di bawah untuk mempublikasikan konten.'
-                        : selectedCategory === 'event'
-                          ? eventSubView === 'infografis'
-                            ? 'Kelola poster infografis carousel yang tampil di slider halaman publik Layanan > Event (tambah, edit, sembunyikan, hapus, dan atur urutan slide).'
-                            : 'Kelola daftar postingan dan riwayat publikasi Event Pengembangan Karir CDC UM Kendari.'
-                          : selectedCategory
-                            ? `Kelola daftar postingan dan riwayat publikasi ${JENIS_LABEL[selectedCategory]} CDC UM Kendari.`
-                            : 'Pilih salah satu kategori konten karir di bawah ini untuk melihat riwayat atau membuat postingan baru.'}
+                        : selectedCategory === 'konseling'
+                          ? 'Atur poster template, penjelasan topik, jadwal operasional, dan kontak pendaftaran WhatsApp konseling CDC UM Kendari.'
+                          : selectedCategory === 'event'
+                            ? eventSubView === 'infografis'
+                              ? 'Kelola poster infografis carousel yang tampil di slider halaman publik Layanan > Event (tambah, edit, sembunyikan, hapus, dan atur urutan slide).'
+                              : 'Kelola daftar postingan dan riwayat publikasi Event Pengembangan Karir CDC UM Kendari.'
+                            : selectedCategory
+                              ? `Kelola daftar postingan dan riwayat publikasi ${JENIS_LABEL[selectedCategory]} CDC UM Kendari.`
+                              : 'Pilih salah satu kategori konten karir di bawah ini untuk melihat riwayat atau membuat postingan baru.'}
                     </p>
                   </div>
 
@@ -2799,7 +3449,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                       } else {
                         count = konten.filter((k) => k.jenis === jenis).length;
                       }
-                      return (
+                      const cardElement = (
                         <button
                           key={jenis}
                           onClick={() => {
@@ -2837,6 +3487,54 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                           </div>
                         </button>
                       );
+
+                      if (jenis === 'event') {
+                        return (
+                          <React.Fragment key={jenis}>
+                            {cardElement}
+                            {/* KARTU KHUSUS: BIMBINGAN & KONSELING KARIR */}
+                            <button
+                              key="konseling"
+                              id="adm-tab-konseling"
+                              data-testid="adm-card-konseling"
+                              onClick={() => {
+                                setSelectedCategory('konseling');
+                                setKontenSub('riwayat');
+                              }}
+                              className="text-left bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs hover:shadow-xl hover:border-emerald-400/80 hover:-translate-y-1 transition-all duration-200 cursor-pointer flex flex-col justify-between space-y-4 group relative overflow-hidden"
+                            >
+                              <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-50/40 rounded-full blur-2xl group-hover:bg-emerald-100/60 transition-colors pointer-events-none" />
+                              <div className="flex items-center justify-between relative z-10">
+                                <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold border border-emerald-100 group-hover:bg-emerald-600 group-hover:text-white group-hover:border-emerald-600 transition-all shadow-2xs">
+                                  <HeartHandshake className="w-6 h-6" />
+                                </div>
+                                <span className={`text-[11px] font-extrabold px-3 py-1 rounded-full transition-colors border ${
+                                  kPublished
+                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200 group-hover:bg-emerald-100'
+                                    : 'bg-amber-50 text-amber-700 border-amber-200 group-hover:bg-amber-100'
+                                }`}>
+                                  {kPublished ? 'Published' : 'Draft'} • {(konselingCfg.infoItems?.length || 0)} Topik
+                                </span>
+                              </div>
+                              <div className="relative z-10">
+                                <h3 className="font-extrabold text-base text-slate-900 group-hover:text-emerald-700 transition-colors flex items-center justify-between">
+                                  <span>Bimbingan &amp; Konseling</span>
+                                </h3>
+                                <p className="text-slate-500 text-xs mt-1.5 leading-relaxed font-normal">
+                                  Pengaturan poster template, penjelasan topik, jadwal operasional, dan kontak WhatsApp pendaftaran konseling.
+                                </p>
+                              </div>
+                              <div className="pt-3 flex items-center justify-between border-t border-slate-100 relative z-10">
+                                <span className="text-xs font-extrabold text-emerald-600 group-hover:translate-x-1 transition-transform inline-flex items-center gap-1.5">
+                                  Kelola Konseling Karir →
+                                </span>
+                              </div>
+                            </button>
+                          </React.Fragment>
+                        );
+                      }
+
+                      return cardElement;
                     })}
                   </div>
                 )}
@@ -2844,6 +3542,10 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                 {/* MODE 2: RIWAYAT KONTEN KATEGORI SPESIFIK */}
                 {kontenSub === 'riwayat' && selectedCategory !== null && (
                   <div className="space-y-4" id="adm-konten-riwayat">
+                    {selectedCategory === 'konseling' ? (
+                      renderKonselingSection()
+                    ) : (
+                      <>
                     {/* Khusus Kategori Prestasi: Pengaturan Nomor WA Admin */}
                     {selectedCategory === 'presentasi' && (
                       <div className="bg-emerald-50/60 border border-emerald-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -3838,6 +4540,8 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                           + Buat {JENIS_LABEL[selectedCategory]} Baru
                         </span>
                       </button>
+                    )}
+                      </>
                     )}
                   </div>
                 )}
@@ -7503,625 +8207,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
             {/* ══════════════════════════════════════════
               KELOLA KONSELING KARIR
           ══════════════════════════════════════════ */}
-            {activeTab === 'konseling' && (() => {
-              const handleSaveGeneralConfig = () => {
-                const updated: KonselingConfig = {
-                  ...konselingCfg,
-                  title: kTitle,
-                  subtitle: kSubtitle,
-                  posterUrl: kPosterUrl,
-                  narasiWa: kNarasiWa,
-                  adminWaNumber: kAdminWaNum,
-                  adminWaDefaultMessage: kAdminWaMsg,
-                  published: kPublished
-                };
-                saveKonselingConfig(updated);
-                setKonselingCfg(updated);
-                triggerToast('success', `Pengaturan Konseling Karir berhasil disimpan! (${kPublished ? 'Published' : 'Draft'})`);
-              };
-
-              const handleSaveInfoItem = (e: React.FormEvent) => {
-                e.preventDefault();
-                if (!infoJudul.trim()) {
-                  triggerToast('error', 'Judul penjelasan wajib diisi.');
-                  return;
-                }
-
-                let updatedItems = [...(konselingCfg.infoItems || [])];
-                if (editInfoId) {
-                  updatedItems = updatedItems.map((item) =>
-                    item.id === editInfoId
-                      ? { ...item, judul: infoJudul, deskripsi: infoDeskripsi, linkUrl: infoLinkUrl, linkLabel: infoLinkLabel }
-                      : item
-                  );
-                } else {
-                  const newItem: KonselingInfoItem = {
-                    id: `info_${Date.now()}`,
-                    judul: infoJudul,
-                    deskripsi: infoDeskripsi,
-                    linkUrl: infoLinkUrl,
-                    linkLabel: infoLinkLabel
-                  };
-                  updatedItems.push(newItem);
-                }
-
-                const updatedConfig = { ...konselingCfg, infoItems: updatedItems };
-                saveKonselingConfig(updatedConfig);
-                setKonselingCfg(updatedConfig);
-                setShowInfoModal(false);
-                triggerToast('success', editInfoId ? 'Penjelasan topik berhasil diperbarui.' : 'Penjelasan topik baru ditambahkan.');
-              };
-
-              const handleDeleteInfoItem = (id: string) => {
-                if (confirm('Hapus item penjelasan topik ini?')) {
-                  const updatedItems = (konselingCfg.infoItems || []).filter((item) => item.id !== id);
-                  const updatedConfig = { ...konselingCfg, infoItems: updatedItems };
-                  saveKonselingConfig(updatedConfig);
-                  setKonselingCfg(updatedConfig);
-                  triggerToast('success', 'Penjelasan topik telah dihapus.');
-                }
-              };
-
-              const openAddInfoModal = () => {
-                setEditInfoId(null);
-                setInfoJudul('');
-                setInfoDeskripsi('');
-                setInfoLinkUrl('');
-                setInfoLinkLabel('');
-                setShowInfoModal(true);
-              };
-
-              const openEditInfoModal = (item: KonselingInfoItem) => {
-                setEditInfoId(item.id);
-                setInfoJudul(item.judul);
-                setInfoDeskripsi(item.deskripsi);
-                setInfoLinkUrl(item.linkUrl || '');
-                setInfoLinkLabel(item.linkLabel || '');
-                setShowInfoModal(true);
-              };
-
-              const handleSaveJadwalItem = (e: React.FormEvent) => {
-                e.preventDefault();
-                if (!jdwHari.trim() || !jdwJam.trim()) {
-                  triggerToast('error', 'Hari dan Jam wajib diisi.');
-                  return;
-                }
-
-                let updatedItems = [...(konselingCfg.jadwalItems || [])];
-                if (editJadwalId) {
-                  updatedItems = updatedItems.map((item) =>
-                    item.id === editJadwalId
-                      ? { ...item, hari: jdwHari, jam: jdwJam, lokasi: jdwLokasi, kuotaPerHari: jdwKuota, status: jdwStatus }
-                      : item
-                  );
-                } else {
-                  const newItem: KonselingJadwalItem = {
-                    id: `jdw_${Date.now()}`,
-                    hari: jdwHari,
-                    jam: jdwJam,
-                    lokasi: jdwLokasi,
-                    kuotaPerHari: jdwKuota,
-                    status: jdwStatus
-                  };
-                  updatedItems.push(newItem);
-                }
-
-                const updatedConfig = { ...konselingCfg, jadwalItems: updatedItems };
-                saveKonselingConfig(updatedConfig);
-                setKonselingCfg(updatedConfig);
-                setShowJadwalModal(false);
-                triggerToast('success', editJadwalId ? 'Jadwal konseling berhasil diperbarui.' : 'Jadwal konseling baru ditambahkan.');
-              };
-
-              const handleDeleteJadwalItem = (id: string) => {
-                if (confirm('Hapus entri jadwal konseling ini?')) {
-                  const updatedItems = (konselingCfg.jadwalItems || []).filter((item) => item.id !== id);
-                  const updatedConfig = { ...konselingCfg, jadwalItems: updatedItems };
-                  saveKonselingConfig(updatedConfig);
-                  setKonselingCfg(updatedConfig);
-                  triggerToast('success', 'Jadwal konseling telah dihapus.');
-                }
-              };
-
-              const openAddJadwalModal = () => {
-                setEditJadwalId(null);
-                setJdwHari('');
-                setJdwJam('');
-                setJdwLokasi('');
-                setJdwKuota('');
-                setJdwStatus('buka');
-                setShowJadwalModal(true);
-              };
-
-              const openEditJadwalModal = (item: KonselingJadwalItem) => {
-                setEditJadwalId(item.id);
-                setJdwHari(item.hari);
-                setJdwJam(item.jam);
-                setJdwLokasi(item.lokasi);
-                setJdwKuota(item.kuotaPerHari || '');
-                setJdwStatus(item.status);
-                setShowJadwalModal(true);
-              };
-
-              const handlePosterFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                try {
-                  const compressed = await compressImageAdaptive(file);
-                  setKPosterUrl(compressed);
-                  triggerToast('success', 'Gambar poster berhasil diunggah & dikompres!');
-                } catch (err: any) {
-                  triggerToast('error', 'Gagal memuat gambar poster.');
-                }
-              };
-
-              return (
-                <div className="space-y-8">
-                  {/* Header Title */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <div>
-                      <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                        <HeartHandshake className="w-5 h-5 text-emerald-600" />
-                        Kelola Layanan Konseling Karir
-                      </h2>
-                      <p className="text-xs text-slate-500 mt-1">
-                        Atur poster template, penjelasan topik, jadwal operasional, dan tautan WhatsApp Admin CDC
-                      </p>
-                    </div>
-
-                    <button
-                      onClick={handleSaveGeneralConfig}
-                      className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#000066] hover:bg-blue-900 text-white rounded-xl font-bold text-xs shadow-md transition"
-                    >
-                      <Save className="w-4 h-4" /> Simpan Semua Pengaturan
-                    </button>
-                  </div>
-
-                  {/* Status publikasi (Draft / Published) — seragam dgn Konten Karir */}
-                  <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex items-center justify-between gap-4 flex-wrap">
-                    <div>
-                      <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                        <HeartHandshake className="w-4 h-4 text-emerald-600" /> Status Publikasi Konseling Karir
-                      </h3>
-                      <p className="text-xs text-slate-500 mt-0.5">Tentukan apakah halaman Konseling Karir tampil di publik (Published) atau disimpan sebagai Draft.</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className={`text-xs font-bold ${!kPublished ? 'text-amber-600' : 'text-slate-400'}`}>Draft</span>
-                      <button
-                        type="button"
-                        onClick={() => setKPublished((v) => !v)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${kPublished ? 'bg-emerald-500' : 'bg-slate-300'}`}
-                      >
-                        <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${kPublished ? 'translate-x-5' : 'translate-x-0.5'}`} />
-                      </button>
-                      <span className={`text-xs font-bold ${kPublished ? 'text-emerald-600' : 'text-slate-400'}`}>Published</span>
-                    </div>
-                  </div>
-
-                  {/* 1. POSTER TEMPLATE & BANNER TITLE */}
-                  <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
-                    <div className="border-b border-slate-100 pb-3">
-                      <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                        <ImageIcon className="w-4 h-4 text-emerald-600" /> 1. Poster Template & Banner Utama
-                      </h3>
-                      <p className="text-xs text-slate-500">Atur gambar poster template yang akan ditampilkan di halaman Konseling Karir</p>
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                      {/* Left: Input fields */}
-                      <div className="lg:col-span-2 space-y-4">
-                        <div>
-                          <label className="block text-xs font-bold text-slate-700 mb-1">Judul Banner Utama</label>
-                          <input
-                            type="text"
-                            value={kTitle}
-                            onChange={(e) => setKTitle(e.target.value)}
-                            className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 font-semibold"
-                            placeholder="Layanan Konseling Karir UPT CDC UM Kendari"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-bold text-slate-700 mb-1">Subjudul / Deskripsi Banner</label>
-                          <textarea
-                            rows={2}
-                            value={kSubtitle}
-                            onChange={(e) => setKSubtitle(e.target.value)}
-                            className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
-                            placeholder="Sesi konsultasi karir personal & pendampingan profesional..."
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <label className="block text-xs font-bold text-slate-700">Unggah Gambar Poster (Berkas / URL)</label>
-                          <div className="flex flex-col sm:flex-row gap-3">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={handlePosterFileChange}
-                              className="text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer"
-                            />
-                          </div>
-                          <input
-                            type="text"
-                            value={kPosterUrl}
-                            onChange={(e) => setKPosterUrl(e.target.value)}
-                            className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
-                            placeholder="Atau masukkan URL Gambar Poster (https://...)"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Right: Poster Preview */}
-                      <div className="space-y-2">
-                        <label className="block text-xs font-bold text-slate-700">Pratinjau Poster</label>
-                        <div className="border border-slate-200 rounded-2xl overflow-hidden bg-slate-900 min-h-[180px] max-h-[220px] flex items-center justify-center p-2">
-                          {kPosterUrl ? (
-                            <img src={kPosterUrl} alt="Poster Pratinjau" className="max-h-[200px] w-auto object-contain rounded-lg" />
-                          ) : (
-                            <span className="text-xs text-slate-400">Belum ada gambar poster</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 2. KELOLA PENJELASAN & TOPIK KONSELING */}
-                  <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-3">
-                      <div>
-                        <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                          <Info className="w-4 h-4 text-emerald-600" /> 2. Penjelasan & Topik Konseling (Dynamic List)
-                        </h3>
-                        <p className="text-xs text-slate-500">Tambah, edit, atau hapus penjelasan topik layanan yang tersedia untuk mahasiswa</p>
-                      </div>
-                      <button
-                        onClick={openAddInfoModal}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition"
-                      >
-                        <Plus className="w-4 h-4" /> Tambah Penjelasan Topik
-                      </button>
-                    </div>
-
-                    <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden">
-                      {(!konselingCfg.infoItems || konselingCfg.infoItems.length === 0) ? (
-                        <div className="p-8 text-center text-xs text-slate-400 font-medium">
-                          Belum ada topik penjelasan yang dibuat. Klik tombol di atas untuk menambah.
-                        </div>
-                      ) : (
-                        konselingCfg.infoItems.map((item, idx) => (
-                          <div key={item.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/60 transition">
-                            <div className="space-y-1 min-w-0 flex-1">
-                              <div className="flex items-center gap-2">
-                                <span className="w-5 h-5 rounded-full bg-orange-100 text-[#F26522] font-bold text-[10px] flex items-center justify-center shrink-0">
-                                  {idx + 1}
-                                </span>
-                                <h4 className="text-sm font-bold text-slate-900 truncate">{item.judul}</h4>
-                              </div>
-                              <p className="text-xs text-slate-600 line-clamp-2 pl-7">{item.deskripsi}</p>
-                              {item.linkUrl && (
-                                <p className="text-[11px] text-[#F26522] font-semibold pl-7 flex items-center gap-1">
-                                  <LinkIcon className="w-3 h-3" /> {item.linkLabel || item.linkUrl}
-                                </p>
-                              )}
-                            </div>
-
-                            <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                              <button
-                                onClick={() => openEditInfoModal(item)}
-                                className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition"
-                                title="Edit Penjelasan"
-                              >
-                                <Edit3 className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteInfoItem(item.id)}
-                                className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition"
-                                title="Hapus Penjelasan"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-
-                  {/* 3. KELOLA JADWAL KONSELING */}
-                  <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-3">
-                      <div>
-                        <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-emerald-600" /> 3. Jadwal Operasional Konseling Karir
-                        </h3>
-                        <p className="text-xs text-slate-500">Atur hari, jam, lokasi, dan status kuota layanan konseling</p>
-                      </div>
-                      <button
-                        onClick={openAddJadwalModal}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition"
-                      >
-                        <Plus className="w-4 h-4" /> Tambah Entri Jadwal
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {(!konselingCfg.jadwalItems || konselingCfg.jadwalItems.length === 0) ? (
-                        <div className="col-span-2 p-8 text-center text-xs text-slate-400 font-medium border border-slate-200 rounded-xl">
-                          Belum ada jadwal operasional. Klik "+ Tambah Entri Jadwal".
-                        </div>
-                      ) : (
-                        konselingCfg.jadwalItems.map((jdw) => (
-                          <div key={jdw.id} className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2 flex flex-col justify-between">
-                            <div className="space-y-1.5">
-                              <div className="flex items-center justify-between">
-                                <span className="font-bold text-slate-900 text-sm">{jdw.hari}</span>
-                                <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${jdw.status === 'buka' ? 'bg-emerald-100 text-emerald-700' : jdw.status === 'penuh' ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-700'
-                                  }`}>
-                                  {jdw.status}
-                                </span>
-                              </div>
-                              <p className="text-xs text-slate-600"><strong>Jam:</strong> {jdw.jam}</p>
-                              <p className="text-xs text-slate-600"><strong>Lokasi:</strong> {jdw.lokasi}</p>
-                              {jdw.kuotaPerHari && <p className="text-xs text-slate-600"><strong>Kuota:</strong> {jdw.kuotaPerHari}</p>}
-                            </div>
-
-                            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
-                              <button
-                                onClick={() => openEditJadwalModal(jdw)}
-                                className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-200 rounded-lg transition"
-                                title="Edit Jadwal"
-                              >
-                                <Edit3 className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteJadwalItem(jdw.id)}
-                                className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-100 rounded-lg transition"
-                                title="Hapus Jadwal"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-
-                  {/* 4. PENGATURAN WA ADMIN & NARASI */}
-                  <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-                    <div className="border-b border-slate-100 pb-3">
-                      <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                        <MessageCircle className="w-4 h-4 text-emerald-600" /> 4. Pengaturan Kontak WhatsApp Admin & Narasi
-                      </h3>
-                      <p className="text-xs text-slate-500">Tentukan teks narasi ajakan serta nomor WA tujuan pendaftaran konseling</p>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1">Teks Narasi Hubungi Admin</label>
-                        <textarea
-                          rows={2}
-                          value={kNarasiWa}
-                          onChange={(e) => setKNarasiWa(e.target.value)}
-                          className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
-                          placeholder="Ingin menjadwalkan sesi konseling karir? Silakan hubungi Admin..."
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-xs font-bold text-slate-700 mb-1">Nomor WhatsApp Admin (mis. 6285299887766)</label>
-                          <input
-                            type="text"
-                            value={kAdminWaNum}
-                            onChange={(e) => setKAdminWaNum(e.target.value)}
-                            className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 font-semibold"
-                            placeholder="6285299887766"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-bold text-slate-700 mb-1">Template Pesan Pembuka WA</label>
-                          <input
-                            type="text"
-                            value={kAdminWaMsg}
-                            onChange={(e) => setKAdminWaMsg(e.target.value)}
-                            className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
-                            placeholder="Halo Admin CDC UM Kendari, saya ingin berkonsultasi..."
-                          />
-                        </div>
-                      </div>
-
-                      <div className="pt-2 flex justify-end">
-                        <button
-                          onClick={handleSaveGeneralConfig}
-                          className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-md transition"
-                        >
-                          <Save className="w-4 h-4" /> Simpan Kontak & Narasi WA
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* ── MODAL ADD / EDIT INFO ITEM ── */}
-                  {showInfoModal && (
-                    <div className="fixed inset-0 z-[250] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-                      <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
-                        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                          <h3 className="text-base font-bold text-slate-900">
-                            {editInfoId ? 'Edit Penjelasan Topik' : 'Tambah Penjelasan Topik Baru'}
-                          </h3>
-                          <button onClick={() => setShowInfoModal(false)} className="p-1 text-slate-400 hover:text-slate-700 rounded-lg">
-                            <X className="w-5 h-5" />
-                          </button>
-                        </div>
-
-                        <form onSubmit={handleSaveInfoItem} className="space-y-4">
-                          <div>
-                            <label className="block text-xs font-bold text-slate-700 mb-1">Judul Topik / Penjelasan <span className="text-rose-500">*</span></label>
-                            <input
-                              type="text"
-                              required
-                              value={infoJudul}
-                              onChange={(e) => setInfoJudul(e.target.value)}
-                              className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 font-semibold"
-                              placeholder="Contoh: Review CV & Portofolio"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-bold text-slate-700 mb-1">Deskripsi Penjelasan</label>
-                            <textarea
-                              rows={4}
-                              value={infoDeskripsi}
-                              onChange={(e) => setInfoDeskripsi(e.target.value)}
-                              className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
-                              placeholder="Uraian detail mengenai topik konseling..."
-                            />
-                          </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                              <label className="block text-xs font-bold text-slate-700 mb-1">Tautan Terkait (Opsional)</label>
-                              <input
-                                type="text"
-                                value={infoLinkUrl}
-                                onChange={(e) => setInfoLinkUrl(e.target.value)}
-                                className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
-                                placeholder="https://..."
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-xs font-bold text-slate-700 mb-1">Label Tombol Tautan</label>
-                              <input
-                                type="text"
-                                value={infoLinkLabel}
-                                onChange={(e) => setInfoLinkLabel(e.target.value)}
-                                className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
-                                placeholder="Contoh: Buka Panduan CV"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
-                            <button
-                              type="button"
-                              onClick={() => setShowInfoModal(false)}
-                              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
-                            >
-                              Batal
-                            </button>
-                            <button
-                              type="submit"
-                              className="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md"
-                            >
-                              Simpan Topik
-                            </button>
-                          </div>
-                        </form>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* ── MODAL ADD / EDIT JADWAL ITEM ── */}
-                  {showJadwalModal && (
-                    <div className="fixed inset-0 z-[250] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-                      <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
-                        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                          <h3 className="text-base font-bold text-slate-900">
-                            {editJadwalId ? 'Edit Entri Jadwal' : 'Tambah Entri Jadwal Baru'}
-                          </h3>
-                          <button onClick={() => setShowJadwalModal(false)} className="p-1 text-slate-400 hover:text-slate-700 rounded-lg">
-                            <X className="w-5 h-5" />
-                          </button>
-                        </div>
-
-                        <form onSubmit={handleSaveJadwalItem} className="space-y-4">
-                          <div>
-                            <label className="block text-xs font-bold text-slate-700 mb-1">Hari Pelaksanaan <span className="text-rose-500">*</span></label>
-                            <input
-                              type="text"
-                              required
-                              value={jdwHari}
-                              onChange={(e) => setJdwHari(e.target.value)}
-                              className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 font-semibold"
-                              placeholder="Contoh: Senin - Kamis"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-bold text-slate-700 mb-1">Jam Pelaksanaan <span className="text-rose-500">*</span></label>
-                            <input
-                              type="text"
-                              required
-                              value={jdwJam}
-                              onChange={(e) => setJdwJam(e.target.value)}
-                              className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
-                              placeholder="Contoh: 09.00 - 15.00 WITA"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-bold text-slate-700 mb-1">Lokasi Konseling</label>
-                            <input
-                              type="text"
-                              value={jdwLokasi}
-                              onChange={(e) => setJdwLokasi(e.target.value)}
-                              className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
-                              placeholder="Ruang Konseling CDC UMK, Gedung Rektorat Lt. 2"
-                            />
-                          </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                              <label className="block text-xs font-bold text-slate-700 mb-1">Kuota Per Hari</label>
-                              <input
-                                type="text"
-                                value={jdwKuota}
-                                onChange={(e) => setJdwKuota(e.target.value)}
-                                className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
-                                placeholder="Contoh: 5 Sesi / Hari"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-xs font-bold text-slate-700 mb-1">Status Sesi</label>
-                              <select
-                                value={jdwStatus}
-                                onChange={(e) => setJdwStatus(e.target.value as any)}
-                                className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 font-bold"
-                              >
-                                <option value="buka">Buka (Tersedia)</option>
-                                <option value="penuh">Penuh</option>
-                                <option value="tutup">Tutup</option>
-                              </select>
-                            </div>
-                          </div>
-
-                          <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
-                            <button
-                              type="button"
-                              onClick={() => setShowJadwalModal(false)}
-                              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
-                            >
-                              Batal
-                            </button>
-                            <button
-                              type="submit"
-                              className="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md"
-                            >
-                              Simpan Jadwal
-                            </button>
-                          </div>
-                        </form>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
+            {activeTab === 'konseling' && renderKonselingSection()}
 
             {/* ══════════════════════════════════════════
               KELOLA HERO SLIDER BERANDA UTAMA
@@ -10406,6 +10492,7 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                   { id: 'komentar', group: 'Interaksi Publik', label: 'Moderasi Komentar & Diskusi Berita', icon: MessageSquare, badge: pendingKomentarCount > 0 ? `${pendingKomentarCount} Baru` : undefined, action: () => { setActiveTab('komentar'); setIsCmdPaletteOpen(false); } },
                   { id: 'media-sosial', group: 'Interaksi Publik', label: 'Pengaturan Link & Widget Media Sosial', icon: Globe, action: () => { setActiveTab('media-sosial'); setIsCmdPaletteOpen(false); } },
                   { id: 'infografis-event', group: 'Konten Karir', label: 'Infografis Event Pengembangan Karir (Slider Layanan)', icon: Layers, action: () => { setActiveTab('konten'); setSelectedCategory('event'); setEventSubView('infografis'); setIsCmdPaletteOpen(false); } },
+                  { id: 'konseling', group: 'Konten Karir', label: 'Bimbingan & Konseling Karir', icon: HeartHandshake, action: () => { setActiveTab('konten'); setSelectedCategory('konseling'); setKontenSub('riwayat'); setIsCmdPaletteOpen(false); } },
                   { id: 'logout', group: 'Sistem', label: 'Keluar Akun Admin (Sign Out)', icon: LogOut, action: () => { setIsCmdPaletteOpen(false); onLogout(); } }
                 ]
                   .filter((item) => item.label.toLowerCase().includes(cmdSearchQuery.toLowerCase()) || item.group.toLowerCase().includes(cmdSearchQuery.toLowerCase()))
