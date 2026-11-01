@@ -19,7 +19,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import DokumenAkreditasiLogin from './DokumenAkreditasiLogin';
 import { DokumenAkreditasi, User as UserType } from '../../types';
-import { getFromDB } from '../../data';
+import { getFromDB, FAKULTAS_LOGO_MAP } from '../../data';
 import {
   ShieldCheck,
   ChevronRight,
@@ -110,18 +110,23 @@ export default function DokumenAkreditasiView({
         kode: string;
         fakultas: string;
         website?: string;
+        logoUrl?: string;
         prodiList: DokumenAkreditasi[];
       }
     > = {};
 
     filteredItems.forEach((item) => {
       if (!groups[item.fakultas]) {
+        const foundLogo = item.logoFakultasUrl || FAKULTAS_LOGO_MAP[item.fakultas] || '/logo-umk.png';
         groups[item.fakultas] = {
           kode: item.kodeFakultas || 'UMK',
           fakultas: item.fakultas,
           website: item.websiteFakultas || 'https://umkendari.ac.id/',
+          logoUrl: foundLogo,
           prodiList: []
         };
+      } else if (!groups[item.fakultas].logoUrl && item.logoFakultasUrl) {
+        groups[item.fakultas].logoUrl = item.logoFakultasUrl;
       }
       groups[item.fakultas].prodiList.push(item);
     });
@@ -462,17 +467,37 @@ export default function DokumenAkreditasiView({
 
                   {/* ── CARD BODY (Expanded Content) ── */}
                   {isExpanded && (
-                    <div className="divide-y divide-slate-100 flex flex-col">
-                      {/* Top Action: Kunjungi Website Fakultas */}
-                      <a
-                        href={fac.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-4 py-3 bg-blue-50/50 hover:bg-blue-50 text-[#1E3A8A] hover:text-[#F26522] font-semibold text-xs flex items-center gap-1.5 transition-colors group"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5 text-[#1E3A8A] group-hover:text-[#F26522] transition-colors" />
-                        <span>Kunjungi Website Fakultas</span>
-                      </a>
+                    <div className="flex flex-col">
+                      {/* ── RUANG GAMBAR LOGO FAKULTAS (DI TENGAH-TENGAH) ── */}
+                      <div className="bg-gradient-to-b from-slate-50/80 via-white to-slate-50/40 p-5 border-b border-slate-100 flex flex-col items-center justify-center text-center relative group">
+                        {/* Container Logo Box */}
+                        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white p-2.5 shadow-xs border border-slate-200/90 flex items-center justify-center hover:shadow-md hover:scale-105 transition-all duration-300">
+                          <img
+                            src={fac.logoUrl || '/logo-umk.png'}
+                            alt={`Logo ${fac.fakultas}`}
+                            className="max-h-full max-w-full object-contain filter drop-shadow-2xs"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = '/logo-umk.png';
+                            }}
+                          />
+                        </div>
+
+                        {/* Nama Fakultas & Tautan Website */}
+                        <div className="mt-2.5 text-center">
+                          <span className="text-xs font-black text-[#000066] tracking-tight block">
+                            {fac.fakultas}
+                          </span>
+                          <a
+                            href={fac.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#1E3A8A] hover:text-[#F26522] mt-0.5 transition-colors"
+                          >
+                            <ExternalLink className="w-3 h-3 text-[#1E3A8A] group-hover:text-[#F26522] transition-colors" />
+                            <span>Kunjungi Website Fakultas</span>
+                          </a>
+                        </div>
+                      </div>
 
                       {/* List of Study Programs */}
                       <div className="divide-y divide-slate-100">

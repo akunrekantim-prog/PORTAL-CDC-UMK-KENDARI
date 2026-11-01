@@ -6903,6 +6903,36 @@ export default function AdminDashboard({ user, onLogout, onReloadData, activeTab
                             </div>
                           </div>
                           <div>
+                            <label className="font-bold text-slate-700">Gambar Logo Fakultas (Opsional)</label>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const reader = new FileReader();
+                                  reader.onload = () => {
+                                    if (editAkreditasiItem) {
+                                      setEditAkreditasiItem({ ...editAkreditasiItem, logoFakultasUrl: reader.result as string });
+                                    }
+                                  };
+                                  reader.readAsDataURL(file);
+                                }
+                              }}
+                              className="w-full mt-1 text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-blue-50 file:text-[#1E3A8A] file:font-bold hover:file:bg-blue-100"
+                            />
+                            {editAkreditasiItem.logoFakultasUrl && (
+                              <div className="flex items-center gap-2 mt-2">
+                                <img
+                                  src={editAkreditasiItem.logoFakultasUrl}
+                                  alt="Preview Logo"
+                                  className="w-10 h-10 object-contain p-1 border rounded-lg bg-white"
+                                />
+                                <span className="text-[11px] text-emerald-600 font-semibold">✓ Logo terpasang.</span>
+                              </div>
+                            )}
+                          </div>
+                          <div>
                             <label className="font-bold text-slate-700">File Dokumen SK (PDF)</label>
                             <input
                               type="file"

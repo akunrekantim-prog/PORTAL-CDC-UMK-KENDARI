@@ -453,6 +453,7 @@ export interface DokumenAkreditasi {
   lembaga?: string;
   fileUrl?: string;
   websiteFakultas?: string;
+  logoFakultasUrl?: string;
   urutan?: number;
   createdAt: string;
   updatedAt?: string;

@@ -1878,6 +1878,19 @@ export const SEED_KONTEN_KARIR_PRESENTASI: KontenKarir[] = [
 export const SAMPLE_PDF_BASE64 = 'data:application/pdf;base64,JVBERi0xLjQKJSDi48vNCiAxIDAgb2JqCjw8L1R5cGUvQ2F0YWxvZy9QYWdlcyAyIDAgUj4+CmVuZG9iagoyIDAgb2JqCjw8L1R5cGUvUGFnZXMvQ291bnQgMS9LaWRzWzMgMCBSXT4+CmVuZG9iagozIDAgb2JqCjw8L1R5cGUvUGFnZS9QYXJlbnQgMiAwIFIvTWVkaWFCb3hbMCAwIDYxMiA3OTJdL0NvbnRlbnRzIDQgMCBSL1Jlc291cmNlczw8L0ZvbnQ8PC9GMSA1IDAgUj4+Pj4+CmVuZG9iago0IDAgb2JqCjw8L0xlbmd0aCA3Nz4+CnN0cmVhbQpCVAovRjEgMjQgVGYKNzAgNzIwIFRkCihTVVJBVCBLRVBVVFVTRUFOIENEQyBVTSBLRU5EQVJJKSBUagpFVAplbmRzdHJlYW0KZW5kb2JqCjUgMCBvYmoKPDwvVHlwZS9Gb250L1N1YnR5cGUvVHlwZTEvQmFzZUZvbnQvSGVsdmV0aWNhPj4KZW5kb2JqCnhyZWYKMCA2CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDA0MDAwMDAxNSAwMDAwMCBuIAowMDAwMDAwNjggMDAwMDAgbiAKMDA0MDAwMDEyNSAwMDAwMCBuIAowMDAwMDAyNDQgMDAwMDAgbiAKMDA0MDAwMDM3MiAwMDAwMCBuIAp0cmFpbGVyCjw8L1NpemUgNj4+CnN0YXJ0eHJlZgoxNzgKJSVFT0Y=';
 
 
+export const FAKULTAS_LOGO_MAP: Record<string, string> = {
+  'Fakultas Teknik': '/logo-umk.png',
+  'Fakultas Pertanian': '/logo-umk.png',
+  'Fakultas Perikanan dan Ilmu Kelautan': '/logo-umk.png',
+  'Fakultas Ekonomi dan Bisnis Islam': '/logo-umk.png',
+  'Fakultas Keguruan dan Ilmu Pendidikan': '/logo-umk.png',
+  'Fakultas Agama Islam': '/logo-umk.png',
+  'Fakultas Hukum': '/logo-umk.png',
+  'Fakultas Ilmu Sosial dan Ilmu Politik': '/logo-umk.png',
+  'Fakultas Kedokteran dan Ilmu Kesehatan': '/logo-umk.png',
+  'Program Pascasarjana (S2)': '/logo-umk.png'
+};
+
 export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
   // ── 1. Fakultas Teknik (FT) ──
   {
@@ -1893,6 +1906,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'LAM-TEK',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://ft.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
     urutan: 1,
     createdAt: '2023-12-15T00:00:00Z'
   },
@@ -1909,6 +1923,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'LAM-TEK',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://ft.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
     urutan: 2,
     createdAt: '2023-11-20T00:00:00Z'
   },
@@ -1925,6 +1940,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'LAM-TEK',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://ft.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
     urutan: 3,
     createdAt: '2022-09-18T00:00:00Z'
   },
@@ -1941,6 +1957,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'LAM-TEK',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://ft.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
     urutan: 4,
     createdAt: '2023-10-10T00:00:00Z'
   },
@@ -1957,6 +1974,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'LAM-INFOKOM',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://ft.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
     urutan: 5,
     createdAt: '2023-08-25T00:00:00Z'
   },
@@ -1973,6 +1991,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'LAM-TEK',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://ft.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
     urutan: 6,
     createdAt: '2022-05-14T00:00:00Z'
   },
@@ -1989,6 +2008,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'LAM-TEK',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://ft.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
     urutan: 7,
     createdAt: '2023-06-11T00:00:00Z'
   },
@@ -2007,6 +2027,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'BAN-PT',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://faperta.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
     urutan: 8,
     createdAt: '2023-04-19T00:00:00Z'
   },
@@ -2023,6 +2044,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'BAN-PT',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://faperta.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
     urutan: 9,
     createdAt: '2022-03-24T00:00:00Z'
   },
@@ -2041,6 +2063,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'BAN-PT',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://fpik.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
     urutan: 10,
     createdAt: '2022-05-30T00:00:00Z'
   },
@@ -2057,6 +2080,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'BAN-PT',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://fpik.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
     urutan: 11,
     createdAt: '2023-07-15T00:00:00Z'
   },
@@ -2075,6 +2099,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'LAMEMBA',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://febi.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
     urutan: 12,
     createdAt: '2023-11-05T00:00:00Z'
   },
@@ -2091,6 +2116,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'LAMEMBA',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://febi.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
     urutan: 13,
     createdAt: '2023-08-12T00:00:00Z'
   },
@@ -2109,6 +2135,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'LAMDIK',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://fkip.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
     urutan: 14,
     createdAt: '2023-10-02T00:00:00Z'
   },
@@ -2125,6 +2152,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'LAMDIK',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://fkip.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
     urutan: 15,
     createdAt: '2023-08-14T00:00:00Z'
   },
@@ -2141,6 +2169,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'LAMDIK',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://fkip.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
     urutan: 16,
     createdAt: '2022-06-20T00:00:00Z'
   },
@@ -2157,6 +2186,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'LAMDIK',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://fkip.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
     urutan: 17,
     createdAt: '2022-03-15T00:00:00Z'
   },
@@ -2173,6 +2203,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'LAMDIK',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://fkip.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
     urutan: 18,
     createdAt: '2023-04-10T00:00:00Z'
   },
@@ -2189,6 +2220,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'LAMDIK',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://fkip.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
     urutan: 19,
     createdAt: '2023-05-18T00:00:00Z'
   },
@@ -2205,6 +2237,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'LAMDIK',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://fkip.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
     urutan: 20,
     createdAt: '2023-02-14T00:00:00Z'
   },
@@ -2223,6 +2256,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'LAMDIK',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://fai.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
     urutan: 21,
     createdAt: '2023-09-08T00:00:00Z'
   },
@@ -2239,6 +2273,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'BAN-PT',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://fai.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
     urutan: 22,
     createdAt: '2023-06-28T00:00:00Z'
   },
@@ -2257,6 +2292,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'BAN-PT',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://fh.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
     urutan: 23,
     createdAt: '2023-12-05T00:00:00Z'
   },
@@ -2275,6 +2311,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'BAN-PT',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://fisip.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
     urutan: 24,
     createdAt: '2023-07-22T00:00:00Z'
   },
@@ -2291,6 +2328,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'BAN-PT',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://fisip.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
     urutan: 25,
     createdAt: '2023-04-18T00:00:00Z'
   },
@@ -2309,6 +2347,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'LAM-PTKes',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://fkik.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
     urutan: 26,
     createdAt: '2024-01-20T00:00:00Z'
   },
@@ -2325,6 +2364,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'LAM-PTKes',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://fkik.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
     urutan: 27,
     createdAt: '2024-02-12T00:00:00Z'
   },
@@ -2343,6 +2383,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'LAMEMBA',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://pasca.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
     urutan: 28,
     createdAt: '2023-10-18T00:00:00Z'
   }
