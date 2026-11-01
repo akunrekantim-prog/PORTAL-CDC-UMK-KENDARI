@@ -385,6 +385,13 @@ export default function App() {
       setViewingBeritaSlug(null);
       setViewingProgramId(null);
       setViewingLayananDetailId(null);
+    } else if (path === '/tracer/dokumen-akreditasi' || path === '/dokumen-akreditasi') {
+      setCurrentView('public');
+      setPublicTab('dokumen-akreditasi');
+      setViewingLowonganId(null);
+      setViewingBeritaSlug(null);
+      setViewingProgramId(null);
+      setViewingLayananDetailId(null);
     } else if (path === '/' || path === '/beranda') {
       setCurrentView('public');
       setPublicTab('beranda');
@@ -461,6 +468,12 @@ export default function App() {
       handleNavigateToLogin();
       return;
     }
+    if (tab === 'dokumen-akreditasi') {
+      setPublicTab('dokumen-akreditasi');
+      reloadDatabase();
+      navigate('/tracer/dokumen-akreditasi');
+      return;
+    }
     setPublicTab(tab);
     reloadDatabase();
     if (tab === 'beranda') navigate('/');
@@ -472,6 +485,17 @@ export default function App() {
     } else {
       navigate(`/layanan/${tab}`);
     }
+  };
+
+  // Callback khusus login Dokumen Akreditasi (in-place unlock)
+  const handleAkreditasiLoginSuccess = async (user: UserType) => {
+    setCurrentUser(user);
+    const { refreshLiveDatabase } = await import('./data');
+    await refreshLiveDatabase();
+    reloadDatabase();
+    setCurrentView('public');
+    setPublicTab('dokumen-akreditasi');
+    navigate('/tracer/dokumen-akreditasi');
   };
 
   // Navigation callbacks
@@ -586,7 +610,8 @@ export default function App() {
       else if (currentUser?.userStatusType === 'Alumni') document.title = 'Dashboard Alumni - CDC UM Kendari';
       else document.title = 'Dashboard Mahasiswa - CDC UM Kendari';
     } else {
-      if (publicTab === 'lowongan') document.title = 'Lowongan Kerja - CDC UM Kendari';
+      if (publicTab === 'dokumen-akreditasi') document.title = 'Dokumen Akreditasi Program Studi - CDC UM Kendari';
+      else if (publicTab === 'lowongan') document.title = 'Lowongan Kerja - CDC UM Kendari';
       else if (publicTab === 'magang') document.title = 'Program Internship & Magang - CDC UM Kendari';
       else if (publicTab === 'event') document.title = 'Event Pengembangan Karir - CDC UM Kendari';
       else if (publicTab === 'konseling') document.title = 'Konseling Karir - CDC UM Kendari';
@@ -675,6 +700,7 @@ export default function App() {
         {/* VIEW 1: PUBLIC GENERAL CHANNELS */}
         {currentView === 'public' && !viewingLowonganId && !viewingBeritaSlug && !viewingProgramId && (
           <PublicLayout
+            currentUser={currentUser}
             currentTab={publicTab}
             setTab={handleSetPublicTab}
             lowongan={allLowongan}
@@ -688,6 +714,7 @@ export default function App() {
             onSelectProgram={handleSelectProgram}
             onNavigateToLogin={handleNavigateToLogin}
             onNavigateToRegister={handleNavigateToRegister}
+            onAkreditasiLoginSuccess={handleAkreditasiLoginSuccess}
           />
         )}
 

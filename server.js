@@ -242,6 +242,12 @@ app.get('/api/all-data', authenticateToken, apiLimiter, async (req, res) => {
     const campus_hirings = await prisma.campusHiring.findMany({ orderBy: { createdAt: 'desc' } });
     const job_fair_events = await prisma.jobFairEvent.findMany({ orderBy: { createdAt: 'desc' } });
     const konseling_configs = await prisma.konselingConfig.findMany();
+    let dokumen_akreditasi = [];
+    try {
+      if (prisma.dokumenAkreditasi) {
+        dokumen_akreditasi = await prisma.dokumenAkreditasi.findMany({ orderBy: { urutan: 'asc' } });
+      }
+    } catch { /* table fallback */ }
 
     res.json({
       users,
@@ -624,7 +630,8 @@ const TABLE_TO_MODEL = {
   mahasiswa_certificates: 'mahasiswaCertificate',
   mahasiswa_qualifications: 'mahasiswaQualification',
   job_fair_events: 'jobFairEvent', job_fair_companies: 'jobFairCompany',
-  campus_hirings: 'campusHiring', campus_hiring: 'campusHiring'
+  campus_hirings: 'campusHiring', campus_hiring: 'campusHiring',
+  dokumen_akreditasi: 'dokumenAkreditasi', dokumen_akreditasis: 'dokumenAkreditasi'
 };
 
 app.get('/api/:table', authenticateToken, apiLimiter, async (req, res) => {
@@ -1116,7 +1123,7 @@ app.post('/api/sync/:entity', authenticateToken, writeLimiter, async (req, res) 
   const requesterId = req.user?.id;
 
   // Validasi entity whitelist — 21 entity (10 lama + 11 tambahan 100% Supabase)
-  const allowedEntities = new Set(['users','user','mahasiswa','alumni','mitra','lowongan','pengajuan_magang','tracer_study','tracer_studies','konten_karir','berita','pengumuman','survei_lulusan','survei_lulusans','surat_keputusan','kalender_kegiatan','laporan_kinerja','mou_stakeholder','galeri_items','galeri_item','social_media','social_media_items','komentar_berita','komentar_beritas','uploaded_documents','anggota_tim','anggota_tims','hero_slide','hero_slides','konseling_config','konseling_configs','visi_misi_config','visi_misi_configs','campus_hiring','campus_hirings','job_fair_event','job_fair_events']);
+  const allowedEntities = new Set(['users','user','mahasiswa','alumni','mitra','lowongan','pengajuan_magang','tracer_study','tracer_studies','konten_karir','berita','pengumuman','survei_lulusan','survei_lulusans','surat_keputusan','kalender_kegiatan','laporan_kinerja','mou_stakeholder','galeri_items','galeri_item','social_media','social_media_items','komentar_berita','komentar_beritas','uploaded_documents','anggota_tim','anggota_tims','hero_slide','hero_slides','konseling_config','konseling_configs','visi_misi_config','visi_misi_configs','campus_hiring','campus_hirings','job_fair_event','job_fair_events','dokumen_akreditasi','dokumen_akreditasis']);
   if (!allowedEntities.has(entity)) return res.status(400).json({ error: `Entity '${String(entity).slice(0,50)}' tidak didukung.` });
 
   // Payload size guard (sudah 2mb di parser, tambah check field length)
@@ -1661,6 +1668,25 @@ app.post('/api/sync/:entity', authenticateToken, writeLimiter, async (req, res) 
         where: { id: vmId },
         update: { visi: JSON.stringify(payload) },
         create: { id: vmId, visi: JSON.stringify(payload) }
+      });
+      return res.json({ success: true, result });
+    }
+
+    if (entity === 'dokumen_akreditasi' || entity === 'dokumen_akreditasis') {
+      if (r !== 'ADMIN') return res.status(403).json({ error: 'Akses ditolak. Hanya administrator.' });
+      const { data } = buildSyncData('dokumen_akreditasi', payload);
+      const daId = payload.id || `da_${Date.now().toString(36)}`;
+      const result = await prisma.dokumenAkreditasi.upsert({
+        where: { id: payload.id || '' },
+        update: data,
+        create: {
+          id: daId,
+          fakultas: payload.fakultas || '',
+          kodeFakultas: payload.kodeFakultas || '',
+          prodi: payload.prodi || '',
+          statusAkreditasi: payload.statusAkreditasi || 'BAIK',
+          ...data
+        }
       });
       return res.json({ success: true, result });
     }

@@ -440,6 +440,24 @@ export interface MouStakeholder {
   updatedAt?: string;
 }
 
+export interface DokumenAkreditasi {
+  id: string;
+  fakultas: string;
+  kodeFakultas: string;
+  prodi: string;
+  jenjang: 'S1' | 'S2' | 'D3' | 'D4' | 'Profesi';
+  statusAkreditasi: 'UNGGUL' | 'BAIK_SEKALI' | 'BAIK' | 'A' | 'B';
+  nomorSk?: string;
+  tahunAkreditasi?: number;
+  masaBerlaku?: string;
+  lembaga?: string;
+  fileUrl?: string;
+  websiteFakultas?: string;
+  urutan?: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
 export interface GaleriItem {
   id: string;
   judul: string;

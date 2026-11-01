@@ -14,7 +14,7 @@ import {
   MessageCircle, Send, Linkedin, Copy
 } from 'lucide-react';
 
-import { Lowongan, Berita, Pengumuman, KontenKarir, CdcClubConfig, HelpdeskConfig } from '../types';
+import { User as UserType, Lowongan, Berita, Pengumuman, KontenKarir, CdcClubConfig, HelpdeskConfig } from '../types';
 import { sortJobsByNewest, formatDateDisplay, isJobDeadlinePassed, getFromDB, trackAndGetVisitorCount, getAdminWaPrestasi, getVisiMisiConfig, getCdcClubConfig, getHelpdeskConfig, getStatistikConfig } from '../data';
 import { motion, AnimatePresence } from 'motion/react';
 import Header from './Header';
@@ -30,6 +30,7 @@ import CampusHiring from './layanan/CampusHiring';
 import Magang from './layanan/Magang';
 import EventView from './layanan/EventView';
 import SuratKeputusanView from './layanan/SuratKeputusanView';
+import DokumenAkreditasiView from './layanan/DokumenAkreditasiView';
 import KalenderKegiatanView from './layanan/KalenderKegiatanView';
 import LaporanKinerjaView from './layanan/LaporanKinerjaView';
 import MouStakeholderView from './layanan/MouStakeholderView';
@@ -59,6 +60,7 @@ const PRESTASI_SUB_LABELS: Record<string, string> = {
 };
 
 interface PublicLayoutProps {
+  currentUser?: UserType | null;
   currentTab: string;
   setTab: (tab: string) => void;
   lowongan: Lowongan[];
@@ -72,6 +74,7 @@ interface PublicLayoutProps {
   onSelectProgram?: (id: string) => void;
   onNavigateToLogin: () => void;
   onNavigateToRegister?: (type?: 'alumni' | 'perusahaan') => void;
+  onAkreditasiLoginSuccess?: (user: UserType) => void;
 }
 
 /* ─── Dot-pattern SVG background ─────────────── */
@@ -184,6 +187,7 @@ const POPULAR_LINKS = [
 
 
 export default function PublicLayout({
+  currentUser,
   currentTab,
   setTab,
   lowongan,
@@ -197,6 +201,7 @@ export default function PublicLayout({
   onSelectProgram,
   onNavigateToLogin,
   onNavigateToRegister,
+  onAkreditasiLoginSuccess,
 }: PublicLayoutProps) {
   const navigate = useNavigate();
   const { t, translateContent } = useLanguage();
@@ -2177,6 +2182,16 @@ export default function PublicLayout({
               </div>
             </div>
           </div>
+        )}
+
+        {/* ─── DOKUMEN AKREDITASI (TRACER STUDY) TAB ────────────────── */}
+        {currentTab === 'dokumen-akreditasi' && (
+          <DokumenAkreditasiView
+            currentUser={currentUser}
+            setTab={setTab}
+            onNavigateToLogin={onNavigateToLogin}
+            onLoginSuccess={onAkreditasiLoginSuccess}
+          />
         )}
 
         {/* ─── SURAT KEPUTUSAN CDC TAB ────────────────────────────── */}

@@ -686,6 +686,10 @@ export async function syncSurveiLulusanToSupabase(s: any): Promise<any> {
   return sendSyncRequest('survei_lulusan', s);
 }
 
+export async function syncDokumenAkreditasiToSupabase(da: any): Promise<any> {
+  return sendSyncRequest('dokumen_akreditasi', da);
+}
+
 export async function syncSuratKeputusanToSupabase(sk: any): Promise<any> {
   return sendSyncRequest('surat_keputusan', sk);
 }

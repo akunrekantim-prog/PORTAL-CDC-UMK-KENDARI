@@ -64,9 +64,7 @@ const NAV_ITEMS: NavItem[] = [
           { label: 'Keanggotaan', tab: 'keanggotaan' },
         ],
       },
-      { label: 'Surat Keputusan CDC', tab: 'sk-cdc' },
       { label: 'Kalender Kegiatan', tab: 'kalender' },
-      { label: 'Laporan Kinerja & Tracer Study', tab: 'laporan' },
       { label: 'MOU Dengan Stakeholder', tab: 'mou' },
       { label: 'Galeri', tab: 'galeri' },
     ],
@@ -86,6 +84,7 @@ const NAV_ITEMS: NavItem[] = [
     children: [
       { label: 'Tracer Study', href: 'https://tracerstudy.umkendari.ac.id/' },
       { label: 'Kepuasan Pengguna Lulusan', href: 'https://bit.ly/SurveiKepuasanPenggunaLulusanPspUMKendari' },
+      { label: 'Dokumen Akreditasi', tab: 'dokumen-akreditasi' },
     ],
   },
   {

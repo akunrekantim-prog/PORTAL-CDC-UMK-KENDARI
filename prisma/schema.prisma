@@ -625,3 +625,25 @@ model SocialMediaItem {
 
   @@map("social_media_items")
 }
+
+model DokumenAkreditasi {
+  id               String   @id @default(uuid())
+  fakultas         String
+  kodeFakultas     String
+  prodi            String
+  jenjang          String   @default("S1")
+  statusAkreditasi String
+  nomorSk          String?
+  tahunAkreditasi  Int?
+  masaBerlaku      String?
+  lembaga          String?  @default("BAN-PT")
+  fileUrl          String?
+  websiteFakultas  String?
+  urutan           Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([fakultas], map: "idx_akreditasi_fakultas")
+  @@index([prodi], map: "idx_akreditasi_prodi")
+  @@map("dokumen_akreditasis")
+}
