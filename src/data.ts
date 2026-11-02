@@ -117,7 +117,13 @@ export const PRODI_MAP: Record<string, string[]> = {
   ],
   'Fakultas Ekonomi dan Bisnis Islam': [
     'Manajemen',
-    'Bisnis Digital'
+    'Bisnis Digital',
+    'Magister Manajemen (S2)'
+  ],
+  'Fakultas Ekonomi': [
+    'Manajemen',
+    'Bisnis Digital',
+    'Magister Manajemen (S2)'
   ],
   'Fakultas Keguruan dan Ilmu Pendidikan': [
     'Administrasi Pendidikan',
@@ -133,7 +139,8 @@ export const PRODI_MAP: Record<string, string[]> = {
     'Psikologi Islam'
   ],
   'Fakultas Hukum': [
-    'Ilmu Hukum'
+    'Ilmu Hukum',
+    'Magister Ilmu Hukum (S2)'
   ],
   'Fakultas Ilmu Sosial dan Ilmu Politik': [
     'Ilmu Pemerintahan',
@@ -1882,8 +1889,10 @@ export const FAKULTAS_LOGO_MAP: Record<string, string> = {
   'Fakultas Teknik': '/logo-umk.png',
   'Fakultas Pertanian': '/logo-umk.png',
   'Fakultas Perikanan dan Ilmu Kelautan': '/logo-umk.png',
-  'Fakultas Ekonomi dan Bisnis Islam': '/logo-umk.png',
+  'Fakultas Ekonomi dan Bisnis Islam': '/logo-febi.png',
+  'Fakultas Ekonomi': '/logo-febi.png',
   'Fakultas Keguruan dan Ilmu Pendidikan': '/logo-umk.png',
+  'Fakultas Keguruan & Ilmu Pendidikan': '/logo-umk.png',
   'Fakultas Agama Islam': '/logo-umk.png',
   'Fakultas Hukum': '/logo-umk.png',
   'Fakultas Ilmu Sosial dan Ilmu Politik': '/logo-umk.png',
@@ -2099,7 +2108,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'LAMEMBA',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://febi.umkendari.ac.id/',
-    logoFakultasUrl: '/logo-umk.png',
+    logoFakultasUrl: '/logo-febi.png',
     urutan: 12,
     createdAt: '2023-11-05T00:00:00Z'
   },
@@ -2116,9 +2125,26 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     lembaga: 'LAMEMBA',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://febi.umkendari.ac.id/',
-    logoFakultasUrl: '/logo-umk.png',
+    logoFakultasUrl: '/logo-febi.png',
     urutan: 13,
     createdAt: '2023-08-12T00:00:00Z'
+  },
+  {
+    id: 'da_febi_03',
+    fakultas: 'Fakultas Ekonomi dan Bisnis Islam',
+    kodeFakultas: 'FEBI',
+    prodi: 'Magister Manajemen (S2)',
+    jenjang: 'S2',
+    statusAkreditasi: 'BAIK_SEKALI',
+    nomorSk: '0122/SK/LAMEMBA/Ak/M/X/2023',
+    tahunAkreditasi: 2023,
+    masaBerlaku: '2023 - 2028',
+    lembaga: 'LAMEMBA',
+    fileUrl: SAMPLE_PDF_BASE64,
+    websiteFakultas: 'https://febi.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-febi.png',
+    urutan: 14,
+    createdAt: '2023-10-18T00:00:00Z'
   },
 
   // ── 5. Fakultas Keguruan dan Ilmu Pendidikan (FKIP) ──
@@ -2295,6 +2321,23 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     logoFakultasUrl: '/logo-umk.png',
     urutan: 23,
     createdAt: '2023-12-05T00:00:00Z'
+  },
+  {
+    id: 'da_fh_02',
+    fakultas: 'Fakultas Hukum',
+    kodeFakultas: 'FH',
+    prodi: 'Magister Ilmu Hukum (S2)',
+    jenjang: 'S2',
+    statusAkreditasi: 'BAIK_SEKALI',
+    nomorSk: '0334/SK/BAN-PT/Ak/M/X/2023',
+    tahunAkreditasi: 2023,
+    masaBerlaku: '2023 - 2028',
+    lembaga: 'BAN-PT',
+    fileUrl: SAMPLE_PDF_BASE64,
+    websiteFakultas: 'https://fh.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
+    urutan: 24,
+    createdAt: '2023-10-15T00:00:00Z'
   },
 
   // ── 8. Fakultas Ilmu Sosial dan Ilmu Politik (FISIP) ──
@@ -2677,6 +2720,25 @@ if (typeof window !== 'undefined' && window.localStorage) {
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed) && parsed.length > 0) {
             MEMORY_DB[key] = parsed;
+            if (key === 'dokumen_akreditasi') {
+              // Sinkronkan prodi seed terbaru jika belum ada di cache browser
+              SEED_DOKUMEN_AKREDITASI.forEach((seedItem) => {
+                const exists = (MEMORY_DB[key] as any[]).some(
+                  (x: any) => x.id === seedItem.id || (x.fakultas === seedItem.fakultas && x.prodi === seedItem.prodi)
+                );
+                if (!exists) {
+                  (MEMORY_DB[key] as any[]).push(seedItem);
+                }
+              });
+
+              MEMORY_DB[key] = (MEMORY_DB[key] as any[]).map((item: any) => {
+                if (item?.fakultas === 'Fakultas Ekonomi dan Bisnis Islam' && (!item.logoFakultasUrl || item.logoFakultasUrl === '/logo-umk.png')) {
+                  return { ...item, logoFakultasUrl: '/logo-febi.png' };
+                }
+                return item;
+              });
+              try { localStorage.setItem(storageKey, JSON.stringify(MEMORY_DB[key])); } catch { }
+            }
           }
         } catch { }
       }

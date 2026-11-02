@@ -83,12 +83,21 @@ export default function DokumenAkreditasiView({
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
       const q = searchQuery.toLowerCase().trim();
+      const qNorm = q.replace(/&/g, 'dan');
+      const itemFakultasNorm = (item.fakultas || '').toLowerCase().replace(/&/g, 'dan');
+      const itemProdiNorm = (item.prodi || '').toLowerCase().replace(/&/g, 'dan');
+
       const matchSearch =
         !q ||
         (item.prodi || '').toLowerCase().includes(q) ||
+        itemProdiNorm.includes(qNorm) ||
         (item.fakultas || '').toLowerCase().includes(q) ||
+        itemFakultasNorm.includes(qNorm) ||
         (item.nomorSk || '').toLowerCase().includes(q) ||
-        (item.kodeFakultas || '').toLowerCase().includes(q);
+        (item.kodeFakultas || '').toLowerCase().includes(q) ||
+        (q.includes('ekonomi') && itemFakultasNorm.includes('ekonomi')) ||
+        (q.includes('hukum') && itemFakultasNorm.includes('hukum')) ||
+        (q.includes('keguruan') && itemFakultasNorm.includes('keguruan'));
 
       const matchJenjang =
         selectedJenjang === 'semua' ||
@@ -116,19 +125,35 @@ export default function DokumenAkreditasiView({
     > = {};
 
     filteredItems.forEach((item) => {
-      if (!groups[item.fakultas]) {
-        const foundLogo = item.logoFakultasUrl || FAKULTAS_LOGO_MAP[item.fakultas] || '/logo-umk.png';
-        groups[item.fakultas] = {
-          kode: item.kodeFakultas || 'UMK',
-          fakultas: item.fakultas,
+      // Normalisasi alias nama fakultas jika varian singkatan digunakan
+      const normFakultas =
+        item.fakultas === 'Fakultas Ekonomi'
+          ? 'Fakultas Ekonomi dan Bisnis Islam'
+          : item.fakultas === 'Fakultas Keguruan & Ilmu Pendidikan'
+          ? 'Fakultas Keguruan dan Ilmu Pendidikan'
+          : item.fakultas;
+
+      if (!groups[normFakultas]) {
+        const mappedLogo = FAKULTAS_LOGO_MAP[normFakultas] || FAKULTAS_LOGO_MAP[item.fakultas];
+        const foundLogo =
+          item.logoFakultasUrl && item.logoFakultasUrl !== '/logo-umk.png'
+            ? item.logoFakultasUrl
+            : mappedLogo || item.logoFakultasUrl || '/logo-umk.png';
+        groups[normFakultas] = {
+          kode: item.kodeFakultas || (normFakultas.includes('Ekonomi') ? 'FEBI' : normFakultas.includes('Keguruan') ? 'FKIP' : 'UMK'),
+          fakultas: normFakultas,
           website: item.websiteFakultas || 'https://umkendari.ac.id/',
           logoUrl: foundLogo,
           prodiList: []
         };
-      } else if (!groups[item.fakultas].logoUrl && item.logoFakultasUrl) {
-        groups[item.fakultas].logoUrl = item.logoFakultasUrl;
+      } else if (
+        (!groups[normFakultas].logoUrl || groups[normFakultas].logoUrl === '/logo-umk.png') &&
+        item.logoFakultasUrl &&
+        item.logoFakultasUrl !== '/logo-umk.png'
+      ) {
+        groups[normFakultas].logoUrl = item.logoFakultasUrl;
       }
-      groups[item.fakultas].prodiList.push(item);
+      groups[normFakultas].prodiList.push(item);
     });
 
     return Object.values(groups);
