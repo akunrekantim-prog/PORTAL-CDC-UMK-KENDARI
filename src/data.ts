@@ -144,15 +144,34 @@ export const PRODI_MAP: Record<string, string[]> = {
   ],
   'Fakultas Ilmu Sosial dan Ilmu Politik': [
     'Ilmu Pemerintahan',
-    'Desain Komunikasi Visual (DKV)'
+    'Desain Komunikasi Visual (DKV)',
+    'Desain Komunikasi Visual',
+    'Magister Ilmu Pemerintahan (S2)',
+    'Pemanfaatan SumberDaya Perikanan'
+  ],
+  'Fakultas Ilmu Sosial & Ilmu Politik': [
+    'Ilmu Pemerintahan',
+    'Desain Komunikasi Visual (DKV)',
+    'Desain Komunikasi Visual',
+    'Magister Ilmu Pemerintahan (S2)',
+    'Pemanfaatan SumberDaya Perikanan'
   ],
   'Fakultas Pertanian': [
     'Agribisnis',
-    'Teknologi Industri Pertanian'
+    'Teknologi Industri Pertanian',
+    'Magister Agribisnis (S2)'
   ],
   'Fakultas Perikanan dan Ilmu Kelautan': [
     'Teknologi Hasil Perikanan',
-    'Pemanfaatan Sumberdaya Perikanan'
+    'Pemanfaatan Sumberdaya Perikanan',
+    'Pemanfaatan SumberDaya Perikanan',
+    'Magister Agribisnis (S2)'
+  ],
+  'Fakultas Perikanan & Ilmu Kelautan': [
+    'Teknologi Hasil Perikanan',
+    'Pemanfaatan Sumberdaya Perikanan',
+    'Pemanfaatan SumberDaya Perikanan',
+    'Magister Agribisnis (S2)'
   ],
   'Fakultas Kedokteran dan Ilmu Kesehatan': [
     'Kedokteran (S1)',
@@ -1889,6 +1908,7 @@ export const FAKULTAS_LOGO_MAP: Record<string, string> = {
   'Fakultas Teknik': '/logo-umk.png',
   'Fakultas Pertanian': '/logo-umk.png',
   'Fakultas Perikanan dan Ilmu Kelautan': '/logo-umk.png',
+  'Fakultas Perikanan & Ilmu Kelautan': '/logo-umk.png',
   'Fakultas Ekonomi dan Bisnis Islam': '/logo-febi.png',
   'Fakultas Ekonomi': '/logo-febi.png',
   'Fakultas Keguruan dan Ilmu Pendidikan': '/logo-umk.png',
@@ -1896,6 +1916,7 @@ export const FAKULTAS_LOGO_MAP: Record<string, string> = {
   'Fakultas Agama Islam': '/logo-umk.png',
   'Fakultas Hukum': '/logo-umk.png',
   'Fakultas Ilmu Sosial dan Ilmu Politik': '/logo-umk.png',
+  'Fakultas Ilmu Sosial & Ilmu Politik': '/logo-umk.png',
   'Fakultas Kedokteran dan Ilmu Kesehatan': '/logo-umk.png',
   'Program Pascasarjana (S2)': '/logo-umk.png'
 };
@@ -2092,6 +2113,23 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     logoFakultasUrl: '/logo-umk.png',
     urutan: 11,
     createdAt: '2023-07-15T00:00:00Z'
+  },
+  {
+    id: 'da_fpik_03',
+    fakultas: 'Fakultas Perikanan dan Ilmu Kelautan',
+    kodeFakultas: 'FPIK',
+    prodi: 'Magister Agribisnis (S2)',
+    jenjang: 'S2',
+    statusAkreditasi: 'BAIK_SEKALI',
+    nomorSk: '0315/SK/BAN-PT/Ak/M/VIII/2023',
+    tahunAkreditasi: 2023,
+    masaBerlaku: '2023 - 2028',
+    lembaga: 'BAN-PT',
+    fileUrl: SAMPLE_PDF_BASE64,
+    websiteFakultas: 'https://fpik.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
+    urutan: 12,
+    createdAt: '2023-08-15T00:00:00Z'
   },
 
   // ── 4. Fakultas Ekonomi dan Bisnis Islam (FEBI) ──
@@ -2374,6 +2412,40 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     logoFakultasUrl: '/logo-umk.png',
     urutan: 25,
     createdAt: '2023-04-18T00:00:00Z'
+  },
+  {
+    id: 'da_fisip_03',
+    fakultas: 'Fakultas Ilmu Sosial dan Ilmu Politik',
+    kodeFakultas: 'FISIP',
+    prodi: 'Magister Ilmu Pemerintahan (S2)',
+    jenjang: 'S2',
+    statusAkreditasi: 'BAIK_SEKALI',
+    nomorSk: '0289/SK/BAN-PT/Ak/M/VI/2023',
+    tahunAkreditasi: 2023,
+    masaBerlaku: '2023 - 2028',
+    lembaga: 'BAN-PT',
+    fileUrl: SAMPLE_PDF_BASE64,
+    websiteFakultas: 'https://fisip.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
+    urutan: 26,
+    createdAt: '2023-06-20T00:00:00Z'
+  },
+  {
+    id: 'da_fisip_04',
+    fakultas: 'Fakultas Ilmu Sosial dan Ilmu Politik',
+    kodeFakultas: 'FISIP',
+    prodi: 'Pemanfaatan SumberDaya Perikanan',
+    jenjang: 'S1',
+    statusAkreditasi: 'UNGGUL',
+    nomorSk: '0388/SK/BAN-PT/Ak/S/VII/2023',
+    tahunAkreditasi: 2023,
+    masaBerlaku: '2023 - 2028',
+    lembaga: 'BAN-PT',
+    fileUrl: SAMPLE_PDF_BASE64,
+    websiteFakultas: 'https://fisip.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
+    urutan: 27,
+    createdAt: '2023-07-15T00:00:00Z'
   },
 
   // ── 9. Fakultas Kedokteran dan Ilmu Kesehatan (FKIK) ──

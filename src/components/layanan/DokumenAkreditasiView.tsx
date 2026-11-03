@@ -97,7 +97,13 @@ export default function DokumenAkreditasiView({
         (item.kodeFakultas || '').toLowerCase().includes(q) ||
         (q.includes('ekonomi') && itemFakultasNorm.includes('ekonomi')) ||
         (q.includes('hukum') && itemFakultasNorm.includes('hukum')) ||
-        (q.includes('keguruan') && itemFakultasNorm.includes('keguruan'));
+        (q.includes('keguruan') && itemFakultasNorm.includes('keguruan')) ||
+        (q.includes('perikanan') && (itemFakultasNorm.includes('perikanan') || itemProdiNorm.includes('perikanan'))) ||
+        (q.includes('pertanian') && (itemFakultasNorm.includes('pertanian') || itemProdiNorm.includes('pertanian'))) ||
+        (q.includes('sosial') && itemFakultasNorm.includes('sosial')) ||
+        (q.includes('politik') && itemFakultasNorm.includes('politik')) ||
+        (q.includes('pemerintahan') && itemProdiNorm.includes('pemerintahan')) ||
+        (q.includes('dkv') && itemProdiNorm.includes('dkv'));
 
       const matchJenjang =
         selectedJenjang === 'semua' ||
@@ -131,6 +137,10 @@ export default function DokumenAkreditasiView({
           ? 'Fakultas Ekonomi dan Bisnis Islam'
           : item.fakultas === 'Fakultas Keguruan & Ilmu Pendidikan'
           ? 'Fakultas Keguruan dan Ilmu Pendidikan'
+          : item.fakultas === 'Fakultas Perikanan & Ilmu Kelautan'
+          ? 'Fakultas Perikanan dan Ilmu Kelautan'
+          : item.fakultas === 'Fakultas Ilmu Sosial & Ilmu Politik'
+          ? 'Fakultas Ilmu Sosial dan Ilmu Politik'
           : item.fakultas;
 
       if (!groups[normFakultas]) {
@@ -140,7 +150,27 @@ export default function DokumenAkreditasiView({
             ? item.logoFakultasUrl
             : mappedLogo || item.logoFakultasUrl || '/logo-umk.png';
         groups[normFakultas] = {
-          kode: item.kodeFakultas || (normFakultas.includes('Ekonomi') ? 'FEBI' : normFakultas.includes('Keguruan') ? 'FKIP' : 'UMK'),
+          kode:
+            item.kodeFakultas ||
+            (normFakultas.includes('Ekonomi')
+              ? 'FEBI'
+              : normFakultas.includes('Keguruan')
+              ? 'FKIP'
+              : normFakultas.includes('Perikanan')
+              ? 'FPIK'
+              : normFakultas.includes('Sosial')
+              ? 'FISIP'
+              : normFakultas.includes('Pertanian')
+              ? 'FP'
+              : normFakultas.includes('Hukum')
+              ? 'FH'
+              : normFakultas.includes('Agama')
+              ? 'FAI'
+              : normFakultas.includes('Teknik')
+              ? 'FT'
+              : normFakultas.includes('Kedokteran')
+              ? 'FKIK'
+              : 'UMK'),
           fakultas: normFakultas,
           website: item.websiteFakultas || 'https://umkendari.ac.id/',
           logoUrl: foundLogo,
