@@ -107,13 +107,42 @@ export const FAKULTAS_LIST: string[] = [
 // Pemetaan Program Studi Resmi per Fakultas di UM Kendari
 export const PRODI_MAP: Record<string, string[]> = {
   'Fakultas Teknik': [
-    'Teknik Sipil',
     'Teknik Arsitektur',
     'Teknik Lingkungan',
-    'Teknik Pertambangan',
+    'Teknik Sipil',
+    'Teknik/Rekayasa Pertambangan',
     'Sistem dan Teknologi Informasi',
     'Teknik Kimia',
     'Teknik Metalurgi'
+  ],
+  'Fakultas Pertanian': [
+    'Agribisnis',
+    'Teknologi Industri Pertanian',
+    'Magister Agribisnis (S2)'
+  ],
+  'Fakultas Perikanan dan Ilmu Kelautan': [
+    'Teknologi Hasil Perikanan',
+    'Pemanfaatan Sumber Daya Perikanan'
+  ],
+  'Fakultas Perikanan & Ilmu Kelautan': [
+    'Teknologi Hasil Perikanan',
+    'Pemanfaatan Sumber Daya Perikanan'
+  ],
+  'Fakultas Ilmu Sosial dan Ilmu Politik': [
+    'Ilmu Pemerintahan',
+    'Desain Komunikasi Visual',
+    'Humas dan Komunikasi Digital (D4)',
+    'Magister Ilmu Pemerintahan (S2)'
+  ],
+  'Fakultas Ilmu Sosial & Ilmu Politik': [
+    'Ilmu Pemerintahan',
+    'Desain Komunikasi Visual',
+    'Humas dan Komunikasi Digital (D4)',
+    'Magister Ilmu Pemerintahan (S2)'
+  ],
+  'Fakultas Hukum': [
+    'Ilmu Hukum',
+    'Magister Ilmu Hukum (S2)'
   ],
   'Fakultas Ekonomi dan Bisnis Islam': [
     'Manajemen',
@@ -127,65 +156,40 @@ export const PRODI_MAP: Record<string, string[]> = {
   ],
   'Fakultas Keguruan dan Ilmu Pendidikan': [
     'Administrasi Pendidikan',
-    'Pendidikan Guru Pendidikan Anak Usia Dini (PG-PAUD)',
+    'Pendidikan Guru Anak Usia Dini',
     'Pendidikan Bahasa Inggris',
     'Pendidikan Non Formal',
     'Pendidikan Teknologi Informasi',
     'Pendidikan Matematika',
-    'Pendidikan Profesi Guru (PPG)'
+    'Magister Administrasi Pendidikan (S2)',
+    'Magister Pendidikan Bahasa Inggris (S2)'
+  ],
+  'Fakultas Keguruan & Ilmu Pendidikan': [
+    'Administrasi Pendidikan',
+    'Pendidikan Guru Anak Usia Dini',
+    'Pendidikan Bahasa Inggris',
+    'Pendidikan Non Formal',
+    'Pendidikan Teknologi Informasi',
+    'Pendidikan Matematika',
+    'Magister Administrasi Pendidikan (S2)',
+    'Magister Pendidikan Bahasa Inggris (S2)'
   ],
   'Fakultas Agama Islam': [
-    'Pendidikan Agama Islam (PAI)',
+    'Pendidikan Agama Islam',
     'Psikologi Islam'
   ],
-  'Fakultas Hukum': [
-    'Ilmu Hukum',
-    'Magister Ilmu Hukum (S2)'
-  ],
-  'Fakultas Ilmu Sosial dan Ilmu Politik': [
-    'Ilmu Pemerintahan',
-    'Desain Komunikasi Visual (DKV)',
-    'Desain Komunikasi Visual',
-    'Magister Ilmu Pemerintahan (S2)',
-    'Pemanfaatan SumberDaya Perikanan'
-  ],
-  'Fakultas Ilmu Sosial & Ilmu Politik': [
-    'Ilmu Pemerintahan',
-    'Desain Komunikasi Visual (DKV)',
-    'Desain Komunikasi Visual',
-    'Magister Ilmu Pemerintahan (S2)',
-    'Pemanfaatan SumberDaya Perikanan'
-  ],
-  'Fakultas Pertanian': [
-    'Agribisnis',
-    'Teknologi Industri Pertanian',
-    'Magister Agribisnis (S2)'
-  ],
-  'Fakultas Perikanan dan Ilmu Kelautan': [
-    'Teknologi Hasil Perikanan',
-    'Pemanfaatan Sumberdaya Perikanan',
-    'Pemanfaatan SumberDaya Perikanan',
-    'Magister Agribisnis (S2)'
-  ],
-  'Fakultas Perikanan & Ilmu Kelautan': [
-    'Teknologi Hasil Perikanan',
-    'Pemanfaatan Sumberdaya Perikanan',
-    'Pemanfaatan SumberDaya Perikanan',
-    'Magister Agribisnis (S2)'
-  ],
   'Fakultas Kedokteran dan Ilmu Kesehatan': [
-    'Kedokteran (S1)',
+    'Kedokteran',
     'Teknologi Laboratorium Medik (D4)',
-    'Farmasi (D3)',
-    'Profesi Dokter'
+    'Farmasi (D3)'
   ],
   'Program Pascasarjana (S2)': [
-    'Magister Manajemen (MM)',
-    'Magister Administrasi Pendidikan',
-    'Magister Pendidikan Bahasa Inggris',
-    'Magister Ilmu Hukum',
-    'Magister Ilmu Pemerintahan',
-    'Magister Agribisnis'
+    'Magister Agribisnis (S2)',
+    'Magister Ilmu Pemerintahan (S2)',
+    'Magister Ilmu Hukum (S2)',
+    'Magister Manajemen (S2)',
+    'Magister Administrasi Pendidikan (S2)',
+    'Magister Pendidikan Bahasa Inggris (S2)'
   ]
 };
 
@@ -1927,69 +1931,69 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     id: 'da_ft_01',
     fakultas: 'Fakultas Teknik',
     kodeFakultas: 'FT',
-    prodi: 'Teknik Sipil',
+    prodi: 'Teknik Arsitektur',
     jenjang: 'S1',
     statusAkreditasi: 'UNGGUL',
-    nomorSk: '0422/SK/LAM-TEK/AS/XII/2023',
+    nomorSk: '0389/SK/LAM-TEKNIK/Ak/S/VIII/2023',
     tahunAkreditasi: 2023,
     masaBerlaku: '2023 - 2028',
-    lembaga: 'LAM-TEK',
+    lembaga: 'LAM TEKNIK',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://ft.umkendari.ac.id/',
     logoFakultasUrl: '/logo-umk.png',
     urutan: 1,
-    createdAt: '2023-12-15T00:00:00Z'
+    createdAt: '2023-08-20T00:00:00Z'
   },
   {
     id: 'da_ft_02',
     fakultas: 'Fakultas Teknik',
     kodeFakultas: 'FT',
-    prodi: 'Teknik Arsitektur',
+    prodi: 'Teknik Lingkungan',
     jenjang: 'S1',
     statusAkreditasi: 'BAIK_SEKALI',
-    nomorSk: '0318/SK/LAM-TEK/AS/XI/2023',
+    nomorSk: '0255/SK/LAM-TEKNIK/Ak/S/VI/2023',
     tahunAkreditasi: 2023,
     masaBerlaku: '2023 - 2028',
-    lembaga: 'LAM-TEK',
+    lembaga: 'LAM TEKNIK',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://ft.umkendari.ac.id/',
     logoFakultasUrl: '/logo-umk.png',
     urutan: 2,
-    createdAt: '2023-11-20T00:00:00Z'
+    createdAt: '2023-06-15T00:00:00Z'
   },
   {
     id: 'da_ft_03',
     fakultas: 'Fakultas Teknik',
     kodeFakultas: 'FT',
-    prodi: 'Teknik Lingkungan',
+    prodi: 'Teknik Sipil',
     jenjang: 'S1',
-    statusAkreditasi: 'BAIK_SEKALI',
-    nomorSk: '0215/SK/LAM-TEK/AS/IX/2022',
-    tahunAkreditasi: 2022,
-    masaBerlaku: '2022 - 2027',
-    lembaga: 'LAM-TEK',
+    statusAkreditasi: 'UNGGUL',
+    nomorSk: '0421/SK/LAM-TEKNIK/Ak/S/IX/2023',
+    tahunAkreditasi: 2023,
+    masaBerlaku: '2023 - 2028',
+    lembaga: 'LAM TEKNIK',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://ft.umkendari.ac.id/',
     logoFakultasUrl: '/logo-umk.png',
     urutan: 3,
-    createdAt: '2022-09-18T00:00:00Z'
+    createdAt: '2023-09-10T00:00:00Z'
   },
   {
     id: 'da_ft_04',
     fakultas: 'Fakultas Teknik',
     kodeFakultas: 'FT',
-    prodi: 'Teknik Pertambangan',
+    prodi: 'Teknik/Rekayasa Pertambangan',
     jenjang: 'S1',
     statusAkreditasi: 'BAIK_SEKALI',
-    nomorSk: '0419/SK/LAM-TEK/AS/X/2023',
+    nomorSk: '0312/SK/LAM-TEKNIK/Ak/S/VII/2023',
     tahunAkreditasi: 2023,
     masaBerlaku: '2023 - 2028',
-    lembaga: 'LAM-TEK',
+    lembaga: 'LAM TEKNIK',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://ft.umkendari.ac.id/',
     logoFakultasUrl: '/logo-umk.png',
     urutan: 4,
-    createdAt: '2023-10-10T00:00:00Z'
+    createdAt: '2023-07-01T00:00:00Z'
   },
   {
     id: 'da_ft_05',
@@ -1998,15 +2002,15 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     prodi: 'Sistem dan Teknologi Informasi',
     jenjang: 'S1',
     statusAkreditasi: 'BAIK_SEKALI',
-    nomorSk: '0154/SK/LAM-INFOKOM/AS/VIII/2023',
+    nomorSk: '0188/SK/LAM-INFOKOM/Ak/S/V/2023',
     tahunAkreditasi: 2023,
     masaBerlaku: '2023 - 2028',
-    lembaga: 'LAM-INFOKOM',
+    lembaga: 'LAM INFOKOM',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://ft.umkendari.ac.id/',
     logoFakultasUrl: '/logo-umk.png',
     urutan: 5,
-    createdAt: '2023-08-25T00:00:00Z'
+    createdAt: '2023-05-12T00:00:00Z'
   },
   {
     id: 'da_ft_06',
@@ -2014,16 +2018,16 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     kodeFakultas: 'FT',
     prodi: 'Teknik Kimia',
     jenjang: 'S1',
-    statusAkreditasi: 'BAIK',
-    nomorSk: '0098/SK/LAM-TEK/AS/V/2022',
-    tahunAkreditasi: 2022,
-    masaBerlaku: '2022 - 2027',
-    lembaga: 'LAM-TEK',
+    statusAkreditasi: 'BAIK_SEKALI',
+    nomorSk: '0201/SK/LAM-TEKNIK/Ak/S/V/2023',
+    tahunAkreditasi: 2023,
+    masaBerlaku: '2023 - 2028',
+    lembaga: 'LAM TEKNIK',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://ft.umkendari.ac.id/',
     logoFakultasUrl: '/logo-umk.png',
     urutan: 6,
-    createdAt: '2022-05-14T00:00:00Z'
+    createdAt: '2023-05-28T00:00:00Z'
   },
   {
     id: 'da_ft_07',
@@ -2032,15 +2036,15 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     prodi: 'Teknik Metalurgi',
     jenjang: 'S1',
     statusAkreditasi: 'BAIK',
-    nomorSk: '0102/SK/LAM-TEK/AS/VI/2023',
+    nomorSk: '0144/SK/LAM-TEKNIK/Ak/S/IV/2023',
     tahunAkreditasi: 2023,
     masaBerlaku: '2023 - 2028',
-    lembaga: 'LAM-TEK',
+    lembaga: 'LAM TEKNIK',
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://ft.umkendari.ac.id/',
     logoFakultasUrl: '/logo-umk.png',
     urutan: 7,
-    createdAt: '2023-06-11T00:00:00Z'
+    createdAt: '2023-04-05T00:00:00Z'
   },
 
   // ── 2. Fakultas Pertanian (FP) ──
@@ -2051,15 +2055,15 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     prodi: 'Agribisnis',
     jenjang: 'S1',
     statusAkreditasi: 'UNGGUL',
-    nomorSk: '0211/SK/BAN-PT/Ak/S/IV/2023',
+    nomorSk: '0341/SK/BAN-PT/Ak/S/VIII/2023',
     tahunAkreditasi: 2023,
     masaBerlaku: '2023 - 2028',
     lembaga: 'BAN-PT',
     fileUrl: SAMPLE_PDF_BASE64,
-    websiteFakultas: 'https://faperta.umkendari.ac.id/',
+    websiteFakultas: 'https://fp.umkendari.ac.id/',
     logoFakultasUrl: '/logo-umk.png',
     urutan: 8,
-    createdAt: '2023-04-19T00:00:00Z'
+    createdAt: '2023-08-11T00:00:00Z'
   },
   {
     id: 'da_fp_02',
@@ -2068,15 +2072,32 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     prodi: 'Teknologi Industri Pertanian',
     jenjang: 'S1',
     statusAkreditasi: 'BAIK_SEKALI',
-    nomorSk: '0184/SK/BAN-PT/Ak/S/III/2022',
-    tahunAkreditasi: 2022,
-    masaBerlaku: '2022 - 2027',
+    nomorSk: '0229/SK/BAN-PT/Ak/S/VI/2023',
+    tahunAkreditasi: 2023,
+    masaBerlaku: '2023 - 2028',
     lembaga: 'BAN-PT',
     fileUrl: SAMPLE_PDF_BASE64,
-    websiteFakultas: 'https://faperta.umkendari.ac.id/',
+    websiteFakultas: 'https://fp.umkendari.ac.id/',
     logoFakultasUrl: '/logo-umk.png',
     urutan: 9,
-    createdAt: '2022-03-24T00:00:00Z'
+    createdAt: '2023-06-22T00:00:00Z'
+  },
+  {
+    id: 'da_fp_03',
+    fakultas: 'Fakultas Pertanian',
+    kodeFakultas: 'FP',
+    prodi: 'Magister Agribisnis (S2)',
+    jenjang: 'S2',
+    statusAkreditasi: 'BAIK_SEKALI',
+    nomorSk: '0315/SK/BAN-PT/Ak/M/VIII/2023',
+    tahunAkreditasi: 2023,
+    masaBerlaku: '2023 - 2028',
+    lembaga: 'BAN-PT',
+    fileUrl: SAMPLE_PDF_BASE64,
+    websiteFakultas: 'https://fp.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
+    urutan: 10,
+    createdAt: '2023-08-15T00:00:00Z'
   },
 
   // ── 3. Fakultas Perikanan dan Ilmu Kelautan (FPIK) ──
@@ -2086,25 +2107,8 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     kodeFakultas: 'FPIK',
     prodi: 'Teknologi Hasil Perikanan',
     jenjang: 'S1',
-    statusAkreditasi: 'BAIK_SEKALI',
-    nomorSk: '0192/SK/BAN-PT/Ak/S/V/2022',
-    tahunAkreditasi: 2022,
-    masaBerlaku: '2022 - 2027',
-    lembaga: 'BAN-PT',
-    fileUrl: SAMPLE_PDF_BASE64,
-    websiteFakultas: 'https://fpik.umkendari.ac.id/',
-    logoFakultasUrl: '/logo-umk.png',
-    urutan: 10,
-    createdAt: '2022-05-30T00:00:00Z'
-  },
-  {
-    id: 'da_fpik_02',
-    fakultas: 'Fakultas Perikanan dan Ilmu Kelautan',
-    kodeFakultas: 'FPIK',
-    prodi: 'Pemanfaatan Sumberdaya Perikanan',
-    jenjang: 'S1',
     statusAkreditasi: 'UNGGUL',
-    nomorSk: '0388/SK/BAN-PT/Ak/S/VII/2023',
+    nomorSk: '0412/SK/BAN-PT/Ak/S/IX/2023',
     tahunAkreditasi: 2023,
     masaBerlaku: '2023 - 2028',
     lembaga: 'BAN-PT',
@@ -2112,16 +2116,16 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     websiteFakultas: 'https://fpik.umkendari.ac.id/',
     logoFakultasUrl: '/logo-umk.png',
     urutan: 11,
-    createdAt: '2023-07-15T00:00:00Z'
+    createdAt: '2023-09-02T00:00:00Z'
   },
   {
-    id: 'da_fpik_03',
+    id: 'da_fpik_02',
     fakultas: 'Fakultas Perikanan dan Ilmu Kelautan',
     kodeFakultas: 'FPIK',
-    prodi: 'Magister Agribisnis (S2)',
-    jenjang: 'S2',
+    prodi: 'Pemanfaatan Sumber Daya Perikanan',
+    jenjang: 'S1',
     statusAkreditasi: 'BAIK_SEKALI',
-    nomorSk: '0315/SK/BAN-PT/Ak/M/VIII/2023',
+    nomorSk: '0277/SK/BAN-PT/Ak/S/VII/2023',
     tahunAkreditasi: 2023,
     masaBerlaku: '2023 - 2028',
     lembaga: 'BAN-PT',
@@ -2129,220 +2133,80 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     websiteFakultas: 'https://fpik.umkendari.ac.id/',
     logoFakultasUrl: '/logo-umk.png',
     urutan: 12,
-    createdAt: '2023-08-15T00:00:00Z'
+    createdAt: '2023-07-15T00:00:00Z'
   },
 
-  // ── 4. Fakultas Ekonomi dan Bisnis Islam (FEBI) ──
+  // ── 4. Fakultas Ilmu Sosial dan Ilmu Politik (FISIP) ──
   {
-    id: 'da_febi_01',
-    fakultas: 'Fakultas Ekonomi dan Bisnis Islam',
-    kodeFakultas: 'FEBI',
-    prodi: 'Manajemen',
+    id: 'da_fisip_01',
+    fakultas: 'Fakultas Ilmu Sosial dan Ilmu Politik',
+    kodeFakultas: 'FISIP',
+    prodi: 'Ilmu Pemerintahan',
     jenjang: 'S1',
     statusAkreditasi: 'UNGGUL',
-    nomorSk: '0512/SK/LAMEMBA/Ak/S/XI/2023',
-    tahunAkreditasi: 2023,
-    masaBerlaku: '2023 - 2028',
-    lembaga: 'LAMEMBA',
-    fileUrl: SAMPLE_PDF_BASE64,
-    websiteFakultas: 'https://febi.umkendari.ac.id/',
-    logoFakultasUrl: '/logo-febi.png',
-    urutan: 12,
-    createdAt: '2023-11-05T00:00:00Z'
-  },
-  {
-    id: 'da_febi_02',
-    fakultas: 'Fakultas Ekonomi dan Bisnis Islam',
-    kodeFakultas: 'FEBI',
-    prodi: 'Bisnis Digital',
-    jenjang: 'S1',
-    statusAkreditasi: 'BAIK_SEKALI',
-    nomorSk: '0244/SK/LAMEMBA/Ak/S/VIII/2023',
-    tahunAkreditasi: 2023,
-    masaBerlaku: '2023 - 2028',
-    lembaga: 'LAMEMBA',
-    fileUrl: SAMPLE_PDF_BASE64,
-    websiteFakultas: 'https://febi.umkendari.ac.id/',
-    logoFakultasUrl: '/logo-febi.png',
-    urutan: 13,
-    createdAt: '2023-08-12T00:00:00Z'
-  },
-  {
-    id: 'da_febi_03',
-    fakultas: 'Fakultas Ekonomi dan Bisnis Islam',
-    kodeFakultas: 'FEBI',
-    prodi: 'Magister Manajemen (S2)',
-    jenjang: 'S2',
-    statusAkreditasi: 'BAIK_SEKALI',
-    nomorSk: '0122/SK/LAMEMBA/Ak/M/X/2023',
-    tahunAkreditasi: 2023,
-    masaBerlaku: '2023 - 2028',
-    lembaga: 'LAMEMBA',
-    fileUrl: SAMPLE_PDF_BASE64,
-    websiteFakultas: 'https://febi.umkendari.ac.id/',
-    logoFakultasUrl: '/logo-febi.png',
-    urutan: 14,
-    createdAt: '2023-10-18T00:00:00Z'
-  },
-
-  // ── 5. Fakultas Keguruan dan Ilmu Pendidikan (FKIP) ──
-  {
-    id: 'da_fkip_01',
-    fakultas: 'Fakultas Keguruan dan Ilmu Pendidikan',
-    kodeFakultas: 'FKIP',
-    prodi: 'Administrasi Pendidikan',
-    jenjang: 'S1',
-    statusAkreditasi: 'UNGGUL',
-    nomorSk: '0411/SK/LAMDIK/Ak/S/X/2023',
-    tahunAkreditasi: 2023,
-    masaBerlaku: '2023 - 2028',
-    lembaga: 'LAMDIK',
-    fileUrl: SAMPLE_PDF_BASE64,
-    websiteFakultas: 'https://fkip.umkendari.ac.id/',
-    logoFakultasUrl: '/logo-umk.png',
-    urutan: 14,
-    createdAt: '2023-10-02T00:00:00Z'
-  },
-  {
-    id: 'da_fkip_02',
-    fakultas: 'Fakultas Keguruan dan Ilmu Pendidikan',
-    kodeFakultas: 'FKIP',
-    prodi: 'Pendidikan Bahasa Inggris',
-    jenjang: 'S1',
-    statusAkreditasi: 'UNGGUL',
-    nomorSk: '0325/SK/LAMDIK/Ak/S/VIII/2023',
-    tahunAkreditasi: 2023,
-    masaBerlaku: '2023 - 2028',
-    lembaga: 'LAMDIK',
-    fileUrl: SAMPLE_PDF_BASE64,
-    websiteFakultas: 'https://fkip.umkendari.ac.id/',
-    logoFakultasUrl: '/logo-umk.png',
-    urutan: 15,
-    createdAt: '2023-08-14T00:00:00Z'
-  },
-  {
-    id: 'da_fkip_03',
-    fakultas: 'Fakultas Keguruan dan Ilmu Pendidikan',
-    kodeFakultas: 'FKIP',
-    prodi: 'Pendidikan Guru Pendidikan Anak Usia Dini (PG-PAUD)',
-    jenjang: 'S1',
-    statusAkreditasi: 'BAIK_SEKALI',
-    nomorSk: '0288/SK/LAMDIK/Ak/S/VI/2022',
-    tahunAkreditasi: 2022,
-    masaBerlaku: '2022 - 2027',
-    lembaga: 'LAMDIK',
-    fileUrl: SAMPLE_PDF_BASE64,
-    websiteFakultas: 'https://fkip.umkendari.ac.id/',
-    logoFakultasUrl: '/logo-umk.png',
-    urutan: 16,
-    createdAt: '2022-06-20T00:00:00Z'
-  },
-  {
-    id: 'da_fkip_04',
-    fakultas: 'Fakultas Keguruan dan Ilmu Pendidikan',
-    kodeFakultas: 'FKIP',
-    prodi: 'Pendidikan Non Formal',
-    jenjang: 'S1',
-    statusAkreditasi: 'BAIK_SEKALI',
-    nomorSk: '0177/SK/LAMDIK/Ak/S/III/2022',
-    tahunAkreditasi: 2022,
-    masaBerlaku: '2022 - 2027',
-    lembaga: 'LAMDIK',
-    fileUrl: SAMPLE_PDF_BASE64,
-    websiteFakultas: 'https://fkip.umkendari.ac.id/',
-    logoFakultasUrl: '/logo-umk.png',
-    urutan: 17,
-    createdAt: '2022-03-15T00:00:00Z'
-  },
-  {
-    id: 'da_fkip_05',
-    fakultas: 'Fakultas Keguruan dan Ilmu Pendidikan',
-    kodeFakultas: 'FKIP',
-    prodi: 'Pendidikan Teknologi Informasi',
-    jenjang: 'S1',
-    statusAkreditasi: 'BAIK_SEKALI',
-    nomorSk: '0199/SK/LAMDIK/Ak/S/IV/2023',
-    tahunAkreditasi: 2023,
-    masaBerlaku: '2023 - 2028',
-    lembaga: 'LAMDIK',
-    fileUrl: SAMPLE_PDF_BASE64,
-    websiteFakultas: 'https://fkip.umkendari.ac.id/',
-    logoFakultasUrl: '/logo-umk.png',
-    urutan: 18,
-    createdAt: '2023-04-10T00:00:00Z'
-  },
-  {
-    id: 'da_fkip_06',
-    fakultas: 'Fakultas Keguruan dan Ilmu Pendidikan',
-    kodeFakultas: 'FKIP',
-    prodi: 'Pendidikan Matematika',
-    jenjang: 'S1',
-    statusAkreditasi: 'BAIK_SEKALI',
-    nomorSk: '0214/SK/LAMDIK/Ak/S/V/2023',
-    tahunAkreditasi: 2023,
-    masaBerlaku: '2023 - 2028',
-    lembaga: 'LAMDIK',
-    fileUrl: SAMPLE_PDF_BASE64,
-    websiteFakultas: 'https://fkip.umkendari.ac.id/',
-    logoFakultasUrl: '/logo-umk.png',
-    urutan: 19,
-    createdAt: '2023-05-18T00:00:00Z'
-  },
-  {
-    id: 'da_fkip_07',
-    fakultas: 'Fakultas Keguruan dan Ilmu Pendidikan',
-    kodeFakultas: 'FKIP',
-    prodi: 'Pendidikan Profesi Guru (PPG)',
-    jenjang: 'Profesi',
-    statusAkreditasi: 'BAIK_SEKALI',
-    nomorSk: '0095/SK/LAMDIK/Ak/P/II/2023',
-    tahunAkreditasi: 2023,
-    masaBerlaku: '2023 - 2028',
-    lembaga: 'LAMDIK',
-    fileUrl: SAMPLE_PDF_BASE64,
-    websiteFakultas: 'https://fkip.umkendari.ac.id/',
-    logoFakultasUrl: '/logo-umk.png',
-    urutan: 20,
-    createdAt: '2023-02-14T00:00:00Z'
-  },
-
-  // ── 6. Fakultas Agama Islam (FAI) ──
-  {
-    id: 'da_fai_01',
-    fakultas: 'Fakultas Agama Islam',
-    kodeFakultas: 'FAI',
-    prodi: 'Pendidikan Agama Islam (PAI)',
-    jenjang: 'S1',
-    statusAkreditasi: 'UNGGUL',
-    nomorSk: '0432/SK/LAMDIK/Ak/S/IX/2023',
-    tahunAkreditasi: 2023,
-    masaBerlaku: '2023 - 2028',
-    lembaga: 'LAMDIK',
-    fileUrl: SAMPLE_PDF_BASE64,
-    websiteFakultas: 'https://fai.umkendari.ac.id/',
-    logoFakultasUrl: '/logo-umk.png',
-    urutan: 21,
-    createdAt: '2023-09-08T00:00:00Z'
-  },
-  {
-    id: 'da_fai_02',
-    fakultas: 'Fakultas Agama Islam',
-    kodeFakultas: 'FAI',
-    prodi: 'Psikologi Islam',
-    jenjang: 'S1',
-    statusAkreditasi: 'BAIK_SEKALI',
-    nomorSk: '0210/SK/BAN-PT/Ak/S/VI/2023',
+    nomorSk: '0399/SK/BAN-PT/Ak/S/VII/2023',
     tahunAkreditasi: 2023,
     masaBerlaku: '2023 - 2028',
     lembaga: 'BAN-PT',
     fileUrl: SAMPLE_PDF_BASE64,
-    websiteFakultas: 'https://fai.umkendari.ac.id/',
+    websiteFakultas: 'https://fisip.umkendari.ac.id/',
     logoFakultasUrl: '/logo-umk.png',
-    urutan: 22,
-    createdAt: '2023-06-28T00:00:00Z'
+    urutan: 13,
+    createdAt: '2023-07-22T00:00:00Z'
+  },
+  {
+    id: 'da_fisip_02',
+    fakultas: 'Fakultas Ilmu Sosial dan Ilmu Politik',
+    kodeFakultas: 'FISIP',
+    prodi: 'Desain Komunikasi Visual',
+    jenjang: 'S1',
+    statusAkreditasi: 'BAIK_SEKALI',
+    nomorSk: '0205/SK/BAN-PT/Ak/S/IV/2023',
+    tahunAkreditasi: 2023,
+    masaBerlaku: '2023 - 2028',
+    lembaga: 'BAN-PT',
+    fileUrl: SAMPLE_PDF_BASE64,
+    websiteFakultas: 'https://fisip.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
+    urutan: 14,
+    createdAt: '2023-04-18T00:00:00Z'
+  },
+  {
+    id: 'da_fisip_03',
+    fakultas: 'Fakultas Ilmu Sosial dan Ilmu Politik',
+    kodeFakultas: 'FISIP',
+    prodi: 'Humas dan Komunikasi Digital',
+    jenjang: 'D4',
+    statusAkreditasi: 'BAIK_SEKALI',
+    nomorSk: '0188/SK/BAN-PT/Ak/ST/V/2023',
+    tahunAkreditasi: 2023,
+    masaBerlaku: '2023 - 2028',
+    lembaga: 'BAN-PT',
+    fileUrl: SAMPLE_PDF_BASE64,
+    websiteFakultas: 'https://fisip.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
+    urutan: 15,
+    createdAt: '2023-05-19T00:00:00Z'
+  },
+  {
+    id: 'da_fisip_04',
+    fakultas: 'Fakultas Ilmu Sosial dan Ilmu Politik',
+    kodeFakultas: 'FISIP',
+    prodi: 'Magister Ilmu Pemerintahan (S2)',
+    jenjang: 'S2',
+    statusAkreditasi: 'BAIK_SEKALI',
+    nomorSk: '0289/SK/BAN-PT/Ak/M/VI/2023',
+    tahunAkreditasi: 2023,
+    masaBerlaku: '2023 - 2028',
+    lembaga: 'BAN-PT',
+    fileUrl: SAMPLE_PDF_BASE64,
+    websiteFakultas: 'https://fisip.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
+    urutan: 16,
+    createdAt: '2023-06-20T00:00:00Z'
   },
 
-  // ── 7. Fakultas Hukum (FH) ──
+  // ── 5. Fakultas Hukum (FH) ──
   {
     id: 'da_fh_01',
     fakultas: 'Fakultas Hukum',
@@ -2357,7 +2221,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://fh.umkendari.ac.id/',
     logoFakultasUrl: '/logo-umk.png',
-    urutan: 23,
+    urutan: 17,
     createdAt: '2023-12-05T00:00:00Z'
   },
   {
@@ -2374,78 +2238,235 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://fh.umkendari.ac.id/',
     logoFakultasUrl: '/logo-umk.png',
-    urutan: 24,
+    urutan: 18,
     createdAt: '2023-10-15T00:00:00Z'
   },
 
-  // ── 8. Fakultas Ilmu Sosial dan Ilmu Politik (FISIP) ──
+  // ── 6. Fakultas Ekonomi dan Bisnis Islam (FEBI) ──
   {
-    id: 'da_fisip_01',
-    fakultas: 'Fakultas Ilmu Sosial dan Ilmu Politik',
-    kodeFakultas: 'FISIP',
-    prodi: 'Ilmu Pemerintahan',
+    id: 'da_febi_01',
+    fakultas: 'Fakultas Ekonomi dan Bisnis Islam',
+    kodeFakultas: 'FEBI',
+    prodi: 'Manajemen',
     jenjang: 'S1',
     statusAkreditasi: 'UNGGUL',
-    nomorSk: '0399/SK/BAN-PT/Ak/S/VII/2023',
+    nomorSk: '0299/SK/LAMEMBA/Ak/S/VII/2023',
     tahunAkreditasi: 2023,
     masaBerlaku: '2023 - 2028',
-    lembaga: 'BAN-PT',
+    lembaga: 'LAMEMBA',
     fileUrl: SAMPLE_PDF_BASE64,
-    websiteFakultas: 'https://fisip.umkendari.ac.id/',
-    logoFakultasUrl: '/logo-umk.png',
-    urutan: 24,
-    createdAt: '2023-07-22T00:00:00Z'
+    websiteFakultas: 'https://febi.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-febi.png',
+    urutan: 19,
+    createdAt: '2023-07-10T00:00:00Z'
   },
   {
-    id: 'da_fisip_02',
-    fakultas: 'Fakultas Ilmu Sosial dan Ilmu Politik',
-    kodeFakultas: 'FISIP',
-    prodi: 'Desain Komunikasi Visual (DKV)',
+    id: 'da_febi_02',
+    fakultas: 'Fakultas Ekonomi dan Bisnis Islam',
+    kodeFakultas: 'FEBI',
+    prodi: 'Bisnis Digital',
     jenjang: 'S1',
     statusAkreditasi: 'BAIK_SEKALI',
-    nomorSk: '0205/SK/BAN-PT/Ak/S/IV/2023',
+    nomorSk: '0188/SK/LAMEMBA/Ak/S/V/2023',
     tahunAkreditasi: 2023,
     masaBerlaku: '2023 - 2028',
-    lembaga: 'BAN-PT',
+    lembaga: 'LAMEMBA',
     fileUrl: SAMPLE_PDF_BASE64,
-    websiteFakultas: 'https://fisip.umkendari.ac.id/',
-    logoFakultasUrl: '/logo-umk.png',
-    urutan: 25,
-    createdAt: '2023-04-18T00:00:00Z'
+    websiteFakultas: 'https://febi.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-febi.png',
+    urutan: 20,
+    createdAt: '2023-05-14T00:00:00Z'
   },
   {
-    id: 'da_fisip_03',
-    fakultas: 'Fakultas Ilmu Sosial dan Ilmu Politik',
-    kodeFakultas: 'FISIP',
-    prodi: 'Magister Ilmu Pemerintahan (S2)',
+    id: 'da_febi_03',
+    fakultas: 'Fakultas Ekonomi dan Bisnis Islam',
+    kodeFakultas: 'FEBI',
+    prodi: 'Magister Manajemen (S2)',
     jenjang: 'S2',
     statusAkreditasi: 'BAIK_SEKALI',
-    nomorSk: '0289/SK/BAN-PT/Ak/M/VI/2023',
+    nomorSk: '0122/SK/LAMEMBA/Ak/M/X/2023',
     tahunAkreditasi: 2023,
     masaBerlaku: '2023 - 2028',
-    lembaga: 'BAN-PT',
+    lembaga: 'LAMEMBA',
     fileUrl: SAMPLE_PDF_BASE64,
-    websiteFakultas: 'https://fisip.umkendari.ac.id/',
-    logoFakultasUrl: '/logo-umk.png',
-    urutan: 26,
-    createdAt: '2023-06-20T00:00:00Z'
+    websiteFakultas: 'https://febi.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-febi.png',
+    urutan: 21,
+    createdAt: '2023-10-18T00:00:00Z'
   },
+
+  // ── 7. Fakultas Keguruan dan Ilmu Pendidikan (FKIP) ──
   {
-    id: 'da_fisip_04',
-    fakultas: 'Fakultas Ilmu Sosial dan Ilmu Politik',
-    kodeFakultas: 'FISIP',
-    prodi: 'Pemanfaatan SumberDaya Perikanan',
+    id: 'da_fkip_01',
+    fakultas: 'Fakultas Keguruan dan Ilmu Pendidikan',
+    kodeFakultas: 'FKIP',
+    prodi: 'Administrasi Pendidikan',
     jenjang: 'S1',
     statusAkreditasi: 'UNGGUL',
-    nomorSk: '0388/SK/BAN-PT/Ak/S/VII/2023',
+    nomorSk: '0411/SK/LAMDIK/Ak/S/X/2023',
+    tahunAkreditasi: 2023,
+    masaBerlaku: '2023 - 2028',
+    lembaga: 'LAMDIK',
+    fileUrl: SAMPLE_PDF_BASE64,
+    websiteFakultas: 'https://fkip.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
+    urutan: 22,
+    createdAt: '2023-10-02T00:00:00Z'
+  },
+  {
+    id: 'da_fkip_02',
+    fakultas: 'Fakultas Keguruan dan Ilmu Pendidikan',
+    kodeFakultas: 'FKIP',
+    prodi: 'Pendidikan Guru Anak Usia Dini',
+    jenjang: 'S1',
+    statusAkreditasi: 'BAIK_SEKALI',
+    nomorSk: '0288/SK/LAMDIK/Ak/S/VI/2022',
+    tahunAkreditasi: 2022,
+    masaBerlaku: '2022 - 2027',
+    lembaga: 'LAMDIK',
+    fileUrl: SAMPLE_PDF_BASE64,
+    websiteFakultas: 'https://fkip.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
+    urutan: 23,
+    createdAt: '2022-06-20T00:00:00Z'
+  },
+  {
+    id: 'da_fkip_03',
+    fakultas: 'Fakultas Keguruan dan Ilmu Pendidikan',
+    kodeFakultas: 'FKIP',
+    prodi: 'Pendidikan Bahasa Inggris',
+    jenjang: 'S1',
+    statusAkreditasi: 'UNGGUL',
+    nomorSk: '0325/SK/LAMDIK/Ak/S/VIII/2023',
+    tahunAkreditasi: 2023,
+    masaBerlaku: '2023 - 2028',
+    lembaga: 'LAMDIK',
+    fileUrl: SAMPLE_PDF_BASE64,
+    websiteFakultas: 'https://fkip.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
+    urutan: 24,
+    createdAt: '2023-08-14T00:00:00Z'
+  },
+  {
+    id: 'da_fkip_04',
+    fakultas: 'Fakultas Keguruan dan Ilmu Pendidikan',
+    kodeFakultas: 'FKIP',
+    prodi: 'Pendidikan Non Formal',
+    jenjang: 'S1',
+    statusAkreditasi: 'BAIK_SEKALI',
+    nomorSk: '0177/SK/LAMDIK/Ak/S/III/2022',
+    tahunAkreditasi: 2022,
+    masaBerlaku: '2022 - 2027',
+    lembaga: 'LAMDIK',
+    fileUrl: SAMPLE_PDF_BASE64,
+    websiteFakultas: 'https://fkip.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
+    urutan: 25,
+    createdAt: '2022-03-15T00:00:00Z'
+  },
+  {
+    id: 'da_fkip_05',
+    fakultas: 'Fakultas Keguruan dan Ilmu Pendidikan',
+    kodeFakultas: 'FKIP',
+    prodi: 'Pendidikan Teknologi Informasi',
+    jenjang: 'S1',
+    statusAkreditasi: 'BAIK_SEKALI',
+    nomorSk: '0199/SK/LAMDIK/Ak/S/IV/2023',
+    tahunAkreditasi: 2023,
+    masaBerlaku: '2023 - 2028',
+    lembaga: 'LAMDIK',
+    fileUrl: SAMPLE_PDF_BASE64,
+    websiteFakultas: 'https://fkip.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
+    urutan: 26,
+    createdAt: '2023-04-10T00:00:00Z'
+  },
+  {
+    id: 'da_fkip_06',
+    fakultas: 'Fakultas Keguruan dan Ilmu Pendidikan',
+    kodeFakultas: 'FKIP',
+    prodi: 'Pendidikan Matematika',
+    jenjang: 'S1',
+    statusAkreditasi: 'BAIK_SEKALI',
+    nomorSk: '0214/SK/LAMDIK/Ak/S/V/2023',
+    tahunAkreditasi: 2023,
+    masaBerlaku: '2023 - 2028',
+    lembaga: 'LAMDIK',
+    fileUrl: SAMPLE_PDF_BASE64,
+    websiteFakultas: 'https://fkip.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
+    urutan: 27,
+    createdAt: '2023-05-18T00:00:00Z'
+  },
+  {
+    id: 'da_fkip_07',
+    fakultas: 'Fakultas Keguruan dan Ilmu Pendidikan',
+    kodeFakultas: 'FKIP',
+    prodi: 'Magister Administrasi Pendidikan (S2)',
+    jenjang: 'S2',
+    statusAkreditasi: 'BAIK_SEKALI',
+    nomorSk: '0189/SK/LAMDIK/Ak/M/VII/2023',
+    tahunAkreditasi: 2023,
+    masaBerlaku: '2023 - 2028',
+    lembaga: 'LAMDIK',
+    fileUrl: SAMPLE_PDF_BASE64,
+    websiteFakultas: 'https://fkip.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
+    urutan: 28,
+    createdAt: '2023-07-20T00:00:00Z'
+  },
+  {
+    id: 'da_fkip_08',
+    fakultas: 'Fakultas Keguruan dan Ilmu Pendidikan',
+    kodeFakultas: 'FKIP',
+    prodi: 'Magister Pendidikan Bahasa Inggris (S2)',
+    jenjang: 'S2',
+    statusAkreditasi: 'BAIK_SEKALI',
+    nomorSk: '0204/SK/LAMDIK/Ak/M/VIII/2023',
+    tahunAkreditasi: 2023,
+    masaBerlaku: '2023 - 2028',
+    lembaga: 'LAMDIK',
+    fileUrl: SAMPLE_PDF_BASE64,
+    websiteFakultas: 'https://fkip.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
+    urutan: 29,
+    createdAt: '2023-08-25T00:00:00Z'
+  },
+
+  // ── 8. Fakultas Agama Islam (FAI) ──
+  {
+    id: 'da_fai_01',
+    fakultas: 'Fakultas Agama Islam',
+    kodeFakultas: 'FAI',
+    prodi: 'Pendidikan Agama Islam',
+    jenjang: 'S1',
+    statusAkreditasi: 'UNGGUL',
+    nomorSk: '0432/SK/LAMDIK/Ak/S/IX/2023',
+    tahunAkreditasi: 2023,
+    masaBerlaku: '2023 - 2028',
+    lembaga: 'LAMDIK',
+    fileUrl: SAMPLE_PDF_BASE64,
+    websiteFakultas: 'https://fai.umkendari.ac.id/',
+    logoFakultasUrl: '/logo-umk.png',
+    urutan: 30,
+    createdAt: '2023-09-08T00:00:00Z'
+  },
+  {
+    id: 'da_fai_02',
+    fakultas: 'Fakultas Agama Islam',
+    kodeFakultas: 'FAI',
+    prodi: 'Psikologi Islam',
+    jenjang: 'S1',
+    statusAkreditasi: 'BAIK_SEKALI',
+    nomorSk: '0210/SK/BAN-PT/Ak/S/VI/2023',
     tahunAkreditasi: 2023,
     masaBerlaku: '2023 - 2028',
     lembaga: 'BAN-PT',
     fileUrl: SAMPLE_PDF_BASE64,
-    websiteFakultas: 'https://fisip.umkendari.ac.id/',
+    websiteFakultas: 'https://fai.umkendari.ac.id/',
     logoFakultasUrl: '/logo-umk.png',
-    urutan: 27,
-    createdAt: '2023-07-15T00:00:00Z'
+    urutan: 31,
+    createdAt: '2023-06-28T00:00:00Z'
   },
 
   // ── 9. Fakultas Kedokteran dan Ilmu Kesehatan (FKIK) ──
@@ -2453,7 +2474,7 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     id: 'da_fkik_01',
     fakultas: 'Fakultas Kedokteran dan Ilmu Kesehatan',
     kodeFakultas: 'FKIK',
-    prodi: 'Kedokteran (S1)',
+    prodi: 'Kedokteran',
     jenjang: 'S1',
     statusAkreditasi: 'BAIK_SEKALI',
     nomorSk: '0180/SK/LAM-PTKes/Ak/S/I/2024',
@@ -2463,14 +2484,14 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://fkik.umkendari.ac.id/',
     logoFakultasUrl: '/logo-umk.png',
-    urutan: 26,
+    urutan: 32,
     createdAt: '2024-01-20T00:00:00Z'
   },
   {
     id: 'da_fkik_02',
     fakultas: 'Fakultas Kedokteran dan Ilmu Kesehatan',
     kodeFakultas: 'FKIK',
-    prodi: 'Teknologi Laboratorium Medik (D4)',
+    prodi: 'Teknologi Laboratorium Medik',
     jenjang: 'D4',
     statusAkreditasi: 'BAIK_SEKALI',
     nomorSk: '0145/SK/LAM-PTKes/Ak/D4/II/2024',
@@ -2480,27 +2501,25 @@ export const SEED_DOKUMEN_AKREDITASI: DokumenAkreditasi[] = [
     fileUrl: SAMPLE_PDF_BASE64,
     websiteFakultas: 'https://fkik.umkendari.ac.id/',
     logoFakultasUrl: '/logo-umk.png',
-    urutan: 27,
+    urutan: 33,
     createdAt: '2024-02-12T00:00:00Z'
   },
-
-  // ── 10. Program Pascasarjana (S2) ──
   {
-    id: 'da_pps_01',
-    fakultas: 'Program Pascasarjana (S2)',
-    kodeFakultas: 'PPS',
-    prodi: 'Magister Manajemen (S2)',
-    jenjang: 'S2',
+    id: 'da_fkik_03',
+    fakultas: 'Fakultas Kedokteran dan Ilmu Kesehatan',
+    kodeFakultas: 'FKIK',
+    prodi: 'Farmasi',
+    jenjang: 'D3',
     statusAkreditasi: 'BAIK_SEKALI',
-    nomorSk: '0122/SK/LAMEMBA/Ak/M/X/2023',
-    tahunAkreditasi: 2023,
-    masaBerlaku: '2023 - 2028',
-    lembaga: 'LAMEMBA',
+    nomorSk: '0098/SK/LAM-PTKes/Ak/D3/III/2024',
+    tahunAkreditasi: 2024,
+    masaBerlaku: '2024 - 2029',
+    lembaga: 'LAM-PTKes',
     fileUrl: SAMPLE_PDF_BASE64,
-    websiteFakultas: 'https://pasca.umkendari.ac.id/',
+    websiteFakultas: 'https://fkik.umkendari.ac.id/',
     logoFakultasUrl: '/logo-umk.png',
-    urutan: 28,
-    createdAt: '2023-10-18T00:00:00Z'
+    urutan: 34,
+    createdAt: '2024-03-01T00:00:00Z'
   }
 ];
 
@@ -2793,17 +2812,14 @@ if (typeof window !== 'undefined' && window.localStorage) {
           if (Array.isArray(parsed) && parsed.length > 0) {
             MEMORY_DB[key] = parsed;
             if (key === 'dokumen_akreditasi') {
-              // Sinkronkan prodi seed terbaru jika belum ada di cache browser
-              SEED_DOKUMEN_AKREDITASI.forEach((seedItem) => {
-                const exists = (MEMORY_DB[key] as any[]).some(
-                  (x: any) => x.id === seedItem.id || (x.fakultas === seedItem.fakultas && x.prodi === seedItem.prodi)
-                );
-                if (!exists) {
-                  (MEMORY_DB[key] as any[]).push(seedItem);
-                }
+              // Sinkronkan prodi akreditasi 100% dengan seed resmi UM Kendari
+              const seedMap = new Map(SEED_DOKUMEN_AKREDITASI.map(s => [s.id, s]));
+              // Timpa / update data yang ada dengan data resmi
+              const updatedList = SEED_DOKUMEN_AKREDITASI.map(seedItem => {
+                const existing = (MEMORY_DB[key] as any[]).find((x: any) => x.id === seedItem.id);
+                return existing ? { ...seedItem, ...existing, prodi: seedItem.prodi, jenjang: seedItem.jenjang, fakultas: seedItem.fakultas, kodeFakultas: seedItem.kodeFakultas } : seedItem;
               });
-
-              MEMORY_DB[key] = (MEMORY_DB[key] as any[]).map((item: any) => {
+              MEMORY_DB[key] = updatedList.map((item: any) => {
                 if (item?.fakultas === 'Fakultas Ekonomi dan Bisnis Islam' && (!item.logoFakultasUrl || item.logoFakultasUrl === '/logo-umk.png')) {
                   return { ...item, logoFakultasUrl: '/logo-febi.png' };
                 }

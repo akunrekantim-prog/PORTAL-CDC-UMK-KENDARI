@@ -103,7 +103,13 @@ export default function DokumenAkreditasiView({
         (q.includes('sosial') && itemFakultasNorm.includes('sosial')) ||
         (q.includes('politik') && itemFakultasNorm.includes('politik')) ||
         (q.includes('pemerintahan') && itemProdiNorm.includes('pemerintahan')) ||
-        (q.includes('dkv') && itemProdiNorm.includes('dkv'));
+        (q.includes('dkv') && itemProdiNorm.includes('dkv')) ||
+        (q.includes('humas') && itemProdiNorm.includes('humas')) ||
+        (q.includes('farmasi') && itemProdiNorm.includes('farmasi')) ||
+        (q.includes('paud') && (itemProdiNorm.includes('paud') || itemProdiNorm.includes('anak usia dini'))) ||
+        (q.includes('usia dini') && itemProdiNorm.includes('anak usia dini')) ||
+        (q.includes('magister') && itemProdiNorm.includes('magister')) ||
+        (q.includes('s2') && (item.jenjang.toLowerCase() === 's2' || itemProdiNorm.includes('s2')));
 
       const matchJenjang =
         selectedJenjang === 'semua' ||
@@ -411,7 +417,7 @@ export default function DokumenAkreditasiView({
                 <option value="S1">Sarjana (S1)</option>
                 <option value="S2">Magister (S2)</option>
                 <option value="D4">Sarjana Terapan (D4)</option>
-                <option value="Profesi">Profesi</option>
+                <option value="D3">Diploma Tiga (D3)</option>
               </select>
             </div>
 
@@ -575,13 +581,18 @@ export default function DokumenAkreditasiView({
 
                             {/* Right: Jenjang, Status, & Action */}
                             <div className="flex items-center gap-1.5 shrink-0">
-                              {/* Jenjang Pill (S1, S2, D4) */}
-                              <span className="px-1.5 py-0.5 rounded bg-blue-50 text-[#1E3A8A] font-black text-[10px] border border-blue-200">
+                              {/* Jenjang Pill (S1, S2, D4, D3) */}
+                              <span className={`px-1.5 py-0.5 rounded font-black text-[10px] border ${
+                                prodi.jenjang === 'S2'
+                                  ? 'bg-amber-100 text-[#F26522] border-amber-300 font-extrabold'
+                                  : prodi.jenjang === 'D4'
+                                  ? 'bg-teal-50 text-teal-700 border-teal-200'
+                                  : prodi.jenjang === 'D3'
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  : 'bg-blue-50 text-[#1E3A8A] border-blue-200'
+                              }`}>
                                 {prodi.jenjang}
                               </span>
-
-                              {/* Status Akreditasi Pill */}
-                              {renderStatusBadge(prodi.statusAkreditasi)}
 
                               {/* Action: View / Download Button */}
                               <button
