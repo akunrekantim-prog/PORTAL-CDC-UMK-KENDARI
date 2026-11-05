@@ -56,6 +56,17 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
         const result = await loginToBackend(email.trim(), password);
         user = result.user as UserType;
       } catch (backendErr: any) {
+        const isNetworkErr =
+          backendErr &&
+          (backendErr.name === 'TypeError' ||
+            String(backendErr.message).toLowerCase().includes('fetch') ||
+            String(backendErr.message).includes('Failed') ||
+            String(backendErr.message).includes('5000'));
+
+        if (!isNetworkErr) {
+          setErrorMessage(backendErr.message || 'Email atau kata sandi administrator salah.');
+          return;
+        }
         const users = getFromDB<UserType>('users');
         const cleanEmail = email.trim().toLowerCase();
         let matched = users.find((u) => u.email.toLowerCase() === cleanEmail);

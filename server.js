@@ -10,6 +10,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
+import { autoSyncDatabaseOnBoot, runFullSync } from './serverSync.js';
 
 dotenv.config();
 
@@ -1755,6 +1756,18 @@ app.post('/api/sync/:entity', authenticateToken, writeLimiter, async (req, res) 
 });
 
 // ── DELETE — FIX CRITICAL SQLi: pakai Prisma delete (parameterized), bukan raw SQL ─
+
+// POST /api/admin/sync-from-supabase — Sinkronisasi manual dari Supabase ke PostgreSQL
+app.post('/api/admin/sync-from-supabase', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const stats = await runFullSync(prisma);
+    res.json({ success: true, message: 'Sinkronisasi dari Supabase selesai', stats });
+  } catch (err) {
+    console.error('[Sync Route Error]:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.delete('/api/:table/:id', authenticateToken, writeLimiter, async (req, res) => {
   const { table } = req.params;
   const id = String(req.params.id || '').trim();
@@ -1825,6 +1838,13 @@ app.listen(PORT, async () => {
 
   // Auto-migration: tambah kolom profil JSON jika belum ada (idempotent, safe to re-run)
   // Dijalankan saat startup di Railway agar tidak perlu prisma migrate manual.
+    // Auto-sync database dari Supabase saat boot jika database kampus kosong
+  try {
+    await autoSyncDatabaseOnBoot(prisma);
+  } catch (syncErr) {
+    console.warn('⚠️ [Auto-Sync Boot Warning]:', syncErr?.message);
+  }
+
   if (isProd) {
     try {
       await prisma.$executeRawUnsafe(`
